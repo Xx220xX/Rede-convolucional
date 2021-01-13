@@ -126,7 +126,6 @@ struct camada_conv_t {
                 for (int y = 0; y < saida.tamanho.y; y++) {
                     // converte as coordenadas da saida para entrada
                     ponto_t mapeado = mapeia_saida_entrada({(uint16_t) x, (uint16_t) y, 0}, 0);
-
                     // opera a soma de convolucao
                     float sum = 0;
                     for (int i = 0; i < tam_filtro; i++)
@@ -168,6 +167,8 @@ struct camada_conv_t {
         for (int x = 0; x < entrada.tamanho.x; x++) {
             for (int y = 0; y < entrada.tamanho.y; y++) {
                 range_t rn = mapeia_entrada_saida(x, y);
+                printf("(%.4lf,%.4lf,%.4lf)\n",rn.min_x,rn.min_y,rn.min_z);
+                printf("(%.4lf,%.4lf,%.4lf)\n\n",rn.max_x,rn.max_y,rn.max_z);
                 for (int z = 0; z < entrada.tamanho.z; z++) {
                     float soma_erro = 0;
                     for (int i = rn.min_x; i <= rn.max_x; i++) {
@@ -175,7 +176,7 @@ struct camada_conv_t {
                         for (int j = rn.min_y; j <= rn.max_y; j++) {
                             int miny = j * passo;
                             for (int k = rn.min_z; k <= rn.max_z; k++) {
-                                int peso_aplicado = filtros[k].get(x - minx, y - miny, z);
+                                float peso_aplicado = filtros[k].get(x - minx, y - miny, z);
                                 soma_erro += peso_aplicado * grad_prox_camada(i, j, k);
                                 grads_filtros[k].get(x - minx, y - miny, z).grad += entrada(x, y, z) * grad_prox_camada(i, j, k);
                             }

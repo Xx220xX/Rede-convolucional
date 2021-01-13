@@ -11,4 +11,5 @@ CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/CamadaRelu.h
 CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/Tensor.h
 CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/cnn.h
 CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/funcoesDeAtivacao.h
+CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/utils.h
 

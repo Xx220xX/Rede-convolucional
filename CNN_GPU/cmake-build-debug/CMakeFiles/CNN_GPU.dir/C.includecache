@@ -25,6 +25,8 @@ Tensor.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/Tensor.h
 stdlib.h
 -
+utils.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/utils.h
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/CamadaDropOut.h
 string.h
@@ -95,4 +97,6 @@ C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/CamadaPool.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/funcoesDeAtivacao.h
 math.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/math.h
+
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/utils.h
 
