@@ -74,6 +74,7 @@ struct camada_fc_t
 					{
 						int m = map( { i, j, z } );
 						valor_entrada += entrada( i, j, z ) * pesos( m, n, 0 );
+						printf("");
 					}
 
 			input[n] = valor_entrada;

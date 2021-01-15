@@ -19,7 +19,7 @@ void generategrad(tensor_t<float> saida, tensor_t<float> &grad) {
     for (int x = 0; x < saida.tamanho.x; ++x) {
         for (int y = 0; y < saida.tamanho.y; ++y) {
             for (int z = 0; z < saida.tamanho.z; ++z) {
-                grad(x,y,z) = saida(x,y,z) * (double)rand() / ((double) RAND_MAX);
+                grad(x, y, z) = saida(x, y, z) * (double) rand() / ((double) RAND_MAX);
             }
         }
     }
@@ -34,8 +34,8 @@ void testConv() {
     printf("Teste conv\n\nativa:\nTensor de saida\n");
     print_tensor(cconv->saida);
 
-    tensor_t<float> grad (cconv->saida.tamanho.x,cconv->saida.tamanho.y,cconv->saida.tamanho.z);
-    generategrad(cconv->saida,grad);
+    tensor_t<float> grad(cconv->saida.tamanho.x, cconv->saida.tamanho.y, cconv->saida.tamanho.z);
+    generategrad(cconv->saida, grad);
 
     printf("------------CALCULA GRAD-------------\nGRADIENTE\n");
     cconv->calc_grads(grad);
@@ -43,16 +43,17 @@ void testConv() {
 
 
 }
-int main() {
+
+void testePool() {
     srand(1);
-    camada_pool_t *cconv =  new camada_pool_t(1, 3,  {5, 5, 3});
+    camada_pool_t *cconv = new camada_pool_t(1, 3, {5, 5, 3});
     tensor_t<float> entrada = getEntrada(5, 5, 3);
     cconv->ativa(entrada);
     printf("Teste conv\n\nativa:\nTensor de saida\n");
     print_tensor(cconv->saida);
 
-    tensor_t<float> grad (cconv->saida.tamanho.x,cconv->saida.tamanho.y,cconv->saida.tamanho.z);
-    generategrad(cconv->saida,grad);
+    tensor_t<float> grad(cconv->saida.tamanho.x, cconv->saida.tamanho.y, cconv->saida.tamanho.z);
+    generategrad(cconv->saida, grad);
 
     printf("------------CALCULA GRAD-------------\nGRADIENTE\n");
     print_tensor(grad);
@@ -61,4 +62,24 @@ int main() {
     print_tensor(cconv->grads_entrada);
 
 
+}
+
+int main() {
+    srand(1);
+    camada_fc_t *cconv = new camada_fc_t({5,5,3},8);
+    tensor_t<float> entrada = getEntrada(5, 5, 3);
+    cconv->ativa(entrada);
+    printf("Teste conv\n\nativa:\nTensor de saida\n");
+    print_tensor(cconv->saida);
+
+    tensor_t<float> grad(cconv->saida.tamanho.x, cconv->saida.tamanho.y, cconv->saida.tamanho.z);
+    generategrad(cconv->saida, grad);
+
+    printf("------------CALCULA GRAD-------------\nGRADIENTE\n");
+    print_tensor(grad);
+    printf("------------CALCULA GRAD-------------\nGRADIENTE entrada\n");
+    cconv->calc_grads(grad);
+    print_tensor(cconv->grads_entrada);
+
+    return 0;
 }

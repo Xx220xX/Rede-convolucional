@@ -11,14 +11,15 @@
 
 #define INVALID_FILTER_SIZE -1
 
-typedef struct _cnn{
+typedef struct _cnn {
     Params parametros;
     Camada *camadas;
     int size;
     Ponto3d sizeIn;
     char error;
-}  TypeCnn;
-typedef TypeCnn  * Cnn;
+} TypeCnn;
+typedef TypeCnn *Cnn;
+
 Cnn createCnn(Params p, UINT inx, UINT iny, UINT inz) {
     Cnn c = (Cnn) calloc(1, sizeof(TypeCnn));
     c->parametros = p;
@@ -38,7 +39,8 @@ Ponto3d __addLayer(Cnn c) {
     return in;
 }
 
-#define checkSizeFilter(v,tam,pas) (((v)-(tam))/(pas)) ==((double)(v)-(tam))/((double)(pas))
+#define checkSizeFilter(v, tam, pas) (((v)-(tam))/(pas)) ==((double)(v)-(tam))/((double)(pas))
+
 int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros) {
     /** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
     * em que:
@@ -50,10 +52,10 @@ int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltro
     **/
 
     Ponto3d sizeIn = __addLayer(c);
-    if(!checkSizeFilter(sizeIn.x,tamanhoDoFiltro,passo) || !checkSizeFilter(sizeIn.y,tamanhoDoFiltro,passo) ){
+    if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
         c->error = INVALID_FILTER_SIZE;
-        c->size --;
-        c->camadas = (Camada*) realloc(c->camadas, c->size * sizeof(Camada));
+        c->size--;
+        c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
         return c->error;
 
     }
@@ -64,6 +66,7 @@ int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltro
                                          &c->parametros);
     return 0;
 }
+
 int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
     /** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
     * em que:
@@ -75,17 +78,17 @@ int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
     **/
 
     Ponto3d sizeIn = __addLayer(c);
-    if(!checkSizeFilter(sizeIn.x,tamanhoDoFiltro,passo) || !checkSizeFilter(sizeIn.y,tamanhoDoFiltro,passo) ){
+    if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
         c->error = INVALID_FILTER_SIZE;
-        c->size --;
-        c->camadas = (Camada*) realloc(c->camadas, c->size * sizeof(Camada));
+        c->size--;
+        c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
         return c->error;
 
     }
 
     Tensor entrada = NULL;
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-    c->camadas[c->size - 1] = createPool(passo, tamanhoDoFiltro,  sizeIn.x, sizeIn.y, sizeIn.z, entrada,
+    c->camadas[c->size - 1] = createPool(passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
                                          &c->parametros);
     return 0;
 }
@@ -106,11 +109,11 @@ int CnnAddDropOutLayer(Cnn c, double pontoAtivacao) {
     return 0;
 }
 
-int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida,int funcaoDeAtivacao) {
+int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, Params *params, int funcaoDeAtivacao) {
     Ponto3d sizeIn = __addLayer(c);
     Tensor entrada = NULL;
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-    c->camadas[c->size - 1] = createFullConnect(sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada,funcaoDeAtivacao);
+    c->camadas[c->size - 1] = createFullConnect(sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada, params, funcaoDeAtivacao);
     return 0;
 }
 

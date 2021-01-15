@@ -12,8 +12,8 @@ static double __sigmoid(double x){
     return 1.0/(1+exp(-x));
 }
 static double __sigmoid_dif(double x){
-    double tmp = cosh(x);
-    return 1.0/(tmp*tmp);
+    double tmp = __sigmoid(x);
+    return tmp*(1-tmp);
 }
 typedef double (*dfd)(double);
 

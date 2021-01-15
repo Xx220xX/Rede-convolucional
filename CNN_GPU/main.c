@@ -73,9 +73,34 @@ void testeConv() {
     releaseTensor(&entrada);
     releaseTensor(&grad);
 }
+void testeFc() {
+    srand(1);
+    Params p = {0.1, 0.6, 0.001};
+    Tensor entrada = newTensor(5, 5, 3);
+    generateInput(entrada);
+    Camada pl = createFullConnect(5,5,3,8, entrada, &p,0);
+    pl->ativa(pl);
+
+    printf("Teste fc\n\nativa:\nTensor de saida\n");
+    printTensor(pl->saida);
+
+    Tensor grad = newTensor(pl->saida->tx, pl->saida->ty, pl->saida->tz);
+    generategrad(pl->saida,grad);
+    printf("------------CALCULA GRAD-------------\n");
+    pl->calc_grads(pl, grad);
+
+    printf("GRADIENTE ENTRADA\n");
+    printTensor(pl->gradsEntrada);
+
+
+
+    pl->release(&pl);
+    releaseTensor(&entrada);
+    releaseTensor(&grad);
+}
 
 int main() {
-    testePool();
+    testeFc();
     /*Params p = {0.1,0.99,0.5};
     Cnn c = createCnn(p,28,28,3);
     CnnAddConvLayer(c,1,3,8);

@@ -24,6 +24,7 @@ typedef struct {
     // funcao de ativacao e sua derivada
     dfd fa, dfa;
 } *CamadaFullConnect, Typecamadafullconnect;
+
 void releaseFullConnect(CamadaFullConnect *pc);
 
 
@@ -33,9 +34,10 @@ void ativaFullConnect(CamadaFullConnect c);
 
 void calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext);
 
-Camada createFullConnect(UINT inx, UINT iny, UINT inz, UINT tamanhoSaida, Tensor entrada,int funcaoDeAtivacao) {
+Camada createFullConnect(UINT inx, UINT iny, UINT inz, UINT tamanhoSaida, Tensor entrada, Params *params, int funcaoDeAtivacao) {
     CamadaFullConnect c = (CamadaFullConnect) calloc(1, sizeof(Typecamadafullconnect));
     c->super.gradsEntrada = newTensor(inx, iny, inz);
+    c->super.parametros = params;
     if (!entrada) {
         c->super.entrada = newTensor(inx, iny, inz);
         c->super.flag_releaseInput = 1;
@@ -63,7 +65,7 @@ Camada createFullConnect(UINT inx, UINT iny, UINT inz, UINT tamanhoSaida, Tensor
     c->super.corrige_pesos = (fv) corrigePesosFullConnect;
     c->super.type = FULLCONNECT;
     c->fa = funcoesDeAtivacao[funcaoDeAtivacao];
-    c->fa = funcoesDeAtivacao[funcaoDeAtivacao+FLAGDIF];
+    c->dfa = funcoesDeAtivacao[funcaoDeAtivacao + FLAGDIF];
 
     return (Camada) c;
 }
@@ -88,16 +90,13 @@ void ativaFullConnect(CamadaFullConnect c) {
     int m;
     for (int n = 0; n < c->super.saida->tx; ++n) {
         valorEntrada = 0;
-        for (int i = 0; i < c->super.entrada->tx; ++i) {
-            for (int j = 0; j < c->super.entrada->ty; ++j) {
-                for (int z = 0; z < c->super.entrada->tx; ++z) {
-                    m = i * (c->super.entrada->ty * c->super.entrada->tz) + j * c->super.entrada->tz + z;
-                    valorEntrada += TensorAT(c->super.entrada, i, j, z) * TensorAT(c->pesos, m, n, 0);
+        FOR3D(x, y, z, c->super.entrada->tx, c->super.entrada->ty, c->super.entrada->tz) {
+                    m = z * (c->super.entrada->tx * c->super.entrada->ty) + y * c->super.entrada->tx + x;
+                    valorEntrada += TensorAT(c->super.entrada, x, y, z) * TensorAT(c->pesos, m, n, 0);
+
                 }
-            }
-        }
-        c->input->data[n] = valorEntrada;
-        c->super.saida->data[n] = c->fa(valorEntrada);
+        TensorAT(c->input, n, 0, 0) = valorEntrada;
+        TensorAT(c->super.saida, n, 0, 0) = c->fa(valorEntrada);
     }
 }
 
@@ -124,21 +123,19 @@ void corrigePesosFullConnect(CamadaFullConnect c) {
 }
 
 void calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext) {
-    memset(c->super.gradsEntrada, 0, c->super.gradsEntrada->tx * c->super.gradsEntrada->ty * c->super.gradsEntrada->tz);
+    memset(c->super.gradsEntrada->data, 0, c->super.gradsEntrada->tx * c->super.gradsEntrada->ty * c->super.gradsEntrada->tz);
     int m;
     for (int n = 0; n < c->super.saida->tx; ++n) {
-        c->grad->data[n] = TensorAT(GradNext, n, 0, 0) * c->dfa(c->input->data[n]);
-        for (int n = 0; n < c->super.saida->tx; ++n) {
-            for (int i = 0; i < c->super.entrada->tx; ++i) {
-                for (int j = 0; j < c->super.entrada->ty; ++j) {
-                    for (int z = 0; z < c->super.entrada->tx; ++z) {
-                        m = i * (c->super.entrada->ty * c->super.entrada->tz) + j * c->super.entrada->tz + z;
-                        TensorAT(c->super.gradsEntrada, i, j, z) += c->grad->data[n] * TensorAT(c->pesos, m, n, 0);
-                    }
+        TensorAT(c->grad,n,0,0) = TensorAT(GradNext, n, 0, 0) * c->dfa(TensorAT(c->input,n,0,0));
+
+        FOR3D(x, y, z, c->super.entrada->tx, c->super.entrada->ty, c->super.entrada->tz) {
+                    m = z * (c->super.entrada->tx * c->super.entrada->ty) + y * c->super.entrada->tx + x;
+                    TensorAT(c->super.gradsEntrada, x, y, z) += TensorAT(c->grad, n, 0, 0) * TensorAT(c->pesos, m, n, 0);
+
                 }
-            }
-        }
     }
+
 }
+
 
 #endif //CNN_GPU_CAMADAFULLCONNECT_H
