@@ -26,7 +26,7 @@ void generategrad(tensor_t<float> saida, tensor_t<float> &grad) {
 
 }
 
-int main() {
+void testConv() {
     srand(1);
     camada_conv_t *cconv = new camada_conv_t(1, 3, 2, {5, 5, 3});
     tensor_t<float> entrada = getEntrada(5, 5, 3);
@@ -41,5 +41,24 @@ int main() {
     cconv->calc_grads(grad);
     print_tensor(cconv->grads_entrada);
 
-    return 0;
+
+}
+int main() {
+    srand(1);
+    camada_pool_t *cconv =  new camada_pool_t(1, 3,  {5, 5, 3});
+    tensor_t<float> entrada = getEntrada(5, 5, 3);
+    cconv->ativa(entrada);
+    printf("Teste conv\n\nativa:\nTensor de saida\n");
+    print_tensor(cconv->saida);
+
+    tensor_t<float> grad (cconv->saida.tamanho.x,cconv->saida.tamanho.y,cconv->saida.tamanho.z);
+    generategrad(cconv->saida,grad);
+
+    printf("------------CALCULA GRAD-------------\nGRADIENTE\n");
+    print_tensor(grad);
+    printf("------------CALCULA GRAD-------------\nGRADIENTE entrada\n");
+    cconv->calc_grads(grad);
+    print_tensor(cconv->grads_entrada);
+
+
 }

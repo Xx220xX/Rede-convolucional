@@ -34,11 +34,9 @@ void testePool() {
     printTensor(pl->saida);
 
 
-    Tensor grad = newTensor(pl->saida->tx, pl->saida->ty, pl->saida->tz);
-    for (int i = 0; i < pl->saida->tx * pl->saida->ty * pl->saida->tz; i++) {
-        grad->data[i] = pl->saida->data[i] * .3;
-    }
     printf("------------CALCULA GRAD-------------\nGRADIENTE\n");
+    Tensor grad = newTensor(pl->saida->tx, pl->saida->ty, pl->saida->tz);
+    generategrad(pl->saida,grad);
     printTensor(grad);
     pl->calc_grads(pl, grad);
 
@@ -77,7 +75,7 @@ void testeConv() {
 }
 
 int main() {
-    testeConv();
+    testePool();
     /*Params p = {0.1,0.99,0.5};
     Cnn c = createCnn(p,28,28,3);
     CnnAddConvLayer(c,1,3,8);

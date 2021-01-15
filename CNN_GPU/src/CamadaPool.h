@@ -91,17 +91,17 @@ Range mapeia_entrada_saidaPool(int x, int y, int tamanhoFiltro, int passo, Tenso
     g.max.x = normaliza_range(a / passo, saida->tx, 0);
     g.max.y = normaliza_range(b / passo, saida->ty, 0);
     g.max.z = saida->tz - 1;
+    return g;
 
 }
 
 void calc_gradsPool(CamadaPool c, Tensor GradNext) {
-    Range range;
+    Range range={0};
     double somaErro = 0;
     int minx, miny;
     double testeMax;
-    for (int x = 0; x < c->super.entrada->tx; ++x) {
-        for (int y = 0; y < c->super.entrada->ty; ++y) {
-            range = mapeia_entrada_saidaPool(x, y, c->tamanhoFiltro, c->passo,c->super.saida);
+    FOR2D(x,y,c->super.entrada->tx,c->super.entrada->ty) {
+            range = mapeia_entrada_saidaPool(x, y, c->tamanhoFiltro, c->passo, c->super.saida);
             for (int z = 0; z < c->super.entrada->tz; ++z) {
                 somaErro = 0;
                 for (int i = range.min.x; i <= range.max.x; ++i) {
@@ -115,7 +115,7 @@ void calc_gradsPool(CamadaPool c, Tensor GradNext) {
                 TensorAT(c->super.gradsEntrada, x, y, z) = somaErro;
             }
         }
-    }
+
 }
 
 #endif //CNN_GPU_CAMADAPOOL_H
