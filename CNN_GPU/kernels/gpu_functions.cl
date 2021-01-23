@@ -56,6 +56,14 @@ __kernel void convSum(__global double *filtro, __global double *entrada, __globa
             }
     saida[TensorMap(x,y,filtrok,saidatx,saidaty)] = sum;
 }
+__kernel void convFixWeight(__global double *filtro,__global double *grad,__global double *gradOld,double hitlearn,
+                            double momento,double multp,double weightDecay,int k0){
+    int k = get_global_id(0) + k0;
+    double m  = grad[k] + gradOld[k]*momento;
+    double w = filtro[k] ;
+    filtro[k] =   w - hitlearn * (m * multp +w * weightDecay);
+    gradOld[k] = m;
 
+}
 
 #endif //CL_TESTE_KERNEL_SRC_H

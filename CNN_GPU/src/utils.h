@@ -9,6 +9,7 @@
     for(int i=0;i<iF;i++)\
     for(int j=0;j<jF;j++)
 
+size_t  max_works;
 
 #define call_kernel(total, command)\
     id = 0;\

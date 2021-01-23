@@ -26,6 +26,7 @@ int WrapperCL_init(WrapperCL *self, const char *src);
 
 void WrapperCL_release(WrapperCL *self);
 void showError(int error);
+#define PERRW(e,x)if(e){fprintf(stderr,"%s error code: %d\n\t",x,e);showError(e);}
 #define PERR(e,x)if(e){fprintf(stderr,"%s error code: %d\n\t",x,e);showError(e);return e;}
 #define PER(e,x)if(e){fprintf(stderr,"%s error code: %d\n\t",x,e);showError(e);exit(e);}
 

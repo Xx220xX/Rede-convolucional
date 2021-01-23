@@ -12,7 +12,7 @@ typedef int (*fvv)(void *, void *);
 typedef int (*fv)(void *);
 
 typedef struct {
-    double hitLearn, momento, decaimentoDePeso;
+    double hitLearn, momento, decaimentoDePeso,multiplicador;
 } Params;
 
 #define CONV 1
