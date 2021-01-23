@@ -10,4 +10,20 @@
     for(int j=0;j<jF;j++)
 
 
+#define call_kernel(total, command)\
+    id = 0;\
+    global =local= (total);\
+    if(global<max_works){\
+        command\
+    }else{\
+        resto = global % max_works;\
+        global = (global / max_works) * max_works;\
+        local = max_works;\
+        command\
+        if(resto){\
+             id = global;\
+             global = local = resto;\
+             command\
+        }\
+    }
 #endif

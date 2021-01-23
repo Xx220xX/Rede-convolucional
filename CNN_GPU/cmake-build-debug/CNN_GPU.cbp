@@ -101,6 +101,30 @@
 		<Unit filename="C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/funcoesDeAtivacao.h">
 			<Option target="CNN_GPU"/>
 		</Unit>
+		<Unit filename="C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.c">
+			<Option target="CNN_GPU"/>
+		</Unit>
+		<Unit filename="C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.h">
+			<Option target="CNN_GPU"/>
+		</Unit>
+		<Unit filename="C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.c">
+			<Option target="CNN_GPU"/>
+		</Unit>
+		<Unit filename="C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h">
+			<Option target="CNN_GPU"/>
+		</Unit>
+		<Unit filename="C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/lcg.c">
+			<Option target="CNN_GPU"/>
+		</Unit>
+		<Unit filename="C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/lcg.h">
+			<Option target="CNN_GPU"/>
+		</Unit>
+		<Unit filename="C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/matGPU.c">
+			<Option target="CNN_GPU"/>
+		</Unit>
+		<Unit filename="C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/matGPU.h">
+			<Option target="CNN_GPU"/>
+		</Unit>
 		<Unit filename="C:/Users/hslhe/Desktop/cnn/CNN_GPU/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>

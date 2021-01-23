@@ -7,50 +7,60 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include"gpu/WrapperCL.h"
 
 typedef struct {
     int x, y, z;
 } Ponto3d;
 
 
-#define TensorAT(T, x, y, z) (T)->data[(z)*((T)->ty*(T)->tx)+(y)*(T)->tx+(x)]
+#define TensorMap(T, xx, yy, zz) (zz)*((T)->y*(T)->x)+(yy)*(T)->x+(xx)
+/***
+ * Tensor armazena uma matriz 3D juntamente com os parametros dela
+ */
 typedef struct {
-    double *data;
-    unsigned int tx, ty, tz;
-
-} *Tensor, typetensor;
-
-typedef struct {
-    char *data;
-    unsigned int tx, ty, tz;
-
-} *TensorChar, typetensorchar;
+    cl_mem data;
+    unsigned int bytes, x, y, z;
+} *Tensor, typetensor, *TensorChar, typetensorchar;;
 
 
 typedef struct {
     Ponto3d min, max;
 } Range;
 
-Tensor newTensor(unsigned int x, unsigned int y, unsigned int z) {
+Tensor newTensor(cl_context context, unsigned int x, unsigned int y, unsigned int z, GPU_ERROR *error) {
     Tensor t = (Tensor) calloc(1, sizeof(typetensor));
-    t->tx = x;
-    t->ty = y;
-    t->tz = z;
-    t->data = (double *) calloc(x * y * z, sizeof(double));
+    t->bytes = x * y * z * sizeof(double);
+
+    t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, t->bytes, NULL, &error->error);
+    if (!t->data) {
+        error->error = -1;
+        snprintf(error->msg, 255, "A memoria retornada foi NULL\n");
+    }
+    if (!error->error) {
+        snprintf(error->msg, 255, "nso foi possivel allocar memoria\n");
+    }
     return t;
 }
 
-TensorChar newTensorChar(unsigned int x, unsigned int y, unsigned int z) {
-    TensorChar t = (TensorChar) calloc(1, sizeof(typetensorchar));
-    t->tx = x;
-    t->ty = y;
-    t->tz = z;
-    t->data = (char *) calloc(x * y * z, sizeof(char));
+TensorChar newTensorChar(cl_context context, unsigned int x, unsigned int y, unsigned int z, GPU_ERROR *error) {
+    TensorChar t = (Tensor) calloc(1, sizeof(typetensorchar));
+    t->bytes = x * y * z * sizeof(char);
+
+    t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, t->bytes, NULL, &error->error);
+    if (!t->data) {
+        error->error = -1;
+        snprintf(error->msg, 255, "A memoria retornada foi NULL\n");
+    }
+    if (!error->error) {
+        snprintf(error->msg, 255, "nso foi possivel allocar memoria\n");
+    }
     return t;
 }
 
 void releaseTensor(Tensor *t) {
     if (*t) {
+        clReleaseMemObject((*t)->data);
         free((*t)->data);
         free(*t);
         *t = NULL;
@@ -58,11 +68,7 @@ void releaseTensor(Tensor *t) {
 }
 
 void releaseTensorChar(TensorChar *t) {
-    if (*t) {
-        free((*t)->data);
-        free(*t);
-        *t = NULL;
-    }
+   releaseTensor(t);
 }
 
 
@@ -73,7 +79,7 @@ Ponto3d mapeia_saida_entrada(int x, int y, int z, int z2, int passo) {
 
 int normaliza_range(double f, int max, int lim_min) {
     if (f < 0)return 0;
-    if (f >= max - 1)return max-1;
+    if (f >= max - 1)return max - 1;
     if (lim_min) return ceil(f);
     else return floor(f);
 }
@@ -90,20 +96,5 @@ Range mapeia_entrada_saida(int x, int y, int passo, int tamanhoFiltro, Tensor sa
 }
 
 
-void printTensor(Tensor t) {
-    for (int z = 0; z < t->tz; ++z) {
-        printf("[Dim%d]\n", z);
-        for (int x = 0; x < t->tx; ++x) {
-            for (int y = 0; y < t->ty; ++y) {
-                printf("%.2f \t",TensorAT(t,x,y,z));
-            }
-            printf("\n");
-        }
-    }
-    printf("\n");
-}
 
-void printPonto3D(Ponto3d p){
-    printf("(%.4lf,%.4lf,%.4lf)\n",p.x,p.y,p.z);
-}
 #endif //CNN_GPU_TENSOR_H

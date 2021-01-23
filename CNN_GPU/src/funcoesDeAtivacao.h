@@ -5,18 +5,11 @@
 #ifndef CNN_GPU_FUNCOESDEATIVACAO_H
 #define CNN_GPU_FUNCOESDEATIVACAO_H
 #include"math.h"
+#include "gpu/WrapperCL.h"
+#define FSIGMOIG 0
+#define FTANH 2
+#define FRELU 4
 
-#define SIGMOIG 0
 #define FLAGDIF 1
-static double __sigmoid(double x){
-    return 1.0/(1+exp(-x));
-}
-static double __sigmoid_dif(double x){
-    double tmp = __sigmoid(x);
-    return tmp*(1-tmp);
-}
-typedef double (*dfd)(double);
-
-dfd funcoesDeAtivacao[2]={__sigmoid,__sigmoid_dif};
 
 #endif //CNN_GPU_FUNCOESDEATIVACAO_H

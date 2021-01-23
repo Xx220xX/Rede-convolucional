@@ -9,7 +9,7 @@
 #include "CamadaPool.h"
 
 
-#define INVALID_FILTER_SIZE -1
+#define INVALID_FILTER_SIZE (-1)
 
 typedef struct _cnn {
     Params parametros;
@@ -17,6 +17,7 @@ typedef struct _cnn {
     int size;
     Ponto3d sizeIn;
     char error;
+    cl_command_queue queue;
 } TypeCnn;
 typedef TypeCnn *Cnn;
 
@@ -32,9 +33,9 @@ Ponto3d __addLayer(Cnn c) {
     c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
     Ponto3d in = c->sizeIn;
     if (c->size > 1) {
-        in.x = c->camadas[c->size - 2]->saida->tx;
-        in.y = c->camadas[c->size - 2]->saida->ty;
-        in.z = c->camadas[c->size - 2]->saida->tz;
+        in.x = c->camadas[c->size - 2]->saida->x;
+        in.y = c->camadas[c->size - 2]->saida->y;
+        in.z = c->camadas[c->size - 2]->saida->z;
     }
     return in;
 }

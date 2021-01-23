@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/hslhe/Desktop/gab/src/Kernel.h
+CL/cl.h
+-
+
+C:/Users/hslhe/Desktop/gab/src/WrapperCL.h
+CL/cl.h
+-
+Kernel.h
+C:/Users/hslhe/Desktop/gab/src/Kernel.h
+stdio.h
+-
+
+C:/Users/hslhe/Desktop/gab/src/gabrielaLayer.c
+gabrielaLayer.h
+C:/Users/hslhe/Desktop/gab/src/gabrielaLayer.h
+
+C:/Users/hslhe/Desktop/gab/src/gabrielaLayer.h
+CL/cl.h
+-
+WrapperCL.h
+C:/Users/hslhe/Desktop/gab/src/WrapperCL.h
+matGPU.h
+C:/Users/hslhe/Desktop/gab/src/matGPU.h
+lcg.h
+C:/Users/hslhe/Desktop/gab/src/lcg.h
+math.h
+-
+
+C:/Users/hslhe/Desktop/gab/src/lcg.h
+
+C:/Users/hslhe/Desktop/gab/src/matGPU.h
+CL/cl.h
+-
+

@@ -89,19 +89,79 @@ CMakeFiles/CNN_GPU.dir/main.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/CNN_GPU.dir/main.c.s"
 	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S C:\Users\hslhe\Desktop\cnn\CNN_GPU\main.c -o CMakeFiles\CNN_GPU.dir\main.c.s
 
+CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj: CMakeFiles/CNN_GPU.dir/flags.make
+CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj: ../src/gpu/Kernel.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles\CNN_GPU.dir\src\gpu\Kernel.c.obj   -c C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\Kernel.c
+
+CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.i"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\Kernel.c > CMakeFiles\CNN_GPU.dir\src\gpu\Kernel.c.i
+
+CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.s"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\Kernel.c -o CMakeFiles\CNN_GPU.dir\src\gpu\Kernel.c.s
+
+CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.obj: CMakeFiles/CNN_GPU.dir/flags.make
+CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.obj: ../src/gpu/lcg.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.obj"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles\CNN_GPU.dir\src\gpu\lcg.c.obj   -c C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\lcg.c
+
+CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.i"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\lcg.c > CMakeFiles\CNN_GPU.dir\src\gpu\lcg.c.i
+
+CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.s"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\lcg.c -o CMakeFiles\CNN_GPU.dir\src\gpu\lcg.c.s
+
+CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.obj: CMakeFiles/CNN_GPU.dir/flags.make
+CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.obj: ../src/gpu/matGPU.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.obj"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles\CNN_GPU.dir\src\gpu\matGPU.c.obj   -c C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\matGPU.c
+
+CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.i"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\matGPU.c > CMakeFiles\CNN_GPU.dir\src\gpu\matGPU.c.i
+
+CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.s"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\matGPU.c -o CMakeFiles\CNN_GPU.dir\src\gpu\matGPU.c.s
+
+CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj: CMakeFiles/CNN_GPU.dir/flags.make
+CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj: ../src/gpu/WrapperCL.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles\CNN_GPU.dir\src\gpu\WrapperCL.c.obj   -c C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\WrapperCL.c
+
+CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.i"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\WrapperCL.c > CMakeFiles\CNN_GPU.dir\src\gpu\WrapperCL.c.i
+
+CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.s"
+	C:\MinGW\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S C:\Users\hslhe\Desktop\cnn\CNN_GPU\src\gpu\WrapperCL.c -o CMakeFiles\CNN_GPU.dir\src\gpu\WrapperCL.c.s
+
 # Object files for target CNN_GPU
 CNN_GPU_OBJECTS = \
-"CMakeFiles/CNN_GPU.dir/main.c.obj"
+"CMakeFiles/CNN_GPU.dir/main.c.obj" \
+"CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj" \
+"CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.obj" \
+"CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.obj" \
+"CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj"
 
 # External object files for target CNN_GPU
 CNN_GPU_EXTERNAL_OBJECTS =
 
 CNN_GPU.exe: CMakeFiles/CNN_GPU.dir/main.c.obj
+CNN_GPU.exe: CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj
+CNN_GPU.exe: CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.obj
+CNN_GPU.exe: CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.obj
+CNN_GPU.exe: CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj
 CNN_GPU.exe: CMakeFiles/CNN_GPU.dir/build.make
 CNN_GPU.exe: CMakeFiles/CNN_GPU.dir/linklibs.rsp
 CNN_GPU.exe: CMakeFiles/CNN_GPU.dir/objects1.rsp
 CNN_GPU.exe: CMakeFiles/CNN_GPU.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable CNN_GPU.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking C executable CNN_GPU.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\CNN_GPU.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

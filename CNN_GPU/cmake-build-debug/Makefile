@@ -169,6 +169,114 @@ main.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/main.c.s
 .PHONY : main.c.s
 
+src/gpu/Kernel.obj: src/gpu/Kernel.c.obj
+
+.PHONY : src/gpu/Kernel.obj
+
+# target to build an object file
+src/gpu/Kernel.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj
+.PHONY : src/gpu/Kernel.c.obj
+
+src/gpu/Kernel.i: src/gpu/Kernel.c.i
+
+.PHONY : src/gpu/Kernel.i
+
+# target to preprocess a source file
+src/gpu/Kernel.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.i
+.PHONY : src/gpu/Kernel.c.i
+
+src/gpu/Kernel.s: src/gpu/Kernel.c.s
+
+.PHONY : src/gpu/Kernel.s
+
+# target to generate assembly for a file
+src/gpu/Kernel.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.s
+.PHONY : src/gpu/Kernel.c.s
+
+src/gpu/WrapperCL.obj: src/gpu/WrapperCL.c.obj
+
+.PHONY : src/gpu/WrapperCL.obj
+
+# target to build an object file
+src/gpu/WrapperCL.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj
+.PHONY : src/gpu/WrapperCL.c.obj
+
+src/gpu/WrapperCL.i: src/gpu/WrapperCL.c.i
+
+.PHONY : src/gpu/WrapperCL.i
+
+# target to preprocess a source file
+src/gpu/WrapperCL.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.i
+.PHONY : src/gpu/WrapperCL.c.i
+
+src/gpu/WrapperCL.s: src/gpu/WrapperCL.c.s
+
+.PHONY : src/gpu/WrapperCL.s
+
+# target to generate assembly for a file
+src/gpu/WrapperCL.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.s
+.PHONY : src/gpu/WrapperCL.c.s
+
+src/gpu/lcg.obj: src/gpu/lcg.c.obj
+
+.PHONY : src/gpu/lcg.obj
+
+# target to build an object file
+src/gpu/lcg.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.obj
+.PHONY : src/gpu/lcg.c.obj
+
+src/gpu/lcg.i: src/gpu/lcg.c.i
+
+.PHONY : src/gpu/lcg.i
+
+# target to preprocess a source file
+src/gpu/lcg.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.i
+.PHONY : src/gpu/lcg.c.i
+
+src/gpu/lcg.s: src/gpu/lcg.c.s
+
+.PHONY : src/gpu/lcg.s
+
+# target to generate assembly for a file
+src/gpu/lcg.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.s
+.PHONY : src/gpu/lcg.c.s
+
+src/gpu/matGPU.obj: src/gpu/matGPU.c.obj
+
+.PHONY : src/gpu/matGPU.obj
+
+# target to build an object file
+src/gpu/matGPU.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.obj
+.PHONY : src/gpu/matGPU.c.obj
+
+src/gpu/matGPU.i: src/gpu/matGPU.c.i
+
+.PHONY : src/gpu/matGPU.i
+
+# target to preprocess a source file
+src/gpu/matGPU.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.i
+.PHONY : src/gpu/matGPU.c.i
+
+src/gpu/matGPU.s: src/gpu/matGPU.c.s
+
+.PHONY : src/gpu/matGPU.s
+
+# target to generate assembly for a file
+src/gpu/matGPU.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.s
+.PHONY : src/gpu/matGPU.c.s
+
 # Help Target
 help:
 	@echo The following are some of the valid targets for this Makefile:
@@ -181,6 +289,18 @@ help:
 	@echo ... main.obj
 	@echo ... main.i
 	@echo ... main.s
+	@echo ... src/gpu/Kernel.obj
+	@echo ... src/gpu/Kernel.i
+	@echo ... src/gpu/Kernel.s
+	@echo ... src/gpu/WrapperCL.obj
+	@echo ... src/gpu/WrapperCL.i
+	@echo ... src/gpu/WrapperCL.s
+	@echo ... src/gpu/lcg.obj
+	@echo ... src/gpu/lcg.i
+	@echo ... src/gpu/lcg.s
+	@echo ... src/gpu/matGPU.obj
+	@echo ... src/gpu/matGPU.i
+	@echo ... src/gpu/matGPU.s
 .PHONY : help
 
 

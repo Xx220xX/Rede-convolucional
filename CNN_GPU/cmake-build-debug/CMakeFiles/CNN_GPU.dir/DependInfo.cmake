@@ -5,6 +5,10 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
   "C:/Users/hslhe/Desktop/cnn/CNN_GPU/main.c" "C:/Users/hslhe/Desktop/cnn/CNN_GPU/cmake-build-debug/CMakeFiles/CNN_GPU.dir/main.c.obj"
+  "C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.c" "C:/Users/hslhe/Desktop/cnn/CNN_GPU/cmake-build-debug/CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj"
+  "C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.c" "C:/Users/hslhe/Desktop/cnn/CNN_GPU/cmake-build-debug/CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj"
+  "C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/lcg.c" "C:/Users/hslhe/Desktop/cnn/CNN_GPU/cmake-build-debug/CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.obj"
+  "C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/matGPU.c" "C:/Users/hslhe/Desktop/cnn/CNN_GPU/cmake-build-debug/CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.obj"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

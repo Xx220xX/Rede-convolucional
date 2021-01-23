@@ -21,6 +21,7 @@ typedef struct {
     Tensor *grad_filtros_old;
     UINT passo, tamanhoFiltro, numeroFiltros;
 
+    Kernel kernelConvSum;
 } *CamadaConv, Typecamadaconv;
 
 void calc_gradsConv(CamadaConv c, Tensor Gradnext);
@@ -31,40 +32,71 @@ void ativaConv(CamadaConv c);
 
 void corrige_pesosConv(CamadaConv c);
 
-Camada createConv(UINT passo, UINT tamanhoFiltro, UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-                  Tensor entrada, Params *params) {
+Camada createConv(WrapperCL *cl, UINT passo, UINT lenFilter, UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
+                  Tensor entrada, Params *params, GPU_ERROR *error, int randomize) {
     CamadaConv c = (CamadaConv) calloc(1, sizeof(Typecamadaconv));
-    c->passo = passo;
-    c->tamanhoFiltro = tamanhoFiltro;
-    c->numeroFiltros = numeroFiltros;
-    c->super.gradsEntrada = newTensor(inx, iny, inz);
-    c->super.entrada = entrada;
-    if (!entrada) {
-        c->super.entrada = newTensor(inx, iny, inz);
-        c->super.flag_releaseInput = 1;
-    }
-    c->super.saida = newTensor((inx - tamanhoFiltro) / passo + 1, (iny - tamanhoFiltro) / passo + 1,
-                               numeroFiltros);
-    c->filtros = (Tensor *) calloc(numeroFiltros, sizeof(Tensor));
-    c->grad_filtros = (Tensor *) calloc(numeroFiltros, sizeof(Tensor));
-    c->grad_filtros_old = (Tensor *) calloc(numeroFiltros, sizeof(Tensor));
-    Tensor tmp;
-    UINT maxVal = tamanhoFiltro * tamanhoFiltro * inz;
-    for (int a = 0; a < numeroFiltros; a++) {
-        tmp = newTensor(tamanhoFiltro, tamanhoFiltro, inz);
-        FOR3D(i, j, z, tamanhoFiltro, tamanhoFiltro, inz) {
-                    TensorAT(tmp, i, j, z) = 1.0 / maxVal * (rand() / ((double) RAND_MAX));
-                }
-
-        c->filtros[a] = tmp;
-        c->grad_filtros[a] = newTensor(tamanhoFiltro, tamanhoFiltro, inz);
-    }
+    cl_context context = cl->context;
     c->super.release = (fv) releaseConv;
     c->super.ativa = (fv) ativaConv;
     c->super.calc_grads = (fvv) calc_gradsConv;
     c->super.corrige_pesos = (fv) corrige_pesosConv;
     c->super.parametros = params;
     c->super.type = CONV;
+
+    c->passo = passo;
+    c->tamanhoFiltro = lenFilter;
+    c->numeroFiltros = numeroFiltros;
+    c->super.gradsEntrada = newTensor(context, inx, iny, inz, error);
+    if (error->error)return (Camada) c;
+
+    c->super.entrada = entrada;
+    if (!entrada) {
+        c->super.entrada = newTensor(context, inx, iny, inz, error);
+        c->super.flag_releaseInput = 1;
+
+    }
+    c->super.saida = newTensor(context, (inx - lenFilter) / passo + 1, (iny - lenFilter) / passo + 1, numeroFiltros, error);
+    if (error->error)return (Camada) c;
+    c->filtros = (Tensor *) calloc(numeroFiltros, sizeof(Tensor));
+    c->grad_filtros = (Tensor *) calloc(numeroFiltros, sizeof(Tensor));
+    c->grad_filtros_old = (Tensor *) calloc(numeroFiltros, sizeof(Tensor));
+    Tensor tmp;
+    UINT maxVal = lenFilter * lenFilter * inz;
+    for (int a = 0; a < numeroFiltros; a++) {
+        tmp = newTensor(context, lenFilter, lenFilter, inz, error);
+        if (error->error) {
+            c->numeroFiltros = a;
+            return (Camada) c;
+        }
+        c->filtros[a] = tmp;
+        c->grad_filtros[a] = newTensor(context, lenFilter, lenFilter, inz, error);
+        if (error->error) {
+            return (Camada) c;
+        }
+    }
+    if (randomize) {
+        double *data = (double *) calloc(lenFilter * lenFilter * inz, sizeof(double));
+        cl_command_queue queue = clCreateCommandQueueWithProperties(context, cl->device, NULL, &error->error);
+        if(error->error){
+            snprintf(error->msg,255,"nao foi possivel cruiar a queue\n");
+            return (Camada)c;
+        }
+        for (int a = 0; a < numeroFiltros; a++) {
+            FOR3D(i, j, z, lenFilter, lenFilter, inz) {
+                        data[TensorMap(tmp, i, j, z)] = 1.0 / maxVal * (rand() / ((double) RAND_MAX));
+                    }
+            error->error= clEnqueueWriteBuffer(queue,c->filtros[a]->data,CL_TRUE,0,c->filtros[a]->bytes,data,0,NULL,NULL);
+            if(error->error){
+                snprintf(error->msg,255,"nao foi possivel copiar dados\n");
+                free(data);
+                clReleaseCommandQueue(queue);
+                return (Camada)c;
+            }
+        }
+        free(data);
+        clReleaseCommandQueue(queue);
+
+    }
     return (Camada) c;
 }
 
@@ -90,24 +122,19 @@ void ativaConv(CamadaConv c) {
     double sum, f, v;
     Tensor entrada = c->super.entrada;
     //iteraçao nos filtros
+    int error = 0, id = 0;
+    size_t global, local, resto;
+
     for (int filtrok = 0; filtrok < c->numeroFiltros; filtrok++) {
         //seleciona o filtro
         filtro = c->filtros[filtrok];
-        FOR2D(x, y, c->super.saida->tx, c->super.saida->ty) {
-                //converte as cordenadas da saida ´para a entrada
-                //P*passo
-                mapeado = mapeia_saida_entrada(x, y, 0, 0, c->passo);
-                sum = 0;
-                // soma convolutiva
-                FOR3D(i, j, z, c->tamanhoFiltro, c->tamanhoFiltro, filtro->tz) {
-                            f = TensorAT(filtro, i, j, z);
-                            v = TensorAT(entrada, mapeado.x + i, mapeado.y + j, z);
-                            sum += f * v;
 
-
-                        }
-                TensorAT(c->super.saida, x, y, filtrok) = sum;
-            }
+        call_kernel(c->super.saida->x*c->super.saida->y,
+                    Kernel_putArgs(&c->kernelConvSum, 12, &filtro->data, &c->super.entrada->data, &c->super.saida->data,
+                                   &filtrok, &c->passo,&c->super.saida->x,&c->super.saida->y,&c->super.entrada->x,&c->super.entrada->y,&filtro->x,&filtro->z, &id);
+                            error = clEnqueueNDRangeKernel(c->super.queue, c->kernelConvSum.kernel, 1, NULL, &global, &local, 0, NULL,NULL);
+                           PERR(error, "falha ao chamar kernel AL-Y")
+        );
 
 
     }
