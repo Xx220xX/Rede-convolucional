@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <float.h>
 
-typedef unsigned int UINT;
 
 
 typedef struct {
@@ -19,6 +18,9 @@ typedef struct {
     TensorChar hitmap;
     char flag_releaseInput;
     double p_ativacao;
+    cl_long seed;
+    Kernel kerneldropativa;
+    Kernel kerneldropcalcgrad;
 } *CamadaDropOut, Typecamadadropout;
 
 void releaseDropOut(CamadaDropOut *pc);
@@ -29,24 +31,26 @@ void ativaDropOut(CamadaDropOut c);
 
 void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext);
 
-Camada createDropOut(UINT inx, UINT iny, UINT inz, double p_ativacao, Tensor entrada) {
+Camada createDropOut(WrapperCL *cl,UINT inx, UINT iny, UINT inz, double p_ativacao,long long seed, Tensor entrada,GPU_ERROR *error) {
     CamadaDropOut c = (CamadaDropOut) calloc(1, sizeof(Typecamadadropout));
-    c->super.gradsEntrada = newTensor(inx, iny, inz);
+    c->super.gradsEntrada = newTensor(cl->context,inx, iny, inz,error);
     if (!entrada) {
-        c->super.entrada = newTensor(inx, iny, inz);
+        c->super.entrada = newTensor(cl->context,inx, iny, inz,error);
         c->flag_releaseInput = 1;
     } else {
         c->super.entrada = entrada;
     }
-    c->super.saida = newTensor(inx, iny, inz);
-    c->hitmap = newTensorChar(inx, iny, inz);
+    c->super.saida = newTensor(cl->context,inx, iny, inz,error);
+    c->hitmap = newTensorChar(cl->context,inx, iny, inz,error);
     c->p_ativacao = p_ativacao;
-
     c->super.release = (fv) releaseDropOut;
     c->super.ativa = (fv)ativaDropOut;
     c->super.calc_grads =(fvv) calc_gradsDropOut;
     c->super.corrige_pesos = (fv)corrigePesosDropOut;
     c->super.type = DROPOUT;
+    c->seed = seed;
+    c->kerneldropativa = new_Kernel(cl->program, "dropativa", 6, VOID_P, VOID_P, VOID_P,sizeof(cl_long),DOUBLE,INT);
+    c->kerneldropcalcgrad = new_Kernel(cl->program, "dropcalcgrad", 4, VOID_P, VOID_P, VOID_P,DOUBLE,INT);
     return (Camada)c;
 }
 
@@ -56,25 +60,34 @@ void releaseDropOut(CamadaDropOut *pc) {
     releaseTensor(&c->super.saida);
     releaseTensorChar(&c->hitmap);
     if (c->flag_releaseInput)releaseTensor(&c->super.entrada);
+    free(c);
     *pc = 0;
 }
 
 void ativaDropOut(CamadaDropOut c) {
-    char teste_ativa;
-    for (int i = 0; i < c->super.entrada->tx * c->super.entrada->ty * c->super.entrada->tz; ++i) {
-        teste_ativa = (char) ((rand() % RAND_MAX) / (double) RAND_MAX <= c->p_ativacao);
-        c->hitmap->data[i] = teste_ativa;
-        c->super.saida->data[i] = c->super.entrada->data[i] * teste_ativa;
-    }
+    int error = 0, id = 0;
+    size_t global, local, resto;
+    call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
+                Kernel_putArgs(&c->kerneldropativa, 6,&c->super.entrada->data,&c->super.saida->data,&c->hitmap->data,&c->seed,&c->p_ativacao
+                      , &id);
+                        error = clEnqueueNDRangeKernel(c->super.queue, c->kerneldropativa.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+                        PERRW(error, "falha ao chamar kernel ativa dropout")
+    );
+    c->seed +=c->super.saida->x*c->super.saida->y*c->super.saida->z;
+    c->seed = (c->seed*0x5deece66dLL + 0xbLL) & ((1LL<<48)-1);
 }
 
 
 void corrigePesosDropOut(CamadaDropOut c) {}
 
 void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext) {
-    for (int i = 0; i < c->super.entrada->tx * c->super.entrada->ty * c->super.entrada->tz; ++i) {
-        c->super.gradsEntrada->data[i] = c->hitmap->data[i] * GradNext->data[i];
-    }
+    int error = 0, id = 0;
+    size_t global, local, resto;
+    call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
+                Kernel_putArgs(&c->kerneldropcalcgrad, 4,&c->super.gradsEntrada->data,&c->hitmap->data,&GradNext->data, &id);
+                        error = clEnqueueNDRangeKernel(c->super.queue, c->kerneldropcalcgrad.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+                        PERRW(error, "falha ao chamar kernel cacalcgrad dropout")
+    );
 }
 
 #endif //CNN_GPU_CAMADADROPOUT_H

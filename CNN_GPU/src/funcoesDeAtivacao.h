@@ -4,7 +4,6 @@
 
 #ifndef CNN_GPU_FUNCOESDEATIVACAO_H
 #define CNN_GPU_FUNCOESDEATIVACAO_H
-#include"math.h"
 #include "gpu/WrapperCL.h"
 #define FSIGMOIG 0
 #define FTANH 2

@@ -72,11 +72,5 @@ void releaseTensorChar(TensorChar *t) {
 }
 
 
-Ponto3d mapeia_saida_entrada(int x, int y, int z, int z2, int passo) {
-    Ponto3d saida = {x * passo, y * passo, z2};
-    return saida;
-}
-
-
 
 #endif //CNN_GPU_TENSOR_H

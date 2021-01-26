@@ -1,4 +1,5 @@
 #include <iostream>
+#include <time.h>
 #include "src/cnn.h"
 
 tensor_t<float> getEntrada(int xx, int yy, int zz) {
@@ -63,9 +64,12 @@ void testePool() {
 
 
 }
-
+long long int rand(long long int *seed){
+    *seed = (*seed*0x5deece66dLL +0xbLL) & ((1LL<<48)-1);
+    return *seed;
+}
 int main() {
-    srand(1);
+  /*  srand(1);
     camada_fc_t *cconv = new camada_fc_t({5,5,3},8);
     tensor_t<float> entrada = getEntrada(5, 5, 3);
     cconv->ativa(entrada);
@@ -80,6 +84,13 @@ int main() {
     printf("------------CALCULA GRAD-------------\nGRADIENTE entrada\n");
     cconv->calc_grads(grad);
     print_tensor(cconv->grads_entrada);
+*/
+     long long int seed = time(NULL);
 
+    double id2;
+    for (int i=0;i<10;i++) {
+        id2 = (double) rand(&seed) / (double) ((1LL << 48) - 1);
+        std::cout << id2 << "\n";
+    }
     return 0;
 }

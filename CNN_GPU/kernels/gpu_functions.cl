@@ -164,4 +164,22 @@ __kernel void fullcalcgrads2(__global double *grad,__global double * gradsEntrad
     }
 }
 
+
+ long long int randoml( long long int seed, long long int id){
+    seed+=id;
+    return (seed*0x5deece66dLL + 0xbLL) & ((1LL<<48)-1);
+}
+double randomD(long long int seed, long long int id){
+    return(double)randoml(seed,id)/(double) ((1LL<<48)-1);
+}
+__kernel void dropativa(__global double *entrada,__global double *saida,__global char * hitmap, long long int seed,double pativa,int k0){
+    int i = get_global_id(0) + k0;
+    char teste = (char)(randomD(seed,i)<=pativa);
+    hitmap[i]= teste;
+    saida[i] = teste*entrada[i];
+}
+__kernel void dropcalcgrad(__global double *gradentrada,__global char *hitmap,__global double *gradnext,int k0){
+    int i = get_global_id(0) + k0;
+    gradentrada[i] =  hitmap[i]*gradnext[i];
+}
 #endif //CL_TESTE_KERNEL_SRC_H
