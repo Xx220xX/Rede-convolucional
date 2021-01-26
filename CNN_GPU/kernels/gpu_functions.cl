@@ -9,25 +9,25 @@
 
 typedef double (*dfd)(double);
 
-double sigmoid(double x) { return 1.0 / (1 + exp(-x)); }
+static double sigmoid(double x) { return 1.0 / (1 + exp(-x)); }
 
-double difsigmoid(double x) {
+static double difsigmoid(double x) {
     double tmp = sigmoid(x);
     return tmp * (1 - tmp);
 }
 
-double tanghG(double x) { return tanh(x); }
+static double tanghG(double x) { return tanh(x); }
 
-double diftanhG(double x) {
+static double diftanhG(double x) {
     double tmp = tanh(x);
     return (1 - tmp * tmp);
 }
 
-double relu(double x) { return x > 0 ? x : 0.0; }
+static double relu(double x) { return x > 0 ? x : 0.0; }
 
-double difrelu(double x) { return x > 0 ? 1.0 : 0.0; }
+static double difrelu(double x) { return x > 0 ? 1.0 : 0.0; }
 
-dfd func[6] = {sigmoid, difsigmoid, tanghG, diftanhG, relu, difrelu};
+static dfd func[6] = {sigmoid, difsigmoid, tanghG, diftanhG, relu, difrelu};
 
 void initFucntions() {
     func[0] = (void *) sigmoid;
@@ -114,6 +114,54 @@ __kernel void convCalcGrads(__global double **filtros, __global double **gradFil
         }
     }
     gradEntrada[k] = somaErro;
+}
+
+
+__kernel void fullfeed(__global double *entrada, __global double *pesos, __global double *input, __global double *saida, int funcaoativacao, int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
+    int n = get_global_id(0) + k0;
+    double valorEntrada = 0;
+    int m;
+    for (int x = 0; x < inx; x++)
+        for (int y = 0; y < iny; y++)
+            for (int z = 0; z < inz; z++) {
+                m = TensorMap(x, y, z, inx, iny);//z * (inx *iny) + y * inx + x;
+                valorEntrada += entrada[m] * pesos[TensorMap(m, n, 0, pesosx, pesosy);
+            }
+    input[n] = valorEntrada;
+    saida[n] = func[funcaoativacao](valorEntrada);
+}
+
+__kernel void fullfixweight(__global double *entrada, __global double *pesos, __global double *grad, __global double *oldgrad,
+                            double hitlearn, double decaimentoDePeso,
+                            int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
+    int n = get_global_id(0) + k0;
+
+    double tmp = grad[n] + oldgrad[n] * momento;
+
+    for (int i = 0; i < inx; ++i) {
+        for (int j = 0; j < iny; ++j) {
+            for (int z = 0; z < inz; ++z) {
+                m = TensorMap(i, j, z, inx, iny);
+                w = pesos[TensorMap(m, n, 0, pesosx, pesosy);
+                w -= hitLearn * (tmp * entrada[TensorAT(i, j, z, inx, iny)] + w * decaimentoDePeso);
+                pesos[TensorMap(m, n, 0, pesosx, pesosy)] = w;
+            }
+        }
+    }
+    oldgrad[n] = tmp;
+}
+
+__kernel void fullcalcgrads1(__global double *grad, __global double *gradNext, __global double *input, int dfa,int k0) {
+    int n = get_global_id(0) + k0;
+    grad[n] = gradNext[n] * func[dfa](input[n]);
+}
+
+__kernel void fullcalcgrads2(__global double *grad,__global double * gradsEntrada,__global double * pesos,int pesosx, int pesosy,int k0) {
+    int m = get_global_id(0) + k0;
+    gradsEntrada[m] = 0;
+    for (int n = 0; n < pesosy; ++n) {
+        gradsEntrada[m] += grad[n] * pesos[TensorMap(m, n, 0, pesosx, pesosy)];
+    }
 }
 
 #endif //CL_TESTE_KERNEL_SRC_H

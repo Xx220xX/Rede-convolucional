@@ -27,4 +27,7 @@ size_t  max_works;
              command\
         }\
     }
+
+
+#define callocdouble(x)(double*)calloc(x,sizeof(double))
 #endif

@@ -22,7 +22,11 @@ typedef struct {
     Tensor grad;
     Tensor oldgrad;
     // funcao de ativacao e sua derivada
-    dfd fa, dfa;
+    int fa, dfa;
+    Kernel kernelfullfeed;
+    Kernel kernelfullfixWeight;
+    Kernel kernelfullcalcgrad1;
+    Kernel kernelfullcalcgrad2;
 } *CamadaFullConnect, Typecamadafullconnect;
 
 void releaseFullConnect(CamadaFullConnect *pc);
@@ -34,42 +38,76 @@ void ativaFullConnect(CamadaFullConnect c);
 
 void calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext);
 
-Camada createFullConnect(UINT inx, UINT iny, UINT inz, UINT tamanhoSaida, Tensor entrada, Params *params, int funcaoDeAtivacao) {
+int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error);
+
+Camada createFullConnect(WrapperCL *cl, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida, Tensor entrada, Params *params, int funcaoDeAtivacao, int randomize, GPU_ERROR *error) {
     CamadaFullConnect c = (CamadaFullConnect) calloc(1, sizeof(Typecamadafullconnect));
-    c->super.gradsEntrada = newTensor(inx, iny, inz);
+    cl_context context = cl->context;
+    c->super.gradsEntrada = newTensor(context, inx, iny, inz, error);
     c->super.parametros = params;
     if (!entrada) {
-        c->super.entrada = newTensor(inx, iny, inz);
+        c->super.entrada = newTensor(context, inx, iny, inz, error);
         c->super.flag_releaseInput = 1;
     } else {
         c->super.entrada = entrada;
     }
 
-    c->super.saida = newTensor(tamanhoSaida, 1, 1);
-    c->input = newTensor(tamanhoSaida, 1, 1);
-    c->grad = newTensor(tamanhoSaida, 1, 1);
-    c->oldgrad = newTensor(tamanhoSaida, 1, 1);
+    c->super.saida = newTensor(context, tamanhoSaida, 1, 1, error);
+    c->input = newTensor(context, tamanhoSaida, 1, 1, error);
+    c->grad = newTensor(context, tamanhoSaida, 1, 1, error);
+    c->oldgrad = newTensor(context, tamanhoSaida, 1, 1, error);
 
-    c->pesos = newTensor(inx * iny * inz, tamanhoSaida, 1);
-    int valmax = inx * iny * inz;
+    c->pesos = newTensor(context, inx * iny * inz, tamanhoSaida, 1, error);
 
-    for (int i = 0; i < tamanhoSaida; ++i) {
-        for (int j = 0; j < valmax; ++j) {
-            TensorAT(c->pesos, j, i, 0) = 2.19722 / (valmax) * rand() / (double) RAND_MAX;
-        }
+    if (randomize) {
+        fullRandomize(c, cl, error);
     }
-
     c->super.release = (fv) releaseFullConnect;
     c->super.ativa = (fv) ativaFullConnect;
     c->super.calc_grads = (fvv) calc_gradsFullConnect;
     c->super.corrige_pesos = (fv) corrigePesosFullConnect;
     c->super.type = FULLCONNECT;
-    c->fa = funcoesDeAtivacao[funcaoDeAtivacao];
-    c->dfa = funcoesDeAtivacao[funcaoDeAtivacao + FLAGDIF];
+    c->fa = funcaoDeAtivacao;
+    c->dfa = funcaoDeAtivacao | FLAGDIF;
+
+
+    c->kernelfullfeed = new_Kernel(cl->program, "fullfeed", 11, VOID_P, VOID_P, VOID_P, VOID_P,
+                                       INT,INT,INT,INT,INT,INT,INT);
+    c->kernelfullfixWeight = new_Kernel(cl->program, "fullfixweight", 12, VOID_P, VOID_P, VOID_P, VOID_P,
+                                       DOUBLE,DOUBLE,
+                                       INT,INT,INT,INT,INT,INT);
+    c->kernelfullcalcgrad1 = new_Kernel(cl->program, "fullcalcgrads1", 5, VOID_P, VOID_P, VOID_P,INT,INT);
+    c->kernelfullcalcgrad2 = new_Kernel(cl->program, "fullcalcgrads2", 6, VOID_P, VOID_P, VOID_P,INT,INT,INT);
 
     return (Camada) c;
 }
 
+int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error) {
+    unsigned int inx = c->super.entrada->x;
+    unsigned int iny = c->super.entrada->y;
+    unsigned int inz = c->super.entrada->z;
+    unsigned int tamanhoSaida = c->super.saida->x;
+    unsigned int valmax = inx * iny * inz;
+
+    double *data = callocdouble(inx * iny * inz);
+    for (int i = 0; i < tamanhoSaida; ++i) {
+        for (int j = 0; j < valmax; ++j) {
+            data[TensorMap(c->pesos, j, i, 0)] = 2.19722 / (valmax) * rand() / (double) RAND_MAX;
+        }
+    }
+    cl_command_queue queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error->error);
+    error->error = clEnqueueWriteBuffer(queue, c->pesos->data, CL_TRUE, 0, c->pesos->bytes, data, 0, NULL, NULL);
+    if (error->error) {
+        snprintf(error->msg, 255, "nao foi possivel copiar dados\n");
+        free(data);
+        clReleaseCommandQueue(queue);
+        return error->error;
+
+    }
+    clFinish(queue);
+    clReleaseCommandQueue(queue);
+    free(data);
+}
 
 void releaseFullConnect(CamadaFullConnect *pc) {
     CamadaFullConnect c = *pc;
@@ -80,60 +118,54 @@ void releaseFullConnect(CamadaFullConnect *pc) {
     releaseTensor(&c->oldgrad);
     releaseTensor(&c->super.saida);
     releaseTensor(&c->input);
+    Kernel_release(&c->kernelfullfixWeight);
+    Kernel_release(&c->kernelfullfeed);
+    Kernel_release(&c->kernelfullcalcgrad1);
+    Kernel_release(&c->kernelfullcalcgrad2);
     free(c);
     *pc = 0;
 
 }
 
 void ativaFullConnect(CamadaFullConnect c) {
-    double valorEntrada;
-    int m;
-    for (int n = 0; n < c->super.saida->tx; ++n) {
-        valorEntrada = 0;
-        FOR3D(x, y, z, c->super.entrada->tx, c->super.entrada->ty, c->super.entrada->tz) {
-                    m = z * (c->super.entrada->tx * c->super.entrada->ty) + y * c->super.entrada->tx + x;
-                    valorEntrada += TensorAT(c->super.entrada, x, y, z) * TensorAT(c->pesos, m, n, 0);
+    int error = 0, id = 0;
+    size_t global, local, resto;
+    call_kernel(c->super.saida->x,
+                Kernel_putArgs(&c->kernelfullfeed, 11,&c->super.entrada->data,&c->pesos->data,&c->input->data,&c->super.saida->data,&c->fa
+                               ,&c->super.entrada->x,&c->super.entrada->y,&c->super.entrada->z,&c->pesos->x,&c->pesos->y, &id);
+                        error = clEnqueueNDRangeKernel(c->super.queue, c->kernelfullfeed.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+                        PERRW(error, "falha ao chamar kernel convSUm")
+    );
 
-                }
-        TensorAT(c->input, n, 0, 0) = valorEntrada;
-        TensorAT(c->super.saida, n, 0, 0) = c->fa(valorEntrada);
-    }
 }
 
 void corrigePesosFullConnect(CamadaFullConnect c) {
-    int m;
-    double w;
-    double tmp;
-    for (int n = 0; n < c->super.saida->tx; ++n) {
-        for (int i = 0; i < c->super.entrada->tx; ++i) {
-            for (int j = 0; j < c->super.entrada->ty; ++j) {
-                for (int z = 0; z < c->super.entrada->tx; ++z) {
-                    m = i * (c->super.entrada->ty * c->super.entrada->tz) + j * c->super.entrada->tz + z;
-                    w = TensorAT(c->pesos, m, n, 0);
-                    tmp = c->grad->data[n] + c->oldgrad->data[n] * c->super.parametros->momento;
-                    w -= c->super.parametros->hitLearn *
-                         (tmp * TensorAT(c->super.entrada, i, j, z) + w * c->super.parametros->decaimentoDePeso);
-                    TensorAT(c->pesos, m, n, 0) = w;
-                }
-            }
-        }
-        c->oldgrad->data[n] = c->grad->data[n] + c->oldgrad->data[n] * c->super.parametros->momento;
-    }
+
+    int error = 0, id = 0;
+    size_t global, local, resto;
+    call_kernel(c->super.saida->x,
+                Kernel_putArgs(&c->kernelfullfixWeight, 12,&c->super.entrada->data,&c->pesos->data,&c->grad->data,&c->oldgrad->data,
+                               &c->super.parametros->hitLearn,&c->super.entrada->x,&c->super.entrada->y,&c->super.entrada->z,&c->pesos->x,&c->pesos->y, &id);
+                        error = clEnqueueNDRangeKernel(c->super.queue, c->kernelfullfixWeight.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+                        PERRW(error, "falha ao chamar kernel convSUm")
+    );
 
 }
 
 void calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext) {
-    memset(c->super.gradsEntrada->data, 0, c->super.gradsEntrada->tx * c->super.gradsEntrada->ty * c->super.gradsEntrada->tz);
-    int m;
-    for (int n = 0; n < c->super.saida->tx; ++n) {
-        TensorAT(c->grad,n,0,0) = TensorAT(GradNext, n, 0, 0) * c->dfa(TensorAT(c->input,n,0,0));
-
-        FOR3D(x, y, z, c->super.entrada->tx, c->super.entrada->ty, c->super.entrada->tz) {
-                    m = z * (c->super.entrada->tx * c->super.entrada->ty) + y * c->super.entrada->tx + x;
-                    TensorAT(c->super.gradsEntrada, x, y, z) += TensorAT(c->grad, n, 0, 0) * TensorAT(c->pesos, m, n, 0);
-
-                }
-    }
+    int error = 0, id = 0;
+    size_t global, local, resto;
+    call_kernel(c->super.saida->x,
+                Kernel_putArgs(&c->kernelfullcalcgrad1, 5,&c->grad->data,&GradNext->data,&c->input->data,&c->dfa
+                        , &id);
+                        error = clEnqueueNDRangeKernel(c->super.queue, c->kernelfullcalcgrad1.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+                        PERRW(error, "falha ao chamar kernel fullcalgrads1")
+    );
+    call_kernel(c->super.entrada->x*c->super.entrada->y*c->super.entrada->z,
+                Kernel_putArgs(&c->kernelfullcalcgrad2, 6,&c->grad->data,&c->super.gradsEntrada->data,&c->pesos->data,&c->pesos->x,&c->pesos->y, &id);
+                        error = clEnqueueNDRangeKernel(c->super.queue, c->kernelfullcalcgrad2.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+                        PERRW(error, "falha ao chamar kernel fullcalgrads1")
+    );
 
 }
 
