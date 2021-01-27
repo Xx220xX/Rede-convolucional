@@ -11,6 +11,8 @@
 
 typedef struct {
     Typecamada super;
+    Kernel kernelReluAtiva;
+    Kernel kernelReluCalcGrads;
 } *CamadaRelu, TypecamadaRelu;
 
 void realeaseRelu(CamadaRelu *pc);
@@ -21,7 +23,7 @@ void corrige_pesosRelu(CamadaRelu );
 
 void calc_gradsRelu(CamadaRelu c, Tensor GradNext);
 
-Camada creatRelu(unsigned int inx, unsigned int iny, unsigned int inz,Tensor entrada) {
+Camada creatRelu(WrapperCL *cl, unsigned int inx, unsigned int iny, unsigned int inz,Tensor entrada, GPU_ERROR *error) {
     CamadaRelu c = (CamadaRelu) calloc(1, sizeof(TypecamadaRelu));
 
     c->super.gradsEntrada = newTensor(inx, iny, inz);
@@ -36,6 +38,9 @@ Camada creatRelu(unsigned int inx, unsigned int iny, unsigned int inz,Tensor ent
     c->super.calc_grads = (fvv) calc_gradsRelu;
     c->super.corrige_pesos = (fv) corrige_pesosRelu;
     c->super.type = RELU;
+
+    c->kernelReluAtiva = new_Kernel(cl->program, "reluativa", 7, VOID_P, VOID_P, INT, INT, INT, INT, INT);
+    c->kernelReluCalcGrads = new_Kernel(cl->program, "relucalcgrad", 6, VOID_P, VOID_P, VOID_P, INT, INT, INT);
     return (Camada) c;
 }
 
@@ -49,26 +54,25 @@ void realeaseRelu(CamadaRelu *pc) {
 }
 
 void ativaRelu(CamadaRelu c) {
-    for (int i = 0; i < c->super.entrada->tx; i++)
-        for (int j = 0; j < c->super.entrada->ty; j++)
-            for (int z = 0; z < c->super.entrada->tz; z++) {
-                double v = TensorAT(c->super.entrada, i, j, z);
-                if (v < 0)
-                    v = 0;
-                TensorAT(c->super.saida, i, j, z) = v;
-            }
+    int error = 0;
+    call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
+                Kernel_putArgs(&c->kernelReluAtiva, 7, &c->super.entrada->data, &c->super.saida->data,
+                        &c->super.entrada->x, &c->super.entrada->y,&c->super.entrada->z, &c->super.saida->x,&c->super.saida->y);
+    error = clEnqueueNDRangeKernel(c->super.queue, c->kerneldropativa.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    PERRW(error, "falha ao chamar kernel ativa dropout")
+    );
 }
 
 void corrige_pesosRelu(CamadaRelu c) {}
 
-
 void calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
-    for (int i = 0; i < c->super.entrada->tx; i++)
-        for (int j = 0; j < c->super.entrada->ty; j++)
-            for (int z = 0; z < c->super.entrada->tz; z++) {
-                TensorAT(c->super.gradsEntrada, i, j, z) = (TensorAT(c->super.entrada, i, j, z) < 0) ? (0) :
-                                                          (1 * TensorAT(GradNext, i, j, z));
-            }
+    int error = 0;
+    call_kernel(c->super.entrada->x*c->super.entrada->y*c->super.entrada->z,
+                Kernel_putArgs(&c->kernelReluCalcGrads, 6, &c->super.gradsEntrada->data, &c->super.entrada->data, &GradNext->data,
+                               &c->super.entrada->x, &c->super.entrada->y,&c->super.entrada->z);
+    error = clEnqueueNDRangeKernel(c->super.queue, c->kerneldropativa.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    PERRW(error, "falha ao chamar kernel ativa dropout")
+    );
 }
 
 
