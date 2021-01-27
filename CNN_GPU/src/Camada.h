@@ -51,7 +51,7 @@ Camada carregarDropOut(WrapperCL *cl, FILE *src, Tensor entrada, Params *params,
 
 Camada carregarFullConnect(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error);
 
-Camada carregarCamada(WrapperCL *cl, FILE *src, Tensor *entrada, Params *param, GPU_ERROR *error) {
+Camada carregarCamada(WrapperCL *cl, FILE *src, Tensor entrada, Params *param, GPU_ERROR *error) {
     char identify = 0;
     fread(&identify, sizeof(char), 1, src);
     if (feof(src))return NULL;

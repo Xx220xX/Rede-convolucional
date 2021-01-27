@@ -16,15 +16,17 @@ typedef struct _cnn {
     Camada *camadas;
     int size;
     Ponto3d sizeIn;
-    char error;
+    char err;
     cl_command_queue queue;
-} TypeCnn;
-typedef TypeCnn *Cnn;
+    WrapperCL *cl;
+    GPU_ERROR  error;
+} *Cnn, TypeCnn;
 
-Cnn createCnn(Params p, UINT inx, UINT iny, UINT inz) {
+Cnn createCnn(WrapperCL  *cl,Params p, UINT inx, UINT iny, UINT inz) {
     Cnn c = (Cnn) calloc(1, sizeof(TypeCnn));
     c->parametros = p;
     c->sizeIn = (Ponto3d) {inx, iny, inz};
+    c->cl = cl;
     return c;
 }
 
@@ -54,17 +56,17 @@ int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltro
 
     Ponto3d sizeIn = __addLayer(c);
     if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
-        c->error = INVALID_FILTER_SIZE;
+        c->err = INVALID_FILTER_SIZE;
         c->size--;
         c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
-        return c->error;
+        return c->err;
 
     }
 
     Tensor entrada = NULL;
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-    c->camadas[c->size - 1] = createConv(passo, tamanhoDoFiltro, numeroDeFiltros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-                                         &c->parametros);
+    c->camadas[c->size - 1] = createConv(c->cl,passo, tamanhoDoFiltro, numeroDeFiltros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
+                                         &c->parametros,&c->error,1);
     return 0;
 }
 
@@ -80,17 +82,16 @@ int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
 
     Ponto3d sizeIn = __addLayer(c);
     if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
-        c->error = INVALID_FILTER_SIZE;
+        c->err = INVALID_FILTER_SIZE;
         c->size--;
         c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
-        return c->error;
+        return c->err;
 
     }
 
     Tensor entrada = NULL;
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-    c->camadas[c->size - 1] = createPool(passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-                                         &c->parametros);
+    c->camadas[c->size - 1] = createPool(passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,&c->parametros);
     return 0;
 }
 
@@ -98,15 +99,15 @@ int CnnAddReluLayer(Cnn c) {
     Ponto3d sizeIn = __addLayer(c);
     Tensor entrada = NULL;
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-    c->camadas[c->size - 1] = creatRelu(sizeIn.x, sizeIn.y, sizeIn.z, entrada);
+    c->camadas[c->size - 1] = creatRelu(c->cl,sizeIn.x, sizeIn.y, sizeIn.z, entrada,&c->error);
     return 0;
 }
 
-int CnnAddDropOutLayer(Cnn c, double pontoAtivacao) {
+int CnnAddDropOutLayer(Cnn c, double pontoAtivacao,long long int seed) {
     Ponto3d sizeIn = __addLayer(c);
     Tensor entrada = NULL;
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-    c->camadas[c->size - 1] = createDropOut(sizeIn.x, sizeIn.y, sizeIn.z, pontoAtivacao, entrada);
+    c->camadas[c->size - 1] = createDropOut(c->cl,sizeIn.x, sizeIn.y, sizeIn.z, pontoAtivacao,seed,entrada,&c->error);
     return 0;
 }
 
@@ -114,7 +115,7 @@ int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, Params *params, int funca
     Ponto3d sizeIn = __addLayer(c);
     Tensor entrada = NULL;
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-    c->camadas[c->size - 1] = createFullConnect(sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada, params, funcaoDeAtivacao);
+    c->camadas[c->size - 1] = createFullConnect(c->cl,sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada, params, funcaoDeAtivacao,1,&c->error);
     return 0;
 }
 
@@ -125,7 +126,24 @@ void releaseCnn(Cnn *pc) {
     }
     free(c->camadas);
     free(c);
+    clReleaseCommandQueue(c->queue);
     *pc = NULL;
 }
-
+void cnnSave(Cnn c,FILE *dst){
+    for (int i = 0; i < c->size; ++i) {
+        c->camadas[i]->salvar(c->cl,c->camadas[i],dst,&c->error);
+    }
+}
+int cnnCarregar(Cnn c,FILE *src){
+    if(c->size!= 0)return -1;
+    Camada cm;
+    Tensor entrada = NULL;
+    while(1){
+        cm = carregarCamada(c->cl,src,entrada,&c->parametros,&c->error);
+        if(cm == NULL)return c->error.error;
+        entrada = cm->saida;
+        __addLayer(c);
+        c->camadas[c->size-1] = cm;
+    }
+}
 #endif
