@@ -39,8 +39,8 @@ Camada creatRelu(WrapperCL *cl, unsigned int inx, unsigned int iny, unsigned int
     c->super.corrige_pesos = (fv) corrige_pesosRelu;
     c->super.type = RELU;
 
-    c->kernelReluAtiva = new_Kernel(cl->program, "reluativa", 7, VOID_P, VOID_P, INT, INT, INT, INT, INT);
-    c->kernelReluCalcGrads = new_Kernel(cl->program, "relucalcgrad", 6, VOID_P, VOID_P, VOID_P, INT, INT, INT);
+    c->kernelReluAtiva = new_Kernel(cl->program, "reluativa", 3, VOID_P, VOID_P, INT);
+    c->kernelReluCalcGrads = new_Kernel(cl->program, "relucalcgrad", 4, VOID_P, VOID_P, VOID_P, INT);
     return (Camada) c;
 }
 
@@ -57,8 +57,7 @@ void ativaRelu(CamadaRelu c) {
     int error = 0, id = 0;
     size_t global, local, resto;
     call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
-                Kernel_putArgs(&c->kernelReluAtiva, 7, &c->super.entrada->data, &c->super.saida->data,
-                        &c->super.entrada->x, &c->super.entrada->y,&c->super.entrada->z, &c->super.saida->x,&c->super.saida->y);
+                Kernel_putArgs(&c->kernelReluAtiva, 3, &c->super.entrada->data, &c->super.saida->data, id);
     error = clEnqueueNDRangeKernel(c->super.queue, c->kernelReluCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
     PERRW(error, "falha ao chamar kernel ativa dropout")
     );
@@ -70,12 +69,10 @@ void calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
     int error = 0, id = 0;
     size_t global, local, resto;
     call_kernel(c->super.entrada->x*c->super.entrada->y*c->super.entrada->z,
-                Kernel_putArgs(&c->kernelReluCalcGrads, 6, &c->super.gradsEntrada->data, &c->super.entrada->data, &GradNext->data,
-                               &c->super.entrada->x, &c->super.entrada->y,&c->super.entrada->z);
+                Kernel_putArgs(&c->kernelReluCalcGrads, 4, &c->super.gradsEntrada->data, &c->super.entrada->data, &GradNext->data, id);
     error = clEnqueueNDRangeKernel(c->super.queue, c->kernelReluCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
     PERRW(error, "falha ao chamar kernel ativa dropout")
     );
 }
-
 
 #endif //CNN_GPU_CAMADA_RELU_H
