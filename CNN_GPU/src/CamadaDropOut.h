@@ -30,7 +30,7 @@ void corrigePesosDropOut(CamadaDropOut c);
 void ativaDropOut(CamadaDropOut c);
 
 void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext);
-
+void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error);
 Camada createDropOut(WrapperCL *cl,UINT inx, UINT iny, UINT inz, double p_ativacao,long long seed, Tensor entrada,GPU_ERROR *error) {
     CamadaDropOut c = (CamadaDropOut) calloc(1, sizeof(Typecamadadropout));
     c->super.gradsEntrada = newTensor(cl->context,inx, iny, inz,error);
@@ -49,6 +49,7 @@ Camada createDropOut(WrapperCL *cl,UINT inx, UINT iny, UINT inz, double p_ativac
     c->super.corrige_pesos = (fv)corrigePesosDropOut;
     c->super.type = DROPOUT;
     c->seed = seed;
+    c->super.salvar = salvarDropOut;
     c->kerneldropativa = new_Kernel(cl->program, "dropativa", 6, VOID_P, VOID_P, VOID_P,sizeof(cl_long),DOUBLE,INT);
     c->kerneldropcalcgrad = new_Kernel(cl->program, "dropcalcgrad", 4, VOID_P, VOID_P, VOID_P,DOUBLE,INT);
     return (Camada)c;
@@ -60,6 +61,8 @@ void releaseDropOut(CamadaDropOut *pc) {
     releaseTensor(&c->super.saida);
     releaseTensorChar(&c->hitmap);
     if (c->flag_releaseInput)releaseTensor(&c->super.entrada);
+    Kernel_release(&c->kerneldropcalcgrad);
+    Kernel_release(&c->kerneldropativa);
     free(c);
     *pc = 0;
 }
@@ -88,6 +91,30 @@ void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext) {
                         error = clEnqueueNDRangeKernel(c->super.queue, c->kerneldropcalcgrad.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
                         PERRW(error, "falha ao chamar kernel cacalcgrad dropout")
     );
+}
+void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error) {
+    char flag = '#';
+    fwrite(&c->super.type, sizeof(char), 1, dst);
+    fwrite(&flag, sizeof(char), 1, dst);
+    fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
+    fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
+    fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+    fwrite(&c->p_ativacao, sizeof(double), 1, dst);
+}
+
+Camada carregarDropOut(WrapperCL *cl, FILE *src, Tensor entrada,Params *params,GPU_ERROR *error) {
+    char flag = 0;
+    fread(&flag, sizeof(char), 1, src);
+    if (flag != '#')
+        fread(&flag, sizeof(char), 1, src);
+    UINT inx, iny, inz;
+    double pativacao;
+    fread(&inx, sizeof(UINT), 1, src);
+    fread(&iny, sizeof(UINT), 1, src);
+    fread(&inz, sizeof(UINT), 1, src);
+    fread(&pativacao, sizeof(double), 1, src);
+    CamadaDropOut c = (CamadaDropOut)createDropOut(cl,inx,iny,inz,pativacao,time(NULL),entrada,error);
+    return (Camada) c;
 }
 
 #endif //CNN_GPU_CAMADADROPOUT_H

@@ -38,6 +38,7 @@ int ativaConv(CamadaConv c);
 void corrige_pesosConv(CamadaConv c);
 
 int convRandomize(CamadaConv c, WrapperCL *cl, GPU_ERROR *error);
+void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, GPU_ERROR *error) ;
 
 Camada createConv(WrapperCL *cl, UINT passo, UINT lenFilter, UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
                   Tensor entrada, Params *params, GPU_ERROR *error, int randomize) {
@@ -49,7 +50,7 @@ Camada createConv(WrapperCL *cl, UINT passo, UINT lenFilter, UINT numeroFiltros,
     c->super.corrige_pesos = (fv) corrige_pesosConv;
     c->super.parametros = params;
     c->super.type = CONV;
-
+    c->super.salvar =  salvarConv;
     c->passo = passo;
     c->tamanhoFiltro = lenFilter;
     c->numeroFiltros = numeroFiltros;
@@ -110,25 +111,6 @@ Camada createConv(WrapperCL *cl, UINT passo, UINT lenFilter, UINT numeroFiltros,
     return (Camada) c;
 }
 
-void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, GPU_ERROR *error) {
-    char flag = '#';
-    fwrite(&c->super.type, sizeof(char), 1, dst);
-    fwrite(&flag, sizeof(char), 1, dst);
-    fwrite(&c->passo, sizeof(UINT), 1, dst);
-    fwrite(&c->tamanhoFiltro, sizeof(UINT), 1, dst);
-    fwrite(&c->numeroFiltros, sizeof(UINT), 1, dst);
-    fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
-    fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
-    fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
-    double *data = callocdouble(c->tamanhoFiltro * c->tamanhoFiltro * c->super.entrada->z);
-    cl_command_queue queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error->error);
-    for (int a = 0; a < c->numeroFiltros; a++) {
-        clEnqueueReadBuffer(queue, c->filtros[a]->data, CL_TRUE, 0, c->filtros[a]->bytes, data, 0, NULL, NULL);
-        fwrite(data, 1, c->filtros[a]->bytes, dst);
-    }
-    clFinish(queue);
-    clReleaseCommandQueue(queue);
-}
 
 int convRandomize(CamadaConv c, WrapperCL *cl, GPU_ERROR *error) {
     int lenFilter = c->tamanhoFiltro,
@@ -256,6 +238,25 @@ void calc_gradsConv(CamadaConv c, Tensor Gradnext) {
 
 }
 
+void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, GPU_ERROR *error) {
+    char flag = '#';
+    fwrite(&c->super.type, sizeof(char), 1, dst);
+    fwrite(&flag, sizeof(char), 1, dst);
+    fwrite(&c->passo, sizeof(UINT), 1, dst);
+    fwrite(&c->tamanhoFiltro, sizeof(UINT), 1, dst);
+    fwrite(&c->numeroFiltros, sizeof(UINT), 1, dst);
+    fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
+    fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
+    fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+    double *data = callocdouble(c->tamanhoFiltro * c->tamanhoFiltro * c->super.entrada->z);
+    cl_command_queue queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error->error);
+    for (int a = 0; a < c->numeroFiltros; a++) {
+        clEnqueueReadBuffer(queue, c->filtros[a]->data, CL_TRUE, 0, c->filtros[a]->bytes, data, 0, NULL, NULL);
+        fwrite(data, 1, c->filtros[a]->bytes, dst);
+    }
+    clFinish(queue);
+    clReleaseCommandQueue(queue);
+}
 
 Camada carregarConv(WrapperCL *cl, FILE *src, Tensor entrada,Params *params,GPU_ERROR *error) {
     char flag = 0;

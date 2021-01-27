@@ -6,26 +6,30 @@
 #define CNN_GPU_CAMADA_H
 
 #include"Tensor.h"
-
+#include <time.h>
+typedef struct {
+    double hitLearn, momento, decaimentoDePeso, multiplicador;
+} Params;
 // funcao com dois parametros do tipo ponteiro com retorno inteiro
+
 typedef int (*fvv)(void *, void *);
 
 typedef int (*fv)(void *);
 
-typedef struct {
-    double hitLearn, momento, decaimentoDePeso, multiplicador;
-} Params;
+typedef void  (*fsl)(void *, void *, void *, void *);
+
 
 #define CONV 1
 #define POOL 2
 #define RELU 3
 #define DROPOUT 4
 #define FULLCONNECT 5
+
 typedef struct {
     fvv calc_grads;
     fv corrige_pesos;
     fv ativa;
-    fv salvar;
+    fsl salvar;
     char type;
     fv release;
     Params *parametros;
@@ -36,28 +40,34 @@ typedef struct {
 
     cl_command_queue queue;
 } *Camada, Typecamada;
-Camada carregarConv(WrapperCL *cl, FILE *src, Tensor entrada,Params *params,GPU_ERROR *error);
-Camada carregarPool(WrapperCL *cl, FILE *src, Tensor entrada,Params *params,GPU_ERROR *error);
-Camada carregarRelu(WrapperCL *cl, FILE *src, Tensor entrada,Params *params,GPU_ERROR *error);
-Camada carregarDropOut(WrapperCL *cl, FILE *src, Tensor entrada,Params *params,GPU_ERROR *error);
-Camada carregarFullConnect(WrapperCL *cl, FILE *src, Tensor entrada,Params *params,GPU_ERROR *error);
 
-Camada carregarCamada(WrapperCL *cl,FILE * src,GPU_ERROR *error) {
-    char identify =0;
-    fread(&identify,sizeof(char),1,src);
+Camada carregarConv(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error);
+
+Camada carregarPool(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error);
+
+Camada carregarRelu(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error);
+
+Camada carregarDropOut(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error);
+
+Camada carregarFullConnect(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error);
+
+Camada carregarCamada(WrapperCL *cl, FILE *src, Tensor *entrada, Params *param, GPU_ERROR *error) {
+    char identify = 0;
+    fread(&identify, sizeof(char), 1, src);
     if (feof(src))return NULL;
     switch (identify) {
         case CONV:
-            return carregarConv(cl,src,error);
+            return carregarConv(cl, src, entrada, param, error);
         case POOL:
-            return carregarPool(cl,src,error);
+            return carregarPool(cl, src, entrada, param, error);
         case RELU:
-            return carregarRelu(cl,src,error);
+            return carregarRelu(cl, src, entrada, param, error);
         case DROPOUT:
-            return carregarDropOut(cl,src,error);
+            return carregarDropOut(cl, src, entrada, param, error);
         case FULLCONNECT:
-            return carregarFullConnect(cl,src,error);
-        default:return NULL;
+            return carregarFullConnect(cl, src, entrada, param, error);
+        default:
+            return NULL;
     }
 
 }

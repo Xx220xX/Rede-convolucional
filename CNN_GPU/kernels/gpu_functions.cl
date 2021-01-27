@@ -39,6 +39,7 @@ void initFucntions() {
 }
 
 #define TensorMap(x, y, z, tx, ty)((z)*(ty*tx)+(y)*tx+(x))
+
 typedef struct {
     int x, y, z;
 } Ponto3d;

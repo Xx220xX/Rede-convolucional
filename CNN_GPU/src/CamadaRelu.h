@@ -54,11 +54,12 @@ void realeaseRelu(CamadaRelu *pc) {
 }
 
 void ativaRelu(CamadaRelu c) {
-    int error = 0;
+    int error = 0, id = 0;
+    size_t global, local, resto;
     call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
                 Kernel_putArgs(&c->kernelReluAtiva, 7, &c->super.entrada->data, &c->super.saida->data,
                         &c->super.entrada->x, &c->super.entrada->y,&c->super.entrada->z, &c->super.saida->x,&c->super.saida->y);
-    error = clEnqueueNDRangeKernel(c->super.queue, c->kerneldropativa.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    error = clEnqueueNDRangeKernel(c->super.queue, c->kernelReluCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
     PERRW(error, "falha ao chamar kernel ativa dropout")
     );
 }
@@ -66,11 +67,12 @@ void ativaRelu(CamadaRelu c) {
 void corrige_pesosRelu(CamadaRelu c) {}
 
 void calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
-    int error = 0;
+    int error = 0, id = 0;
+    size_t global, local, resto;
     call_kernel(c->super.entrada->x*c->super.entrada->y*c->super.entrada->z,
                 Kernel_putArgs(&c->kernelReluCalcGrads, 6, &c->super.gradsEntrada->data, &c->super.entrada->data, &GradNext->data,
                                &c->super.entrada->x, &c->super.entrada->y,&c->super.entrada->z);
-    error = clEnqueueNDRangeKernel(c->super.queue, c->kerneldropativa.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    error = clEnqueueNDRangeKernel(c->super.queue, c->kernelReluCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
     PERRW(error, "falha ao chamar kernel ativa dropout")
     );
 }

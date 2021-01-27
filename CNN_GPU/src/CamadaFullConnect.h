@@ -39,7 +39,7 @@ void ativaFullConnect(CamadaFullConnect c);
 void calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext);
 
 int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error);
-
+void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, GPU_ERROR *error);
 Camada createFullConnect(WrapperCL *cl, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida, Tensor entrada, Params *params, int funcaoDeAtivacao, int randomize, GPU_ERROR *error) {
     CamadaFullConnect c = (CamadaFullConnect) calloc(1, sizeof(Typecamadafullconnect));
     cl_context context = cl->context;
@@ -69,7 +69,7 @@ Camada createFullConnect(WrapperCL *cl, UINT inx, UINT iny, UINT inz, UINT taman
     c->super.type = FULLCONNECT;
     c->fa = funcaoDeAtivacao;
     c->dfa = funcaoDeAtivacao | FLAGDIF;
-
+    c->super.salvar =  salvarFullConnect;
 
     c->kernelfullfeed = new_Kernel(cl->program, "fullfeed", 11, VOID_P, VOID_P, VOID_P, VOID_P,
                                        INT,INT,INT,INT,INT,INT,INT);
@@ -169,5 +169,43 @@ void calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext) {
 
 }
 
+void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, GPU_ERROR *error) {
+    char flag = '#';
+    fwrite(&c->super.type, sizeof(char), 1, dst);
+    fwrite(&flag, sizeof(char), 1, dst);
+    fwrite(&c->fa, sizeof(int), 1, dst);
+    fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
+    fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
+    fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+    fwrite(&c->super.saida->x, sizeof(UINT), 1, dst);
+    double *data = callocdouble(c->pesos->x * c->pesos->y * c->pesos->z);
+    cl_command_queue queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error->error);
+    clEnqueueReadBuffer(queue, c->pesos->data, CL_TRUE, 0, c->pesos->bytes, data, 0, NULL, NULL);
+    fwrite(data, 1, c->pesos->bytes, dst);
+    clFinish(queue);
+    clReleaseCommandQueue(queue);
+}
+
+Camada carregarFullConnect(WrapperCL *cl, FILE *src, Tensor entrada,Params *params,GPU_ERROR *error) {
+    char flag = 0;
+    fread(&flag, sizeof(char), 1, src);
+    if (flag != '#')
+        fread(&flag, sizeof(char), 1, src);
+    UINT inx, iny, inz,tamanhoSaida;
+    int fa;
+    fread(&fa, sizeof(int), 1, src);
+    fread(&inx, sizeof(UINT), 1, src);
+    fread(&iny, sizeof(UINT), 1, src);
+    fread(&inz, sizeof(UINT), 1, src);
+    fread(&tamanhoSaida, sizeof(UINT), 1, src);
+    CamadaFullConnect c = (CamadaFullConnect)createFullConnect(cl,inx,iny,inz,tamanhoSaida,entrada,params,fa,0,error);
+    double *data = callocdouble(c->pesos->x * c->pesos->y * c->pesos->z);
+    cl_command_queue queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error->error);
+    fread(data, 1, c->pesos->bytes, src);
+    clEnqueueWriteBuffer(queue, c->pesos->data, CL_TRUE, 0, c->pesos->bytes, data, 0, NULL, NULL);
+    clFinish(queue);
+    clReleaseCommandQueue(queue);
+    return (Camada) c;
+}
 
 #endif //CNN_GPU_CAMADAFULLCONNECT_H
