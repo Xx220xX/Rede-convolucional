@@ -19,6 +19,8 @@ typedef struct {
     UINT passo;
     UINT tamanhoFiltro;
 
+    Kernel kernelPoolAtiva;
+    Kernel kernelPoolCalcGrads;
 } *CamadaPool, Typecamadapool;
 
 void releasePool(CamadaPool *pc);
@@ -29,7 +31,7 @@ void corrige_pesosPool(CamadaPool c);
 
 void calc_gradsPool(CamadaPool c, Tensor GradNext);
 
-Camada createPool(UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz, Tensor entrada, Params *params) {
+Camada createPool(UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz, Tensor entrada, Params *params){
     CamadaPool c = (CamadaPool) calloc(1, sizeof(Typecamadapool));
     c->passo = passo;
     c->tamanhoFiltro = tamanhoFiltro;
@@ -48,6 +50,9 @@ Camada createPool(UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz, 
     c->super.parametros = params;
     c->super.type = POOL;
 
+    c->kernelPoolAtiva = new_Kernel(cl->program, "poolativa", 8, VOID_P, VOID_P, INT, INT, INT, INT, INT, INT);
+    c->kernelPoolCalcGrads = new_Kernel(cl->program, "poolCalcGrads", 11, VOID_P, VOID_P, VOID_P, VOID_P,
+                                        INT, INT, INT, INT, INT, INT, INT);
     return (Camada) c;
 }
 
@@ -56,65 +61,39 @@ void releasePool(CamadaPool *pc) {
     if (c->super.flag_releaseInput)releaseTensor(&c->super.entrada);
     releaseTensor(&c->super.gradsEntrada);
     releaseTensor(&c->super.saida);
+    Kernel_release(&c->kernelPoolCalcGrads);
+    Kernel_release(&c->kernelPoolAtiva);
+    free(c);
     *pc = NULL;
 }
 
 void ativaPool(CamadaPool c) {
-    Ponto3d mapeado;
-    double mval;
-    double v;
+    int error = 0, id = 0;
+    size_t global, local, resto;
     Params *parametros = c->super.parametros;
-    for (int x = 0; x < c->super.saida->tx; ++x) {
-        for (int y = 0; y < c->super.saida->ty; ++y) {
-            for (int z = 0; z < c->super.saida->tz; ++z) {
-                mapeado = mapeia_saida_entrada(x, y, 0, 0, c->passo);
-                mval = -DBL_MAX;
-                for (int i = 0; i < c->tamanhoFiltro; ++i) {
-                    for (int j = 0; j < c->tamanhoFiltro; ++j) {
-                        v = TensorAT(c->super.entrada, mapeado.x + i, mapeado.y + j, z);
-                        if (v > mval)mval = v;
-                    }
-                }
-                TensorAT(c->super.saida, x, y, z) = mval;
-            }
-        }
-    }
+    call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
+                Kernel_putArgs(&c->kernelPoolAtiva, 8, &c->super.entrada->data, &c->super.saida->data, c->tamanhoFiltro,&c->passo,
+                               &c->super.saida->x, &c->super.saida->y, &c->super.saida->z, &id);
+    error = clEnqueueNDRangeKernel(c->super.queue, c->kernelReluCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    PERRW(error, "falha ao chamar kernel ativa dropout")
+    );
 }
 
 void corrige_pesosPool(CamadaPool c) {}
 
-Range mapeia_entrada_saidaPool(int x, int y, int tamanhoFiltro, int passo, Tensor saida) {
-    float a = x, b = y;
-    Range g = {0};
-    g.min.x = normaliza_range((a - tamanhoFiltro + 1) / passo, saida->tx, 1);
-    g.min.y = normaliza_range((b - tamanhoFiltro + 1) / passo, saida->ty, 1);
-    g.max.x = normaliza_range(a / passo, saida->tx, 0);
-    g.max.y = normaliza_range(b / passo, saida->ty, 0);
-    g.max.z = saida->tz - 1;
-    return g;
-
-}
 
 void calc_gradsPool(CamadaPool c, Tensor GradNext) {
     Range range={0};
     double somaErro = 0;
     int minx, miny;
     double testeMax;
-    FOR2D(x,y,c->super.entrada->tx,c->super.entrada->ty) {
-            range = mapeia_entrada_saidaPool(x, y, c->tamanhoFiltro, c->passo, c->super.saida);
-            for (int z = 0; z < c->super.entrada->tz; ++z) {
-                somaErro = 0;
-                for (int i = range.min.x; i <= range.max.x; ++i) {
-                    minx = i * c->passo;
-                    for (int j = range.min.y; j <= range.max.y; ++j) {
-                        miny = j * c->passo;
-                        testeMax = TensorAT(c->super.entrada, x, y, z) == TensorAT(c->super.saida, i, j, z);
-                        somaErro += testeMax * TensorAT(GradNext, i, j, z);
-                    }
-                }
-                TensorAT(c->super.gradsEntrada, x, y, z) = somaErro;
-            }
-        }
+    call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
+                Kernel_putArgs(&c->kernelPoolCalcGrads, 11, &c->super.entrada->data, &c->super.gradsEntrada, Gradnext->data,
+                &c->super.saida->data, c->tamanhoFiltro, &c->passo, &c->super.entrada->x, &c->super.entrada->y,
+                &c->super.saida->x, &c->super.saida->y, &id);
+    error = clEnqueueNDRangeKernel(c->super.queue, c->kernelReluCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    PERRW(error, "falha ao chamar kernel ativa dropout")
+    );
 
 }
 
