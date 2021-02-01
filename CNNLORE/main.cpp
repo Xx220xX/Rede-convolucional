@@ -13,6 +13,10 @@ tensor_t<float> getEntrada(int xx, int yy, int zz) {
             }
         }
     }
+//    printf("\n");
+//    for(int i=0;i<xx*yy*zz;i++){
+//        printf("%f,",en.dados[i]);
+//    }
     return en;
 }
 
@@ -31,6 +35,12 @@ void testConv() {
     srand(1);
     camada_conv_t *cconv = new camada_conv_t(1, 3, 2, {5, 5, 3});
     tensor_t<float> entrada = getEntrada(5, 5, 3);
+    printf("filtros:\n1)\n");
+    print_tensor(cconv->filtros[0]);
+    printf("2)\n");
+    print_tensor(cconv->filtros[1]);
+    printf("+++++++++\n");
+
     cconv->ativa(entrada);
     printf("Teste conv\n\nativa:\nTensor de saida\n");
     print_tensor(cconv->saida);
@@ -64,12 +74,8 @@ void testePool() {
 
 
 }
-long long int rand(long long int *seed){
-    *seed = (*seed*0x5deece66dLL +0xbLL) & ((1LL<<48)-1);
-    return *seed;
-}
-int main() {
-  /*  srand(1);
+int testeFullCOnnect() {
+    srand(1);
     camada_fc_t *cconv = new camada_fc_t({5,5,3},8);
     tensor_t<float> entrada = getEntrada(5, 5, 3);
     cconv->ativa(entrada);
@@ -84,13 +90,10 @@ int main() {
     printf("------------CALCULA GRAD-------------\nGRADIENTE entrada\n");
     cconv->calc_grads(grad);
     print_tensor(cconv->grads_entrada);
-*/
-     long long int seed = time(NULL);
 
-    double id2;
-    for (int i=0;i<10;i++) {
-        id2 = (double) rand(&seed) / (double) ((1LL << 48) - 1);
-        std::cout << id2 << "\n";
-    }
+    return 0;
+}
+int main(){
+    testConv();
     return 0;
 }

@@ -40,7 +40,10 @@ typedef struct {
 
     cl_command_queue queue;
 } *Camada, Typecamada;
-
+size_t  max_works=1;
+void setmaxWorks(size_t max_){
+    max_works = max_;
+}
 Camada carregarConv(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error);
 
 Camada carregarPool(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error);

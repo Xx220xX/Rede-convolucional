@@ -3,6 +3,7 @@
 //
 
 #include "WrapperCL.h"
+#include<stdio.h>
 int WrapperCL_initbyFile(WrapperCL *self,const char * filename){
     FILE *f;
     f = fopen(filename, "r");
@@ -20,6 +21,7 @@ int WrapperCL_initbyFile(WrapperCL *self,const char * filename){
     src[size - 1] = 0;
     WrapperCL_init(self,src);
     free(src);
+    fclose(f);
     return 0;
 }
 int WrapperCL_init(WrapperCL *self, const char *src) {
@@ -55,7 +57,6 @@ int WrapperCL_init(WrapperCL *self, const char *src) {
 
     // build
     cl_int stt = clBuildProgram(self->program, 1, &self->device, NULL, NULL, NULL);
-
     if (stt != CL_SUCCESS) {
         char buff[0x10000];
         clGetProgramBuildInfo(self->program, self->device, CL_PROGRAM_BUILD_LOG, 0x10000, buff, NULL);

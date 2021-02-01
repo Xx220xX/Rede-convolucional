@@ -1,13 +1,8 @@
 //
 // Created by Xx220xX on 10/05/2020.
-//a
+//
 #ifndef CL_KERNEL_SRC_H
 #define CL_KERNEL_SRC_H
-//#define __kernel
-//#define __global
-//#define get_global_id(x)x
-
-
 
 static double sigmoid(double x) { return 1.0 / (1 + exp(-x)); }
 
@@ -40,7 +35,6 @@ double func(int id,double  x){
 
 #define TensorMap(x, y, z, tx, ty)((z)*(ty*tx)+(y)*tx+(x))
 #define TensorMap4D(x, y, z,l, tx, ty,tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(y)*tx+(x))
-
 typedef struct {
     int x, y, z;
 } Ponto3d;
@@ -48,20 +42,33 @@ typedef struct {
     Ponto3d min, max;
 } Range;
 
+
+__kernel void printTensor(__global double *t,int mx,int my,int mz,int ofset){
+    for (int z = 0; z < mz; z++) {
+        printf("[Dim%d]\n", z);
+        for (int x = 0; x < mx; x++) {
+            for (int y = 0; y < my; y++) {
+
+                printf("%.2lf \t",  t[TensorMap(x,y,z,mx,my)+ofset]);
+            }
+            printf("\n");
+        }
+    }
+}
 __kernel void convSum(__global double *filtro, __global double *entrada, __global double *saida,
                       int passo, int saidatx, int saidaty, int entradatx, int entradaty,
-                      int lenFilter, int filtroz, int k0) {
+                      int lenFilter, int entradatz, int k0) {
     int k = get_global_id(0) + k0;
     int x = k% saidatx;
-    int y = ((k  -x) % saidaty*saidatx)/saidatx;
+    int y = ((k  - x) % (saidaty*saidatx))/saidatx;
     int filtrok =  (k-y*saidatx-x)/(saidatx*saidaty);
 
     Ponto3d mapeado = {x * passo, y * passo, 0};
     double sum = 0, f, v;
     for (int i = 0; i < lenFilter; i++)
         for (int j = 0; j < lenFilter; j++)
-            for (int z = 0; z < filtroz; z++) {
-                f = filtro[TensorMap4D(i,j,z,filtrok,lenFilter,lenFilter,filtroz)];
+            for (int z = 0; z < entradatz; z++) {
+                f = filtro[TensorMap4D(i,j,z,filtrok,lenFilter,lenFilter,entradatz)];
                 v = entrada[TensorMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
                 sum += f * v;
             }
@@ -100,12 +107,10 @@ Range mapeia_entrada_saida(int x, int y, int passo, int tamanhoFiltro, int saida
 __kernel void convCalcGrads(__global double *filtro, __global double *gradFiltro, __global double *entrada, __global double *gradEntrada,
                             __global double *gradNext, int lenFilter,int filtroz, int passo, int entradatx, int entradaty, int saidatx, int saidaty,
                             int numFilters, int k0) {
-
     int k = get_global_id(0) + k0;
     int x = k % entradatx;
-    int y = (k - x) % (entradatx * entradaty);
+    int y = ((k - x) % (entradatx * entradaty))/entradatx;
     int z = (k - y * entradatx - x) / (entradatx * entradaty);
-
     Range range = mapeia_entrada_saida(x, y, passo, lenFilter, saidatx, saidaty, numFilters);
     int minX, minY;
     double somaErro = 0, pesoAplicado = 0;
@@ -124,7 +129,7 @@ __kernel void convCalcGrads(__global double *filtro, __global double *gradFiltro
 }
 
 
-__kernel void fullfeed(__global double *entrada, __global double *pesos, __global double *input, __global double *saida, dfd funcaoativacao, int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
+__kernel void fullfeed(__global double *entrada, __global double *pesos, __global double *input, __global double *saida, int funcaoativacao, int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
     int n = get_global_id(0) + k0;
     double valorEntrada = 0;
     int m;
@@ -132,25 +137,26 @@ __kernel void fullfeed(__global double *entrada, __global double *pesos, __globa
         for (int y = 0; y < iny; y++)
             for (int z = 0; z < inz; z++) {
                 m = TensorMap(x, y, z, inx, iny);//z * (inx *iny) + y * inx + x;
-                valorEntrada += entrada[m] * pesos[TensorMap(m, n, 0, pesosx, pesosy);
+                valorEntrada += entrada[m] * pesos[TensorMap(m, n, 0, pesosx, pesosy)];
             }
     input[n] = valorEntrada;
-    saida[n] = funcaoativacao(valorEntrada);
+    saida[n] = func(funcaoativacao,valorEntrada);
 }
 
 __kernel void fullfixweight(__global double *entrada, __global double *pesos, __global double *grad, __global double *oldgrad,
-                            double hitlearn, double decaimentoDePeso,
+                            double hitlearn, double decaimentoDePeso,double momento,
                             int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
     int n = get_global_id(0) + k0;
-
+    int m;
+    double w;
     double tmp = grad[n] + oldgrad[n] * momento;
 
     for (int i = 0; i < inx; ++i) {
         for (int j = 0; j < iny; ++j) {
             for (int z = 0; z < inz; ++z) {
                 m = TensorMap(i, j, z, inx, iny);
-                w = pesos[TensorMap(m, n, 0, pesosx, pesosy);
-                w -= hitLearn * (tmp * entrada[TensorAT(i, j, z, inx, iny)] + w * decaimentoDePeso);
+                w = pesos[TensorMap(m, n, 0, pesosx, pesosy)];
+                w -= hitlearn * (tmp * entrada[TensorMap(i, j, z, inx, iny)] + w * decaimentoDePeso);
                 pesos[TensorMap(m, n, 0, pesosx, pesosy)] = w;
             }
         }
@@ -160,7 +166,7 @@ __kernel void fullfixweight(__global double *entrada, __global double *pesos, __
 
 __kernel void fullcalcgrads1(__global double *grad, __global double *gradNext, __global double *input, int dfa,int k0) {
     int n = get_global_id(0) + k0;
-    grad[n] = gradNext[n] * func[dfa](input[n]);
+    grad[n] = gradNext[n] * func(dfa,input[n]);
 }
 
 __kernel void fullcalcgrads2(__global double *grad,__global double * gradsEntrada,__global double * pesos,int pesosx, int pesosy,int k0) {
@@ -172,21 +178,26 @@ __kernel void fullcalcgrads2(__global double *grad,__global double * gradsEntrad
 }
 
 
- long long int randoml( long long int seed, long long int id){
+ long randoml( long seed, long id){
     seed+=id;
-    return (seed*0x5deece66dLL + 0xbLL) & ((1LL<<48)-1);
+    return (seed*0x5deece66dL + 0xbL) & ((1L<<48)-1);
 }
-double randomD(long long int seed, long long int id){
-    return(double)randoml(seed,id)/(double) ((1LL<<48)-1);
+double randomD(long seed, long id){
+    return(double)randoml(seed,id)/(double) ((1L<<48)-1);
 }
-__kernel void dropativa(__global double *entrada,__global double *saida,__global char * hitmap, long long int seed,double pativa,int k0){
+
+__kernel void dropativa(__global double *entrada,__global double *saida,__global char * hitmap, long  seed,double pativa,int k0){
     int i = get_global_id(0) + k0;
     char teste = (char)(randomD(seed,i)<=pativa);
     hitmap[i]= teste;
     saida[i] = teste*entrada[i];
 }
-__kernel void dropcalcgrad(__global double *gradentrada,__global char *hitmap,__global double *gradnext,int k0){
+
+
+ __kernel void dropcalcgrad(__global double *gradentrada,__global char *hitmap,__global double *gradnext,int k0){
     int i = get_global_id(0) + k0;
     gradentrada[i] =  hitmap[i]*gradnext[i];
 }
+//### guilherme
+
 #endif //CL_TESTE_KERNEL_SRC_H

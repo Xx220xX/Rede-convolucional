@@ -24,14 +24,12 @@ typedef struct {
 } *Tensor, typetensor, *TensorChar, typetensorchar;;
 
 
-typedef struct {
-    Ponto3d min, max;
-} Range;
-
 Tensor newTensor(cl_context context, unsigned int x, unsigned int y, unsigned int z, GPU_ERROR *error) {
     Tensor t = (Tensor) calloc(1, sizeof(typetensor));
     t->bytes = x * y * z * sizeof(double);
-
+    t->x = x;
+    t->y = y;
+    t->z = z;
     t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, t->bytes, NULL, &error->error);
     if (!t->data) {
         error->error = -1;
@@ -45,7 +43,9 @@ Tensor newTensor(cl_context context, unsigned int x, unsigned int y, unsigned in
 Tensor newTensor4D(cl_context context, unsigned int x, unsigned int y, unsigned int z,unsigned int l, GPU_ERROR *error) {
     Tensor t = (Tensor) calloc(1, sizeof(typetensor));
     t->bytes = x * y * z * sizeof(double);
-
+    t->x = x;
+    t->y = y;
+    t->z = z;
     t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, t->bytes*l, NULL, &error->error);
     if (!t->data) {
         error->error = -1;
@@ -60,7 +60,9 @@ Tensor newTensor4D(cl_context context, unsigned int x, unsigned int y, unsigned 
 TensorChar newTensorChar(cl_context context, unsigned int x, unsigned int y, unsigned int z, GPU_ERROR *error) {
     TensorChar t = (Tensor) calloc(1, sizeof(typetensorchar));
     t->bytes = x * y * z * sizeof(char);
-
+    t->x = x;
+    t->y = y;
+    t->z = z;
     t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, t->bytes, NULL, &error->error);
     if (!t->data) {
         error->error = -1;
@@ -75,7 +77,6 @@ TensorChar newTensorChar(cl_context context, unsigned int x, unsigned int y, uns
 void releaseTensor(Tensor *t) {
     if (*t) {
         clReleaseMemObject((*t)->data);
-        free((*t)->data);
         free(*t);
         *t = NULL;
     }

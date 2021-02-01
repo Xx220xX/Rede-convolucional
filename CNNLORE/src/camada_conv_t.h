@@ -167,8 +167,6 @@ struct camada_conv_t {
         for (int x = 0; x < entrada.tamanho.x; x++) {
             for (int y = 0; y < entrada.tamanho.y; y++) {
                 range_t rn = mapeia_entrada_saida(x, y);
-                printf("(%.4lf,%.4lf,%.4lf)\n",rn.min_x,rn.min_y,rn.min_z);
-                printf("(%.4lf,%.4lf,%.4lf)\n\n",rn.max_x,rn.max_y,rn.max_z);
                 for (int z = 0; z < entrada.tamanho.z; z++) {
                     float soma_erro = 0;
                     for (int i = rn.min_x; i <= rn.max_x; i++) {

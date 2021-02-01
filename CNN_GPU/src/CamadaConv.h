@@ -10,6 +10,9 @@
 #include"Tensor.h"
 #include <stdlib.h>
 #include"utils.h"
+#define __kernel
+#define __global
+#define get_global_id(x) x
 //#include "../kernels/gpu_functions.cl"
 
 typedef unsigned int UINT;
@@ -45,6 +48,7 @@ Camada createConv(WrapperCL *cl, UINT passo, UINT lenFilter, UINT numeroFiltros,
                   Tensor entrada, Params *params, GPU_ERROR *error, int randomize) {
     CamadaConv c = (CamadaConv) calloc(1, sizeof(Typecamadaconv));
     cl_context context = cl->context;
+
     c->super.release = (fv) releaseConv;
     c->super.ativa = (fv) ativaConv;
     c->super.calc_grads = (fvv) calc_gradsConv;
@@ -73,12 +77,12 @@ Camada createConv(WrapperCL *cl, UINT passo, UINT lenFilter, UINT numeroFiltros,
 
     if (randomize) convRandomize(c, cl, error);
 
-    c->kernelConvSum = new_Kernel(cl->program, "convSum", 12, VOID_P, VOID_P, VOID_P,
+    c->kernelConvSum = new_Kernel(cl->program, "convSum", 11, VOID_P, VOID_P, VOID_P,
                                   INT, INT, INT, INT, INT, INT, INT, INT, INT);
     c->kernelConvFixWeight = new_Kernel(cl->program, "convFixWeight", 8, VOID_P, VOID_P, VOID_P,
                                         DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT);
-    c->kernelConvCalcGrads = new_Kernel(cl->program, "convCalcGrads", 13, VOID_P, VOID_P, VOID_P, VOID_P, VOID_P,
-                                        INT, INT, INT, INT, INT, INT, INT, INT);
+    c->kernelConvCalcGrads = new_Kernel(cl->program, "convCalcGrads", 14, VOID_P, VOID_P, VOID_P, VOID_P, VOID_P,
+                                        INT, INT, INT, INT, INT, INT, INT, INT, INT);
     return (Camada) c;
 }
 
@@ -101,7 +105,9 @@ int convRandomize(CamadaConv c, WrapperCL *cl, GPU_ERROR *error) {
                     data[TensorMap(c->filtros, i, j, z)] = 1.0 / maxVal * (rand() / ((double) RAND_MAX));
                 }
         error->error = clEnqueueWriteBuffer(queue, c->filtros->data, CL_TRUE, a * c->filtros->bytes, c->filtros->bytes, data, 0, NULL, NULL);
+        clFinish(queue);
         if (error->error) {
+            fprintf(stderr,"warning inside randomize conv\n");
             snprintf(error->msg, 255, "nao foi possivel copiar dados\n");
             free(data);
             clReleaseCommandQueue(queue);
@@ -128,7 +134,6 @@ void releaseConv(CamadaConv *pc) {
     Kernel_release(&c->kernelConvFixWeight);
     Kernel_release(&c->kernelConvSum);
     Kernel_release(&c->kernelConvCalcGrads);
-    free(c->filtros);
     free(c);
     *pc = NULL;
 }
@@ -140,16 +145,15 @@ void releaseConv(CamadaConv *pc) {
  * @return : caso diferente de zero ocorreu um erro
  */
 int ativaConv(CamadaConv c) {
-    Tensor filtro;
-    Ponto3d mapeado;
-    double sum, f, v;
-    Tensor entrada = c->super.entrada;
+
     //iteraçao nos filtros
     int error = 0, id = 0;
     size_t global, local, resto;
+
     call_kernel(c->super.saida->x * c->super.saida->y * c->numeroFiltros,
-                Kernel_putArgs(&c->kernelConvSum, 12, &filtro->data, &c->super.entrada->data, &c->super.saida->data,
-                               &c->passo, &c->super.saida->x, &c->super.saida->y, &c->super.entrada->x, &c->super.entrada->y, &filtro->x, &filtro->z, &id);
+                Kernel_putArgs(&c->kernelConvSum, 11, &c->filtros->data, &c->super.entrada->data, &c->super.saida->data,
+                               &c->passo, &c->super.saida->x, &c->super.saida->y, &c->super.entrada->x, &c->super.entrada->y,
+                               &c->tamanhoFiltro, &c->super.entrada->z, &id);
 
                         error = clEnqueueNDRangeKernel(c->super.queue, c->kernelConvSum.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
                         PERR(error, "falha ao chamar kernel convSUm")
@@ -160,18 +164,14 @@ int ativaConv(CamadaConv c) {
 }
 
 void corrige_pesosConv(CamadaConv c) {
-    double w = 0, m = 0;
-    Params *parametros = c->super.parametros;
-    Tensor filtro, grad, gradOld;
+
     int error = 0, id = 0;
     size_t global, local, resto;
     call_kernel(c->tamanhoFiltro * c->tamanhoFiltro * c->super.entrada->z * c->numeroFiltros,
-                Kernel_putArgs(&c->kernelConvFixWeight, 8, &filtro->data, &grad->data, &gradOld->data,
-                               &parametros->hitLearn, &parametros->momento, &parametros->multiplicador, &parametros->decaimentoDePeso, &id);
+                Kernel_putArgs(&c->kernelConvFixWeight, 8, &c->filtros->data, &c->grad_filtros->data, &c->grad_filtros_old->data,
+                               &c->super.parametros->hitLearn, &c->super.parametros->momento, &c->super.parametros->multiplicador, &c->super.parametros->decaimentoDePeso, &id);
                         error = clEnqueueNDRangeKernel(c->super.queue, c->kernelConvFixWeight.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
                         PERRW(error, "falha ao chamar kernel fixWeight "));
-
-
     clFinish(c->super.queue);
 }
 
@@ -184,8 +184,9 @@ void calc_gradsConv(CamadaConv c, Tensor Gradnext) {
     int error = 0, id = 0;
     size_t global, local, resto;
     call_kernel(c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
-                Kernel_putArgs(&c->kernelConvCalcGrads, 13, &c->filtros->data, &c->grad_filtros->data, &c->super.entrada, c->super.gradsEntrada, Gradnext->data, c->tamanhoFiltro,
-                               c->passo, c->super.entrada->x, c->super.entrada->y, c->super.saida->x, c->super.saida->y, c->numeroFiltros, id);
+                Kernel_putArgs(&c->kernelConvCalcGrads, 14, &c->filtros->data, &c->grad_filtros->data, &c->super.entrada->data,
+                               &c->super.gradsEntrada->data, &Gradnext->data, &c->tamanhoFiltro,&c->filtros->z,
+                              &c->passo, &c->super.entrada->x, &c->super.entrada->y, &c->super.saida->x, &c->super.saida->y, &c->numeroFiltros, &id);
                         error = clEnqueueNDRangeKernel(c->super.queue, c->kernelConvCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
                         PERRW(error, "falha ao chamar kernel calcGrads"));
 
