@@ -3,8 +3,27 @@
 //
 
 #include "WrapperCL.h"
-
+int WrapperCL_initbyFile(WrapperCL *self,const char * filename){
+    FILE *f;
+    f = fopen(filename, "r");
+    if (!f) {
+        fprintf(stderr, "arquivo nao encontrado no caminho %s\n", filename);
+        return -1;
+    }
+    char *src = 0;
+    long int size = 0;
+    fseek(f, 0L, SEEK_END);
+    size = ftell(f);
+    src = calloc(size, sizeof(char));
+    fseek(f, 0L, SEEK_SET);
+    fread(src, sizeof(char), size, f);
+    src[size - 1] = 0;
+    WrapperCL_init(self,src);
+    free(src);
+    return 0;
+}
 int WrapperCL_init(WrapperCL *self, const char *src) {
+//    printf("%s\n",src);
     const size_t length = strlen(src);
     cl_int error = CL_SUCCESS;
 
@@ -44,7 +63,11 @@ int WrapperCL_init(WrapperCL *self, const char *src) {
 
         return stt;
     }
+    size_t maxLW = 1;
+    int errorr = clGetDeviceInfo(self->device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxLW, NULL);
+    if (errorr)fprintf(stderr, "falha ao checar valor error id: %d\n", error);
 
+    self->maxworks = maxLW;
     return 0;
 
 }

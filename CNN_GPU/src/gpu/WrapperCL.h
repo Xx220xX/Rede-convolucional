@@ -17,13 +17,15 @@ typedef struct {
     cl_uint compute_units;
     cl_program program;
     cl_context context;
+    int maxworks ;
+
 } WrapperCL;
 typedef struct{
     cl_int error;
     char msg[255];
 }GPU_ERROR;
 int WrapperCL_init(WrapperCL *self, const char *src);
-
+int WrapperCL_initbyFile(WrapperCL *self,const char * filename);
 void WrapperCL_release(WrapperCL *self);
 void showError(int error);
 #define PERRW(e,x)if(e){fprintf(stderr,"%s error code: %d\n\t",x,e);showError(e);}

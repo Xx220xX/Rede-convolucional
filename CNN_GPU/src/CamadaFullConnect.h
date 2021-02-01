@@ -69,7 +69,7 @@ Camada createFullConnect(WrapperCL *cl, UINT inx, UINT iny, UINT inz, UINT taman
     c->super.type = FULLCONNECT;
     c->fa = funcaoDeAtivacao;
     c->dfa = funcaoDeAtivacao | FLAGDIF;
-    c->super.salvar =  salvarFullConnect;
+    c->super.salvar =  (fsl)salvarFullConnect;
 
     c->kernelfullfeed = new_Kernel(cl->program, "fullfeed", 11, VOID_P, VOID_P, VOID_P, VOID_P,
                                        INT,INT,INT,INT,INT,INT,INT);

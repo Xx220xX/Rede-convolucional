@@ -49,7 +49,7 @@ Camada createDropOut(WrapperCL *cl,UINT inx, UINT iny, UINT inz, double p_ativac
     c->super.corrige_pesos = (fv)corrigePesosDropOut;
     c->super.type = DROPOUT;
     c->seed = seed;
-    c->super.salvar = salvarDropOut;
+    c->super.salvar =(fsl) salvarDropOut;
     c->kerneldropativa = new_Kernel(cl->program, "dropativa", 6, VOID_P, VOID_P, VOID_P,sizeof(cl_long),DOUBLE,INT);
     c->kerneldropcalcgrad = new_Kernel(cl->program, "dropcalcgrad", 4, VOID_P, VOID_P, VOID_P,DOUBLE,INT);
     return (Camada)c;

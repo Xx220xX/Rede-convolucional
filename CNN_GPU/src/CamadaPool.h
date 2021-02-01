@@ -31,18 +31,18 @@ void corrige_pesosPool(CamadaPool c);
 
 void calc_gradsPool(CamadaPool c, Tensor GradNext);
 
-Camada createPool(UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz, Tensor entrada, Params *params){
+Camada createPool(WrapperCL *cl,UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz, Tensor entrada, Params *params,GPU_ERROR *error){
     CamadaPool c = (CamadaPool) calloc(1, sizeof(Typecamadapool));
     c->passo = passo;
     c->tamanhoFiltro = tamanhoFiltro;
     if (!entrada) {
-        c->super.entrada = newTensor(inx, iny, inz);
+        c->super.entrada = newTensor(cl->context,inx, iny, inz,error);
         c->super.flag_releaseInput = 1;
     } else {
         c->super.entrada = entrada;
     }
-    c->super.gradsEntrada = newTensor(inx, iny, inz);
-    c->super.saida = newTensor((inx - tamanhoFiltro) / passo + 1, (iny - tamanhoFiltro) / passo + 1, inz);
+    c->super.gradsEntrada = newTensor(cl->context,inx, iny, inz,error);
+    c->super.saida = newTensor(cl->context,(inx - tamanhoFiltro) / passo + 1, (iny - tamanhoFiltro) / passo + 1, inz,error);
     c->super.release = (fv) releasePool;
     c->super.ativa = (fv) ativaPool;
     c->super.corrige_pesos = (fv) corrige_pesosPool;
@@ -74,7 +74,7 @@ void ativaPool(CamadaPool c) {
     call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
                 Kernel_putArgs(&c->kernelPoolAtiva, 8, &c->super.entrada->data, &c->super.saida->data, c->tamanhoFiltro,&c->passo,
                                &c->super.saida->x, &c->super.saida->y, &c->super.saida->z, &id);
-    error = clEnqueueNDRangeKernel(c->super.queue, c->kernelReluCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    error = clEnqueueNDRangeKernel(c->super.queue, c->kernelPoolAtiva.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
     PERRW(error, "falha ao chamar kernel ativa dropout")
     );
 }
@@ -83,18 +83,18 @@ void corrige_pesosPool(CamadaPool c) {}
 
 
 void calc_gradsPool(CamadaPool c, Tensor GradNext) {
-    Range range={0};
-    double somaErro = 0;
-    int minx, miny;
-    double testeMax;
+    int error = 0, id = 0;
+    size_t global, local, resto;
     call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
-                Kernel_putArgs(&c->kernelPoolCalcGrads, 11, &c->super.entrada->data, &c->super.gradsEntrada, Gradnext->data,
+                Kernel_putArgs(&c->kernelPoolCalcGrads, 11, &c->super.entrada->data, &c->super.gradsEntrada->data, &GradNext->data,
                 &c->super.saida->data, c->tamanhoFiltro, &c->passo, &c->super.entrada->x, &c->super.entrada->y,
                 &c->super.saida->x, &c->super.saida->y, &id);
-    error = clEnqueueNDRangeKernel(c->super.queue, c->kernelReluCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    error = clEnqueueNDRangeKernel(c->super.queue, c->kernelPoolCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
     PERRW(error, "falha ao chamar kernel ativa dropout")
     );
 
 }
+Camada carregarPool(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error){
 
+}
 #endif //CNN_GPU_CAMADAPOOL_H

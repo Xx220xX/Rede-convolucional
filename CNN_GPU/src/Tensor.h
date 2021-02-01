@@ -42,6 +42,20 @@ Tensor newTensor(cl_context context, unsigned int x, unsigned int y, unsigned in
     }
     return t;
 }
+Tensor newTensor4D(cl_context context, unsigned int x, unsigned int y, unsigned int z,unsigned int l, GPU_ERROR *error) {
+    Tensor t = (Tensor) calloc(1, sizeof(typetensor));
+    t->bytes = x * y * z * sizeof(double);
+
+    t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, t->bytes*l, NULL, &error->error);
+    if (!t->data) {
+        error->error = -1;
+        snprintf(error->msg, 255, "A memoria retornada foi NULL\n");
+    }
+    if (!error->error) {
+        snprintf(error->msg, 255, "nso foi possivel allocar memoria\n");
+    }
+    return t;
+}
 
 TensorChar newTensorChar(cl_context context, unsigned int x, unsigned int y, unsigned int z, GPU_ERROR *error) {
     TensorChar t = (Tensor) calloc(1, sizeof(typetensorchar));

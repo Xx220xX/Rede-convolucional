@@ -15,6 +15,8 @@ C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/cnn.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/Camada.h
 Tensor.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/Tensor.h
+time.h
+-
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/CamadaConv.h
 string.h
@@ -79,6 +81,8 @@ stdlib.h
 -
 math.h
 -
+gpu/WrapperCL.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/cnn.h
 Camada.h
@@ -95,8 +99,34 @@ CamadaPool.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/CamadaPool.h
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/funcoesDeAtivacao.h
-math.h
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/math.h
+gpu/WrapperCL.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
+
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.c
+Kernel.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.h
+WrapperCL.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
+stdarg.h
+-
+stdio.h
+-
+
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.h
+CL/cl.h
+-
+
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.c
+WrapperCL.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
+
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
+CL/cl.h
+-
+Kernel.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.h
+stdio.h
+-
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/utils.h
 

@@ -26,11 +26,11 @@ void calc_gradsRelu(CamadaRelu c, Tensor GradNext);
 Camada creatRelu(WrapperCL *cl, unsigned int inx, unsigned int iny, unsigned int inz,Tensor entrada, GPU_ERROR *error) {
     CamadaRelu c = (CamadaRelu) calloc(1, sizeof(TypecamadaRelu));
 
-    c->super.gradsEntrada = newTensor(inx, iny, inz);
-    c->super.saida = newTensor(inx, iny, inz);
+    c->super.gradsEntrada = newTensor(cl->context,inx, iny, inz,error);
+    c->super.saida = newTensor(cl->context,inx, iny, inz,error);
     c->super.entrada = entrada;
     if (!entrada) {
-        c->super.entrada = newTensor(inx, iny, inz);
+        c->super.entrada = newTensor(cl->context,inx, iny, inz,error);
         c->super.flag_releaseInput = 1;
     }
     c->super.release = (fv) realeaseRelu;
@@ -76,5 +76,7 @@ void calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
     PERRW(error, "falha ao chamar kernel ativa dropout")
     );
 }
-
+Camada carregarRelu(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error){
+    return NULL;
+}
 #endif //CNN_GPU_CAMADA_RELU_H

@@ -11,5 +11,21 @@ CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/CamadaRelu.h
 CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/Tensor.h
 CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/cnn.h
 CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/funcoesDeAtivacao.h
+CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/gpu/Kernel.h
+CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/gpu/WrapperCL.h
 CMakeFiles/CNN_GPU.dir/main.c.obj: ../src/utils.h
+
+CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj: ../src/gpu/Kernel.c
+CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj: ../src/gpu/Kernel.h
+CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj: ../src/gpu/WrapperCL.h
+
+CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj: ../src/gpu/Kernel.h
+CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj: ../src/gpu/WrapperCL.c
+CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj: ../src/gpu/WrapperCL.h
+
+CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.obj: ../src/gpu/lcg.c
+CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.obj: ../src/gpu/lcg.h
+
+CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.obj: ../src/gpu/matGPU.c
+CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.obj: ../src/gpu/matGPU.h
 

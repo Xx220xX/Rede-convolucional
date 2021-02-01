@@ -91,7 +91,7 @@ int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
 
     Tensor entrada = NULL;
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-    c->camadas[c->size - 1] = createPool(passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,&c->parametros);
+    c->camadas[c->size - 1] = createPool(c->cl,passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,&c->parametros,&c->error);
     return 0;
 }
 
