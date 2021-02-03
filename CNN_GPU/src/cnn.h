@@ -20,7 +20,7 @@ typedef struct _cnn {
     cl_command_queue queue;
     WrapperCL *cl;
     GPU_ERROR  error;
-
+    Kernel kernelsub;
 } *Cnn, TypeCnn;
 
 Cnn createCnn(WrapperCL  *cl,Params p, UINT inx, UINT iny, UINT inz) {
@@ -30,6 +30,7 @@ Cnn createCnn(WrapperCL  *cl,Params p, UINT inx, UINT iny, UINT inz) {
     c->cl = cl;
     int error = 0;
     c->queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error);
+    c->kernelsub = new_Kernel(cl->program,"sub",4,VOID_P,VOID_P,VOID_P,INT);
     return c;
 }
 
@@ -134,6 +135,31 @@ int CnnCall(Cnn c,double *input){
     }
     return c->error.error;
 }
+int CnnLearn(Cnn c, double *target){
+    if(c->size==0)return -1;
+    Tensor lastGrad,targ;
+    Tensor gradNext;
+    lastGrad = newTensor(c->cl->context,c->camadas[c->size-1]->saida->x,c->camadas[c->size-1]->saida->y,c->camadas[c->size-1]->saida->z,&c->error);
+    targ = newTensor(c->cl->context,c->camadas[c->size-1]->saida->x,c->camadas[c->size-1]->saida->y,c->camadas[c->size-1]->saida->z,&c->error);
+    clEnqueueWriteBuffer(c->queue,targ->data,CL_TRUE,0,targ->bytes,target,0,NULL,NULL);
+
+    int error = 0, id = 0;
+    size_t global, local, resto;
+    call_kernel(targ->x*targ->y*targ->z,
+                Kernel_putArgs(&c->kernelsub, 4,&lastGrad->data,&c->camadas[c->size-1]->saida->data,&targ->data, &id);
+                        error = clEnqueueNDRangeKernel(c->queue, c->kernelsub.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+                        PERRW(error, "falha ao chamar kernel sub")
+    );
+    gradNext = lastGrad;
+    for (int l = c->size-1; l >=0; l--) {
+        c->camadas[l]->calc_grads(c->camadas[l],gradNext);
+        c->camadas[l]->corrige_pesos(c->camadas[l]);
+        gradNext = c->camadas[l]->gradsEntrada;
+
+    }
+    releaseTensor(&lastGrad);
+    releaseTensor(&targ);
+}
 void releaseCnn(Cnn *pc) {
     Cnn c = *pc;
     for (int i = 0; i < c->size; ++i) {
@@ -141,6 +167,7 @@ void releaseCnn(Cnn *pc) {
     }
     free(c->camadas);
     clReleaseCommandQueue(c->queue);
+    Kernel_release(&c->kernelsub);
     free(c);
     *pc = NULL;
 }

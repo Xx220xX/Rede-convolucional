@@ -49,11 +49,15 @@ __kernel void printTensor(__global double *t,int mx,int my,int mz,int ofset){
         for (int x = 0; x < mx; x++) {
             for (int y = 0; y < my; y++) {
 
-                printf("%.2lf \t",  t[TensorMap(x,y,z,mx,my)+ofset]);
+                printf("%.4lf \t",  t[TensorMap(x,y,z,mx,my)+ofset]);
             }
             printf("\n");
         }
     }
+}
+__kernel void sub(__global double *grad, __global double *saida,__global double *target,int k0){
+    int k = get_global_id(0) + k0;
+    grad[k] = saida[k]-target[k];
 }
 __kernel void convSum(__global double *filtro, __global double *entrada, __global double *saida,
                       int passo, int saidatx, int saidaty, int entradatx, int entradaty,

@@ -1,15 +1,19 @@
 #include <stdio.h>
 #include "src/cnn.h"
 
-void getentrada(double *input, int len) {
-    double v[] = {0.000000, 0.317019, 0.195928, -0.195928, -0.317019, 0.317019, 0.634038, 0.512947, 0.121090, -0.000000, 0.195928, 0.512947, 0.391857,
-                  0.000000, -0.121090, -0.195928, 0.121090, 0.000000, -0.391857, -0.512947, -0.317019, -0.000000, -0.121090, -0.512947, -0.634038,
-                  0.288675, 0.605694, 0.484604, 0.092747, -0.028344, 0.605694, 0.922713, 0.801622, 0.409766, 0.288675, 0.484604, 0.801622, 0.680532,
-                  0.288675, 0.167585, 0.092747, 0.409766, 0.288675, -0.103182, -0.224272, -0.028344, 0.288675,
-                  0.167585, -0.224272, -0.345363, -0.288675, 0.028344, -0.092747, -0.484604, -0.605694, 0.028344,
-                  0.345363, 0.224272, -0.167585, -0.288675, -0.092747, 0.224272, 0.103182, -0.288675, -0.409766,
-                  -0.484604, -0.167585, -0.288675, -0.680532, -0.801622, -0.605694, -0.288675, -0.409766, -0.801622, -0.922713};
-    memcpy(input, v, len * sizeof(double));
+void getentrada(double *input, int tx, int ty, int tz) {
+    double val;
+
+    typetensor t = {0, 0, tx, ty, tz};
+    Tensor en = &t;
+    for (int x = 0; x < tx; ++x) {
+        for (int y = 0; y < ty; ++y) {
+            for (int z = 0; z < tz; ++z) {
+                val = (sin(x * 2 * M_PI / tx) + sin(y * 2 * M_PI / ty) + sin(z * 2 * M_PI / tz)) / 3.0;
+                input[TensorMap(en, x, y, z)] = val;
+            }
+        }
+    }
 }
 
 void printTensor(cl_command_queue queue, Kernel *k, Tensor t, int ofset) {
@@ -51,7 +55,7 @@ int testeConv() {
     Cnn c = createCnn(&cl, p, 5, 5, 3);
     CnnAddConvLayer(c, 1, 3, 2);
     double input[5 * 5 * 3];
-    getentrada(input, 5 * 5 * 3);
+    getentrada(input, 5 ,5 , 3);
 
     printf("filtros:\n1)\n");
     printTensor(c->queue, &printT, ((CamadaConv) c->camadas[0])->filtros, 0);
@@ -87,34 +91,27 @@ int main() {
     setmaxWorks(cl.maxworks);
     Kernel printT = new_Kernel(cl.program, "printTensor", 5, VOID_P, INT, INT, INT, INT);
     Cnn c = createCnn(&cl, p, 5, 5, 3);
-    CnnAddFullConnectLayer(c,8,&p,FSIGMOIG);
+    CnnAddFullConnectLayer(c, 8, &p, FSIGMOIG);
 //    printf("pesos\n");
 //    printTensor(c->queue,&printT,((CamadaFullConnect)c->camadas[0])->pesos,0);
-    /*
+
     double input[5 * 5 * 3];
-    getentrada(input, 5 * 5 * 3);
+    getentrada(input, 5 , 5 , 3);
 
-    printf("filtros:\n1)\n");
-    printTensor(c->queue, &printT, ((CamadaConv) c->camadas[0])->filtros, 0);
-
-    printf("2)\n");
-    printTensor(c->queue, &printT, ((CamadaConv) c->camadas[0])->filtros, 3 * 3 * 3);
-    printf("+++++++++\n");
-
-    printf("Teste pool\n");
+    printf("Teste fulconnect\n");
     printf("ativa:\n");
     printf("Tensor de saida\n");
     CnnCall(c, input);
     printTensor(c->queue, &printT, c->camadas[0]->saida, 0);
 
-    Tensor grad = newTensor(c->cl->context,c->camadas[0]->saida->x,c->camadas[0]->saida->y,c->camadas[0]->saida->z,&c->error);
-    generateGrad(c->queue,c->camadas[0]->saida,grad);
+    Tensor grad = newTensor(c->cl->context, c->camadas[0]->saida->x, c->camadas[0]->saida->y, c->camadas[0]->saida->z, &c->error);
+    generateGrad(c->queue, c->camadas[0]->saida, grad);
     printf("------------CALCULA GRAD-------------\nGRADIENTE\n");
-    c->camadas[0]->calc_grads(c->camadas[0],grad);
+    c->camadas[0]->calc_grads(c->camadas[0], grad);
     printTensor(c->queue, &printT, c->camadas[0]->gradsEntrada, 0);
 
     releaseTensor(&grad);
-*/
+
     releaseCnn(&c);
     WrapperCL_release(&cl);
     Kernel_release(&printT);
