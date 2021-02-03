@@ -89,7 +89,7 @@ int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error) {
     unsigned int tamanhoSaida = c->super.saida->x;
     unsigned int valmax = inx * iny * inz;
 
-    double *data = callocdouble(inx * iny * inz);
+    double *data = callocdouble(inx * iny * inz*tamanhoSaida);
     for (int i = 0; i < tamanhoSaida; ++i) {
         for (int j = 0; j < valmax; ++j) {
             data[TensorMap(c->pesos, j, i, 0)] = 2.19722 / (valmax) * rand() / (double) RAND_MAX;

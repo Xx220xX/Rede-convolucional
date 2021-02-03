@@ -9,7 +9,6 @@
 #include"Kernel.h"
 #include <stdio.h>
 
-#define REAL long double
 
 typedef struct {
     cl_platform_id platformId;

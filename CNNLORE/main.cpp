@@ -60,7 +60,7 @@ void testePool() {
     camada_pool_t *cconv = new camada_pool_t(1, 3, {5, 5, 3});
     tensor_t<float> entrada = getEntrada(5, 5, 3);
     cconv->ativa(entrada);
-    printf("Teste conv\n\nativa:\nTensor de saida\n");
+    printf("Teste pool\n\nativa:\nTensor de saida\n");
     print_tensor(cconv->saida);
 
     tensor_t<float> grad(cconv->saida.tamanho.x, cconv->saida.tamanho.y, cconv->saida.tamanho.z);
@@ -76,24 +76,27 @@ void testePool() {
 }
 int testeFullCOnnect() {
     srand(1);
-    camada_fc_t *cconv = new camada_fc_t({5,5,3},8);
+    camada_fc_t *cfull = new camada_fc_t({5, 5, 3}, 8);
     tensor_t<float> entrada = getEntrada(5, 5, 3);
-    cconv->ativa(entrada);
-    printf("Teste conv\n\nativa:\nTensor de saida\n");
-    print_tensor(cconv->saida);
+    cfull->ativa(entrada);
+    printf("Teste fullconnect\n\nativa:\n");
+//    printf("pesos\n");
+//    print_tensor(cfull->pesos);
+    printf("Tensor de saida\n");
+    print_tensor(cfull->saida);
 
-    tensor_t<float> grad(cconv->saida.tamanho.x, cconv->saida.tamanho.y, cconv->saida.tamanho.z);
-    generategrad(cconv->saida, grad);
+    tensor_t<float> grad(cfull->saida.tamanho.x, cfull->saida.tamanho.y, cfull->saida.tamanho.z);
+    generategrad(cfull->saida, grad);
 
     printf("------------CALCULA GRAD-------------\nGRADIENTE\n");
     print_tensor(grad);
     printf("------------CALCULA GRAD-------------\nGRADIENTE entrada\n");
-    cconv->calc_grads(grad);
-    print_tensor(cconv->grads_entrada);
+    cfull->calc_grads(grad);
+    print_tensor(cfull->grads_entrada);
 
     return 0;
 }
 int main(){
-    testConv();
+    testeFullCOnnect();
     return 0;
 }
