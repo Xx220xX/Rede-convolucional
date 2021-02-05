@@ -57,20 +57,43 @@ void testConv() {
 
 void testePool() {
     srand(1);
-    camada_pool_t *cconv = new camada_pool_t(1, 3, {5, 5, 3});
+    camada_pool_t *cpool = new camada_pool_t(1,3,{5, 5, 3});
     tensor_t<float> entrada = getEntrada(5, 5, 3);
-    cconv->ativa(entrada);
-    printf("Teste pool\n\nativa:\nTensor de saida\n");
-    print_tensor(cconv->saida);
+    cpool->ativa(entrada);
+    printf("Teste fullconnect\n\nativa:\n");
+    printf("Tensor de saida\n");
+    print_tensor(cpool->saida);
 
-    tensor_t<float> grad(cconv->saida.tamanho.x, cconv->saida.tamanho.y, cconv->saida.tamanho.z);
-    generategrad(cconv->saida, grad);
+    tensor_t<float> grad(cpool->saida.tamanho.x, cpool->saida.tamanho.y, cpool->saida.tamanho.z);
+    generategrad(cpool->saida, grad);
 
     printf("------------CALCULA GRAD-------------\nGRADIENTE\n");
     print_tensor(grad);
     printf("------------CALCULA GRAD-------------\nGRADIENTE entrada\n");
-    cconv->calc_grads(grad);
-    print_tensor(cconv->grads_entrada);
+    cpool->calc_grads(grad);
+    print_tensor(cpool->grads_entrada);
+
+
+
+}
+void testeRelu() {
+    srand(1);
+    camada_relu_t *crelu = new camada_relu_t( {5, 5, 3});
+    tensor_t<float> entrada = getEntrada(5, 5, 3);
+    crelu->ativa(entrada);
+    printf("Teste fullconnect\n\nativa:\n");
+    printf("Tensor de saida\n");
+    print_tensor(crelu->saida);
+
+    tensor_t<float> grad(crelu->saida.tamanho.x, crelu->saida.tamanho.y, crelu->saida.tamanho.z);
+    generategrad(crelu->saida, grad);
+
+    printf("------------CALCULA GRAD-------------\nGRADIENTE\n");
+    print_tensor(grad);
+    printf("------------CALCULA GRAD-------------\nGRADIENTE entrada\n");
+    crelu->calc_grads(grad);
+    print_tensor(crelu->grads_entrada);
+
 
 
 }
@@ -97,6 +120,6 @@ int testeFullCOnnect() {
     return 0;
 }
 int main(){
-    testeFullCOnnect();
+    testeRelu();
     return 0;
 }

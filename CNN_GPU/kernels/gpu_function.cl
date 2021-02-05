@@ -21,20 +21,28 @@ static double diftanhG(double x) {
 static double relu(double x) { return x > 0 ? x : 0.0; }
 
 static double difrelu(double x) { return x > 0 ? 1.0 : 0.0; }
-double func(int id,double  x){
+
+double func(int id, double x) {
     switch (id) {
-        case 0:return sigmoid(x);
-        case 1:return difsigmoid(x);
-        case 2:return tanghG(x);
-        case 3:return diftanhG(x);
-        case 4:return relu(x);
-        case 5:return difrelu(x);
-        default: return 0;
+        case 0:
+            return sigmoid(x);
+        case 1:
+            return difsigmoid(x);
+        case 2:
+            return tanghG(x);
+        case 3:
+            return diftanhG(x);
+        case 4:
+            return relu(x);
+        case 5:
+            return difrelu(x);
+        default:
+            return 0;
     }
 }
 
 #define TensorMap(x, y, z, tx, ty)((z)*(ty*tx)+(y)*tx+(x))
-#define TensorMap4D(x, y, z,l, tx, ty,tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(y)*tx+(x))
+#define TensorMap4D(x, y, z, l, tx, ty, tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(y)*tx+(x))
 typedef struct {
     int x, y, z;
 } Ponto3d;
@@ -43,36 +51,38 @@ typedef struct {
 } Range;
 
 
-__kernel void printTensor(__global double *t,int mx,int my,int mz,int ofset){
+__kernel void printTensor(__global double *t, int mx, int my, int mz, int ofset) {
     for (int z = 0; z < mz; z++) {
         printf("[Dim%d]\n", z);
         for (int x = 0; x < mx; x++) {
             for (int y = 0; y < my; y++) {
 
-                printf("%.4lf \t",  t[TensorMap(x,y,z,mx,my)+ofset]);
+                printf("%.4lf \t", t[TensorMap(x, y, z, mx, my) + ofset]);
             }
             printf("\n");
         }
     }
 }
-__kernel void sub(__global double *grad, __global double *saida,__global double *target,int k0){
+
+__kernel void sub(__global double *grad, __global double *saida, __global double *target, int k0) {
     int k = get_global_id(0) + k0;
-    grad[k] = saida[k]-target[k];
+    grad[k] = saida[k] - target[k];
 }
+
 __kernel void convSum(__global double *filtro, __global double *entrada, __global double *saida,
                       int passo, int saidatx, int saidaty, int entradatx, int entradaty,
                       int lenFilter, int entradatz, int k0) {
     int k = get_global_id(0) + k0;
-    int x = k% saidatx;
-    int y = ((k  - x) % (saidaty*saidatx))/saidatx;
-    int filtrok =  (k-y*saidatx-x)/(saidatx*saidaty);
+    int x = k % saidatx;
+    int y = ((k - x) % (saidaty * saidatx)) / saidatx;
+    int filtrok = (k - y * saidatx - x) / (saidatx * saidaty);
 
     Ponto3d mapeado = {x * passo, y * passo, 0};
     double sum = 0, f, v;
     for (int i = 0; i < lenFilter; i++)
         for (int j = 0; j < lenFilter; j++)
             for (int z = 0; z < entradatz; z++) {
-                f = filtro[TensorMap4D(i,j,z,filtrok,lenFilter,lenFilter,entradatz)];
+                f = filtro[TensorMap4D(i, j, z, filtrok, lenFilter, lenFilter, entradatz)];
                 v = entrada[TensorMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
                 sum += f * v;
             }
@@ -97,7 +107,7 @@ int normaliza_range(double f, int max, int lim_min) {
 
 Range mapeia_entrada_saida(int x, int y, int passo, int tamanhoFiltro, int saidatx, int saidaty, int numeroFiltros) {
     double a = x, b = y;
-    Range r ;
+    Range r;
     r.min.x = normaliza_range((a - tamanhoFiltro + 1) / passo, saidatx, 1);
     r.min.y = normaliza_range((b - tamanhoFiltro + 1) / passo, saidaty, 1);
     r.min.z = 0;
@@ -109,11 +119,11 @@ Range mapeia_entrada_saida(int x, int y, int passo, int tamanhoFiltro, int saida
 }
 
 __kernel void convCalcGrads(__global double *filtro, __global double *gradFiltro, __global double *entrada, __global double *gradEntrada,
-                            __global double *gradNext, int lenFilter,int filtroz, int passo, int entradatx, int entradaty, int saidatx, int saidaty,
+                            __global double *gradNext, int lenFilter, int filtroz, int passo, int entradatx, int entradaty, int saidatx, int saidaty,
                             int numFilters, int k0) {
     int k = get_global_id(0) + k0;
     int x = k % entradatx;
-    int y = ((k - x) % (entradatx * entradaty))/entradatx;
+    int y = ((k - x) % (entradatx * entradaty)) / entradatx;
     int z = (k - y * entradatx - x) / (entradatx * entradaty);
     Range range = mapeia_entrada_saida(x, y, passo, lenFilter, saidatx, saidaty, numFilters);
     int minX, minY;
@@ -123,9 +133,9 @@ __kernel void convCalcGrads(__global double *filtro, __global double *gradFiltro
         for (int j = range.min.y; j <= range.max.y; j++) {
             minY = j * passo;
             for (int l = range.min.z; l <= range.max.z; l++) {
-                pesoAplicado = filtro[TensorMap4D(x - minX, y - minY, z,l, lenFilter, lenFilter,filtroz)];
+                pesoAplicado = filtro[TensorMap4D(x - minX, y - minY, z, l, lenFilter, lenFilter, filtroz)];
                 somaErro += pesoAplicado * gradNext[TensorMap(i, j, l, saidatx, saidaty)];
-                gradFiltro[TensorMap4D(x - minX, y - minY, z,l, lenFilter, lenFilter,filtroz)] += entrada[k] * gradNext[TensorMap(i, j, l, saidatx, saidaty)];
+                gradFiltro[TensorMap4D(x - minX, y - minY, z, l, lenFilter, lenFilter, filtroz)] += entrada[k] * gradNext[TensorMap(i, j, l, saidatx, saidaty)];
             }
         }
     }
@@ -144,11 +154,11 @@ __kernel void fullfeed(__global double *entrada, __global double *pesos, __globa
                 valorEntrada += entrada[m] * pesos[TensorMap(m, n, 0, pesosx, pesosy)];
             }
     input[n] = valorEntrada;
-    saida[n] = func(funcaoativacao,valorEntrada);
+    saida[n] = func(funcaoativacao, valorEntrada);
 }
 
 __kernel void fullfixweight(__global double *entrada, __global double *pesos, __global double *grad, __global double *oldgrad,
-                            double hitlearn, double decaimentoDePeso,double momento,
+                            double hitlearn, double decaimentoDePeso, double momento,
                             int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
     int n = get_global_id(0) + k0;
     int m;
@@ -168,12 +178,12 @@ __kernel void fullfixweight(__global double *entrada, __global double *pesos, __
     oldgrad[n] = tmp;
 }
 
-__kernel void fullcalcgrads1(__global double *grad, __global double *gradNext, __global double *input, int dfa,int k0) {
+__kernel void fullcalcgrads1(__global double *grad, __global double *gradNext, __global double *input, int dfa, int k0) {
     int n = get_global_id(0) + k0;
-    grad[n] = gradNext[n] * func(dfa,input[n]);
+    grad[n] = gradNext[n] * func(dfa, input[n]);
 }
 
-__kernel void fullcalcgrads2(__global double *grad,__global double * gradsEntrada,__global double * pesos,int pesosx, int pesosy,int k0) {
+__kernel void fullcalcgrads2(__global double *grad, __global double *gradsEntrada, __global double *pesos, int pesosx, int pesosy, int k0) {
     int m = get_global_id(0) + k0;
     gradsEntrada[m] = 0;
     for (int n = 0; n < pesosy; ++n) {
@@ -182,26 +192,85 @@ __kernel void fullcalcgrads2(__global double *grad,__global double * gradsEntrad
 }
 
 
- long randoml( long seed, long id){
-    seed+=id;
-    return (seed*0x5deece66dL + 0xbL) & ((1L<<48)-1);
-}
-double randomD(long seed, long id){
-    return(double)randoml(seed,id)/(double) ((1L<<48)-1);
+long randoml(long seed, long id) {
+    seed += id;
+    return (seed * 0x5deece66dL + 0xbL) & ((1L << 48) - 1);
 }
 
-__kernel void dropativa(__global double *entrada,__global double *saida,__global char * hitmap, long  seed,double pativa,int k0){
+double randomD(long seed, long id) {
+    return (double) randoml(seed, id) / (double) ((1L << 48) - 1);
+}
+
+__kernel void dropativa(__global double *entrada, __global double *saida, __global char *hitmap, long seed, double pativa, int k0) {
     int i = get_global_id(0) + k0;
-    char teste = (char)(randomD(seed,i)<=pativa);
-    hitmap[i]= teste;
-    saida[i] = teste*entrada[i];
+    char teste = (char) (randomD(seed, i) <= pativa);
+    hitmap[i] = teste;
+    saida[i] = teste * entrada[i];
 }
 
 
- __kernel void dropcalcgrad(__global double *gradentrada,__global char *hitmap,__global double *gradnext,int k0){
+__kernel void dropcalcgrad(__global double *gradentrada, __global char *hitmap, __global double *gradnext, int k0) {
     int i = get_global_id(0) + k0;
-    gradentrada[i] =  hitmap[i]*gradnext[i];
+    gradentrada[i] = hitmap[i] * gradnext[i];
 }
+
 //### guilherme
+
+
+__kernel void reluativa(__global double *entrada, __global double *saida, int k0) {
+    int k = get_global_id(0) + k0;
+    double v = entrada[k];
+    if (v < 0)
+        v = 0;
+    saida[k] = v;
+}
+
+__kernel void relucalcgrad(__global double *gradentrada, __global double *entrada, __global double *gradnext, int k0) {
+    int k = get_global_id(0) + k0;
+    gradentrada[k] = entrada[k] <=0.0? (0) :  gradnext[k];
+}
+
+__kernel void poolativa(__global double *entrada, __global double *saida, int lenFilter,
+                        int passo, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
+    int k = get_global_id(0) + k0;
+    int x = k % saidatx;
+    int y = ((k - x) % (saidatx * saidaty)) / saidatx;
+    int z = (k - y * saidatx - x) / (saidatx * saidaty);
+
+    Ponto3d mapeado = {x * passo, y * passo, 0};
+    double mval, v;
+    mval = -DBL_MAX;
+    for (int i = 0; i < lenFilter; ++i) {
+        for (int j = 0; j < lenFilter; ++j) {
+            v = entrada[TensorMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
+            if (v > mval)
+                mval = v;
+        }
+    }
+    saida[k] = mval;
+}
+
+
+__kernel void poolCalcGrads(__global double *entrada, __global double *gradEntrada, __global double *gradNext, __global double *saida,
+                            int lenFilter, int passo, int entradatx, int entradaty,int entradatz, int saidatx, int saidaty, int k0) {
+    int k = get_global_id(0) + k0;
+    int x = k % entradaty;
+    int y = k / (entradaty);
+
+    double somaErro = 0, testeMax;
+    Range range;
+    range = mapeia_entrada_saida(x, y, passo, lenFilter, saidatx, saidaty, 1);
+    for (int z = 0; z < entradatz; ++z) {
+        somaErro = 0;
+        for (int i = range.min.x; i <= range.max.x; i++) {
+            for (int j = range.min.y; j <= range.max.y; j++) {
+                testeMax = (entrada[TensorMap(x,y,z,entradatx,entradaty)] == saida[TensorMap(i, j, z, saidatx, saidaty)]);
+                somaErro += testeMax * gradNext[TensorMap(i, j, z, saidatx, saidaty)];
+            }
+        }
+        gradEntrada[TensorMap(x,y,z,entradatx,entradaty)] = somaErro;
+    }
+}
+
 
 #endif //CL_TESTE_KERNEL_SRC_H
