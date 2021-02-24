@@ -1,4 +1,4 @@
-#define LOG_CNN_ADD_LAYERS
+//#define LOG_CNN_ADD_LAYERS
 #include "src/cnn.h"
 int main() {
     srand(time(0));

@@ -130,44 +130,44 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named CNN_GPU
+# Target rules for targets named CNNGPU
 
 # Build rule for target.
-CNN_GPU: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CNN_GPU
-.PHONY : CNN_GPU
+CNNGPU: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CNNGPU
+.PHONY : CNNGPU
 
 # fast build rule for target.
-CNN_GPU/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/build
-.PHONY : CNN_GPU/fast
+CNNGPU/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/build
+.PHONY : CNNGPU/fast
 
-main.obj: main.c.obj
+libraryPythonWrapper.obj: libraryPythonWrapper.c.obj
 
-.PHONY : main.obj
+.PHONY : libraryPythonWrapper.obj
 
 # target to build an object file
-main.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/main.c.obj
-.PHONY : main.c.obj
+libraryPythonWrapper.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/libraryPythonWrapper.c.obj
+.PHONY : libraryPythonWrapper.c.obj
 
-main.i: main.c.i
+libraryPythonWrapper.i: libraryPythonWrapper.c.i
 
-.PHONY : main.i
+.PHONY : libraryPythonWrapper.i
 
 # target to preprocess a source file
-main.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/main.c.i
-.PHONY : main.c.i
+libraryPythonWrapper.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/libraryPythonWrapper.c.i
+.PHONY : libraryPythonWrapper.c.i
 
-main.s: main.c.s
+libraryPythonWrapper.s: libraryPythonWrapper.c.s
 
-.PHONY : main.s
+.PHONY : libraryPythonWrapper.s
 
 # target to generate assembly for a file
-main.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/main.c.s
-.PHONY : main.c.s
+libraryPythonWrapper.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/libraryPythonWrapper.c.s
+.PHONY : libraryPythonWrapper.c.s
 
 src/gpu/Kernel.obj: src/gpu/Kernel.c.obj
 
@@ -175,7 +175,7 @@ src/gpu/Kernel.obj: src/gpu/Kernel.c.obj
 
 # target to build an object file
 src/gpu/Kernel.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/Kernel.c.obj
 .PHONY : src/gpu/Kernel.c.obj
 
 src/gpu/Kernel.i: src/gpu/Kernel.c.i
@@ -184,7 +184,7 @@ src/gpu/Kernel.i: src/gpu/Kernel.c.i
 
 # target to preprocess a source file
 src/gpu/Kernel.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/Kernel.c.i
 .PHONY : src/gpu/Kernel.c.i
 
 src/gpu/Kernel.s: src/gpu/Kernel.c.s
@@ -193,7 +193,7 @@ src/gpu/Kernel.s: src/gpu/Kernel.c.s
 
 # target to generate assembly for a file
 src/gpu/Kernel.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/Kernel.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/Kernel.c.s
 .PHONY : src/gpu/Kernel.c.s
 
 src/gpu/WrapperCL.obj: src/gpu/WrapperCL.c.obj
@@ -202,7 +202,7 @@ src/gpu/WrapperCL.obj: src/gpu/WrapperCL.c.obj
 
 # target to build an object file
 src/gpu/WrapperCL.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/WrapperCL.c.obj
 .PHONY : src/gpu/WrapperCL.c.obj
 
 src/gpu/WrapperCL.i: src/gpu/WrapperCL.c.i
@@ -211,7 +211,7 @@ src/gpu/WrapperCL.i: src/gpu/WrapperCL.c.i
 
 # target to preprocess a source file
 src/gpu/WrapperCL.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/WrapperCL.c.i
 .PHONY : src/gpu/WrapperCL.c.i
 
 src/gpu/WrapperCL.s: src/gpu/WrapperCL.c.s
@@ -220,7 +220,7 @@ src/gpu/WrapperCL.s: src/gpu/WrapperCL.c.s
 
 # target to generate assembly for a file
 src/gpu/WrapperCL.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/WrapperCL.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/WrapperCL.c.s
 .PHONY : src/gpu/WrapperCL.c.s
 
 src/gpu/lcg.obj: src/gpu/lcg.c.obj
@@ -229,7 +229,7 @@ src/gpu/lcg.obj: src/gpu/lcg.c.obj
 
 # target to build an object file
 src/gpu/lcg.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/lcg.c.obj
 .PHONY : src/gpu/lcg.c.obj
 
 src/gpu/lcg.i: src/gpu/lcg.c.i
@@ -238,7 +238,7 @@ src/gpu/lcg.i: src/gpu/lcg.c.i
 
 # target to preprocess a source file
 src/gpu/lcg.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/lcg.c.i
 .PHONY : src/gpu/lcg.c.i
 
 src/gpu/lcg.s: src/gpu/lcg.c.s
@@ -247,7 +247,7 @@ src/gpu/lcg.s: src/gpu/lcg.c.s
 
 # target to generate assembly for a file
 src/gpu/lcg.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/lcg.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/lcg.c.s
 .PHONY : src/gpu/lcg.c.s
 
 src/gpu/matGPU.obj: src/gpu/matGPU.c.obj
@@ -256,7 +256,7 @@ src/gpu/matGPU.obj: src/gpu/matGPU.c.obj
 
 # target to build an object file
 src/gpu/matGPU.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/matGPU.c.obj
 .PHONY : src/gpu/matGPU.c.obj
 
 src/gpu/matGPU.i: src/gpu/matGPU.c.i
@@ -265,7 +265,7 @@ src/gpu/matGPU.i: src/gpu/matGPU.c.i
 
 # target to preprocess a source file
 src/gpu/matGPU.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/matGPU.c.i
 .PHONY : src/gpu/matGPU.c.i
 
 src/gpu/matGPU.s: src/gpu/matGPU.c.s
@@ -274,7 +274,7 @@ src/gpu/matGPU.s: src/gpu/matGPU.c.s
 
 # target to generate assembly for a file
 src/gpu/matGPU.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/src/gpu/matGPU.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/src/gpu/matGPU.c.s
 .PHONY : src/gpu/matGPU.c.s
 
 # Help Target
@@ -285,10 +285,10 @@ help:
 	@echo ... depend
 	@echo ... edit_cache
 	@echo ... rebuild_cache
-	@echo ... CNN_GPU
-	@echo ... main.obj
-	@echo ... main.i
-	@echo ... main.s
+	@echo ... CNNGPU
+	@echo ... libraryPythonWrapper.obj
+	@echo ... libraryPythonWrapper.i
+	@echo ... libraryPythonWrapper.s
 	@echo ... src/gpu/Kernel.obj
 	@echo ... src/gpu/Kernel.i
 	@echo ... src/gpu/Kernel.s

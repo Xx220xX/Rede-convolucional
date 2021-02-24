@@ -1,3 +1,3 @@
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/cmake-build-debug/CMakeFiles/CNN_GPU.dir
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/cmake-build-debug/CMakeFiles/CNNGPU.dir
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/cmake-build-debug/CMakeFiles/edit_cache.dir
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/cmake-build-debug/CMakeFiles/rebuild_cache.dir

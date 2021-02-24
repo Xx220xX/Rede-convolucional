@@ -1,4 +1,4 @@
-#include "library.h"
+#include "libraryPythonWrapper.h"
 
 void createCnnWrapper(Pointer *p, char *kernelFile, double hitLearn, double momento, double decaimentoDePeso, double multiplicador, UINT inx, UINT iny, UINT inz) {
     Params pr = {hitLearn, momento, decaimentoDePeso, multiplicador};
