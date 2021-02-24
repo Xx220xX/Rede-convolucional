@@ -74,11 +74,12 @@ void ativaPool(CamadaPool c) {
     int error = 0, id = 0;
     size_t global, local, resto;
     Params *parametros = c->super.parametros;
+    LOG_CNN_KERNELCALL("ativa pool: ativaPool")
     call_kernel(c->super.saida->x * c->super.saida->y * c->super.saida->z,
                 Kernel_putArgs(&c->kernelPoolAtiva, 10, &c->super.entrada->data, &c->super.saida->data, &c->tamanhoFiltro, &c->passo,
                                &c->super.saida->x, &c->super.saida->y, &c->super.entrada->x, &c->super.entrada->y, &id);
                         error = clEnqueueNDRangeKernel(c->super.queue, c->kernelPoolAtiva.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-                        PERRW(error, "falha ao chamar kernel ativa dropout")
+                        PERRW(error, "falha ao chamar kernel ativa pool")
     );
 }
 
@@ -88,6 +89,8 @@ void corrige_pesosPool(CamadaPool c) {}
 void calc_gradsPool(CamadaPool c, Tensor GradNext) {
     int error = 0, id = 0;
     size_t global, local, resto;
+    LOG_CNN_KERNELCALL("calcgrads pool: calcgrad")
+
     call_kernel(c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
                 Kernel_putArgs(&c->kernelPoolCalcGrads, 12, &c->super.entrada->data, &c->super.gradsEntrada->data, &GradNext->data,
                                &c->super.saida->data, &c->tamanhoFiltro, &c->passo, &c->super.entrada->x, &c->super.entrada->y, &c->super.entrada->z,
@@ -99,6 +102,8 @@ void calc_gradsPool(CamadaPool c, Tensor GradNext) {
 }
 
 void salvarPool(WrapperCL *cl, CamadaPool c, FILE *dst, GPU_ERROR *error) {
+    LOG_CNN_SALVE_LAYERS("salvando pool")
+
     char flag = '#';
     fwrite(&c->super.type, sizeof(char), 1, dst);
     fwrite(&flag, sizeof(char), 1, dst);
@@ -107,6 +112,8 @@ void salvarPool(WrapperCL *cl, CamadaPool c, FILE *dst, GPU_ERROR *error) {
     fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
     fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
     fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+    LOG_CNN_SALVE_LAYERS("salvou com erro %d: %s",error->error,error->msg)
+
 }
 
 Camada carregarPool(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error) {

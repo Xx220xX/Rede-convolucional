@@ -8,13 +8,13 @@
 #include "CamadaFullConnect.h"
 #include "CamadaPool.h"
 
-
 #ifdef LOG_CNN_ADD_LAYERS
-    #undef LOG_CNN_ADD_LAYERS
-    #define LOG_CNN_ADD_LAYERS(format, ...) printf(format,## __VA_ARGS__);printf("\n");
+#undef LOG_CNN_ADD_LAYERS
+#define LOG_CNN_ADD_LAYERS(format, ...) printf(format,## __VA_ARGS__);printf("\n");
 #else
-    #define LOG_CNN_ADD_LAYERS(format,...)
+#define LOG_CNN_ADD_LAYERS(format, ...)
 #endif
+
 
 #define INVALID_FILTER_SIZE (-1)
 
@@ -33,11 +33,16 @@ typedef struct _cnn {
 
 Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
     Cnn c = (Cnn) calloc(1, sizeof(TypeCnn));
+    snprintf(c->error.msg,255,"");
     c->parametros = p;
     c->sizeIn = (Ponto3d) {inx, iny, inz};
     c->cl = cl;
     int error = 0;
     c->queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error);
+    if(error){
+        c->error.error = error;
+        snprintf(c->error.msg,255,"nao foi possivel criar queue\n");
+    }
     c->kernelsub = new_Kernel(cl->program, "sub", 4, VOID_P, VOID_P, VOID_P, INT);
     setmaxWorks(cl->maxworks);
     return c;
@@ -56,9 +61,9 @@ Ponto3d __addLayer(Cnn c) {
     c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
     Ponto3d in = c->sizeIn;
     if (c->size > 1) {
-        in.x = c->camadas[c->size - 2]->saida->x;
-        in.y = c->camadas[c->size - 2]->saida->y;
-        in.z = c->camadas[c->size - 2]->saida->z;
+        in.x = (int)c->camadas[c->size - 2]->saida->x;
+        in.y = (int)c->camadas[c->size - 2]->saida->y;
+        in.z = (int)c->camadas[c->size - 2]->saida->z;
     }
     return in;
 }
@@ -80,7 +85,7 @@ int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltro
         c->err = INVALID_FILTER_SIZE;
         c->size--;
         c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
-        fprintf(stderr,"tamanho do filtro invalido\n");
+        fprintf(stderr, "tamanho do filtro invalido\n");
         return c->err;
 
     }
@@ -90,10 +95,11 @@ int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltro
     c->camadas[c->size - 1] = createConv(c->cl, passo, tamanhoDoFiltro, numeroDeFiltros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
                                          &c->parametros, &c->error, 1);
     c->camadas[c->size - 1]->queue = c->queue;
-    LOG_CNN_ADD_LAYERS("camada convolutiva adicionada");
-    LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)",c->camadas[c->size - 1]->saida->x,c->camadas[c->size - 1]->saida->y,c->camadas[c->size - 1]->saida->z);
-
-    return 0;
+    if (!c->error.error) {
+        LOG_CNN_ADD_LAYERS("camada convolutiva adicionada");
+        LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)", c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y, c->camadas[c->size - 1]->saida->z);
+    }
+    return c->error.error;
 }
 
 int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
@@ -119,10 +125,12 @@ int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
     c->camadas[c->size - 1] = createPool(c->cl, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada, &c->parametros, &c->error);
     c->camadas[c->size - 1]->queue = c->queue;
-    LOG_CNN_ADD_LAYERS("camada pooling adicionada");
-    LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)",c->camadas[c->size - 1]->saida->x,c->camadas[c->size - 1]->saida->y,c->camadas[c->size - 1]->saida->z);
+    if (!c->error.error) {
+        LOG_CNN_ADD_LAYERS("camada pooling adicionada");
+        LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)", c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y, c->camadas[c->size - 1]->saida->z,);
+    }
+    return c->error.error;
 
-    return 0;
 }
 
 int CnnAddReluLayer(Cnn c) {
@@ -131,10 +139,13 @@ int CnnAddReluLayer(Cnn c) {
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
     c->camadas[c->size - 1] = createRelu(c->cl, sizeIn.x, sizeIn.y, sizeIn.z, entrada, &c->error);
     c->camadas[c->size - 1]->queue = c->queue;
-    LOG_CNN_ADD_LAYERS("camada relu adicionada");
-    LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)",c->camadas[c->size - 1]->saida->x,c->camadas[c->size - 1]->saida->y,c->camadas[c->size - 1]->saida->z);
+    if (!c->error.error) {
 
-    return 0;
+        LOG_CNN_ADD_LAYERS("camada relu adicionada");
+        LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)", c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y, c->camadas[c->size - 1]->saida->z);
+    }
+    return c->error.error;
+
 }
 
 int CnnAddDropOutLayer(Cnn c, double pontoAtivacao, long long int seed) {
@@ -143,10 +154,11 @@ int CnnAddDropOutLayer(Cnn c, double pontoAtivacao, long long int seed) {
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
     c->camadas[c->size - 1] = createDropOut(c->cl, sizeIn.x, sizeIn.y, sizeIn.z, pontoAtivacao, seed, entrada, &c->error);
     c->camadas[c->size - 1]->queue = c->queue;
-    LOG_CNN_ADD_LAYERS("camada dropout adicionada");
-    LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)",c->camadas[c->size - 1]->saida->x,c->camadas[c->size - 1]->saida->y,c->camadas[c->size - 1]->saida->z);
-
-    return 0;
+    if (!c->error.error) {
+        LOG_CNN_ADD_LAYERS("camada dropout adicionada");
+        LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)", c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y, c->camadas[c->size - 1]->saida->z);
+    }
+    return c->error.error;
 }
 
 int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
@@ -155,10 +167,11 @@ int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
     if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
     c->camadas[c->size - 1] = createFullConnect(c->cl, sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada, &c->parametros, funcaoDeAtivacao, 1, &c->error);
     c->camadas[c->size - 1]->queue = c->queue;
-    LOG_CNN_ADD_LAYERS("camada full connect adicionada");
-    LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)",c->camadas[c->size - 1]->saida->x,c->camadas[c->size - 1]->saida->y,c->camadas[c->size - 1]->saida->z);
-
-    return 0;
+    if (!c->error.error) {
+        LOG_CNN_ADD_LAYERS("camada full connect adicionada");
+        LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)", c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y, c->camadas[c->size - 1]->saida->z);
+    }
+    return c->error.error;
 }
 
 int CnnCall(Cnn c, double *input) {
@@ -179,15 +192,18 @@ int CnnLearn(Cnn c, double *target) {
 
     int error = 0, id = 0;
     size_t global, local, resto;
+    LOG_CNN_KERNELCALL("Chamando kernel sub")
     call_kernel(targ->x * targ->y * targ->z,
                 Kernel_putArgs(&c->kernelsub, 4, &lastGrad->data, &c->camadas[c->size - 1]->saida->data, &targ->data, &id);
                         error = clEnqueueNDRangeKernel(c->queue, c->kernelsub.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
                         PERRW(error, "falha ao chamar kernel sub")
     );
+
     gradNext = lastGrad;
     for (int l = c->size - 1; l >= 0; l--) {
         c->camadas[l]->calc_grads(c->camadas[l], gradNext);
-        c->camadas[l]->corrige_pesos(c->camadas[l]);
+        if (!c->camadas[l]->flag_notlearn)
+            c->camadas[l]->corrige_pesos(c->camadas[l]);
         gradNext = c->camadas[l]->gradsEntrada;
 
     }
@@ -212,8 +228,16 @@ void releaseCnn(Cnn *pc) {
 }
 
 void cnnSave(Cnn c, FILE *dst) {
-    for (int i = 0; i < c->size; ++i) {
+    int i;
+    for ( i = 0; i < c->size; ++i) {
         c->camadas[i]->salvar(c->cl, c->camadas[i], dst, &c->error);
+        if (c->error.error < 0)break;
+    }
+    if (i!=c->size){
+        if(!c->error.error){
+            c->error.error = -10;
+            snprintf(c->error.msg,255,"falha ao salvar camadas\n");
+        }
     }
 }
 
@@ -223,11 +247,21 @@ int cnnCarregar(Cnn c, FILE *src) {
     Tensor entrada = NULL;
     while (1) {
         cm = carregarCamada(c->cl, src, entrada, &c->parametros, &c->error);
-        if (cm == NULL)return c->error.error;
+        if (cm == NULL) { break; }
         entrada = cm->saida;
         __addLayer(c);
         c->camadas[c->size - 1] = cm;
+        cm->queue = c->queue;
+        if (c->error.error < 0)break;
     }
+    if (c->size > 0) {
+        c->sizeIn.x = (int) c->camadas[0]->entrada->x;
+        c->sizeIn.y = (int) c->camadas[0]->entrada->y;
+        c->sizeIn.z = (int) c->camadas[0]->entrada->z;
+    }
+
+    return c->error.error;
 }
+
 
 #endif

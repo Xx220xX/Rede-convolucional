@@ -32,6 +32,7 @@ void ativaDropOut(CamadaDropOut c);
 void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext);
 void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error);
 Camada createDropOut(WrapperCL *cl,UINT inx, UINT iny, UINT inz, double p_ativacao,long long seed, Tensor entrada,GPU_ERROR *error) {
+    if (error->error)return NULL;
     CamadaDropOut c = (CamadaDropOut) calloc(1, sizeof(Typecamadadropout));
     c->super.gradsEntrada = newTensor(cl->context,inx, iny, inz,error);
     if (!entrada) {
@@ -70,6 +71,7 @@ void releaseDropOut(CamadaDropOut *pc) {
 void ativaDropOut(CamadaDropOut c) {
     int error = 0, id = 0;
     size_t global, local, resto;
+    LOG_CNN_KERNELCALL("ativa drop: ativadrop")
     call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
                 Kernel_putArgs(&c->kerneldropativa, 6,&c->super.entrada->data,&c->super.saida->data,&c->hitmap->data,&c->seed,&c->p_ativacao
                       , &id);
@@ -86,6 +88,7 @@ void corrigePesosDropOut(CamadaDropOut c) {}
 void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext) {
     int error = 0, id = 0;
     size_t global, local, resto;
+    LOG_CNN_KERNELCALL("calc drop: calcgrad")
     call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
                 Kernel_putArgs(&c->kerneldropcalcgrad, 4,&c->super.gradsEntrada->data,&c->hitmap->data,&GradNext->data, &id);
                         error = clEnqueueNDRangeKernel(c->super.queue, c->kerneldropcalcgrad.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
@@ -93,6 +96,7 @@ void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext) {
     );
 }
 void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error) {
+    LOG_CNN_SALVE_LAYERS("salvando drop out")
     char flag = '#';
     fwrite(&c->super.type, sizeof(char), 1, dst);
     fwrite(&flag, sizeof(char), 1, dst);
@@ -100,9 +104,12 @@ void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error) 
     fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
     fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
     fwrite(&c->p_ativacao, sizeof(double), 1, dst);
+    LOG_CNN_SALVE_LAYERS("salvou com erro %d: %s",error->error,error->msg)
+
 }
 
 Camada carregarDropOut(WrapperCL *cl, FILE *src, Tensor entrada,Params *params,GPU_ERROR *error) {
+    if (error->error)return NULL;
     char flag = 0;
     fread(&flag, sizeof(char), 1, src);
     if (flag != '#')

@@ -26,6 +26,8 @@ void calc_gradsRelu(CamadaRelu c, Tensor GradNext);
 void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, GPU_ERROR *error);
 
 Camada createRelu(WrapperCL *cl, unsigned int inx, unsigned int iny, unsigned int inz, Tensor entrada, GPU_ERROR *error) {
+    if (error->error)return NULL;
+
     CamadaRelu c = (CamadaRelu) calloc(1, sizeof(TypecamadaRelu));
 
     c->super.gradsEntrada = newTensor(cl->context, inx, iny, inz, error);
@@ -61,10 +63,11 @@ void realeaseRelu(CamadaRelu *pc) {
 void ativaRelu(CamadaRelu c) {
     int error = 0, id = 0;
     size_t global, local, resto;
+    LOG_CNN_KERNELCALL("ativa relu: reluativa")
     call_kernel(c->super.saida->x * c->super.saida->y * c->super.saida->z,
                 Kernel_putArgs(&c->kernelReluAtiva, 3, &c->super.entrada->data, &c->super.saida->data, &id);
                         error = clEnqueueNDRangeKernel(c->super.queue, c->kernelReluAtiva.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-                        PERRW(error, "falha ao chamar kernel ativa relu")
+                        PERRW(error, "falha ao chamar kernel reluativa")
     );
 }
 
@@ -73,23 +76,28 @@ void corrige_pesosRelu(CamadaRelu c) {}
 void calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
     int error = 0, id = 0;
     size_t global, local, resto;
+    LOG_CNN_KERNELCALL("calcgrad relu: calcgrad")
     call_kernel(c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
                 Kernel_putArgs(&c->kernelReluCalcGrads, 4, &c->super.gradsEntrada->data, &c->super.entrada->data, &GradNext->data, &id);
                         error = clEnqueueNDRangeKernel(c->super.queue, c->kernelReluCalcGrads.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-                        PERRW(error, "falha ao chamar kernel ativa dropout")
+                        PERRW(error, "falha ao chamar kernel calcgrad Relu")
     );
 }
 
 void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, GPU_ERROR *error) {
+    LOG_CNN_SALVE_LAYERS("Salvando Relu")
     char flag = '#';
     fwrite(&c->super.type, sizeof(char), 1, dst);
     fwrite(&flag, sizeof(char), 1, dst);
     fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
     fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
     fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+    LOG_CNN_SALVE_LAYERS("salvou com erro %d: %s",error->error,error->msg)
+
 }
 
 Camada carregarRelu(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error) {
+    if (error->error)return NULL;
     char flag = 0;
     fread(&flag, sizeof(char), 1, src);
     if (flag != '#')

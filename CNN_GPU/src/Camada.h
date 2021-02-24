@@ -37,7 +37,7 @@ typedef struct {
     Tensor entrada;
     Tensor saida;
     char flag_releaseInput;
-
+    char flag_notlearn;
     cl_command_queue queue;
 } *Camada, Typecamada;
 size_t  max_works=1;
@@ -74,5 +74,19 @@ Camada carregarCamada(WrapperCL *cl, FILE *src, Tensor entrada, Params *param, G
     }
 
 }
+
+#ifdef LOG_CNN_SALVE_LAYERS
+#undef LOG_CNN_SALVE_LAYERS
+#define LOG_CNN_SALVE_LAYERS(format, ...) printf(format,## __VA_ARGS__);printf("\n");
+#else
+#define LOG_CNN_SALVE_LAYERS(format, ...)
+#endif
+
+#ifdef LOG_CNN_KERNELCALL
+#undef LOG_CNN_KERNELCALL
+#define LOG_CNN_KERNELCALL(format, ...) printf(format,## __VA_ARGS__);printf("\n");
+#else
+#define LOG_CNN_KERNELCALL(format, ...)
+#endif
 
 #endif //CNN_GPU_CAMADA_H

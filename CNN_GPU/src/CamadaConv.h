@@ -10,10 +10,7 @@
 #include"Tensor.h"
 #include <stdlib.h>
 #include"utils.h"
-#define __kernel
-#define __global
-#define get_global_id(x) x
-//#include "../kernels/gpu_functions.cl"
+
 
 typedef unsigned int UINT;
 
@@ -46,6 +43,7 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, GPU_ERROR *error);
 
 Camada createConv(WrapperCL *cl, UINT passo, UINT lenFilter, UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
                   Tensor entrada, Params *params, GPU_ERROR *error, int randomize) {
+    if (error->error)return NULL;
     CamadaConv c = (CamadaConv) calloc(1, sizeof(Typecamadaconv));
     cl_context context = cl->context;
 
@@ -68,6 +66,7 @@ Camada createConv(WrapperCL *cl, UINT passo, UINT lenFilter, UINT numeroFiltros,
         c->super.flag_releaseInput = 1;
 
     }
+
     c->super.saida = newTensor(context, (inx - lenFilter) / passo + 1, (iny - lenFilter) / passo + 1, numeroFiltros, error);
     if (error->error)return (Camada) c;
     c->filtros = newTensor4D(cl->context, lenFilter, lenFilter, inz, numeroFiltros, error);
@@ -76,7 +75,7 @@ Camada createConv(WrapperCL *cl, UINT passo, UINT lenFilter, UINT numeroFiltros,
 
 
     if (randomize) convRandomize(c, cl, error);
-
+    if(error->error) return  (Camada) c;
     c->kernelConvSum = new_Kernel(cl->program, "convSum", 11, VOID_P, VOID_P, VOID_P,
                                   INT, INT, INT, INT, INT, INT, INT, INT, INT);
     c->kernelConvFixWeight = new_Kernel(cl->program, "convFixWeight", 8, VOID_P, VOID_P, VOID_P,
@@ -149,7 +148,7 @@ int ativaConv(CamadaConv c) {
     //iteraçao nos filtros
     int error = 0, id = 0;
     size_t global, local, resto;
-
+    LOG_CNN_KERNELCALL("ativa conv: ConvSum")
     call_kernel(c->super.saida->x * c->super.saida->y * c->numeroFiltros,
                 Kernel_putArgs(&c->kernelConvSum, 11, &c->filtros->data, &c->super.entrada->data, &c->super.saida->data,
                                &c->passo, &c->super.saida->x, &c->super.saida->y, &c->super.entrada->x, &c->super.entrada->y,
@@ -167,6 +166,7 @@ void corrige_pesosConv(CamadaConv c) {
 
     int error = 0, id = 0;
     size_t global, local, resto;
+    LOG_CNN_KERNELCALL("corrige conv: fixWeight")
     call_kernel(c->tamanhoFiltro * c->tamanhoFiltro * c->super.entrada->z * c->numeroFiltros,
                 Kernel_putArgs(&c->kernelConvFixWeight, 8, &c->filtros->data, &c->grad_filtros->data, &c->grad_filtros_old->data,
                                &c->super.parametros->hitLearn, &c->super.parametros->momento, &c->super.parametros->multiplicador, &c->super.parametros->decaimentoDePeso, &id);
@@ -183,6 +183,7 @@ void calc_gradsConv(CamadaConv c, Tensor Gradnext) {
 
     int error = 0, id = 0;
     size_t global, local, resto;
+    LOG_CNN_KERNELCALL("grads conv: calcGrads")
     call_kernel(c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
                 Kernel_putArgs(&c->kernelConvCalcGrads, 14, &c->filtros->data, &c->grad_filtros->data, &c->super.entrada->data,
                                &c->super.gradsEntrada->data, &Gradnext->data, &c->tamanhoFiltro,&c->filtros->z,
@@ -194,6 +195,7 @@ void calc_gradsConv(CamadaConv c, Tensor Gradnext) {
 }
 
 void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, GPU_ERROR *error) {
+    LOG_CNN_SALVE_LAYERS("Salvando conv")
     char flag = '#';
     fwrite(&c->super.type, sizeof(char), 1, dst);
     fwrite(&flag, sizeof(char), 1, dst);
@@ -211,9 +213,11 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, GPU_ERROR *error) {
     }
     clFinish(queue);
     clReleaseCommandQueue(queue);
+    LOG_CNN_SALVE_LAYERS("salvou com erro %d: %s",error->error,error->msg)
 }
 
 Camada carregarConv(WrapperCL *cl, FILE *src, Tensor entrada, Params *params, GPU_ERROR *error) {
+    if (error->error)return NULL;
     char flag = 0;
     fread(&flag, sizeof(char), 1, src);
     if (flag != '#')
