@@ -34,4 +34,7 @@ int closeFile(Pointer *p);
 int getCnnError(Cnn c);
 void getCnnErrormsg(Cnn c,char *msg);
 void initRandom(long long int seed);
+
+void generateDescriptor(Pointer *p,Cnn c);
+void freeP(void *p);
 #endif //LIBRARY_LIBRARY_H

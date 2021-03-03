@@ -129,22 +129,112 @@ int closeFile(Pointer *p) {
 }
 
 
-void CnnInfo(Cnn c){
-    printf("Numero de camadas %d\n",c->size);
-    printf("Tamanho de entrada (%d,%d,%d)\n",c->sizeIn.x,c->sizeIn.y,c->sizeIn.z);
+void CnnInfo(Cnn c) {
+    printf("Numero de camadas %d\n", c->size);
+    printf("Tamanho de entrada (%d,%d,%d)\n", c->sizeIn.x, c->sizeIn.y, c->sizeIn.z);
     printf("Camada\t saida\n");
-    for(int i = 0;i<c->size;i++)
-        printf("%d\t(%d,%d,%d)\n",i,c->camadas[i]->saida->x,c->camadas[i]->saida->y,c->camadas[i]->saida->z);
+    for (int i = 0; i < c->size; i++)
+        printf("%d\t(%d,%d,%d)\n", i, c->camadas[i]->saida->x, c->camadas[i]->saida->y, c->camadas[i]->saida->z);
 
 }
 
-int getCnnError(Cnn c){
+int getCnnError(Cnn c) {
     return c->error.error;
 }
-void getCnnErrormsg(Cnn c,char *msg){
-    memcpy(msg,c->error.msg,255);
+
+void getCnnErrormsg(Cnn c, char *msg) {
+    memcpy(msg, c->error.msg, 255);
 }
 
 void initRandom(long long int seed) {
     srand(seed);
+}
+
+void putst(char **pdest, char *src) {
+    size_t lsrc = strlen(src), ldest = 0;
+    char *dest = *pdest;
+    if (dest != NULL)ldest = strlen(dest);
+    dest = (char *) realloc(dest, lsrc + ldest);
+    strcat(dest, src);
+    *pdest = dest;
+}
+
+void generateDescriptor(Pointer *p, Cnn c) {
+    int size = 0;
+    char *desc = (char *)calloc(1,1);
+    char tmp[255];
+    union {
+        Camada df;
+        CamadaFullConnect fc;
+        CamadaConv conv;
+        CamadaRelu rl;
+        CamadaPool pl;
+        CamadaDropOut dp;
+    } tp;
+    putst(&desc, "[");
+    for (int i = 0; i < c->size; ++i) {
+        tp.df = c->camadas[i];
+        if (i != 0)putst(&desc, ",");
+        switch (tp.df->type) {
+            case CONV:
+                snprintf(tmp, 255, "{'type':'convolutional'");
+                putst(&desc, tmp);
+                snprintf(tmp, 255, ",'tamanho filtro':(%d,%d,%d)", tp.conv->tamanhoFiltro, tp.conv->tamanhoFiltro, tp.conv->numeroFiltros);
+                putst(&desc, tmp);
+                snprintf(tmp, 255, ",'passo':%d", tp.conv->passo);
+                putst(&desc, tmp);
+                snprintf(tmp, 255, ",'numero filtros':%d", tp.conv->numeroFiltros);
+                putst(&desc, tmp);
+                break;
+            case POOL:
+                snprintf(tmp, 255, "{'type':'pooling'");
+                putst(&desc, tmp);
+                snprintf(tmp, 255, ",'tamanho filtro':(%d,%d,%d)", tp.pl->tamanhoFiltro, tp.pl->tamanhoFiltro, tp.pl->super.entrada->z);
+                putst(&desc, tmp);
+                snprintf(tmp, 255, ",'passo':%d", tp.pl->passo);
+                putst(&desc, tmp);
+                break;
+            case FULLCONNECT:
+                snprintf(tmp, 255, "{'type':'fullconnect'");
+                putst(&desc, tmp);
+                switch (tp.fc->fa) {
+                    case FRELU:
+                        putst(&desc, ",'funcao de ativacao':'RELU'");
+                        break;
+                    case FSIGMOIG:
+                        putst(&desc, ",'funcao de ativacao':'SIGMOID'");
+                        break;
+                    case FTANH:
+                        putst(&desc, ",'funcao de ativacao':'TANH'");
+                        break;
+                }
+                snprintf(tmp, 255, ",'saida':%d", tp.df->saida->x);
+                putst(&desc, tmp);
+                break;
+            case DROPOUT:
+                snprintf(tmp, 255, "{'type':'dropOut'");
+                putst(&desc, tmp);
+                snprintf(tmp, 255, ",'ponto de passagem':%lf", tp.dp->p_ativacao);
+                putst(&desc, tmp);
+                break;
+            case RELU:
+                snprintf(tmp, 255, "{'type':'relu'");
+                putst(&desc, tmp);
+                break;
+            default:
+                break;
+        }
+
+        snprintf(tmp, 255, ",'inp':(%d,%d,%d)", tp.df->entrada->x, tp.df->entrada->y, tp.df->entrada->z);
+        putst(&desc, tmp);
+        snprintf(tmp, 255, ",'out':(%d,%d,%d)}", tp.df->saida->x, tp.df->saida->y, tp.df->saida->z);
+        putst(&desc, tmp);
+    }
+    putst(&desc, "]");
+    p->p = desc;
+}
+
+void freeP(void *p) {
+    if (p != NULL)
+        free(p);
 }

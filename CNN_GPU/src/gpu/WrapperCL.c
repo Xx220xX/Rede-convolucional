@@ -4,6 +4,7 @@
 
 #include "WrapperCL.h"
 #include<stdio.h>
+#include<stdlib.h>
 int WrapperCL_initbyFile(WrapperCL *self,const char * filename){
     FILE *f;
     f = fopen(filename, "r");

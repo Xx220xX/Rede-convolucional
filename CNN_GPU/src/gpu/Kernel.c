@@ -7,6 +7,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 Kernel new_Kernel(cl_program pg, const char *f_name, int n_args, ...) {
     int error = 0;

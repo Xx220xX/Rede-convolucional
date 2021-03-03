@@ -104,24 +104,8 @@ C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/funcoesDeAtivacao.h
 gpu/WrapperCL.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
 
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.c
-Kernel.h
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.h
-WrapperCL.h
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
-stdarg.h
--
-stdio.h
--
-
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.h
 CL/cl.h
--
-
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.c
-WrapperCL.h
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
-stdio.h
 -
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
@@ -130,22 +114,6 @@ CL/cl.h
 Kernel.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.h
 stdio.h
--
-
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/lcg.c
-lcg.h
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/lcg.h
-
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/lcg.h
-
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/matGPU.c
-stdio.h
--
-matGPU.h
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/matGPU.h
-
-C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/matGPU.h
-CL/cl.h
 -
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/utils.h

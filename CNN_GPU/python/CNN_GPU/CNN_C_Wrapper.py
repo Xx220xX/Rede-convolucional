@@ -42,6 +42,9 @@ clib.CnnLoadByFile.argtypes = [c.c_void_p,c.c_void_p]
 clib.openFILE.argtypes = [c.c_void_p,c.c_void_p,c.c_void_p]
 clib.closeFile.argtypes = [c.c_void_p]
 
+clib.freeP.argtypes = [c.c_void_p]
+clib.generateDescriptor.argtypes = [c.c_void_p,c.c_void_p]
+
 clib.CnnInfo.argtypes = [c.c_void_p]
 clib.getCnnError.argtypes = [c.c_void_p]
 clib.getCnnErrormsg.argtypes = [c.c_void_p,c.c_void_p]
