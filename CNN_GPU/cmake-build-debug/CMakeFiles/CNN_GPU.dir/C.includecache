@@ -7,8 +7,6 @@
 #IncludeRegexTransform: 
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/main.c
-stdio.h
--
 src/cnn.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/cnn.h
 
@@ -83,6 +81,8 @@ math.h
 -
 gpu/WrapperCL.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
+utils.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/utils.h
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/cnn.h
 Camada.h

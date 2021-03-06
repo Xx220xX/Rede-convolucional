@@ -72,7 +72,7 @@ CMAKE_BINARY_DIR = C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/CNNGPU.dir/all
+all: CMakeFiles/CNN_GPU.dir/all
 
 .PHONY : all
 
@@ -82,36 +82,36 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/CNNGPU.dir/clean
+clean: CMakeFiles/CNN_GPU.dir/clean
 
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/CNNGPU.dir
+# Target rules for target CMakeFiles/CNN_GPU.dir
 
 # All Build rule for target.
-CMakeFiles/CNNGPU.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug\CMakeFiles --progress-num=1,2,3,4,5,6 "Built target CNNGPU"
-.PHONY : CMakeFiles/CNNGPU.dir/all
+CMakeFiles/CNN_GPU.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug\CMakeFiles --progress-num=1,2,3,4,5,6 "Built target CNN_GPU"
+.PHONY : CMakeFiles/CNN_GPU.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/CNNGPU.dir/rule: cmake_check_build_system
+CMakeFiles/CNN_GPU.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug\CMakeFiles 6
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/CNNGPU.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/CNN_GPU.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\hslhe\Desktop\cnn\CNN_GPU\cmake-build-debug\CMakeFiles 0
-.PHONY : CMakeFiles/CNNGPU.dir/rule
+.PHONY : CMakeFiles/CNN_GPU.dir/rule
 
 # Convenience name for target.
-CNNGPU: CMakeFiles/CNNGPU.dir/rule
+CNN_GPU: CMakeFiles/CNN_GPU.dir/rule
 
-.PHONY : CNNGPU
+.PHONY : CNN_GPU
 
 # clean rule for target.
-CMakeFiles/CNNGPU.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNNGPU.dir\build.make CMakeFiles/CNNGPU.dir/clean
-.PHONY : CMakeFiles/CNNGPU.dir/clean
+CMakeFiles/CNN_GPU.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\CNN_GPU.dir\build.make CMakeFiles/CNN_GPU.dir/clean
+.PHONY : CMakeFiles/CNN_GPU.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

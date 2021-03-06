@@ -17,7 +17,8 @@
 
 
 #define INVALID_FILTER_SIZE (-1)
-
+#define CNN_FLAG_CALCULE_ERROR 1
+#define CNN_FLAG_CALCULE_MAX 2
 typedef struct _cnn {
     Params parametros;
     Camada *camadas;
@@ -29,6 +30,14 @@ typedef struct _cnn {
     char releaseCL;
     GPU_ERROR error;
     Kernel kernelsub;
+    Kernel kerneldiv;
+    Kernel kerneldivInt;
+    Kernel kernelNorm;
+    Kernel kernelMax;
+    char flags;
+    double normaErro;
+    double indiceSaida;
+
 } *Cnn, TypeCnn;
 
 Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
@@ -44,6 +53,10 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
         snprintf(c->error.msg,255,"nao foi possivel criar queue\n");
     }
     c->kernelsub = new_Kernel(cl->program, "sub", 4, VOID_P, VOID_P, VOID_P, INT);
+    c->kerneldiv= new_Kernel(cl->program, "div", 3, VOID_P, DOUBLE,  INT);
+    c->kerneldivInt = new_Kernel(cl->program, "divIntDo", 4, VOID_P, VOID_P, DOUBLE, INT);
+    c->kernelNorm = new_Kernel(cl->program, "norm", 3, VOID_P, VOID_P, INT);
+    c->kernelMax = new_Kernel(cl->program, "maxID", 3, VOID_P, VOID_P, INT);
     setmaxWorks(cl->maxworks);
     return c;
 }
@@ -179,6 +192,16 @@ int CnnCall(Cnn c, double *input) {
     for (int i = 0; i < c->size; ++i) {
         c->camadas[i]->ativa(c->camadas[i]);
     }
+    size_t global = 1,local = 1;
+    if(c->flags&CNN_FLAG_CALCULE_MAX){
+        Tensor saida = c->camadas[c->size-1]->saida;
+        Tensor entrada = c->camadas[0]->entrada;
+        int len = saida->x*saida->y*saida->z;
+        Kernel_putArgs(&c->kernelMax, 3, &saida->data,&entrada->data,&len);
+        int error = clEnqueueNDRangeKernel(c->queue, c->kernelMax.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+        PERRW(error, "falha ao chamar kernel norm")
+        clEnqueueReadBuffer(c->queue,entrada->data,CL_TRUE,0,sizeof(double),&c->indiceSaida,0,NULL,NULL);
+    }
     return c->error.error;
 }
 
@@ -207,18 +230,32 @@ int CnnLearn(Cnn c, double *target) {
         gradNext = c->camadas[l]->gradsEntrada;
 
     }
+    if(c->flags&CNN_FLAG_CALCULE_ERROR){
+        global = 1;
+        local = 1;
+        int len = lastGrad->x*lastGrad->y*lastGrad->z;
+        Kernel_putArgs(&c->kernelNorm, 3, &lastGrad->data,&targ->data,&len);
+        error = clEnqueueNDRangeKernel(c->queue, c->kernelNorm.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+        PERRW(error, "falha ao chamar kernel norm")
+        clEnqueueReadBuffer(c->queue,targ->data,CL_TRUE,0,sizeof(double),&c->normaErro,0,NULL,NULL);
+    }
     releaseTensor(&lastGrad);
     releaseTensor(&targ);
 }
 
 void releaseCnn(Cnn *pc) {
     Cnn c = *pc;
+    if(!c)return;
     for (int i = 0; i < c->size; ++i) {
         c->camadas[i]->release(c->camadas + i);
     }
     free(c->camadas);
     clReleaseCommandQueue(c->queue);
     Kernel_release(&c->kernelsub);
+    Kernel_release(&c->kerneldiv);
+    Kernel_release(&c->kerneldivInt);
+    Kernel_release(&c->kernelNorm);
+    Kernel_release(&c->kernelMax);
     if (c->releaseCL) {
         WrapperCL_release(c->cl);
         free(c->cl);
@@ -262,6 +299,7 @@ int cnnCarregar(Cnn c, FILE *src) {
 
     return c->error.error;
 }
+
 
 
 #endif

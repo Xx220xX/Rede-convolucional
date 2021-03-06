@@ -37,4 +37,6 @@ void initRandom(long long int seed);
 
 void generateDescriptor(Pointer *p,Cnn c);
 void freeP(void *p);
+
+
 #endif //LIBRARY_LIBRARY_H

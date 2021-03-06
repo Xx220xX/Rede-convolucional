@@ -1,0 +1,8 @@
+Treino rede neural
+EPOCA 0
+
+error total 96028.9, numero de casos 60000
+
+------------------
+
+

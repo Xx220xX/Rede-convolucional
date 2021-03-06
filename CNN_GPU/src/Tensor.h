@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include"gpu/WrapperCL.h"
+#include "utils.h"
+size_t  max_works=1;
 
 #ifdef LOG_CNN_TENSOR_MEMORY
 #undef LOG_CNN_TENSOR_MEMORY
@@ -19,8 +21,11 @@ typedef struct {
     int x, y, z;
 } Ponto3d;
 
-
+#ifdef TENSOR_TRANSPOSE
 #define TensorMap(T, xx, yy, zz) (zz)*((T)->y*(T)->x)+(yy)*(T)->x+(xx)
+#else
+#define TensorMap(T, xx, yy, zz) (zz)*((T)->y*(T)->x)+(xx)*(T)->y+(yy)
+#endif
 /***
  * Tensor armazena uma matriz 3D juntamente com os parametros dela
  */
@@ -28,6 +33,10 @@ typedef struct {
     cl_mem data;
     unsigned int bytes, x, y, z;
 } *Tensor, typetensor, *TensorChar, typetensorchar;
+typedef struct {
+    int x, y, z;
+    double *data;
+}*TensorC ,typeTensorC;
 
 void fillTensor(Tensor t,cl_context context,size_t bytes,GPU_ERROR * error){
     t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, bytes, NULL, &error->error);
@@ -86,5 +95,44 @@ void releaseTensorChar(TensorChar *t) {
     releaseTensor(t);
 }
 
+
+TensorC newTensorC(int x,int y,int z){
+    TensorC t = (TensorC)calloc(1,sizeof(typeTensorC));
+    t->x = x;
+    t->y = y;
+    t->z = z;
+    t->data = (double *)calloc(x*y*z,sizeof(double ));
+    LOG_CNN_TENSOR_MEMORY("aloc CTENSOR (0x%X,0x%X)", t, t->data)
+    return t;
+}
+void releaseTensorC(TensorC c){
+    if(c){
+        LOG_CNN_TENSOR_MEMORY("free CTENSOR (0x%X,0x%X)", *t, (*t)->data)
+        free(c->data);
+        free(c);
+    }
+}
+void dividirVetor(double *v,cl_mem m,size_t len,double value,Kernel funcNorm,cl_command_queue queue){
+    int error = 0, id = 0;
+    size_t global, local, resto;
+    clEnqueueWriteBuffer(queue,m,CL_TRUE,0,len*sizeof(double),v,0,NULL,NULL);
+    call_kernel(len,
+                Kernel_putArgs(&funcNorm, 3, &m, &value, &id);
+    error = clEnqueueNDRangeKernel(queue, funcNorm.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    PERRW(error, "falha ao chamar kernel div")
+    );
+    clEnqueueReadBuffer(queue,m,CL_TRUE,0,len*sizeof(double),v,0,NULL,NULL);
+}
+void dividirVetorInt(unsigned char *src,double *dst,cl_mem mi,cl_mem mout,size_t len,double value,Kernel funcNorm,cl_command_queue queue){
+    int error = 0, id = 0;
+    size_t global, local, resto;
+    clEnqueueWriteBuffer(queue,mi,CL_TRUE,0,len*sizeof(unsigned char),src,0,NULL,NULL);
+    call_kernel(len,
+                Kernel_putArgs(&funcNorm, 3, &mi,&mout, &value, &id);
+    error = clEnqueueNDRangeKernel(queue, funcNorm.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+    PERRW(error, "falha ao chamar kernel divInt")
+    );
+    clEnqueueReadBuffer(queue,mout,CL_TRUE,0,len*sizeof(double),dst,0,NULL,NULL);
+}
 
 #endif //CNN_GPU_TENSOR_H

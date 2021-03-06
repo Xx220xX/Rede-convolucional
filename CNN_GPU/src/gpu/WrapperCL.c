@@ -5,6 +5,7 @@
 #include "WrapperCL.h"
 #include<stdio.h>
 #include<stdlib.h>
+
 int WrapperCL_initbyFile(WrapperCL *self,const char * filename){
     FILE *f;
     f = fopen(filename, "r");
@@ -131,3 +132,17 @@ void showError(int error) {
 
 
 }
+
+cl_program compileProgram(WrapperCL *wp, char *source) {
+    int length = strlen(source);
+    int error = 0;
+    cl_program program  = clCreateProgramWithSource(wp->context, // contexto
+                                              1,       // numero de strings
+                                              &source,    // strings
+                                              &length, // tamanho de cada string
+                                              &error   // error check
+    );
+    PERR(error,"failed to create program");
+    return program;
+}
+
