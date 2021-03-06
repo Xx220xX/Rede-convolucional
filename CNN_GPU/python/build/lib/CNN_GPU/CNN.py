@@ -1,5 +1,6 @@
-import  time
+import  time,pickle
 from CNN_GPU.CNN_C_Wrapper import *
+from pathlib import Path
 
 FSIGMOIG = 0
 FTANH = 2
@@ -12,7 +13,7 @@ REQUEST_WEIGTH = 3
 
 class CNN:
     def __init__(self, inputSize, hitLearn=.1, momentum=.9, weigthDecay=.5, multip=1.0):
-        file = '%s/%s' % (DIR_LIBRARY, 'gpu_functions_otmsize.cl')
+        file = '%s/%s' % (DIR_LIBRARY, 'gpu_function.cl')
         file = file.encode('utf-8')
         self.cnn = c_Pointer()
         clib.createCnnWrapper(c.addressof(self.cnn), c.create_string_buffer(file),
@@ -91,7 +92,9 @@ class CNN:
     def info(self):
         clib.CnnInfo(self.cnn.p)
 
-    def save(self, fileName):
+    def save(self, fileName:str):
+        filedesc = Path(fileName).with_suffix('.cdc')
+        self.salveCnnDescriptor(filedesc)
         fileName = fileName.encode('utf-8')
         return clib.CnnSaveInFile(self.cnn.p, c.create_string_buffer(fileName))
 
@@ -110,3 +113,12 @@ class CNN:
         buff = c.create_string_buffer(''.encode('utf-8'),255)
         clib.getCnnErrormsg(self.cnn.p,buff)
         return  buff.value.decode('utf-8')
+    def salveCnnDescriptor(self,file):
+       desc_c = c_Pointer()
+       clib.generateDescriptor(c.addressof(desc_c),self.cnn.p)
+       msg = c.cast(desc_c.p,c.c_char_p)
+       msg = msg.value.decode('utf-8')
+       clib.freeP(desc_c.p)
+       desc = eval(msg)
+       with open(file,'wb') as f:
+           pickle.dump(desc,f)

@@ -1,26 +1,26 @@
+//
 // Created by Xx220xX on 10/05/2020.
+//
 #ifndef CL_KERNEL_SRC_H
 #define CL_KERNEL_SRC_H
-#define kvoid __kernel void
-#define gdouble __global double
 
-double sigmoid(double x) { return 1.0 / (1 + exp(-x)); }
+static double sigmoid(double x) { return 1.0 / (1 + exp(-x)); }
 
-double difsigmoid(double x) {
+static double difsigmoid(double x) {
     double tmp = sigmoid(x);
     return tmp * (1 - tmp);
 }
 
-double tanghG(double x) { return tanh(x); }
+static double tanghG(double x) { return tanh(x); }
 
-double diftanhG(double x) {
+static double diftanhG(double x) {
     double tmp = tanh(x);
     return (1 - tmp * tmp);
 }
 
-double relu(double x) { return x > 0 ? x : 0.0; }
+static double relu(double x) { return x > 0 ? x : 0.0; }
 
-double difrelu(double x) { return x > 0 ? 1.0 : 0.0; }
+static double difrelu(double x) { return x > 0 ? 1.0 : 0.0; }
 
 double func(int id, double x) {
     switch (id) {
@@ -41,8 +41,20 @@ double func(int id, double x) {
     }
 }
 
-#define TensorMap(x, y, z, tx, ty)((z)*(ty*tx)+(y)*tx+(x))
-#define TensorMap4D(x, y, z, l, tx, ty, tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(y)*tx+(x))
+#define TensorMap(x, y, z, tx, ty)((z)*(ty*tx)+(x)*ty+(y))
+#define TensorMap4D(x, y, z, l, tx, ty, tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(x)*ty+(y))
+
+
+#define TensorRemap(total, x, y, z, tx, ty)\
+y = total % ty;\
+x = ((total - y) % (ty * tx)) / ty;\
+z = (k - x * ty - y) / (tx * ty);
+
+#define TensorRemap2D(total, x, y, ty)\
+y = total % ty;\
+x = total/ ty;
+
+
 typedef struct {
     int x, y, z;
 } Ponto3d;
@@ -50,7 +62,8 @@ typedef struct {
     Ponto3d min, max;
 } Range;
 
-kvoid printTensor(gdouble *t, int mx, int my, int mz, int ofset) {
+
+__kernel void printTensor(__global double *t, int mx, int my, int mz, int ofset) {
     for (int z = 0; z < mz; z++) {
         printf("[Dim%d]\n", z);
         for (int x = 0; x < mx; x++) {
@@ -63,19 +76,54 @@ kvoid printTensor(gdouble *t, int mx, int my, int mz, int ofset) {
     }
 }
 
-kvoid sub(gdouble *grad, gdouble *saida, gdouble *target, int k0) {
+__kernel void norm(__global double *v, __global double *out, int len) {
+    double s = 0;
+    for (int i = 0; i < len; ++i) {
+        s += v[i] * v[i];
+    }
+    out[0] = pow(s,0.5);
+}
+
+__kernel void maxID(__global double *v, __global double *out, int len) {
+    int  s = 0;
+    for (int i = 1; i < len; ++i) {
+        if(v[s]<v[i]){
+            s = i;
+        }
+    }
+    out[0] = (double)s;
+}
+
+
+
+__kernel void sub(__global double *grad, __global double *saida, __global double *target, int k0) {
     int k = get_global_id(0) + k0;
     grad[k] = saida[k] - target[k];
 }
 
-kvoid convSum(gdouble *filtro, gdouble *entrada, gdouble *saida,
-              int passo, int saidatx, int saidaty, int entradatx, int entradaty,
-              int lenFilter, int entradatz, int k0) {
+__kernel void div(__global double *v, double value, int k0) {
     int k = get_global_id(0) + k0;
-    int x = k % saidatx;
-    int y = ((k - x) % (saidaty * saidatx)) / saidatx;
-    int filtrok = (k - y * saidatx - x) / (saidatx * saidaty);
+    v[k] = v[k] / value;
+}
 
+__kernel void divIntDo(__global unsigned char *src, __global double *v, double value, int k0) {
+    int k = get_global_id(0) + k0;
+    v[k] = ((double) src[k]) / value;
+}
+__kernel void int2vector(__global unsigned char *ints, __global double *v, int noptiobs, int k0) {
+    int k = get_global_id(0) + k0;
+    for(int j=0;j<noptiobs;j++){
+        v[k*noptiobs+j] == (double)(j==ints[k]);
+    }
+}
+
+
+__kernel void convSum(__global double *filtro, __global double *entrada, __global double *saida,
+                      int passo, int saidatx, int saidaty, int entradatx, int entradaty,
+                      int lenFilter, int entradatz, int k0) {
+    int k = get_global_id(0) + k0;
+    int x, y, filtrok;
+    TensorRemap(k, x, y, filtrok, saidatx, saidaty)
     Ponto3d mapeado = {x * passo, y * passo, 0};
     double sum = 0, f, v;
     for (int i = 0; i < lenFilter; i++)
@@ -88,8 +136,8 @@ kvoid convSum(gdouble *filtro, gdouble *entrada, gdouble *saida,
     saida[TensorMap(x, y, filtrok, saidatx, saidaty)] = sum;
 }
 
-kvoid convFixWeight(gdouble *filtro, gdouble *grad, gdouble *gradOld, double hitlearn,
-                    double momento, double multp, double weightDecay, int k0) {
+__kernel void convFixWeight(__global double *filtro, __global double *grad, __global double *gradOld, double hitlearn,
+                            double momento, double multp, double weightDecay, int k0) {
     int k = get_global_id(0) + k0;
     double m = grad[k] + gradOld[k] * momento;
     double w = filtro[k];
@@ -110,19 +158,19 @@ Range mapeia_entrada_saida(int x, int y, int passo, int tamanhoFiltro, int saida
     r.min.x = normaliza_range((a - tamanhoFiltro + 1) / passo, saidatx, 1);
     r.min.y = normaliza_range((b - tamanhoFiltro + 1) / passo, saidaty, 1);
     r.min.z = 0;
+
     r.max.x = normaliza_range(a / passo, saidatx, 0);
     r.max.y = normaliza_range(b / passo, saidaty, 0);
     r.max.z = numeroFiltros - 1;
     return r;
 }
 
-kvoid convCalcGrads(gdouble *filtro, gdouble *gradFiltro, gdouble *entrada, gdouble *gradEntrada,
-                    gdouble *gradNext, int lenFilter, int filtroz, int passo, int entradatx, int entradaty, int saidatx, int saidaty,
-                    int numFilters, int k0) {
+__kernel void convCalcGrads(__global double *filtro, __global double *gradFiltro, __global double *entrada, __global double *gradEntrada,
+                            __global double *gradNext, int lenFilter, int filtroz, int passo, int entradatx, int entradaty, int saidatx, int saidaty,
+                            int numFilters, int k0) {
     int k = get_global_id(0) + k0;
-    int x = k % entradatx;
-    int y = ((k - x) % (entradatx * entradaty)) / entradatx;
-    int z = (k - y * entradatx - x) / (entradatx * entradaty);
+    int x, y, z;
+    TensorRemap(k, x, y, z, entradatx, entradaty)
     Range range = mapeia_entrada_saida(x, y, passo, lenFilter, saidatx, saidaty, numFilters);
     int minX, minY;
     double somaErro = 0, pesoAplicado = 0;
@@ -140,7 +188,8 @@ kvoid convCalcGrads(gdouble *filtro, gdouble *gradFiltro, gdouble *entrada, gdou
     gradEntrada[k] = somaErro;
 }
 
-kvoid fullfeed(gdouble *entrada, gdouble *pesos, gdouble *input, gdouble *saida, int funcaoativacao, int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
+
+__kernel void fullfeed(__global double *entrada, __global double *pesos, __global double *input, __global double *saida, int funcaoativacao, int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
     int n = get_global_id(0) + k0;
     double valorEntrada = 0;
     int m;
@@ -154,9 +203,9 @@ kvoid fullfeed(gdouble *entrada, gdouble *pesos, gdouble *input, gdouble *saida,
     saida[n] = func(funcaoativacao, valorEntrada);
 }
 
-kvoid fullfixweight(gdouble *entrada, gdouble *pesos, gdouble *grad, gdouble *oldgrad,
-                    double hitlearn, double decaimentoDePeso, double momento,
-                    int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
+__kernel void fullfixweight(__global double *entrada, __global double *pesos, __global double *grad, __global double *oldgrad,
+                            double hitlearn, double decaimentoDePeso, double momento,
+                            int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
     int n = get_global_id(0) + k0;
     int m;
     double w;
@@ -175,12 +224,12 @@ kvoid fullfixweight(gdouble *entrada, gdouble *pesos, gdouble *grad, gdouble *ol
     oldgrad[n] = tmp;
 }
 
-kvoid fullcalcgrads1(gdouble *grad, gdouble *gradNext, gdouble *input, int dfa, int k0) {
+__kernel void fullcalcgrads1(__global double *grad, __global double *gradNext, __global double *input, int dfa, int k0) {
     int n = get_global_id(0) + k0;
     grad[n] = gradNext[n] * func(dfa, input[n]);
 }
 
-kvoid fullcalcgrads2(gdouble *grad, gdouble *gradsEntrada, gdouble *pesos, int pesosx, int pesosy, int k0) {
+__kernel void fullcalcgrads2(__global double *grad, __global double *gradsEntrada, __global double *pesos, int pesosx, int pesosy, int k0) {
     int m = get_global_id(0) + k0;
     gradsEntrada[m] = 0;
     for (int n = 0; n < pesosy; ++n) {
@@ -188,23 +237,33 @@ kvoid fullcalcgrads2(gdouble *grad, gdouble *gradsEntrada, gdouble *pesos, int p
     }
 }
 
-long randoml(long seed, long id) { return ((seed + id) * 0x5deece66dL + 0xbL) & ((1L << 48) - 1); }
 
-double randomD(long seed, long id) { return (double) randoml(seed, id) / (double) ((1L << 48) - 1); }
+long randoml(long seed, long id) {
+    seed += id;
+    return (seed * 0x5deece66dL + 0xbL) & ((1L << 48) - 1);
+}
 
-kvoid dropativa(gdouble *entrada, gdouble *saida, __global char *hitmap, long seed, double pativa, int k0) {
+double randomD(long seed, long id) {
+    return (double) randoml(seed, id) / (double) ((1L << 48) - 1);
+}
+
+__kernel void dropativa(__global double *entrada, __global double *saida, __global char *hitmap, long seed, double pativa, int k0) {
     int i = get_global_id(0) + k0;
     char teste = (char) (randomD(seed, i) <= pativa);
     hitmap[i] = teste;
     saida[i] = teste * entrada[i];
 }
 
-kvoid dropcalcgrad(gdouble *gradentrada, __global char *hitmap, gdouble *gradnext, int k0) {
+
+__kernel void dropcalcgrad(__global double *gradentrada, __global char *hitmap, __global double *gradnext, int k0) {
     int i = get_global_id(0) + k0;
     gradentrada[i] = hitmap[i] * gradnext[i];
 }
+
 //### guilherme
-kvoid reluativa(gdouble *entrada, gdouble *saida, int k0) {
+
+
+__kernel void reluativa(__global double *entrada, __global double *saida, int k0) {
     int k = get_global_id(0) + k0;
     double v = entrada[k];
     if (v < 0)
@@ -212,17 +271,16 @@ kvoid reluativa(gdouble *entrada, gdouble *saida, int k0) {
     saida[k] = v;
 }
 
-kvoid relucalcgrad(gdouble *gradentrada, gdouble *entrada, gdouble *gradnext, int k0) {
+__kernel void relucalcgrad(__global double *gradentrada, __global double *entrada, __global double *gradnext, int k0) {
     int k = get_global_id(0) + k0;
     gradentrada[k] = entrada[k] <= 0.0 ? (0) : gradnext[k];
 }
 
-kvoid poolativa(gdouble *entrada, gdouble *saida, int lenFilter,
-                int passo, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
+__kernel void poolativa(__global double *entrada, __global double *saida, int lenFilter,
+                        int passo, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
     int k = get_global_id(0) + k0;
-    int x = k % saidatx;
-    int y = ((k - x) % (saidatx * saidaty)) / saidatx;
-    int z = (k - y * saidatx - x) / (saidatx * saidaty);
+    int x, y, z;
+    TensorRemap(k, x, y, z, saidatx, saidaty)
 
     Ponto3d mapeado = {x * passo, y * passo, 0};
     double mval, v;
@@ -238,12 +296,11 @@ kvoid poolativa(gdouble *entrada, gdouble *saida, int lenFilter,
 }
 
 
-kvoid poolCalcGrads(gdouble *entrada, gdouble *gradEntrada, gdouble *gradNext, gdouble *saida,
-                    int lenFilter, int passo, int entradatx, int entradaty, int entradatz, int saidatx, int saidaty, int k0) {
+__kernel void poolCalcGrads(__global double *entrada, __global double *gradEntrada, __global double *gradNext, __global double *saida,
+                            int lenFilter, int passo, int entradatx, int entradaty, int entradatz, int saidatx, int saidaty, int k0) {
     int k = get_global_id(0) + k0;
-    int x = k % entradaty;
-    int y = k / (entradaty);
-
+    int x, y;
+    TensorRemap2D(k, x, y, entradaty)
     double somaErro = 0, testeMax;
     Range range;
     range = mapeia_entrada_saida(x, y, passo, lenFilter, saidatx, saidaty, 1);

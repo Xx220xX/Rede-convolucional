@@ -85,6 +85,8 @@ math.h
 -
 gpu/WrapperCL.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
+utils.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/utils.h
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/cnn.h
 Camada.h
@@ -104,8 +106,28 @@ C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/funcoesDeAtivacao.h
 gpu/WrapperCL.h
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
 
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.c
+Kernel.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.h
+WrapperCL.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
+stdarg.h
+-
+stdio.h
+-
+stdlib.h
+-
+
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/Kernel.h
 CL/cl.h
+-
+
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.c
+WrapperCL.h
+C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h
+stdio.h
+-
+stdlib.h
 -
 
 C:/Users/hslhe/Desktop/cnn/CNN_GPU/src/gpu/WrapperCL.h

@@ -29,7 +29,7 @@ int WrapperCL_init(WrapperCL *self, const char *src);
 int WrapperCL_initbyFile(WrapperCL *self,const char * filename);
 void WrapperCL_release(WrapperCL *self);
 void showError(int error);
-cl_program  compileProgram(WrapperCL *wp,char *source);
+cl_program  compileProgram(cl_context ct,cl_device_id dv,const char *source);
 
 #define PERRW(e,x)if(e){fprintf(stderr,"%s error code: %d\n\t",x,e);showError(e);}
 #define PERR(e,x)if(e){fprintf(stderr,"%s error code: %d\n\t",x,e);showError(e);return e;}

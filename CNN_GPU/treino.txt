@@ -1,8 +1,38 @@
-Treino rede neural
+Treino rede neural, numero de threads disponiveis 1024
+numero de epocas 5, tamanho do buff 1000
 EPOCA 0
 
-error total 96028.9, numero de casos 60000
+error euclidiano  total 1122.92, numero de casos 1000  numero de acertos 97 tempo gasto 8 seg
 
 ------------------
 
 
+EPOCA 1
+
+error euclidiano  total 1117.71, numero de casos 1000  numero de acertos 97 tempo gasto 6 seg
+
+------------------
+
+
+EPOCA 2
+
+error euclidiano  total 1117.71, numero de casos 1000  numero de acertos 97 tempo gasto 6 seg
+
+------------------
+
+
+EPOCA 3
+
+error euclidiano  total 1117.71, numero de casos 1000  numero de acertos 97 tempo gasto 6 seg
+
+------------------
+
+
+EPOCA 4
+
+error euclidiano  total 1117.71, numero de casos 1000  numero de acertos 97 tempo gasto 7 seg
+
+------------------
+
+
+Tempo gasto para 5 epocas 0.550000 min

@@ -34,6 +34,7 @@ typedef struct _cnn {
     Kernel kerneldivInt;
     Kernel kernelNorm;
     Kernel kernelMax;
+    Kernel kernelInt2Vector;
     char flags;
     double normaErro;
     double indiceSaida;
@@ -57,6 +58,7 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
     c->kerneldivInt = new_Kernel(cl->program, "divIntDo", 4, VOID_P, VOID_P, DOUBLE, INT);
     c->kernelNorm = new_Kernel(cl->program, "norm", 3, VOID_P, VOID_P, INT);
     c->kernelMax = new_Kernel(cl->program, "maxID", 3, VOID_P, VOID_P, INT);
+    c->kernelInt2Vector = new_Kernel(cl->program, "int2vector", 4, VOID_P, VOID_P, INT,INT);
     setmaxWorks(cl->maxworks);
     return c;
 }
@@ -299,7 +301,10 @@ int cnnCarregar(Cnn c, FILE *src) {
 
     return c->error.error;
 }
-
+void Cnngetout(Cnn c, double *out){
+    if(c->size<1)return;
+    clEnqueueReadBuffer(c->queue,c->camadas[c->size-1]->saida->data,CL_TRUE,0,c->camadas[c->size-1]->saida->bytes,out,0,NULL,NULL);
+}
 
 
 #endif

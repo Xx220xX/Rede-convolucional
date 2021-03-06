@@ -29,8 +29,6 @@ void CnnInfo(Cnn c);
 
 int openFILE(Pointer *p, char *fileName, char *mode);
 int closeFile(Pointer *p);
-
-
 int getCnnError(Cnn c);
 void getCnnErrormsg(Cnn c,char *msg);
 void initRandom(long long int seed);

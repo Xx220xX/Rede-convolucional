@@ -63,7 +63,6 @@ typedef struct {
 } Range;
 
 
-
 __kernel void printTensor(__global double *t, int mx, int my, int mz, int ofset) {
     for (int z = 0; z < mz; z++) {
         printf("[Dim%d]\n", z);
@@ -114,7 +113,7 @@ __kernel void divIntDo(__global unsigned char *src, __global double *v, double v
 __kernel void int2vector(__global unsigned char *ints, __global double *v, int noptiobs, int k0) {
     int k = get_global_id(0) + k0;
     for(int j=0;j<noptiobs;j++){
-        v[k*noptiobs+j] = (double)(j==ints[k]);
+        v[k*noptiobs+j] == (double)(j==ints[k]);
     }
 }
 

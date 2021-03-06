@@ -133,16 +133,24 @@ void showError(int error) {
 
 }
 
-cl_program compileProgram(WrapperCL *wp, char *source) {
-    int length = strlen(source);
+cl_program compileProgram(cl_context ct,cl_device_id dv,const char *source) {
+    size_t length = strlen(source);
     int error = 0;
-    cl_program program  = clCreateProgramWithSource(wp->context, // contexto
+    cl_program program  = clCreateProgramWithSource(ct, // contexto
                                               1,       // numero de strings
                                               &source,    // strings
                                               &length, // tamanho de cada string
                                               &error   // error check
     );
-    PERR(error,"failed to create program");
+    PERRW(error,"failed to create program");
+    cl_int stt = clBuildProgram(program, 1, &dv, NULL, NULL, NULL);
+    if (stt != CL_SUCCESS) {
+        char buff[0x10000];
+        clGetProgramBuildInfo(program, dv, CL_PROGRAM_BUILD_LOG, 0x10000, buff, NULL);
+        fprintf(stderr, "ERROR: %s\n", buff);
+        clReleaseProgram(program);
+        return NULL;
+    }
     return program;
 }
 

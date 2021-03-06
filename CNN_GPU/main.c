@@ -46,84 +46,98 @@ int normalizeImage(double *imagem, size_t bytes, WrapperCL *cl, cl_command_queue
     return 0;
 }
 
-int loadTargetData(double *target, size_t bytes, FILE *f, size_t *bytesReadd) {
+int loadTargetData(double *target, size_t bytes, WrapperCL *cl, cl_command_queue queue, Kernel int2vector, FILE *f, size_t *bytesReadd) {
     if (readBytes(f, (unsigned char *) target, bytes, bytesReadd) || !*bytesReadd)
         return 1;
-
-    unsigned char *targint = (unsigned char *) target;
-    for (int i = *bytesReadd - 1; i >= 0; i--) {
-//        printf("%d: ", targint[i]);
-        for (int j = 9; j >=0; j--) {
-            target[i * 10 + j] = j == targint[i];
-//            printf("%d %d %lf\n " ,j,targint[i], target[i * 10 + j] );
-
-        }
-
-    }
-//    printf("\n");
+    cl_mem mInt, mDou;
+    int error = 0;
+    mInt = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes, NULL, &error);
+    mDou = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes *10* sizeof(double), NULL, &error);
+    int2doubleVector(cl,(unsigned char *) target, target, mInt, mDou, *bytesReadd, 10, int2vector, queue);
+    clReleaseMemObject(mInt);
+    clReleaseMemObject(mDou);
     return 0;
 }
 
 int main() {
     srand(time(0));
     // criar  cnn
-    Params p = {0.1, 0.99, 0.5};
+    Params p = {0.1, 0.0, 0.5};
     Cnn c = createCnnWithgpu("../kernels/gpu_function.cl", p, 28, 28, 1);
-    CnnAddConvLayer(c, 1, 5, 8);
+    CnnAddConvLayer(c, 1, 5, 18);
     CnnAddReluLayer(c);
     CnnAddPoolLayer(c, 2, 2);
+    CnnAddFullConnectLayer(c, 50, FSIGMOIG);
     CnnAddFullConnectLayer(c, 10, FSIGMOIG);
 
     c->flags = CNN_FLAG_CALCULE_MAX | CNN_FLAG_CALCULE_ERROR;
 
+
+    int maximoEpocas = 5;
+    int buffImageSize = 1000;
+    int limiteImages = 1000;
+
+
     int tamanhoTensorEntrada = 28 * 28;
     int tamanhoTensorTarget = 10;
-    int numeroDeImagens = 1000;
     size_t casos = 0;
-    double *inputs = (double *) calloc(sizeof(double), tamanhoTensorEntrada * numeroDeImagens),
-            *targets = (double *) calloc(sizeof(double), tamanhoTensorTarget * numeroDeImagens);
-    int epoca = 0, maximoEpocas = 1;
+    double *inputs = (double *) calloc(sizeof(double), tamanhoTensorEntrada * buffImageSize),
+            *targets = (double *) calloc(sizeof(double), tamanhoTensorTarget * buffImageSize);
+    int epoca = 0;
     double erros = 0;
+    int acertos = 0;
 
     FILE *f = fopen("../treino.txt", "w");
     FILE *imagens = fopen("../testes/train-images.idx3-ubyte", "rb");
     FILE *saidas = fopen("../testes/train-labels.idx1-ubyte", "rb");
-    int i, r;
-    fprintf(f, "Treino rede neural\n");
-    char bufn[40] = {0};
+    int i, r,t;
+    fprintf(f, "Treino rede neural, numero de threads disponiveis %d\n", c->cl->maxworks);
+    fprintf(f, "numero de epocas %d, tamanho do buff %d\n", maximoEpocas, buffImageSize);
     char b[16];
+    double out[10];
+    size_t initTimeALL = time(0), initTimeLocal;
     for (; epoca < maximoEpocas; epoca++) {
+        initTimeLocal = time(0);
         erros = 0;
+        acertos =0;
         fprintf(f, "EPOCA %d\n", epoca);
+        fclose(imagens);
+        fclose(saidas);
+        imagens = fopen("../testes/train-images.idx3-ubyte", "rb");
+        saidas = fopen("../testes/train-labels.idx1-ubyte", "rb");
         fread(b, 1, 16, imagens);
         fread(b, 1, 8, saidas);
         i = 0;
-        while (!loadTargetData(targets, numeroDeImagens, saidas, &casos)) {
-            normalizeImage(inputs, numeroDeImagens * tamanhoTensorEntrada, c->cl, c->queue, c->kerneldivInt, imagens, NULL);
-//            printf("%d\n", casos);
-            for (int caso = 0; caso < casos; caso++, i++) {
+
+        while (i < limiteImages && !loadTargetData(targets, buffImageSize, c->cl, c->queue, c->kernelInt2Vector, saidas, &casos)) {
+            normalizeImage(inputs, buffImageSize * tamanhoTensorEntrada, c->cl, c->queue, c->kerneldivInt, imagens, NULL);
+            for (int caso = 0; caso < casos && i < limiteImages; caso++, i++) {
                 CnnCall(c, inputs + tamanhoTensorEntrada * caso);
                 CnnLearn(c, targets + tamanhoTensorTarget * caso);
-
-                for (r = 0; r < 10; r++) {
-                    if (*(targets + tamanhoTensorTarget * caso + r))break;
+                Cnngetout(c, out);
+                for (t = 0; t < 9 &&! *(targets + tamanhoTensorTarget * caso + t) ; t++);
+                for (r = 0; r < 9 &&! *(out +r) ; r++);
+                if(r==t){
+                    acertos++;
                 }
-//                snprintf(bufn, 40, "../testes/imgs/%d_%d_%d.pgm", i, r, (int) c->indiceSaida);
-//                ppmp2(inputs + tamanhoTensorEntrada * caso, 28, 28, bufn);
-//                fprintf(f, "%g\n\n ", c->indiceSaida);
                 erros += c->normaErro;
             }
+            printf("foram lidas %d imagens\n", casos);
         }
-        fprintf(f, "\nerror total %g, numero de casos %d\n\n", erros, i);
+
+        fprintf(f, "\nerror euclidiano  total %g, numero de casos %d  numero de acertos %d tempo gasto %llu seg\n\n", erros, i,acertos,time(0) - initTimeLocal);
         fprintf(f, "------------------\n\n\n");
+        fclose(f);
+        f = fopen("../treino.txt", "a");
+
     }
+    fprintf(f, "Tempo gasto para %d epocas %lf min\n", maximoEpocas, (time(0) - initTimeALL) / 60.0);
     fclose(f);
     fclose(imagens);
     fclose(saidas);
-    FILE *redeTreinada = fopen("../redeTreinada.cnn", "wb");
+    FILE *redeTreinada = fopen("../../webCreatorImg/redeTreinada.cnn", "wb");
     cnnSave(c, redeTreinada);
     fclose(redeTreinada);
-
     if (inputs)free(inputs);
     if (targets)free(targets);
     releaseCnn(&c);

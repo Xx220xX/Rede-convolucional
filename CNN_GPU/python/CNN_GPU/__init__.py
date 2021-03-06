@@ -1,7 +1,7 @@
-from CNN import *
+from CNN_GPU.CNN import  *
 import time
 from random import random
-
+__all__ = ['CNN']
 if __name__ == '__main__':
     c = CNN([20, 20, 3])
     c.addConvLayer(1,3,4)

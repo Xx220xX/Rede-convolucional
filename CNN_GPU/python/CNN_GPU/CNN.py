@@ -1,5 +1,5 @@
 import  time,pickle
-from CNN_C_Wrapper import *
+from CNN_GPU.CNN_C_Wrapper import *
 from pathlib import Path
 
 FSIGMOIG = 0
@@ -13,7 +13,7 @@ REQUEST_WEIGTH = 3
 
 class CNN:
     def __init__(self, inputSize, hitLearn=.1, momentum=.9, weigthDecay=.5, multip=1.0):
-        file = '%s/%s' % (DIR_LIBRARY, 'gpu_functions_otmsize.cl')
+        file = '%s/%s' % (DIR_LIBRARY, 'gpu_function.cl')
         file = file.encode('utf-8')
         self.cnn = c_Pointer()
         clib.createCnnWrapper(c.addressof(self.cnn), c.create_string_buffer(file),
