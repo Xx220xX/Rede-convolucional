@@ -52,3 +52,16 @@ void Kernel_release(Kernel *self) {
     self->l_args = NULL;
     self->kernel = NULL;
 }
+
+int kernel_run(Kernel *self, cl_command_queue queue, size_t globals, size_t locals,  ...) {
+    va_list vaList;
+    va_start(vaList, locals);
+    int error = 0;
+    for (int i = 0; i < self->nArgs; ++i) {
+        error = clSetKernelArg(self->kernel, i, self->l_args[i], va_arg(vaList, void *));
+        PERR(error, "erro ao colocar argumentos no kernel");
+    }
+    va_end(vaList);
+    error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
+    return error;
+}

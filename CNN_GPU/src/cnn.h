@@ -37,7 +37,6 @@ typedef struct _cnn {
     Kernel kernelInt2Vector;
     char flags;
     double normaErro;
-    double indiceSaida;
 
 } *Cnn, TypeCnn;
 
@@ -195,15 +194,7 @@ int CnnCall(Cnn c, double *input) {
         c->camadas[i]->ativa(c->camadas[i]);
     }
     size_t global = 1,local = 1;
-    if(c->flags&CNN_FLAG_CALCULE_MAX){
-        Tensor saida = c->camadas[c->size-1]->saida;
-        Tensor entrada = c->camadas[0]->entrada;
-        int len = saida->x*saida->y*saida->z;
-        Kernel_putArgs(&c->kernelMax, 3, &saida->data,&entrada->data,&len);
-        int error = clEnqueueNDRangeKernel(c->queue, c->kernelMax.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-        PERRW(error, "falha ao chamar kernel norm")
-        clEnqueueReadBuffer(c->queue,entrada->data,CL_TRUE,0,sizeof(double),&c->indiceSaida,0,NULL,NULL);
-    }
+
     return c->error.error;
 }
 
@@ -219,8 +210,7 @@ int CnnLearn(Cnn c, double *target) {
     size_t global, local, resto;
     LOG_CNN_KERNELCALL("Chamando kernel sub")
     call_kernel(targ->x * targ->y * targ->z,
-                Kernel_putArgs(&c->kernelsub, 4, &lastGrad->data, &c->camadas[c->size - 1]->saida->data, &targ->data, &id);
-                        error = clEnqueueNDRangeKernel(c->queue, c->kernelsub.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+                error = kernel_run(&c->kernelsub,c->queue,global,local,&lastGrad->data, &c->camadas[c->size - 1]->saida->data, &targ->data, &id);
                         PERRW(error, "falha ao chamar kernel sub")
     );
 
@@ -305,6 +295,15 @@ void Cnngetout(Cnn c, double *out){
     if(c->size<1)return;
     clEnqueueReadBuffer(c->queue,c->camadas[c->size-1]->saida->data,CL_TRUE,0,c->camadas[c->size-1]->saida->bytes,out,0,NULL,NULL);
 }
-
+int CnnGetIndexMax(Cnn c){
+        Tensor saida = c->camadas[c->size-1]->saida;
+        Tensor entrada = c->camadas[0]->gradsEntrada;
+        int len = saida->x*saida->y*saida->z;
+        int error = kernel_run(&c->kernelMax,c->queue,1,1, &saida->data,&entrada->data,&len);
+        PERRW(error, "falha ao chamar kernel calcula max")
+        double indice =0;
+        clEnqueueReadBuffer(c->queue,entrada->data,CL_TRUE,0,sizeof(double),&indice,0,NULL,NULL);
+        return (int)indice;
+}
 
 #endif

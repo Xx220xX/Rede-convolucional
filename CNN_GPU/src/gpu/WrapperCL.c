@@ -124,7 +124,9 @@ void showError(int error) {
         case CL_KERNEL_ARG_INFO_NOT_AVAILABLE:
             fprintf(stderr, "%s\n", "KERNEL_ARG_INFO_NOT_AVAILABLE");
             break;
-
+        case -51:
+            fprintf(stderr, "%s\n", "Tamanho invalido de argumentos");
+            break;
         default:
             fprintf(stderr, "UNKNOW error code %d\n", error);
     }

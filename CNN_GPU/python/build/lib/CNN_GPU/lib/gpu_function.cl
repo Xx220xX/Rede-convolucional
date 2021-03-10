@@ -63,6 +63,7 @@ typedef struct {
 } Range;
 
 
+
 __kernel void printTensor(__global double *t, int mx, int my, int mz, int ofset) {
     for (int z = 0; z < mz; z++) {
         printf("[Dim%d]\n", z);
@@ -113,7 +114,7 @@ __kernel void divIntDo(__global unsigned char *src, __global double *v, double v
 __kernel void int2vector(__global unsigned char *ints, __global double *v, int noptiobs, int k0) {
     int k = get_global_id(0) + k0;
     for(int j=0;j<noptiobs;j++){
-        v[k*noptiobs+j] == (double)(j==ints[k]);
+        v[k*noptiobs+j] = (double)(j==ints[k]);
     }
 }
 
@@ -136,17 +137,9 @@ __kernel void convSum(__global double *filtro, __global double *entrada, __globa
     saida[TensorMap(x, y, filtrok, saidatx, saidaty)] = sum;
 }
 
-__kernel void convFixWeight(__global double *filtro, __global double *grad, __global double *gradOld, double hitlearn,
-                            double momento, double multp, double weightDecay, int k0) {
-    int k = get_global_id(0) + k0;
-    double m = grad[k] + gradOld[k] * momento;
-    double w = filtro[k];
-    filtro[k] = w - hitlearn * (m * multp + w * weightDecay);
-    gradOld[k] = m;
-}
 
 int normaliza_range(double f, int max, int lim_min) {
-    if (f < 0)return 0;
+    if (f <= 0)return 0;
     if (f >= max - 1)return max - 1;
     if (lim_min) return ceil(f);
     else return floor(f);
@@ -165,12 +158,21 @@ Range mapeia_entrada_saida(int x, int y, int passo, int tamanhoFiltro, int saida
     return r;
 }
 
+__kernel void convFixWeight(__global double *filtro, __global double *grad, __global double *gradOld, double hitlearn,
+                            double momento, double multp, double weightDecay, int k0) {
+    int k = get_global_id(0) + k0;
+    double m = grad[k] + gradOld[k] * momento;
+    double w = filtro[k];
+    filtro[k] = w - hitlearn * (m * multp + w * weightDecay);
+    gradOld[k] = m;
+}
 __kernel void convCalcGrads(__global double *filtro, __global double *gradFiltro, __global double *entrada, __global double *gradEntrada,
                             __global double *gradNext, int lenFilter, int filtroz, int passo, int entradatx, int entradaty, int saidatx, int saidaty,
                             int numFilters, int k0) {
     int k = get_global_id(0) + k0;
     int x, y, z;
     TensorRemap(k, x, y, z, entradatx, entradaty)
+
     Range range = mapeia_entrada_saida(x, y, passo, lenFilter, saidatx, saidaty, numFilters);
     int minX, minY;
     double somaErro = 0, pesoAplicado = 0;
@@ -182,6 +184,7 @@ __kernel void convCalcGrads(__global double *filtro, __global double *gradFiltro
                 pesoAplicado = filtro[TensorMap4D(x - minX, y - minY, z, l, lenFilter, lenFilter, filtroz)];
                 somaErro += pesoAplicado * gradNext[TensorMap(i, j, l, saidatx, saidaty)];
                 gradFiltro[TensorMap4D(x - minX, y - minY, z, l, lenFilter, lenFilter, filtroz)] += entrada[k] * gradNext[TensorMap(i, j, l, saidatx, saidaty)];
+
             }
         }
     }

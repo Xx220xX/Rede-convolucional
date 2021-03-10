@@ -23,6 +23,9 @@ Kernel new_Kernel(cl_program pg, const char *f_name, int n_args, ...);
 
 cl_kernel Kernel_putArgs(Kernel *self, int n_args, ...);
 
+int kernel_run(Kernel *self, cl_command_queue queue, size_t globals,
+               size_t locals, ...);
+
 cl_kernel Kernel_get(Kernel *self);
 
 void Kernel_release(Kernel *self);

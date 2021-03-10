@@ -163,9 +163,9 @@ int ativaConv(CamadaConv c) {
 }
 
 void corrige_pesosConv(CamadaConv c) {
-
     int error = 0, id = 0;
     size_t global, local, resto;
+    char zero=0;
     LOG_CNN_KERNELCALL("corrige conv: fixWeight")
     call_kernel(c->tamanhoFiltro * c->tamanhoFiltro * c->super.entrada->z * c->numeroFiltros,
                 Kernel_putArgs(&c->kernelConvFixWeight, 8, &c->filtros->data, &c->grad_filtros->data, &c->grad_filtros_old->data,
@@ -175,11 +175,11 @@ void corrige_pesosConv(CamadaConv c) {
     clFinish(c->super.queue);
 }
 
-
 void calc_gradsConv(CamadaConv c, Tensor Gradnext) {
     // zerar o gradiente
+
     char zero = 0;
-    clEnqueueFillBuffer(c->super.queue, c->grad_filtros->data, &zero, sizeof(char), 0, c->grad_filtros->bytes, 0, NULL, NULL);
+    clEnqueueFillBuffer(c->super.queue, c->grad_filtros->data, &zero, sizeof(char), 0, c->grad_filtros->bytes*c->numeroFiltros, 0, NULL, NULL);
 
     int error = 0, id = 0;
     size_t global, local, resto;

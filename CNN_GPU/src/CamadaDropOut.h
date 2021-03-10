@@ -52,7 +52,7 @@ Camada createDropOut(WrapperCL *cl,UINT inx, UINT iny, UINT inz, double p_ativac
     c->seed = seed;
     c->super.salvar =(fsl) salvarDropOut;
     c->kerneldropativa = new_Kernel(cl->program, "dropativa", 6, VOID_P, VOID_P, VOID_P,sizeof(cl_long),DOUBLE,INT);
-    c->kerneldropcalcgrad = new_Kernel(cl->program, "dropcalcgrad", 4, VOID_P, VOID_P, VOID_P,DOUBLE,INT);
+    c->kerneldropcalcgrad = new_Kernel(cl->program, "dropcalcgrad", 4, VOID_P, VOID_P, VOID_P,INT);
     return (Camada)c;
 }
 
@@ -90,9 +90,8 @@ void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext) {
     size_t global, local, resto;
     LOG_CNN_KERNELCALL("calc drop: calcgrad")
     call_kernel(c->super.saida->x*c->super.saida->y*c->super.saida->z,
-                Kernel_putArgs(&c->kerneldropcalcgrad, 4,&c->super.gradsEntrada->data,&c->hitmap->data,&GradNext->data, &id);
-                        error = clEnqueueNDRangeKernel(c->super.queue, c->kerneldropcalcgrad.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-                        PERRW(error, "falha ao chamar kernel cacalcgrad dropout")
+                error = kernel_run(&c->kerneldropcalcgrad,c->super.queue,global,local,&c->super.gradsEntrada->data,&c->hitmap->data,&GradNext->data, &id);
+                         PERRW(error, "falha ao chamar kernel cacalcgrad dropout")
     );
 }
 void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error) {
