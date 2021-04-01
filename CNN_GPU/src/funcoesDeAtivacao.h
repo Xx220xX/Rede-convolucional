@@ -5,7 +5,7 @@
 #ifndef CNN_GPU_FUNCOESDEATIVACAO_H
 #define CNN_GPU_FUNCOESDEATIVACAO_H
 #include "gpu/WrapperCL.h"
-#define FSIGMOIG 0
+#define FSIGMOID 0
 #define FTANH 2
 #define FRELU 4
 #define FLAGDIF 1

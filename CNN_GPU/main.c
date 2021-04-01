@@ -1,4 +1,5 @@
 //#define LOG_CNN_KERNELCALL
+#include <conio.h>
 #include"src/gpu/WrapperCL.h"
 
 #include "src/cnn.h"
@@ -59,26 +60,34 @@ int loadTargetData(double *target, size_t bytes, WrapperCL *cl, cl_command_queue
     clReleaseMemObject(mDou);
     return 0;
 }
-
+#define NEW_PICTURES
 int main() {
+    FILE *pictures;
     srand(time(0));
     // criar  cnn
-    Params p = {0.1, 0.09, 0.03, 1};
+    Params p = {0.1, 0.0, 0.00, 1};
     Cnn c = createCnnWithgpu("../kernels/gpu_function.cl", p, 28, 28, 1);
+#ifdef NEW_PICTURES
     CnnAddConvLayer(c, 1, 5, 8);
+#else
+    pictures = fopen("conv.cnnlayer", "rb");
+    __addLayer(c);
+    c->camadas[0] = carregarCamada(c->cl, pictures, NULL, &c->parametros, &c->error);
+    c->camadas[0]->queue = c->queue;
+    fclose(pictures);
+#endif
     CnnAddPoolLayer(c, 2, 2);
-    CnnAddReluLayer(c);
+//    CnnAddReluLayer(c);
+    CnnAddFullConnectLayer(c, 50, FSIGMOID);
+    CnnAddFullConnectLayer(c, 10, FSIGMOID);
 
-
-    CnnAddFullConnectLayer(c, 10, FSIGMOIG);
-
-    c->flags =  CNN_FLAG_CALCULE_ERROR;
+    c->flags = CNN_FLAG_CALCULE_ERROR;
 
 
     int maximoEpocas = 10;
-    int totalImagens = 60;//000;
-    int imagensCheck = 20;//000;
-    int limiteImages = 40;//000;
+    int totalImagens = 60000;
+    int imagensCheck = 2000;
+    int limiteImages = 58000;
 
 
     int tamanhoTensorEntrada = 28 * 28;
@@ -90,7 +99,7 @@ int main() {
     double erros = 0;
     int acertos = 0;
 
-    FILE *f = fopen("../treino.md", "w");
+    FILE *f = stdout;//fopen("../treino.md", "w");
     FILE *imagens = fopen("../testes/train-images.idx3-ubyte", "rb");
     FILE *saidas = fopen("../testes/train-labels.idx1-ubyte", "rb");
     int i, r, t;
@@ -113,16 +122,20 @@ int main() {
         goto finish;
     }
     fprintf(f, "\n|EPOCA | erro | acertos | tempo |\n|----|----|----|----|\n");
+    int stop = 0;
     for (; epoca < maximoEpocas; epoca++) {
+        if(stop)break;
         initTimeLocal = time(0);
         erros = 0;
         acertos = 0;
         fprintf(f, "|%d ", epoca);
         for (int caso = 0; caso < limiteImages; caso++) {
+            if(stop)break;
+            if(kbhit())stop = getche();
             CnnCall(c, inputs + tamanhoTensorEntrada * caso);
             CnnLearn(c, targets + tamanhoTensorTarget * caso);
             for (t = 0; t < 9 && !*(targets + tamanhoTensorTarget * caso + t); t++);
-            r =  CnnGetIndexMax( c);
+            r = CnnGetIndexMax(c);
             if (r == t) {
                 acertos++;
             }
@@ -133,7 +146,6 @@ int main() {
         fprintf(f, "| %g | %d | %llu |\n", erros, acertos, time(0) - initTimeLocal);
 
 
-
     }
     fprintf(f, "Tempo gasto para %d epocas %lf min\n", maximoEpocas, (time(0) - initTimeALL) / 60.0);
 
@@ -142,7 +154,9 @@ int main() {
 
 
     int tacertos = 0;
-    for(i=limiteImages;i<limiteImages+imagensCheck;i++){
+
+    for (i = limiteImages; i < limiteImages + imagensCheck; i++) {
+        if(stop)break;
         CnnCall(c, inputs + tamanhoTensorEntrada * i);
         r = CnnGetIndexMax(c);
         for (t = 0; t < 9 && !*(targets + tamanhoTensorTarget * i + t); t++);
@@ -150,11 +164,13 @@ int main() {
             tacertos++;
         }
     }
-    printf("acertos %d/%d %.2lf%%\n",tacertos,imagensCheck,(double)tacertos/(imagensCheck+0.001)*100.0);
-    fprintf(f,"\n#Fitnes\n");
-    fprintf(f,"acertos %d/%d %.2lf%%\n",tacertos,imagensCheck,(double)tacertos/(imagensCheck+0.001)*100.0);
-    fclose(f);
-
+    printf("acertos %d/%d %.2lf%%\n", tacertos, imagensCheck, (double) tacertos / (imagensCheck + 0.001) * 100.0);
+    fprintf(f, "\n#Fitnes\n");
+    fprintf(f, "acertos %d/%d %.2lf%%\n", tacertos, imagensCheck, (double) tacertos / (imagensCheck + 0.001) * 100.0);
+    if (f != stdout) fclose(f);
+    pictures = fopen("conv.cnnlayer", "wb");
+    c->camadas[0]->salvar(c->cl, c->camadas[0], f, &c->error);
+    fclose(pictures);
     finish:
 
     fclose(redeTreinada);
