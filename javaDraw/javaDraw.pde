@@ -88,6 +88,7 @@ void setup() {
       System.arraycopy(data, 13, filter_data, 0, data.length-13);
       filtro.setData(Utils.bytes2Ints1(filter_data));
       canCalcule = true;
+      filtro.show(back_color);
     }
   }
   );

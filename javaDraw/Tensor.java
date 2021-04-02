@@ -46,7 +46,7 @@ public class Tensor {
    
     for (int i=0; i<x; i++)
       for (int j=0; j<y; j++) {
-        quadroFiltros.set(i, j, app.color(data[dim*(x*y)+i*y+j]));
+        quadroFiltros.set(i, j, app.color(data[dim*(x*y)+j*y+i]));
       }
     quadroFiltros.endDraw();
     app.image(quadroFiltros, x0, y0, w, h);

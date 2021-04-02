@@ -3,7 +3,7 @@ import concurrent.futures as cf
 import socket
 from math import *
 
-def normalize(data,nThreds=10,maxValue=255,useFloor = True):
+def normalize(data,nThreds=100,maxValue=255,useFloor = True):
     mx =  max(data)
     mn = min(data)
     mx = mx-mn
@@ -61,15 +61,16 @@ while True:
             # 4 bytes para o tamanho da msg
             size = con.recv(4) 
             size = bytes2ints(size)[0] 
-
+            print('espero receber',size)
             # size bytes contendo a imagem
             imagem = con.recv(size)
+            print('recebi ',len(imagem))
             if not imagem: break
-            imagem = bytes2ints(imagem)       
+            imagem = bytes2ints(imagem,1)       
 
             # normalizar imagem
             imagem = normalize(imagem,maxValue=1,useFloor=False)
-
+            
             #Avaliar imagem para descobrir o valor
             c.predict(imagem)
             outputVector = c.output
@@ -78,7 +79,6 @@ while True:
             # obtendo saida dos filtros
             x,y,z,_ = c.getSizeData(0,REQUEST_OUTPUT)
             dt = c.getData(0,REQUEST_OUTPUT)
-            
             f = open("filter.txt",'w')
             for k in range(z):
                 for i in range(x):
@@ -87,7 +87,7 @@ while True:
                     print('',file=f)
                 print('\n',file=f)
             f.close()
-
+ 
             sdt = splitLen(dt,x*y)
             dt = []
             # normalizando saidas dos filtros

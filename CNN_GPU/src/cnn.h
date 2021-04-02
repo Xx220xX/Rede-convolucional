@@ -194,7 +194,6 @@ int CnnCall(Cnn c, double *input) {
         c->camadas[i]->ativa(c->camadas[i]);
     }
     size_t global = 1,local = 1;
-
     return c->error.error;
 }
 
