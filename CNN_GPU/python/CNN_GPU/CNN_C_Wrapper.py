@@ -49,7 +49,9 @@ clib.CnnInfo.argtypes = [c.c_void_p]
 clib.getCnnError.argtypes = [c.c_void_p]
 clib.getCnnErrormsg.argtypes = [c.c_void_p,c.c_void_p]
 
-
+# auxiliares
+clib.CnnGetIndexMax.argtypes = [c.c_void_p]
+clib.normalizeGPU.argtypes = [c.c_void_p,c.c_void_p,c.c_void_p,c.c_int,c.c_double,c.c_double]
 
 class c_Pointer(c.Structure):
     _fields_ = [("p", c.c_void_p)]

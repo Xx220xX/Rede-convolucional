@@ -12,19 +12,19 @@
 #define DOUBLE sizeof(cl_double)
 
 typedef struct {
-    cl_kernel kernel;
-    int nArgs;
-    size_t *l_args;
-    int error;
+	cl_kernel kernel;
+	int nArgs;
+	size_t *l_args;
+	int error;
 } Kernel;
 
 Kernel new_Kernel(cl_program pg, const char *f_name, int n_args, ...);
 
-
 cl_kernel Kernel_putArgs(Kernel *self, int n_args, ...);
 
-int kernel_run(Kernel *self, cl_command_queue queue, size_t globals,
-               size_t locals, ...);
+int kernel_run(Kernel *self, cl_command_queue queue, size_t globals, size_t locals, ...);
+
+int kernel_run_recursive(Kernel *self, cl_command_queue queue, size_t globals, size_t max_works, ...);
 
 cl_kernel Kernel_get(Kernel *self);
 

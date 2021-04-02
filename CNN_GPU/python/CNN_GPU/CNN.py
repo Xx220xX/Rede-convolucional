@@ -122,3 +122,12 @@ class CNN:
        desc = eval(msg)
        with open(file,'wb') as f:
            pickle.dump(desc,f)
+    # AUXILIAR FUNCTION
+    def getOutputAsIndexMax(self):
+        ans = clib.CnnGetIndexMax(self.cnn.p)
+        return ans
+    def normalizeVector(self,vector:list,maxOutput,minOutput):
+        out_TYPE =c.c_double * len(vector)
+        inp = out_TYPE(*vector)
+        clib.normalizeGPU(self.cnn.p,inp,inp,len(vector),maxOutput,minOutput)
+        return list(inp)

@@ -144,7 +144,7 @@ int main() {
 			erros += c->normaErro;
 
 		}
-
+	printf("epoca %d, erro %g, acertos %.2lf%%\n",epoca,erros,acertos*100.0/limiteImages);
 		fprintf(f, "| %g | %d | %llu |\n", erros, acertos, time(0) - initTimeLocal);
 
 

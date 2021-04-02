@@ -204,7 +204,7 @@ void generateDescriptor(Pointer *p, Cnn c) {
 					case FRELU:
 						putst(&desc, ",'funcao de ativacao':'RELU'");
 						break;
-					case FSIGMOIG:
+					case FSIGMOID:
 						putst(&desc, ",'funcao de ativacao':'SIGMOID'");
 						break;
 					case FTANH:

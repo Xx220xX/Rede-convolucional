@@ -101,7 +101,7 @@ int convRandomize(CamadaConv c, WrapperCL *cl, GPU_ERROR *error) {
     }
     for (int a = 0; a < numeroFiltros; a++) {
         FOR3D(i, j, z, lenFilter, lenFilter, inz) {
-                    data[TensorMap(c->filtros, i, j, z)] = 1.0 / maxVal * (rand() / ((double) RAND_MAX));
+                    data[TensorMap(c->filtros, i, j, z)] = 1.0 / maxVal * RANDOM_BILATERAL();
                 }
         error->error = clEnqueueWriteBuffer(queue, c->filtros->data, CL_TRUE, a * c->filtros->bytes, c->filtros->bytes, data, 0, NULL, NULL);
         clFinish(queue);

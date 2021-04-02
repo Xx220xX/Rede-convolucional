@@ -96,7 +96,7 @@ int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error) {
     double *data = callocdouble(inx * iny * inz*tamanhoSaida);
     for (int i = 0; i < tamanhoSaida; ++i) {
         for (int j = 0; j < valmax; ++j) {
-            data[TensorMap(c->pesos, j, i, 0)] = 2.19722 / (valmax) * rand() / (double) RAND_MAX;
+            data[TensorMap(c->pesos, j, i, 0)] = 2.19722 / (valmax) * RANDOM_BILATERAL();
         }
     }
     cl_command_queue queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error->error);

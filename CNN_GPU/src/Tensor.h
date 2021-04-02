@@ -51,6 +51,12 @@ void fillTensor(Tensor t, cl_context context, size_t bytes, GPU_ERROR *error) {
     }
     LOG_CNN_TENSOR_MEMORY("aloc (0x%X,0x%X)", t, t->data)
 }
+void TensorPutValues(cl_command_queue queue,Tensor t, void *data){
+	clEnqueueWriteBuffer(queue, t->data, CL_TRUE, 0,t->bytes, data, 0, NULL, NULL);
+}
+void TensorGetValues(cl_command_queue queue,Tensor t, void *data){
+	clEnqueueReadBuffer(queue, t->data, CL_TRUE, 0,t->bytes, data, 0, NULL, NULL);
+}
 
 Tensor newTensor(cl_context context, unsigned int x, unsigned int y, unsigned int z, GPU_ERROR *error) {
     if (error->error)return NULL;
