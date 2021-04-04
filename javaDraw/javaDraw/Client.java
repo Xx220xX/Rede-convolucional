@@ -45,7 +45,6 @@ public class Client extends Thread {
           b = new byte[4];
           input.read(b);
           final int size = Utils.bytes2Ints(b)[0];
-
           Utils.waitUntil(3000, new Utils.Condition() { 
             public boolean condition() {
               return available() < size;

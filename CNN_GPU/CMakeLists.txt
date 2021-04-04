@@ -4,14 +4,13 @@ project(CNN_GPU C)
 set(CMAKE_C_STANDARD 11)
 
 link_libraries(OpenCL)
-add_library(CNNGPU SHARED libraryPythonWrapper.c libraryPythonWrapper.h
-#add_executable(CNN_GPU main.c
+#add_library(CNNGPU SHARED libraryPythonWrapper.c libraryPythonWrapper.h
+add_executable(CNN_GPU main.c
         src/Camada.h src/Cnn.h
         src/CamadaConv.h src/Tensor.h
         src/CamadaPool.h src/CamadaDropOut.h
         src/CamadaFullConnect.h src/funcoesDeAtivacao.h
         src/gpu/Kernel.h src/gpu/Kernel.c
-        src/gpu/lcg.h src/gpu/lcg.c
-        src/gpu/matGPU.h src/gpu/matGPU.c
+        src/lcg.h src/lcg.c
         src/gpu/WrapperCL.h src/gpu/WrapperCL.c
         )

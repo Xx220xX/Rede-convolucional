@@ -129,5 +129,12 @@ class CNN:
     def normalizeVector(self,vector:list,maxOutput,minOutput):
         out_TYPE =c.c_double * len(vector)
         inp = out_TYPE(*vector)
-        clib.normalizeGPU(self.cnn.p,inp,inp,len(vector),maxOutput,minOutput)
-        return list(inp)
+        out = out_TYPE()
+        clib.normalizeGPU(self.cnn.p,inp,out,len(vector),maxOutput,minOutput)
+        return list(out)
+    def normalizeVectorKnowedSpace(self,vector:list,maxInput,minInput,maxOutput,minOutput):
+        out_TYPE =c.c_double * len(vector)
+        tmp_inp = out_TYPE(*vector)
+        tmp_out = out_TYPE(*vector)
+        clib.normalizeGPUSpaceKnow(self.cnn.p,tmp_inp,tmp_out,len(vector),maxInput,minInput,maxOutput,minOutput)
+        return list(tmp_out)

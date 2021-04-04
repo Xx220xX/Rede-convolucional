@@ -91,7 +91,7 @@ int convRandomize(CamadaConv c, WrapperCL *cl, GPU_ERROR *error) {
             inz = c->super.entrada->z,
             numeroFiltros = c->numeroFiltros;
     cl_context context = cl->context;
-    UINT maxVal = lenFilter * lenFilter * inz;
+    UINT maxVal = lenFilter  * inz;
 
     double *data = (double *) calloc(lenFilter * lenFilter * inz, sizeof(double));
     cl_command_queue queue = clCreateCommandQueueWithProperties(context, cl->device, NULL, &error->error);

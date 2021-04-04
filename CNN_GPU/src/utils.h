@@ -31,5 +31,5 @@
 #define callocdouble(x)(double*)calloc(x,sizeof(double))
 
 // random de -1 a 1
-#define RANDOM_BILATERAL() (2*(rand() / ((double) RAND_MAX))-1)
+#define RANDOM_BILATERAL() (2.0*(rand() / ((double) RAND_MAX))-1)
 #endif

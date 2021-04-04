@@ -95,7 +95,7 @@ __kernel void maxID(__global double *v, __global double *out, int len) {
 }
 
 __kernel void
-normalize(__global double *input, __global double *saida, double multiplicador, double somador, double subtrator,
+normalizeVector(__global double *input, __global double *saida, double multiplicador, double somador, double subtrator,
           int k0) {
 	int k = get_global_id(0) + k0;
 	saida[k] = (input[k] + somador) * multiplicador - subtrator;

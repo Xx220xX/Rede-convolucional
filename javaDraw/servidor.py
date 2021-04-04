@@ -1,49 +1,22 @@
-from threading  import *
-import concurrent.futures as cf
 import socket
-from math import *
 
-def normalize(data,nThreds=100,maxValue=255,useFloor = True):
-    mx =  max(data)
-    mn = min(data)
-    mx = mx-mn
-    if mx == 0:
-        return [0]*len(data)
-    mx = maxValue/mx
-    def _norm(x):
-        return (x-mn)* mx
-    def _normFloor(x):
-        return floor((x-mn)* mx)
-    f = _norm
-    if useFloor:
-        f = _normFloor
-    with cf.ThreadPoolExecutor(nThreds) as executor:
-         results = executor.map(f, data)
-    return list(results)
-    
 def splitLen(string,n):
     return  [string[y-n:y] for y in range(n,len(string)+n,n)]    
 def ints2bytes(numbers: list,nbyte=4,signed=False):
     b = b''
-    for n in numbers:
+    for nb in numbers:
+        n = int(nb)
         b = b+n.to_bytes(length=nbyte, byteorder='big', signed=signed)
     return b
 def bytes2ints(binary_data: bytes,nbytes=4,signed=False):
     byte = splitLen(binary_data,nbytes)
     return [int.from_bytes(bt, byteorder='big', signed=signed) for bt in byte]
 
-
-def maxPosition(data):
-    p = 0
-    for i in range(1,len(data)):
-        if data[i]>data[p]:
-            p = i
-    return p
-# IMPORTAR BIBLIOTECA DA REDE NEURAL
+# IMPORTAR BIBLIOTECA DA REDE CONVOLUCIONAL
 from CNN_GPU.CNN import *
 # LER REDE TREINADA
-c = CNN.load('redeTreinada.cnn')
-c.compile()
+cnn = CNN.load('redeTreinada.cnn')
+cnn.compile()
 
 # CRIAR SERVIDOR 
 HOST = ''              # Endereco IP do Servidor
@@ -67,42 +40,36 @@ while True:
             print('recebi ',len(imagem))
             if not imagem: break
             imagem = bytes2ints(imagem,1)       
-
+            
             # normalizar imagem
-            imagem = normalize(imagem,maxValue=1,useFloor=False)
+            imagem = cnn.normalizeVectorKnowedSpace(imagem,255,0,1,0)
             
             #Avaliar imagem para descobrir o valor
-            c.predict(imagem)
-            outputVector = c.output
-            print(normalize(outputVector,maxValue=100))
-            ans = maxPosition(outputVector)
+            cnn.predict(imagem)
+            
+            # pegar saida
+            ans = cnn.getOutputAsIndexMax()
+            
             # obtendo saida dos filtros
-            x,y,z,_ = c.getSizeData(0,REQUEST_OUTPUT)
-            dt = c.getData(0,REQUEST_OUTPUT)
-            f = open("filter.txt",'w')
-            for k in range(z):
-                for i in range(x):
-                    for j in range(y):
-                        print('%.1f '%(dt[j+i*y+(x*y)*k],),end='',file=f)
-                    print('',file=f)
-                print('\n',file=f)
-            f.close()
- 
+            x,y,z,_ = cnn.getSizeData(0,REQUEST_OUTPUT)
+            dt = cnn.getData(0,REQUEST_OUTPUT)
+            
             sdt = splitLen(dt,x*y)
             dt = []
             # normalizando saidas dos filtros
             for k in range(z):
-                sdt[k] = normalize(sdt[k],maxValue = 255,useFloor=True)
-                dt = dt+sdt[k]
-            
-            
+                sdt[k] = cnn.normalizeVector(sdt[k],255,0)
+                dt = dt+sdt[k]          
             
             # montando saida
             dimensao = [x,y,z]
             bsaida = ints2bytes([ans],1)+ints2bytes(dimensao,4)+ints2bytes(dt,1)
-            print(len(bsaida))
+            print('enviando resposta de ',len(bsaida),'bytes')
             bsaida = ints2bytes([len(bsaida)],4)+bsaida
+            
             con.send(bsaida)
+            
+            print('enviados')
     except Exception as e:
         print( 'Finalizando conexao do cliente', cliente)
         con.close()

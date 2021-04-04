@@ -40,6 +40,8 @@ typedef struct {
     char flag_notlearn;
     cl_command_queue queue;
 } *Camada, Typecamada;
+
+
 void setmaxWorks(size_t max_){
     max_works = max_;
 }

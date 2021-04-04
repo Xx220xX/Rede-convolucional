@@ -61,7 +61,7 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 	c->kernelMax = new_Kernel(cl->program, "maxID", 3, VOID_P, VOID_P, INT);
 	c->kernelInt2Vector = new_Kernel(cl->program, "int2vector", 4, VOID_P, VOID_P, INT, INT);
 
-	c->kernelNormalize = new_Kernel(cl->program, "normalize", 6, VOID_P, VOID_P, DOUBLE,DOUBLE,DOUBLE, INT);
+	c->kernelNormalize = new_Kernel(cl->program, "normalizeVector", 6, VOID_P, VOID_P, DOUBLE, DOUBLE, DOUBLE, INT);
 	c->kernelfindExtreme = new_Kernel(cl->program, "findExtremes", 3, VOID_P, VOID_P, INT);
 	setmaxWorks(cl->maxworks);
 	return c;
@@ -226,8 +226,7 @@ int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 }
 
 int CnnCall(Cnn c, double *input) {
-	c->error.error = clEnqueueWriteBuffer(c->queue, c->camadas[0]->entrada->data, CL_TRUE, 0,
-	                                      c->camadas[0]->entrada->bytes, input, 0, NULL, NULL);
+	c->error.error = TensorPutValues(c->queue,c->camadas[0]->entrada,input);
 	for (int i = 0; i < c->size; ++i) {
 		c->camadas[i]->ativa(c->camadas[i]);
 	}
@@ -243,16 +242,13 @@ int CnnLearn(Cnn c, double *target) {
 	                     c->camadas[c->size - 1]->saida->z, &c->error);
 	targ = newTensor(c->cl->context, c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
 	                 c->camadas[c->size - 1]->saida->z, &c->error);
+
 	clEnqueueWriteBuffer(c->queue, targ->data, CL_TRUE, 0, targ->bytes, target, 0, NULL, NULL);
 
-	int error = 0, id = 0;
-	size_t global, local, resto;
-	LOG_CNN_KERNELCALL("Chamando kernel sub")
-	call_kernel(targ->x * targ->y * targ->z,
-	            error = kernel_run(&c->kernelsub, c->queue, global, local, &lastGrad->data,
-	                               &c->camadas[c->size - 1]->saida->data, &targ->data, &id);
-			            PERRW(error, "falha ao chamar kernel sub")
-	);
+	LOG_CNN_KERNELCALL("Chamando kernel sub");
+	kernel_run_recursive(&c->kernelsub,c->queue,targ->x * targ->y * targ->z,max_works,
+					  &lastGrad->data,&c->camadas[c->size - 1]->saida->data, &targ->data);
+
 
 	gradNext = lastGrad;
 	for (int l = c->size - 1; l >= 0; l--) {
@@ -263,11 +259,11 @@ int CnnLearn(Cnn c, double *target) {
 
 	}
 	if (c->flags & CNN_FLAG_CALCULE_ERROR) {
-		global = 1;
-		local = 1;
-		int len = lastGrad->x * lastGrad->y * lastGrad->z;
+
+		size_t len = lastGrad->x * lastGrad->y * lastGrad->z;
+		size_t local = 1;
 		Kernel_putArgs(&c->kernelNorm, 3, &lastGrad->data, &targ->data, &len);
-		error = clEnqueueNDRangeKernel(c->queue, c->kernelNorm.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+		int error = clEnqueueNDRangeKernel(c->queue, c->kernelNorm.kernel, 1, NULL, &len, &local, 0, NULL, NULL);
 		PERRW(error, "falha ao chamar kernel norm")
 		clEnqueueReadBuffer(c->queue, targ->data, CL_TRUE, 0, sizeof(double), &c->normaErro, 0, NULL, NULL);
 	}
@@ -318,29 +314,55 @@ void Cnngetout(Cnn c, double *out) {
 }
 
 void normalizeGPU(Cnn c, double *input, double *output, int len, double maximo, double minimo) {
-	if(len<2)return;
+	if (len < 2)return;
 	Tensor tinp, tout;
-	double mx,mn;
-	tinp = newTensor(c->cl->context, len, 1, 1, NULL);
-	tout = newTensor(c->cl->context, len, 1, 1, NULL);
-	TensorPutValues(c->queue,tinp,input);
+	double mx, mn;
+	tinp = newTensor(c->cl->context, len, 1, 1, &c->error);
+	tout = newTensor(c->cl->context, len, 1, 1, &c->error);
+	TensorPutValues(c->queue, tinp, input);
 	// achar o maximo e minimo
-	kernel_run(&c->kernelfindExtreme,c->queue,len,1,&tinp->data,&tout->data,&len);
+	kernel_run(&c->kernelfindExtreme, c->queue, len, 1, &tinp->data, &tout->data, &len);
 	clFinish(c->queue);
-	clEnqueueReadBuffer(c->queue, tout->data, CL_TRUE, 0,  sizeof(double), &mn, 0, NULL, NULL);
-	clEnqueueReadBuffer(c->queue, tout->data, CL_TRUE, sizeof(double),  sizeof(double), &mx, 0, NULL, NULL);
+	clEnqueueReadBuffer(c->queue, tout->data, CL_TRUE, 0, sizeof(double), &mn, 0, NULL, NULL);
+	clEnqueueReadBuffer(c->queue, tout->data, CL_TRUE, sizeof(double), sizeof(double), &mx, 0, NULL, NULL);
 	// nao da para normalizar
-	if(mx-mn == 0.0)goto finish;
-
-	double somador  = -mn;
-	double  multiplicador = (maximo-minimo)/(mx-mn);
-	minimo = - minimo;
-	kernel_run_recursive(&c->kernelNormalize,c->queue,len,max_works,&tinp->data,&tout->data,&multiplicador,&somador,&minimo);
+	if (mx - mn == 0.0)goto finish;
+	double somador = -mn;
+	double multiplicador = (maximo - minimo) / (mx - mn);
+	minimo = -minimo;
+	kernel_run_recursive(&c->kernelNormalize, c->queue, len, max_works, &tinp->data, &tout->data, &multiplicador,
+	                     &somador, &minimo);
 	clFinish(c->queue);
-	TensorGetValues(c->queue,tout,output);
+	TensorGetValues(c->queue, tout, output);
 	finish:
 	releaseTensor(&tinp);
 	releaseTensor(&tout);
+}
+
+void normalizeGPUSpaceKnow(Cnn c, double *input, double *output, int len, double input_maximo, double input_minimo,
+                           double maximo, double minimo) {
+
+	Tensor tinp, tout;
+	double mx, mn;
+	tinp = newTensor(c->cl->context, len, 1, 1, &c->error);
+	tout = newTensor(c->cl->context, len, 1, 1, &c->error);
+	TensorPutValues(c->queue, tinp, input);
+	// achar o maximo e minimo
+	mn = input_minimo;
+	mx = input_maximo;
+	// nao da para normalizar
+	if (mx - mn == 0.0)goto finish;
+	double somador = -mn;
+	double multiplicador = (maximo - minimo) / (mx - mn);
+	minimo = -minimo;
+	kernel_run_recursive(&c->kernelNormalize, c->queue, len, max_works, &tinp->data, &tout->data, &multiplicador,
+	                     &somador, &minimo);
+	clFinish(c->queue);
+	TensorGetValues(c->queue, tout, output);
+	finish:
+	releaseTensor(&tinp);
+	releaseTensor(&tout);
+
 }
 
 int CnnGetIndexMax(Cnn c) {
