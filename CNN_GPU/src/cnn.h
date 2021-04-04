@@ -18,8 +18,8 @@
 
 #define INVALID_FILTER_SIZE (-1)
 #define CNN_FLAG_CALCULE_ERROR 1
-#define CNN_FLAG_CALCULE_MAX 2
-typedef struct _cnn {
+
+typedef struct {
 	Params parametros;
 	Camada *camadas;
 	int size;
@@ -170,11 +170,11 @@ int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
 	c->camadas[c->size - 1] = createPool(c->cl, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
 	                                     &c->parametros, &c->error);
 	c->camadas[c->size - 1]->queue = c->queue;
-	if (!c->error.error) {
-		LOG_CNN_ADD_LAYERS("camada pooling adicionada");
-		LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)", c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
-		                   c->camadas[c->size - 1]->saida->z,);
-	}
+
+	LOG_CNN_ADD_LAYERS("camada pooling adicionada");
+	LOG_CNN_ADD_LAYERS("SAIDA(%d,%d,%d)", c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
+	                   c->camadas[c->size - 1]->saida->z,);
+
 	return c->error.error;
 
 }
@@ -226,11 +226,11 @@ int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 }
 
 int CnnCall(Cnn c, double *input) {
-	c->error.error = TensorPutValues(c->queue,c->camadas[0]->entrada,input);
+	c->error.error = TensorPutValues(c->queue, c->camadas[0]->entrada, input);
 	for (int i = 0; i < c->size; ++i) {
 		c->camadas[i]->ativa(c->camadas[i]);
 	}
-	size_t global = 1, local = 1;
+
 	return c->error.error;
 }
 
@@ -245,26 +245,19 @@ int CnnLearn(Cnn c, double *target) {
 
 	clEnqueueWriteBuffer(c->queue, targ->data, CL_TRUE, 0, targ->bytes, target, 0, NULL, NULL);
 
-	LOG_CNN_KERNELCALL("Chamando kernel sub");
-	kernel_run_recursive(&c->kernelsub,c->queue,targ->x * targ->y * targ->z,max_works,
-					  &lastGrad->data,&c->camadas[c->size - 1]->saida->data, &targ->data);
-
-
+	kernel_run_recursive(&c->kernelsub, c->queue, targ->x * targ->y * targ->z, max_works,
+	                     &lastGrad->data, &c->camadas[c->size - 1]->saida->data, &targ->data);
 	gradNext = lastGrad;
 	for (int l = c->size - 1; l >= 0; l--) {
 		c->camadas[l]->calc_grads(c->camadas[l], gradNext);
 		if (!c->camadas[l]->flag_notlearn)
 			c->camadas[l]->corrige_pesos(c->camadas[l]);
 		gradNext = c->camadas[l]->gradsEntrada;
-
 	}
 	if (c->flags & CNN_FLAG_CALCULE_ERROR) {
-
 		size_t len = lastGrad->x * lastGrad->y * lastGrad->z;
-		size_t local = 1;
-		Kernel_putArgs(&c->kernelNorm, 3, &lastGrad->data, &targ->data, &len);
-		int error = clEnqueueNDRangeKernel(c->queue, c->kernelNorm.kernel, 1, NULL, &len, &local, 0, NULL, NULL);
-		PERRW(error, "falha ao chamar kernel norm")
+		kernel_run(&c->kernelNorm, c->queue, len, 1, &lastGrad->data, &targ->data, &len);
+		clFinish(c->queue);
 		clEnqueueReadBuffer(c->queue, targ->data, CL_TRUE, 0, sizeof(double), &c->normaErro, 0, NULL, NULL);
 	}
 	releaseTensor(&lastGrad);
@@ -309,6 +302,7 @@ int cnnCarregar(Cnn c, FILE *src) {
 
 void Cnngetout(Cnn c, double *out) {
 	if (c->size < 1)return;
+	clFinish(c->queue);
 	clEnqueueReadBuffer(c->queue, c->camadas[c->size - 1]->saida->data, CL_TRUE, 0,
 	                    c->camadas[c->size - 1]->saida->bytes, out, 0, NULL, NULL);
 }
@@ -370,7 +364,6 @@ int CnnGetIndexMax(Cnn c) {
 	Tensor entrada = c->camadas[0]->gradsEntrada;
 	int len = (int) (saida->x * saida->y * saida->z);
 	int error = kernel_run(&c->kernelMax, c->queue, 1, 1, &saida->data, &entrada->data, &len);
-	PERRW(error, "falha ao chamar kernel calcula max")
 	double indice = 0;
 	clEnqueueReadBuffer(c->queue, entrada->data, CL_TRUE, 0, sizeof(double), &indice, 0, NULL, NULL);
 	return (int) indice;

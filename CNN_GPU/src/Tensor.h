@@ -131,27 +131,16 @@ void dividirVetor(double *v, cl_mem m, size_t len, double value, Kernel funcNorm
     int error = 0, id = 0;
     size_t global, local, resto;
     clEnqueueWriteBuffer(queue, m, CL_TRUE, 0, len * sizeof(double), v, 0, NULL, NULL);
-    call_kernel(len,
-                Kernel_putArgs(&funcNorm, 3, &m, &value, &id);
-                        error = clEnqueueNDRangeKernel(queue, funcNorm.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-                        PERRW(error, "falha ao chamar kernel div")
-    );
+    kernel_run_recursive(&funcNorm,queue,len,max_works, &m, &value);
     clFinish(queue);
     clEnqueueReadBuffer(queue, m, CL_TRUE, 0, len * sizeof(double), v, 0, NULL, NULL);
 }
 
 void dividirVetorInt(unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len, double value, Kernel funcNorm, cl_command_queue queue) {
-    int error = 0, id = 0;
-    size_t global, local, resto;
     clEnqueueWriteBuffer(queue, mi, CL_TRUE, 0, len * sizeof(unsigned char), src, 0, NULL, NULL);
-    call_kernel(len,
-                Kernel_putArgs(&funcNorm, 3, &mi, &mout, &value, &id);
-                        error = clEnqueueNDRangeKernel(queue, funcNorm.kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-                        PERRW(error, "falha ao chamar kernel divInt")
-    );
+    kernel_run_recursive(&funcNorm,queue,len,max_works, &mi, &mout, &value);
     clFinish(queue);
     clEnqueueReadBuffer(queue, mout, CL_TRUE, 0, len * sizeof(double), dst, 0, NULL, NULL);
-
 }
 
 void int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len, int nop, Kernel func, cl_command_queue queue) {
@@ -167,18 +156,11 @@ void int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, cl_mem mi,
                                      "printf(\"\\n\");}\n");
       Kernel printI = new_Kernel(pg,"printI",2,VOID_P,INT);
       Kernel printD = new_Kernel(pg,"printD",3,VOID_P,INT,INT);
-
   */
 
-    int error = 0, id = 0;
-    size_t global = 1, local = 1, resto;
     clEnqueueWriteBuffer(queue, mi, CL_TRUE, 0, len * sizeof(unsigned char), src, 0, NULL, NULL);
-    call_kernel(len,
-        error = kernel_run(&func, queue, global, local, &mi, &mout, &nop, &id);
-            PERRW(error, "falha ao chamar kernel divInt")
-    );
+    kernel_run_recursive(&func,queue,len,max_works, &mi, &mout, &nop);
     clFinish(queue);
-
     clEnqueueReadBuffer(queue, mout, CL_TRUE, 0, len * 10 * sizeof(double), dst, 0, NULL, NULL);
 }
 

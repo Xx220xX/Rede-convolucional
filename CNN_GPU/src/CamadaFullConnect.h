@@ -77,15 +77,11 @@ Camada createFullConnect(WrapperCL *cl, UINT inx, UINT iny, UINT inz, UINT taman
 
 	c->kernelfullfeed = new_Kernel(cl->program, "fullfeed", 11, VOID_P, VOID_P, VOID_P, VOID_P,
 	                               INT, INT, INT, INT, INT, INT, INT);
-//    fullfixweight(gdouble *entrada, gdouble *pesos, gdouble *grad, gdouble *oldgrad,
-//    double hitlearn, double decaimentoDePeso, double momento,
-//    int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
 	c->kernelfullfixWeight = new_Kernel(cl->program, "fullfixweight", 13, VOID_P, VOID_P, VOID_P, VOID_P,
 	                                    DOUBLE, DOUBLE, DOUBLE,
 	                                    INT, INT, INT, INT, INT, INT);
 	c->kernelfullcalcgrad1 = new_Kernel(cl->program, "fullcalcgrads1", 5, VOID_P, VOID_P, VOID_P, INT, INT);
 	c->kernelfullcalcgrad2 = new_Kernel(cl->program, "fullcalcgrads2", 6, VOID_P, VOID_P, VOID_P, INT, INT, INT);
-
 	return (Camada) c;
 }
 
@@ -95,7 +91,7 @@ int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error) {
 	unsigned int inz = c->super.entrada->z;
 	unsigned int tamanhoSaida = c->super.saida->x;
 //    unsigned int valmax = inx * iny * inz;
-	unsigned int valmax = sqrt(inx * iny * inz)+1;
+	unsigned int valmax = sqrt(inx * iny * inz) + 1;
 
 	double *data = callocdouble(inx * iny * inz * tamanhoSaida);
 	for (int i = 0; i < tamanhoSaida; ++i) {
@@ -132,40 +128,30 @@ void releaseFullConnect(CamadaFullConnect *pc) {
 	Kernel_release(&c->kernelfullcalcgrad2);
 	free(c);
 	*pc = 0;
-
 }
 
 void ativaFullConnect(CamadaFullConnect c) {
-	int error = 0, id = 0;
-	size_t global, local, resto;
-	LOG_CNN_KERNELCALL("ativa fullConnect: ativafullConnect")
-	call_kernel(c->super.saida->x,
-	            Kernel_putArgs(&c->kernelfullfeed, 11, &c->super.entrada->data, &c->pesos->data, &c->input->data,
-	                           &c->super.saida->data, &c->fa, &c->super.entrada->x, &c->super.entrada->y,
-	                           &c->super.entrada->z, &c->pesos->x, &c->pesos->y, &id);
-			            error = clEnqueueNDRangeKernel(c->super.queue, c->kernelfullfeed.kernel, 1, NULL, &global,
-			                                           &local, 0, NULL, NULL);
-			            PERRW(error, "falha ao chamar kernel ativafullConnect")
-	);
+	LOG_CNN_KERNELCALL("ativa fullConnect: ativafullConnect");
+	kernel_run_recursive(&c->kernelfullfeed, c->super.queue, c->super.saida->x, max_works, &c->super.entrada->data,
+	                     &c->pesos->data, &c->input->data,
+	                     &c->super.saida->data, &c->fa, &c->super.entrada->x, &c->super.entrada->y,
+	                     &c->super.entrada->z, &c->pesos->x, &c->pesos->y);
+
 
 }
 
 void corrigePesosFullConnect(CamadaFullConnect c) {
 	int error = 0, id = 0;
 	size_t global, local, resto;
-	LOG_CNN_KERNELCALL("corrige fullConnect: fixfullConnect")
+	LOG_CNN_KERNELCALL("corrige fullConnect: fixfullConnect");
+	kernel_run_recursive(&c->kernelfullfixWeight, c->super.queue, c->super.saida->x, max_works,
+	                     &c->super.entrada->data, &c->pesos->data, &c->grad->data,
+	                     &c->oldgrad->data,
+	                     &c->super.parametros->hitLearn, &c->super.parametros->decaimentoDePeso,
+	                     &c->super.parametros->momento,
+	                     &c->super.entrada->x, &c->super.entrada->y, &c->super.entrada->z, &c->pesos->x,
+	                     &c->pesos->y);
 
-	call_kernel(c->super.saida->x,
-	            Kernel_putArgs(&c->kernelfullfixWeight, 13, &c->super.entrada->data, &c->pesos->data, &c->grad->data,
-	                           &c->oldgrad->data,
-	                           &c->super.parametros->hitLearn, &c->super.parametros->decaimentoDePeso,
-	                           &c->super.parametros->momento,
-	                           &c->super.entrada->x, &c->super.entrada->y, &c->super.entrada->z, &c->pesos->x,
-	                           &c->pesos->y, &id);
-			            error = clEnqueueNDRangeKernel(c->super.queue, c->kernelfullfixWeight.kernel, 1, NULL, &global,
-			                                           &local, 0, NULL, NULL);
-			            PERRW(error, "falha ao chamar kernel fixfullConnect")
-	);
 
 }
 
@@ -173,21 +159,13 @@ void calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext) {
 	int error = 0, id = 0;
 	size_t global, local, resto;
 	LOG_CNN_KERNELCALL("calcgrad fullConnect: calcgrad")
-	call_kernel(c->super.saida->x,
-	            Kernel_putArgs(&c->kernelfullcalcgrad1, 5, &c->grad->data, &GradNext->data, &c->input->data, &c->dfa,
-	                           &id);
-			            error = clEnqueueNDRangeKernel(c->super.queue, c->kernelfullcalcgrad1.kernel, 1, NULL, &global,
-			                                           &local, 0, NULL, NULL);
-			            PERRW(error, "falha ao chamar kernel fullcalgrads1")
-	);
-	LOG_CNN_KERNELCALL("calcgrad2 fullConnect: calcgrad")
-	call_kernel(c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
-	            Kernel_putArgs(&c->kernelfullcalcgrad2, 6, &c->grad->data, &c->super.gradsEntrada->data,
-	                           &c->pesos->data, &c->pesos->x, &c->pesos->y, &id);
-			            error = clEnqueueNDRangeKernel(c->super.queue, c->kernelfullcalcgrad2.kernel, 1, NULL, &global,
-			                                           &local, 0, NULL, NULL);
-			            PERRW(error, "falha ao chamar kernel fullcalgrads2")
-	);
+	kernel_run_recursive(&c->kernelfullcalcgrad1, c->super.queue, c->super.saida->x, max_works,
+	                     &c->grad->data, &GradNext->data, &c->input->data, &c->dfa);
+	LOG_CNN_KERNELCALL("calcgrad2 fullConnect: calcgrad");
+	kernel_run_recursive(&c->kernelfullcalcgrad2, c->super.queue,
+	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z, max_works,
+	                     &c->grad->data, &c->super.gradsEntrada->data,
+	                     &c->pesos->data, &c->pesos->x, &c->pesos->y);
 
 }
 

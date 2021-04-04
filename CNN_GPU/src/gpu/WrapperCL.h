@@ -32,9 +32,9 @@ void showError(int error);
 cl_program  compileProgram(cl_context ct,cl_device_id dv,const char *source);
 
 
-#define PERRW(e,x)if(e){fprintf(stderr,"%s error code: %d\n\t",x,e);showError(e);}
-#define PERR(e,x)if(e){fprintf(stderr,"%s error code: %d\n\t",x,e);showError(e);return e;}
-#define PER(e,x)if(e){fprintf(stderr,"%s error code: %d\n\t",x,e);showError(e);exit(e);}
+#define PERRW(e,x,contextName)if(e){fprintf(stderr,"%s: %s  error code : %d\n\t",contextName,x,e);showError(e);}
+#define PERR(e,x,contextName)if(e){fprintf(stderr,"%s: %s error code : %d\n\t",contextName,x,e);showError(e);return e;}
+#define PER(e,x,contextName)if(e){fprintf(stderr,"%s: %s error code: %d\n\t",contextName,x,e);showError(e);exit(e);}
 
 
 #endif //GAB_WRAPPERCL_H

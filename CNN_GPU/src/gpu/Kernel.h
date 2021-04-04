@@ -5,6 +5,7 @@
 #ifndef GAB_KERNEL_H
 #define GAB_KERNEL_H
 
+
 #include<CL/cl.h>
 
 #define VOID_P sizeof(void *)
@@ -13,6 +14,7 @@
 
 typedef struct {
 	cl_kernel kernel;
+	char *kernel_name;
 	int nArgs;
 	size_t *l_args;
 	int error;

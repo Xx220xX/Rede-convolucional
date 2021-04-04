@@ -33,20 +33,20 @@ int WrapperCL_init(WrapperCL *self, const char *src) {
 
     // getPlatform
     error = clGetPlatformIDs(1, &self->platformId, NULL);
-    PERR(error,"falha ao pegar plataformas");
+    PERR(error,"falha ao pegar plataformas","wrapper init");
 
     // get device
     error = clGetDeviceIDs(self->platformId, CL_DEVICE_TYPE_GPU, 1, &self->device, NULL);
-    PERR(error,"falha ao pegar dispositivos");
+    PERR(error,"falha ao pegar dispositivos","wrapper init");
 
     // get size of compute
     error = clGetDeviceInfo(self->device, CL_DEVICE_MAX_COMPUTE_UNITS,
                             sizeof(cl_uint), &self->compute_units, NULL);
-    PERR(error,"falha ao pegar informacao do dispositivo");
+    PERR(error,"falha ao pegar informacao do dispositivo","wrapper init");
 
     // create context
     self->context = clCreateContext(NULL, 1, &self->device, 0, NULL, &error);
-    PERR(error,"failed when try create context");
+    PERR(error,"failed when try create context","wrapper init");
 
     // compile program kernel
     self->program = clCreateProgramWithSource(self->context, // contexto
@@ -55,7 +55,7 @@ int WrapperCL_init(WrapperCL *self, const char *src) {
                                               &length, // tamanho de cada string
                                               &error   // error check
     );
-    PERR(error,"failed to create program");
+    PERR(error,"failed to create program","wrapper init");
 
     // build
     cl_int stt = clBuildProgram(self->program, 1, &self->device, NULL, NULL, NULL);
@@ -127,6 +127,9 @@ void showError(int error) {
         case -51:
             fprintf(stderr, "%s\n", "Tamanho invalido de argumentos");
             break;
+            case -54:
+            fprintf(stderr, "%s\n", "CL_INVALID_WORK_GROUP_SIZE");
+            break;
         default:
             fprintf(stderr, "UNKNOW error code %d\n", error);
     }
@@ -144,7 +147,7 @@ cl_program compileProgram(cl_context ct,cl_device_id dv,const char *source) {
                                               &length, // tamanho de cada string
                                               &error   // error check
     );
-    PERRW(error,"failed to create program");
+    PERRW(error,"failed to create program","compile program");
     cl_int stt = clBuildProgram(program, 1, &dv, NULL, NULL, NULL);
     if (stt != CL_SUCCESS) {
         char buff[0x10000];
