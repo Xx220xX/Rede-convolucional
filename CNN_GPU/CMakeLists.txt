@@ -4,6 +4,10 @@ project(CNN_GPU C)
 set(CMAKE_C_STANDARD 11)
 
 link_libraries(OpenCL)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../build)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../python/CNN_GPU/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../build)
+
 #add_library(CNNGPU SHARED libraryPythonWrapper.c libraryPythonWrapper.h
 add_executable(CNN_GPU main.c
         src/Camada.h src/Cnn.h

@@ -5,22 +5,23 @@
 #include "uteisTreino.h"
 
 #define TAMANHO_IMAGEM 28
-#define MAXIMO_EPOCAS_PARA_TREINAMENTO 2
-#define NUMERO_DE_IMAGENS_NO_BANCO_DE_DADOS  10000
-#define NUMERO_DE_IMAGENS_PARA_TREINAR 9900
+#define MAXIMO_EPOCAS_PARA_TREINAMENTO 10
+#define NUMERO_DE_IMAGENS_NO_BANCO_DE_DADOS  60000
+#define NUMERO_DE_IMAGENS_PARA_TREINAR 59000
 #define ARQUIVO_IMAGENS "../testes/train-images.idx3-ubyte"
 #define ARQUIVO_RESPOSTA "../testes/train-labels.idx1-ubyte"
 
 int main() {
 	srand(time(0));
 	// criar  cnn
-	Params p = {0.1, 0.0, 0.001, 1};
+	Params p = {0.1, 0.0, 0.0, 1};
 	Cnn c = createCnnWithgpu("../kernels/gpu_function.cl", p, TAMANHO_IMAGEM, TAMANHO_IMAGEM, 1);
 
-	CnnAddConvLayer(c, 1, 5, 8);
-	CnnAddPoolLayer(c, 1, 3);
+	CnnAddConvLayer(c, 1, 3, 8);
+	CnnAddPoolLayer(c,1,2);
 	CnnAddConvLayer(c, 1, 2, 6);
-	CnnAddFullConnectLayer(c, 80, FSIGMOID);
+	CnnAddPoolLayer(c,1,2);
+//	CnnAddFullConnectLayer(c, 80, FSIGMOID);
 	CnnAddFullConnectLayer(c, 50, FSIGMOID);
 	CnnAddFullConnectLayer(c, 10, FSIGMOID);
 	c->flags = CNN_FLAG_CALCULE_ERROR;
@@ -117,8 +118,8 @@ int main() {
 		for (t = 0; t < 9 && !*(targets + tamanhoTensorTarget * i + t); t++);
 		globaldata[t]++;
 		globalerros[t] += c->normaErro;
-		snprintf(buff, 250, "../ppms/im%d.ppm", i);
-		salveCnnOutAsPPM(buff, c);
+		snprintf(buff, 250, "../testes/imgs/im%d.ppm", i-limiteImages+1);
+		salveCnnOutAsPPM(c,buff);
 
 
 		if (r == t) {

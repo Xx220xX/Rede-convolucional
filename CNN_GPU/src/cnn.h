@@ -37,9 +37,11 @@ typedef struct {
 	Kernel kernelfindExtreme;
 	Kernel kernelMax;
 	Kernel kernelInt2Vector;
-	char flags;
-	double normaErro;
+	Kernel kernelcreateIMG;
 
+	char flags;
+
+	double normaErro;
 } *Cnn, TypeCnn;
 
 Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
@@ -63,6 +65,7 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 
 	c->kernelNormalize = new_Kernel(cl->program, "normalizeVector", 6, VOID_P, VOID_P, DOUBLE, DOUBLE, DOUBLE, INT);
 	c->kernelfindExtreme = new_Kernel(cl->program, "findExtremes", 3, VOID_P, VOID_P, INT);
+	c->kernelcreateIMG = new_Kernel(cl->program, "createImg", 7, VOID_P, VOID_P, INT, INT, INT, INT, INT);
 	setmaxWorks(cl->maxworks);
 	return c;
 }
@@ -81,6 +84,7 @@ void releaseCnn(Cnn *pc) {
 	Kernel_release(&c->kernelNorm);
 	Kernel_release(&c->kernelNormalize);
 	Kernel_release(&c->kernelfindExtreme);
+	Kernel_release(&c->kernelcreateIMG);
 	Kernel_release(&c->kernelMax);
 	if (c->releaseCL) {
 		WrapperCL_release(c->cl);

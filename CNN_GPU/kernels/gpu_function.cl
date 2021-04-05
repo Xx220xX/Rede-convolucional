@@ -62,7 +62,14 @@ typedef struct {
 	Ponto3d min, max;
 } Range;
 
-
+__kernel void createImg(__global unsigned char *out,__global double *v,int vx,int vy,int imi, int imy,int k0){
+	int k =  get_global_id(0) + k0;
+	int i,j,z;
+	TensorRemap(k, i,j, z, vx, vy)
+	imi = imi+i;
+	int imj = j+z*vy+z;
+	out[imi*imy+imj]= ((int)v[k])&0xff;
+}
 __kernel void printTensor(__global double *t, int mx, int my, int mz, int ofset) {
 	for (int z = 0; z < mz; z++) {
 		printf("[Dim%d]\n", z);

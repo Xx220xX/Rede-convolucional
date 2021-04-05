@@ -1,25 +1,24 @@
 Treino rede neural, numero de threads disponiveis 1024
-numero de epocas 2, tamanho do buff 60
+numero de epocas 1, tamanho do buff 2
 
 |EPOCA | erro | acertos | tempo |
 |----|----|----|----|
-|0 | 53.5081 | 5 | 470000 |
-|1 | 47.8027 | 4 | 360000 |
-Tempo gasto para 2 epocas 13.916667 min
+|0 | 1.59429 | 0 | 15000 |
+Tempo gasto para 1 epocas 0.250000 min
 
 #Fitnes
-acertos 2/10 20.00%
+acertos 0/1 0.00%
 
  ESTATISTICAS 
 | :----: | :----: | :----: | :----: |
 | Numero | total | acertos | erro quadratico |
-| 0 | 2 | 0 | 1.876 |
-| 1 | 1 | 0 | 0.937998 |
+| 0 | 1 | 0 | 1.59429 |
+| 1 | 0 | 0 | 0 |
 | 2 | 0 | 0 | 0 |
-| 3 | 1 | 0 | 0.937998 |
-| 4 | 2 | 0 | 1.876 |
+| 3 | 0 | 0 | 0 |
+| 4 | 0 | 0 | 0 |
 | 5 | 0 | 0 | 0 |
 | 6 | 0 | 0 | 0 |
-| 7 | 1 | 0 | 0.937998 |
-| 8 | 1 | 0 | 0.937998 |
-| 9 | 2 | 2 | 1.876 |
+| 7 | 0 | 0 | 0 |
+| 8 | 0 | 0 | 0 |
+| 9 | 0 | 0 | 0 |
