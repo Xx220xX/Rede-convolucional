@@ -51,6 +51,7 @@ while True:
             ans = cnn.getOutputAsIndexMax()
             
             # obtendo saida dos filtros
+            '''
             x,y,z,_ = cnn.getSizeData(0,REQUEST_OUTPUT)
             dt = cnn.getData(0,REQUEST_OUTPUT)
             
@@ -66,7 +67,15 @@ while True:
             bsaida = ints2bytes([ans],1)+ints2bytes(dimensao,4)+ints2bytes(dt,1)
             print('enviando resposta de ',len(bsaida),'bytes')
             bsaida = ints2bytes([len(bsaida)],4)+bsaida
+            '''
+            x,y,dt = cnn.getOutPutAsPPM()
+            print(x,y)
+            print(len(dt),x*y)
+            dimensao = [x,y]
+            bsaida = ints2bytes([ans],1)+ints2bytes(dimensao,4)+dt
             
+            print('enviando resposta de ',len(bsaida),'bytes')
+            bsaida = ints2bytes([len(bsaida)],4)+bsaida
             con.send(bsaida)
             
             print('enviados')

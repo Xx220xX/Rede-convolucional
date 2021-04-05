@@ -1,4 +1,4 @@
-from CNN_GPU.CNN import  *
+from CNN_GPU.CNN import  CNN,FTANH,FRELU,REQUEST_INPUT,REQUEST_GRAD_INPUT,REQUEST_OUTPUT,REQUEST_WEIGTH
 import time
 from random import random
 __all__ = ['CNN']

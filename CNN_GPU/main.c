@@ -5,9 +5,9 @@
 #include "uteisTreino.h"
 
 #define TAMANHO_IMAGEM 28
-#define MAXIMO_EPOCAS_PARA_TREINAMENTO 10
-#define NUMERO_DE_IMAGENS_NO_BANCO_DE_DADOS  60000
-#define NUMERO_DE_IMAGENS_PARA_TREINAR 59000
+#define MAXIMO_EPOCAS_PARA_TREINAMENTO 100
+#define NUMERO_DE_IMAGENS_NO_BANCO_DE_DADOS  100
+#define NUMERO_DE_IMAGENS_PARA_TREINAR 90
 #define ARQUIVO_IMAGENS "../testes/train-images.idx3-ubyte"
 #define ARQUIVO_RESPOSTA "../testes/train-labels.idx1-ubyte"
 
@@ -19,9 +19,8 @@ int main() {
 
 	CnnAddConvLayer(c, 1, 3, 8);
 	CnnAddPoolLayer(c,1,2);
-	CnnAddConvLayer(c, 1, 2, 6);
-	CnnAddPoolLayer(c,1,2);
-//	CnnAddFullConnectLayer(c, 80, FSIGMOID);
+//	CnnAddConvLayer(c, 1, 2, 6);
+//	CnnAddPoolLayer(c,1,2);
 	CnnAddFullConnectLayer(c, 50, FSIGMOID);
 	CnnAddFullConnectLayer(c, 10, FSIGMOID);
 	c->flags = CNN_FLAG_CALCULE_ERROR;
@@ -120,8 +119,6 @@ int main() {
 		globalerros[t] += c->normaErro;
 		snprintf(buff, 250, "../testes/imgs/im%d.ppm", i-limiteImages+1);
 		salveCnnOutAsPPM(c,buff);
-
-
 		if (r == t) {
 			globalAcertos[t]++;
 			tacertos++;

@@ -241,3 +241,7 @@ void freeP(void *p) {
 	if (p != NULL)
 		free(p);
 }
+
+void Py_getCnnOutPutAsPPM(Cnn c, Pointer *p, size_t *h, size_t *w) {
+	p->p = salveCnnOutAsPPMGPU(c,h,w);
+}

@@ -138,3 +138,15 @@ class CNN:
         tmp_out = out_TYPE(*vector)
         clib.normalizeGPUSpaceKnow(self.cnn.p,tmp_inp,tmp_out,len(vector),maxInput,minInput,maxOutput,minOutput)
         return list(tmp_out)
+    def getOutPutAsPPM(self):
+        p = c_Pointer()
+        h = c.c_size_t()
+        w = c.c_size_t()
+        clib.Py_getCnnOutPutAsPPM(self.cnn.p, c.addressof(p), c.addressof(h), c.addressof(w))
+        h = h.value
+        w = w.value
+        out = (c.c_ubyte*(w*h))()
+        c.memmove(out,p.p,w*h)
+        a = bytes(out)
+        clib.freeP(p.p)
+        return (h,w,a)

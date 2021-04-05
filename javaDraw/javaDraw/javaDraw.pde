@@ -39,6 +39,7 @@ void setup() {
       quadro.endDraw();
       putAns();
       filtro.clear();
+      filtro.show(back_color);
     }
   }
   ));
@@ -53,39 +54,20 @@ void setup() {
     }
   }
   ));
-  // MOSTRAR PROXIMO FILTRO
-  botoes.add(new Button(this, "NEXT", q_x0+60+q_w, q_y0+q_h, 50, 40, new Runnable () {
-    public void run() {     
-       if(!canCalcule) return;
-      if (filtro.dim +1 < filtro.z)filtro.dim++;
-      else filtro.dim = 0;
-      
-      filtro.show(back_color);
-    }
-  }
-  ));
-  // MOSTRAR o FILTRO ANTERIOR
-  botoes.add(new Button(this, "BACK", q_x0+10+q_w, q_y0+q_h, 50, 40, new Runnable () {
-    public void run() {    
-      if(!canCalcule) return;
-      if (filtro.dim -1 >= 0)filtro.dim--;
-      else filtro.dim = filtro.z - 1;
-      filtro.show(back_color);
-    }
-  }
-  ));
+
+
   c.setOnReceivedMsg(new Client.OnReceiveMsg() {
     public void receive(byte [] data) {
       //o primeiro byte é a resposta
       resposta = (int)(data[0]&0xff);
       putAns(resposta);
-      // os proximos 3*4= 12 bytes sao as dimensoes x,y,z
-      byte [] dimen  = new byte[12];
-      System.arraycopy(data, 1, dimen, 0, 12);
+      // os proximos 2*4= 8 bytes sao as dimensoes x,y
+      byte [] dimen  = new byte[8];
+      System.arraycopy(data, 1, dimen, 0, 8);
       filtro.setDim( Utils.bytes2Ints(dimen));
       // os proximos bytes sao os dados do filtros (ja estao normalizados de 0 a 255)
-      byte [] filter_data = new byte[data.length - 13];
-      System.arraycopy(data, 13, filter_data, 0, data.length-13);
+      byte [] filter_data = new byte[data.length - 9];
+      System.arraycopy(data, 9, filter_data, 0, data.length-9);
       filtro.setData(Utils.bytes2Ints1(filter_data));
       canCalcule = true;
       filtro.show(back_color);

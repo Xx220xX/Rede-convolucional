@@ -372,5 +372,74 @@ int CnnGetIndexMax(Cnn c) {
 	clEnqueueReadBuffer(c->queue, entrada->data, CL_TRUE, 0, sizeof(double), &indice, 0, NULL, NULL);
 	return (int) indice;
 }
+char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
+	int maxH = 0;
+	int maxW = 0;
+	int max_bytes = 0;
+	int w, h;
+	Tensor t;
+	for (int cm = 0; cm < c->size; cm++) {
+		t = c->camadas[cm]->saida;
+		w = t->y;
+		h = t->x;
+		if (t->x > t->y) {
+			w = t->x;
+			h = t->y;
+		}
+		w = w * t->z + t->z - 1;
+		maxH += h;
+		if (maxW < w)maxW = w;
+		if (t->bytes > max_bytes)max_bytes = t->bytes;
+	}
+	maxW += 2;
+	maxH = maxH + c->size;
+
+	Tensor img, tout;
+	double mx, mn, somador, multiplicador, minimo = 0;
+	size_t len;
+	tout = newTensor(c->cl->context, max_bytes, 1, 1, &c->error);
+	img = newTensorChar(c->cl->context, maxH, maxW, 1, &c->error);
+	int imi = 0;
+	int x,y;
+	for (int cm = 0; cm < c->size; cm++) {
+		t = c->camadas[cm]->saida;
+		len = t->x * t->y * t->z;
+		// achar o maximo e minimo
+		kernel_run(&c->kernelfindExtreme, c->queue, len, 1, &t->data, &tout->data, &len);
+		clFinish(c->queue);
+		clEnqueueReadBuffer(c->queue, tout->data, CL_TRUE, 0, sizeof(double), &mn, 0, NULL, NULL);
+		clEnqueueReadBuffer(c->queue, tout->data, CL_TRUE, sizeof(double), sizeof(double), &mx, 0, NULL, NULL);
+		// nao da para normalizar
+		if (mx - mn != 0.0) {
+			somador = -mn;
+			multiplicador = 255 / (mx - mn);
+			kernel_run_recursive(&c->kernelNormalize, c->queue, len, max_works, &t->data, &tout->data, &multiplicador,
+			                     &somador, &minimo);
+			x = t->x;
+			y = t->y;
+			if(t->y<t->x){
+				x = t->y;
+				y = t->x;
+			}
+			kernel_run_recursive(&c->kernelcreateIMG, c->queue, len, max_works, &img->data, &tout->data, &x, &y,
+			                     &imi, &maxW);
+		}
+		if (t->y > t->x) {
+			imi += t->x;
+		} else {
+			imi += t->y;
+		}
+		imi++;
+	}
+	clFinish(c->queue);
+	char *ans = calloc(maxH, maxW);
+	*h_r = maxH;
+	*w_r = maxW;
+	TensorGetValues(c->queue, img, ans);
+	releaseTensor(&img);
+	releaseTensor(&tout);
+	return ans;
+}
+
 
 #endif
