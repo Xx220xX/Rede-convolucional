@@ -8,8 +8,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../build)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../python/CNN_GPU/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../build)
 
-add_library(CNNGPU SHARED libraryPythonWrapper.c libraryPythonWrapper.h
-#add_executable(CNN_GPU main.c
+#add_library(CNNGPU SHARED libraryPythonWrapper.c libraryPythonWrapper.h
+add_executable(CNN_GPU main.c
         src/Camada.h src/Cnn.h
         src/CamadaConv.h src/Tensor.h
         src/CamadaPool.h src/CamadaDropOut.h

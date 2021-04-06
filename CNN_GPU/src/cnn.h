@@ -372,14 +372,19 @@ int CnnGetIndexMax(Cnn c) {
 	clEnqueueReadBuffer(c->queue, entrada->data, CL_TRUE, 0, sizeof(double), &indice, 0, NULL, NULL);
 	return (int) indice;
 }
+
 char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 	int maxH = 0;
 	int maxW = 0;
 	int max_bytes = 0;
 	int w, h;
 	Tensor t;
-	for (int cm = 0; cm < c->size; cm++) {
-		t = c->camadas[cm]->saida;
+
+	for (int cm = -1; cm < c->size; cm++) {
+		if (cm == -1)
+			t = c->camadas[0]->entrada;
+		else
+			t = c->camadas[cm]->saida;
 		w = t->y;
 		h = t->x;
 		if (t->x > t->y) {
@@ -392,7 +397,7 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 		if (t->bytes > max_bytes)max_bytes = t->bytes;
 	}
 	maxW += 2;
-	maxH = maxH + c->size;
+	maxH = maxH + c->size+1;
 
 	Tensor img, tout;
 	double mx, mn, somador, multiplicador, minimo = 0;
@@ -400,9 +405,14 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 	tout = newTensor(c->cl->context, max_bytes, 1, 1, &c->error);
 	img = newTensorChar(c->cl->context, maxH, maxW, 1, &c->error);
 	int imi = 0;
-	int x,y;
-	for (int cm = 0; cm < c->size; cm++) {
-		t = c->camadas[cm]->saida;
+	int x, y;
+
+
+	for (int cm = -1; cm < c->size; cm++) {
+		if (cm == -1)
+			t = c->camadas[0]->entrada;
+		else
+			t = c->camadas[cm]->saida;
 		len = t->x * t->y * t->z;
 		// achar o maximo e minimo
 		kernel_run(&c->kernelfindExtreme, c->queue, len, 1, &t->data, &tout->data, &len);
@@ -417,7 +427,7 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 			                     &somador, &minimo);
 			x = t->x;
 			y = t->y;
-			if(t->y<t->x){
+			if (t->y < t->x) {
 				x = t->y;
 				y = t->x;
 			}

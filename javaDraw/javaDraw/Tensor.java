@@ -1,7 +1,7 @@
 import processing.core.*;
 
 public class Tensor {
-  public int x=0, y=0;
+  public int x=1, y=1;
   public int [] data;
   public int x0, y0, w, h;
   public PGraphics  quadroFiltros;
@@ -26,16 +26,12 @@ public class Tensor {
     System.arraycopy(src, 0, data, 0, data.length);
   }
   public void clear() {
-    if (quadroFiltros!= null) {
-      quadroFiltros.beginDraw();
-      quadroFiltros.background(255);
-      quadroFiltros.endDraw();
-    }
+   
     data = null;
-    x=y= 0;
+
   }
   public void show(int back_color) {
-    if (x*y == 0) return;
+
     if (quadroFiltros == null) {
       quadroFiltros = app.createGraphics(x, y);
     }

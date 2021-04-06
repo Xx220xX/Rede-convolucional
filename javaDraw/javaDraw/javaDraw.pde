@@ -1,5 +1,6 @@
 import java.util.*;
 // Conexao socket
+
 Client c = new Client("localhost", 5000);
 
 
@@ -28,16 +29,18 @@ void setup() {
   filtro = new Tensor(this, q_x0+q_w+10, q_y0, q_w, q_h);
   background(back_color);
   quadro.beginDraw();
-  quadro.background(255);
+  quadro.background(0);
   quadro.endDraw();
 
   // LIMPAR QUADRO
   botoes.add(new Button(this, "CLEAR", q_x0, q_y0+q_h, 50, 40, new Runnable () {
     public void run() { 
       quadro.beginDraw();
-      quadro.background(255);  
+      quadro.background(0); 
+
       quadro.endDraw();
-      putAns();
+
+      putAns("");
       filtro.clear();
       filtro.show(back_color);
     }
@@ -47,9 +50,13 @@ void setup() {
   // ENVIAR PARA REDE NEURAL
   botoes.add(new Button(this, "Calcule", q_x0+55, q_y0+q_h, 50, 40, new Runnable () {
     public void run() {     
-      if(!canCalcule) return;
+      if (!canCalcule) return;
       canCalcule = false;
+      quadro.beginDraw();
       quadro.loadPixels();
+      quadro.endDraw();
+      putAns("calculando");
+
       c.sendBytes(Utils.ints12bytes(quadro.pixels));
     }
   }
@@ -60,7 +67,7 @@ void setup() {
     public void receive(byte [] data) {
       //o primeiro byte é a resposta
       resposta = (int)(data[0]&0xff);
-      putAns(resposta);
+      putAns(""+resposta);
       // os proximos 2*4= 8 bytes sao as dimensoes x,y
       byte [] dimen  = new byte[8];
       System.arraycopy(data, 1, dimen, 0, 8);
@@ -92,25 +99,23 @@ void drawImagem(PGraphics img) {
       int xp =(int) map(pmouseX, q_x0, q_w+q_x0, 0, imx);
       int yp = (int)map(pmouseY, q_y0, q_h+q_y0, 0, imy);
       img.beginDraw();
+      img.strokeWeight(1.2);
+      img.stroke(255);
       img.line(xp, yp, x, y);
       img.endDraw();
     }
   }
 }
-void putAns(int ans) {
-  putAns();
-  push();
-  fill(0);
-  stroke(0);
-  textAlign(CENTER);
-  textSize(50);
-  text(""+ans, q_x0+q_w/2, q_y0+q_h+50+50);
-  pop();
-}
-void putAns() {
+void putAns(String ans) {
   push();
   noStroke();
   fill(back_color);
   rect(q_x0, q_y0+q_h+50, q_w, 100);
+  fill(0);
+  stroke(0);
+  textAlign(CENTER);
+  textSize(50);
+  System.out.println("Resposta é: "+ans);
+  text(ans, q_x0+q_w/2, q_y0+q_h+50+50);
   pop();
 }

@@ -6,8 +6,11 @@
 
 #define TAMANHO_IMAGEM 28
 #define MAXIMO_EPOCAS_PARA_TREINAMENTO 100
-#define NUMERO_DE_IMAGENS_NO_BANCO_DE_DADOS  100
-#define NUMERO_DE_IMAGENS_PARA_TREINAR 90
+
+#define SALVAR_REDE_A_CADA 1
+#define SAIDA_REDE "../testes/redes"
+#define NUMERO_DE_IMAGENS_NO_BANCO_DE_DADOS  60000
+#define NUMERO_DE_IMAGENS_PARA_TREINAR 59900
 #define ARQUIVO_IMAGENS "../testes/train-images.idx3-ubyte"
 #define ARQUIVO_RESPOSTA "../testes/train-labels.idx1-ubyte"
 
@@ -18,7 +21,7 @@ int main() {
 	Cnn c = createCnnWithgpu("../kernels/gpu_function.cl", p, TAMANHO_IMAGEM, TAMANHO_IMAGEM, 1);
 
 	CnnAddConvLayer(c, 1, 3, 8);
-	CnnAddPoolLayer(c,1,2);
+	CnnAddPoolLayer(c, 1, 2);
 //	CnnAddConvLayer(c, 1, 2, 6);
 //	CnnAddPoolLayer(c,1,2);
 	CnnAddFullConnectLayer(c, 50, FSIGMOID);
@@ -41,6 +44,7 @@ int main() {
 	int epoca = 0;
 	double erros = 0;
 	int acertos = 0;
+	char buff[250] = {0};
 
 	char b[16];
 	double out[10];
@@ -50,6 +54,7 @@ int main() {
 	int i, r, t;
 	size_t initTimeALL = clock(), initTimeLocal;
 	int stop = 0;
+	FILE *fredecnn;
 
 	// ler imagens
 	fread(b, 1, 16, imagens);
@@ -97,28 +102,36 @@ int main() {
 		}
 		printf("epoca %d, erro %g, acertos %.2lf%%\n", epoca, erros, acertos * 100.0 / limiteImages);
 		fprintf(f, "| %g | %d | %llu |\n", erros, acertos, (clock() - initTimeLocal) * 1000);
-
+		if ((epoca + 1) % SALVAR_REDE_A_CADA == 0) {
+			snprintf(buff, 250,"%s/rede%d.cnn", SAIDA_REDE, (epoca + 1) / SALVAR_REDE_A_CADA);
+			fredecnn = fopen(buff, "wb");
+			cnnSave(c, fredecnn);
+			fclose(fredecnn);
+		}
 	}
+	printf("here\n");
 	fprintf(f, "Tempo gasto para %d epocas %lf min\n", maximoEpocas, (clock() - initTimeALL) / 60.0);
 
 	// salvar rede
 	FILE *redeTreinada = fopen("../../javaDraw/redeTreinada.cnn", "wb");
 	cnnSave(c, redeTreinada);
+	fclose(redeTreinada);
 	int globaldata[10] = {0};
 	int globalAcertos[10] = {0};
 	double globalerros[10] = {0};
 	//avaliar rede
 	int tacertos = 0;
-	char buff[250] = {0};
+	stop = 0;
 	for (i = limiteImages; i < limiteImages + imagensCheck; i++) {
-		if (stop)break;
+		if (stop == 'q')break;
+		if (kbhit())stop = tolower(getch());
 		CnnCall(c, inputs + tamanhoTensorEntrada * i);
 		r = CnnGetIndexMax(c);
 		for (t = 0; t < 9 && !*(targets + tamanhoTensorTarget * i + t); t++);
 		globaldata[t]++;
 		globalerros[t] += c->normaErro;
-		snprintf(buff, 250, "../testes/imgs/im%d.ppm", i-limiteImages+1);
-		salveCnnOutAsPPM(c,buff);
+		snprintf(buff, 250, "../testes/imgs/im%d.ppm", i - limiteImages + 1);
+		salveCnnOutAsPPM(c, buff);
 		if (r == t) {
 			globalAcertos[t]++;
 			tacertos++;
@@ -136,10 +149,7 @@ int main() {
 		fprintf(f, "| %d | %d | %d | %g |\n", i, globaldata[i], globalAcertos[i], globalerros[i]);
 	}
 	if (f != stdout) fclose(f);
-
-
 	finish:
-	fclose(redeTreinada);
 	if (inputs)free(inputs);
 	if (targets)free(targets);
 	releaseCnn(&c);
