@@ -75,13 +75,13 @@ Camada createFullConnect(WrapperCL *cl, UINT inx, UINT iny, UINT inz, UINT taman
 	c->dfa = funcaoDeAtivacao | FLAGDIF;
 	c->super.salvar = (fsl) salvarFullConnect;
 
-	c->kernelfullfeed = new_Kernel(cl->program, "fullfeed", 11, VOID_P, VOID_P, VOID_P, VOID_P,
-	                               INT, INT, INT, INT, INT, INT, INT);
-	c->kernelfullfixWeight = new_Kernel(cl->program, "fullfixweight", 13, VOID_P, VOID_P, VOID_P, VOID_P,
-	                                    DOUBLE, DOUBLE, DOUBLE,
-	                                    INT, INT, INT, INT, INT, INT);
-	c->kernelfullcalcgrad1 = new_Kernel(cl->program, "fullcalcgrads1", 5, VOID_P, VOID_P, VOID_P, INT, INT);
-	c->kernelfullcalcgrad2 = new_Kernel(cl->program, "fullcalcgrads2", 6, VOID_P, VOID_P, VOID_P, INT, INT, INT);
+	c->kernelfullfeed = new_Kernel(cl->program, "fullfeed", 11, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                               K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
+	c->kernelfullfixWeight = new_Kernel(cl->program, "fullfixweight", 13, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                    K_DOUBLE, K_DOUBLE, K_DOUBLE,
+	                                    K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
+	c->kernelfullcalcgrad1 = new_Kernel(cl->program, "fullcalcgrads1", 5, K_VOID_P, K_VOID_P, K_VOID_P, K_INT, K_INT);
+	c->kernelfullcalcgrad2 = new_Kernel(cl->program, "fullcalcgrads2", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT);
 	return (Camada) c;
 }
 

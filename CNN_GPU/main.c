@@ -7,23 +7,23 @@
 #define TAMANHO_IMAGEM 28
 #define MAXIMO_EPOCAS_PARA_TREINAMENTO 100
 
-#define SALVAR_REDE_A_CADA 1
 #define SAIDA_REDE "../testes/redes"
 #define NUMERO_DE_IMAGENS_NO_BANCO_DE_DADOS  60000
-#define NUMERO_DE_IMAGENS_PARA_TREINAR 59900
+#define NUMERO_DE_IMAGENS_PARA_TREINAR 50000
 #define ARQUIVO_IMAGENS "../testes/train-images.idx3-ubyte"
 #define ARQUIVO_RESPOSTA "../testes/train-labels.idx1-ubyte"
+#define KERNEL_FUNCTION_FILE "../kernels/gpu_function.cl"
+#define SAIDA_REDE_TREINADA "../../javaDraw/redeTreinada1.cnn"
 
 int main() {
 	srand(time(0));
 	// criar  cnn
 	Params p = {0.1, 0.0, 0.0, 1};
-	Cnn c = createCnnWithgpu("../kernels/gpu_function.cl", p, TAMANHO_IMAGEM, TAMANHO_IMAGEM, 1);
+	Cnn c = createCnnWithgpu(KERNEL_FUNCTION_FILE, p, TAMANHO_IMAGEM, TAMANHO_IMAGEM, 1);
 
 	CnnAddConvLayer(c, 1, 3, 8);
 	CnnAddPoolLayer(c, 1, 2);
-//	CnnAddConvLayer(c, 1, 2, 6);
-//	CnnAddPoolLayer(c,1,2);
+	CnnAddConvLayer(c, 1, 3, 8);
 	CnnAddFullConnectLayer(c, 50, FSIGMOID);
 	CnnAddFullConnectLayer(c, 10, FSIGMOID);
 	c->flags = CNN_FLAG_CALCULE_ERROR;
@@ -102,18 +102,13 @@ int main() {
 		}
 		printf("epoca %d, erro %g, acertos %.2lf%%\n", epoca, erros, acertos * 100.0 / limiteImages);
 		fprintf(f, "| %g | %d | %llu |\n", erros, acertos, (clock() - initTimeLocal) * 1000);
-		if ((epoca + 1) % SALVAR_REDE_A_CADA == 0) {
-			snprintf(buff, 250,"%s/rede%d.cnn", SAIDA_REDE, (epoca + 1) / SALVAR_REDE_A_CADA);
-			fredecnn = fopen(buff, "wb");
-			cnnSave(c, fredecnn);
-			fclose(fredecnn);
-		}
+
 	}
 	printf("here\n");
 	fprintf(f, "Tempo gasto para %d epocas %lf min\n", maximoEpocas, (clock() - initTimeALL) / 60.0);
 
 	// salvar rede
-	FILE *redeTreinada = fopen("../../javaDraw/redeTreinada.cnn", "wb");
+	FILE *redeTreinada = fopen(SAIDA_REDE_TREINADA, "wb");
 	cnnSave(c, redeTreinada);
 	fclose(redeTreinada);
 	int globaldata[10] = {0};
@@ -122,9 +117,7 @@ int main() {
 	//avaliar rede
 	int tacertos = 0;
 	stop = 0;
-	for (i = limiteImages; i < limiteImages + imagensCheck; i++) {
-		if (stop == 'q')break;
-		if (kbhit())stop = tolower(getch());
+	for (i = limiteImages; stop != 'q' && i < limiteImages + imagensCheck; i++) {
 		CnnCall(c, inputs + tamanhoTensorEntrada * i);
 		r = CnnGetIndexMax(c);
 		for (t = 0; t < 9 && !*(targets + tamanhoTensorTarget * i + t); t++);

@@ -50,15 +50,16 @@ int normalizeImage(double *imagem, size_t bytes, WrapperCL *cl, cl_command_queue
 	return 0;
 }
 
-int loadTargetData(double *target, size_t bytes, WrapperCL *cl, cl_command_queue queue, Kernel int2vector, FILE *f,
+int loadTargetData(double *target,unsigned char * labelchar,int numeroClasse, size_t bytes, WrapperCL *cl, cl_command_queue queue, Kernel int2vector, FILE *f,
                    size_t *bytesReadd) {
-	if (readBytes(f, (unsigned char *) target, bytes, bytesReadd) || !*bytesReadd)
+	if (labelchar==NULL)labelchar = (unsigned char *) target;
+	if (readBytes(f, labelchar, bytes, bytesReadd) || !*bytesReadd)
 		return 1;
 	cl_mem mInt, mDou;
 	int error = 0;
 	mInt = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes, NULL, &error);
-	mDou = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes * 10 * sizeof(double), NULL, &error);
-	int2doubleVector(cl, (unsigned char *) target, target, mInt, mDou, *bytesReadd, 10, int2vector, queue);
+	mDou = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes * numeroClasse * sizeof(double), NULL, &error);
+	int2doubleVector(cl, labelchar, target, mInt, mDou, *bytesReadd, numeroClasse, int2vector, queue);
 	clReleaseMemObject(mInt);
 	clReleaseMemObject(mDou);
 	return 0;

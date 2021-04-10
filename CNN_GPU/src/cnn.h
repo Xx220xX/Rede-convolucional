@@ -56,16 +56,16 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 		c->error.error = error;
 		snprintf(c->error.msg, 255, "nao foi possivel criar queue\n");
 	}
-	c->kernelsub = new_Kernel(cl->program, "sub", 4, VOID_P, VOID_P, VOID_P, INT);
-	c->kerneldiv = new_Kernel(cl->program, "div", 3, VOID_P, DOUBLE, INT);
-	c->kerneldivInt = new_Kernel(cl->program, "divIntDo", 4, VOID_P, VOID_P, DOUBLE, INT);
-	c->kernelNorm = new_Kernel(cl->program, "norm", 3, VOID_P, VOID_P, INT);
-	c->kernelMax = new_Kernel(cl->program, "maxID", 3, VOID_P, VOID_P, INT);
-	c->kernelInt2Vector = new_Kernel(cl->program, "int2vector", 4, VOID_P, VOID_P, INT, INT);
+	c->kernelsub = new_Kernel(cl->program, "sub", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
+	c->kerneldiv = new_Kernel(cl->program, "div", 3, K_VOID_P, K_DOUBLE, K_INT);
+	c->kerneldivInt = new_Kernel(cl->program, "divIntDo", 4, K_VOID_P, K_VOID_P, K_DOUBLE, K_INT);
+	c->kernelNorm = new_Kernel(cl->program, "norm", 3, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelMax = new_Kernel(cl->program, "maxID", 3, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelInt2Vector = new_Kernel(cl->program, "int2vector", 4, K_VOID_P, K_VOID_P, K_INT, K_INT);
 
-	c->kernelNormalize = new_Kernel(cl->program, "normalizeVector", 6, VOID_P, VOID_P, DOUBLE, DOUBLE, DOUBLE, INT);
-	c->kernelfindExtreme = new_Kernel(cl->program, "findExtremes", 3, VOID_P, VOID_P, INT);
-	c->kernelcreateIMG = new_Kernel(cl->program, "createImg", 7, VOID_P, VOID_P, INT, INT, INT, INT, INT);
+	c->kernelNormalize = new_Kernel(cl->program, "normalizeVector", 6, K_VOID_P, K_VOID_P, K_DOUBLE, K_DOUBLE, K_DOUBLE, K_INT);
+	c->kernelfindExtreme = new_Kernel(cl->program, "findExtremes", 3, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelcreateIMG = new_Kernel(cl->program, "createImg", 7, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT, K_INT, K_INT);
 	setmaxWorks(cl->maxworks);
 	return c;
 }

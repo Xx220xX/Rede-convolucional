@@ -8,9 +8,9 @@
 
 #include<CL/cl.h>
 
-#define VOID_P sizeof(void *)
-#define INT sizeof(cl_int)
-#define DOUBLE sizeof(cl_double)
+#define K_VOID_P sizeof(void *)
+#define K_INT sizeof(cl_int)
+#define K_DOUBLE sizeof(cl_double)
 
 typedef struct {
 	cl_kernel kernel;

@@ -45,8 +45,8 @@ createRelu(WrapperCL *cl, unsigned int inx, unsigned int iny, unsigned int inz, 
 	c->super.type = RELU;
 	c->super.salvar = (fsl) salvarRelu;
 
-	c->kernelReluAtiva = new_Kernel(cl->program, "reluativa", 3, VOID_P, VOID_P, INT);
-	c->kernelReluCalcGrads = new_Kernel(cl->program, "relucalcgrad", 4, VOID_P, VOID_P, VOID_P, INT);
+	c->kernelReluAtiva = new_Kernel(cl->program, "reluativa", 3, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelReluCalcGrads = new_Kernel(cl->program, "relucalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
 	return (Camada) c;
 }
 

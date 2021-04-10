@@ -77,12 +77,12 @@ Camada createConv(WrapperCL *cl, UINT passo, UINT lenFilter, UINT numeroFiltros,
 
 	if (randomize) convRandomize(c, cl, error);
 	if (error->error) return (Camada) c;
-	c->kernelConvSum = new_Kernel(cl->program, "convSum", 11, VOID_P, VOID_P, VOID_P,
-	                              INT, INT, INT, INT, INT, INT, INT, INT, INT);
-	c->kernelConvFixWeight = new_Kernel(cl->program, "convFixWeight", 8, VOID_P, VOID_P, VOID_P,
-	                                    DOUBLE, DOUBLE, DOUBLE, DOUBLE, INT);
-	c->kernelConvCalcGrads = new_Kernel(cl->program, "convCalcGrads", 14, VOID_P, VOID_P, VOID_P, VOID_P, VOID_P,
-	                                    INT, INT, INT, INT, INT, INT, INT, INT, INT);
+	c->kernelConvSum = new_Kernel(cl->program, "convSum", 11, K_VOID_P, K_VOID_P, K_VOID_P,
+	                              K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
+	c->kernelConvFixWeight = new_Kernel(cl->program, "convFixWeight", 8, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                    K_DOUBLE, K_DOUBLE, K_DOUBLE, K_DOUBLE, K_INT);
+	c->kernelConvCalcGrads = new_Kernel(cl->program, "convCalcGrads", 14, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                    K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
 	return (Camada) c;
 }
 
