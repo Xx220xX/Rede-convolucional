@@ -1,6 +1,8 @@
 #ifndef CONIO2_HUD_D
 #define CONIO2_HUD_D
-
+#ifndef MAX_STRING_LEN
+#define MAX_STRING_LEN 256
+#endif
 #include "src/conio2/conio2.h"
 #include <pthread.h>
 #include <stdio.h>
@@ -20,7 +22,7 @@ typedef struct {
 
 } InfoTrain;
 typedef struct {
-	char names[40];
+	char names[MAX_STRING_LEN];
 } Nomes;
 typedef struct {
 	int nClasses;

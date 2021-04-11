@@ -34,6 +34,3 @@ estatiscasDeAvaliacao = 'estatisticasAvaliacao.md'
 -- entradas
 arquivoContendoImagens = 'input/train-images.idx3-ubyte'
 arquivoContendoRespostas = 'input/train-labels.idx1-ubyte'
-
-
-

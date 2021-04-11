@@ -1,6 +1,7 @@
 //#define LOG_CNN_KERNELCALL
 #include <conio.h>
 #include <ctype.h>
+#include <windows.h>
 #include "src/cnn.h"
 #include "uteisTreino.h"
 #include"conioHUD.h"
@@ -14,31 +15,35 @@ int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **label
                 size_t numberOfLabels, size_t numberOfSamples, size_t remainImage, size_t remainLabel) {
 	int err = 0;
 	size_t pixelsByImage = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
-	int numeroClasse = cnn->camadas[cnn->size-1]->entrada->x * cnn->camadas[cnn->size-1]->entrada->y * cnn->camadas[cnn->size-1]->entrada->z;
+	int numeroClasse = cnn->camadas[cnn->size - 1]->entrada->x * cnn->camadas[cnn->size - 1]->entrada->y *
+	                   cnn->camadas[cnn->size - 1]->entrada->z;
 
 	size_t samples;
 	*images = (double *) calloc(sizeof(double), pixelsByImage * numberOfSamples);
 	*labels = (double *) calloc(sizeof(double), numberOfLabels * numberOfSamples);
 	*labelsI = (unsigned char *) calloc(sizeof(unsigned char), numberOfLabels * numberOfSamples);
 	FILE *fimage = fopen(imageFile, "rb");
-
+	if (!fimage){fprintf(stderr,"Imagens nao foram encontradas em %s\n",imageFile);err = -1;goto error;}
 	fread(*images, 1, remainImage, fimage);// bytes remanessentes de cabeçalho
 	normalizeImage(*images, numberOfSamples
 	                        * pixelsByImage, cnn->cl, cnn->queue, cnn->kerneldivInt, fimage, &samples);
 	fclose(fimage);
 
 	if (numberOfSamples * pixelsByImage != samples) {
-		err = 1;
+		err = -2;
 		goto error;
 	}
 
 	FILE *flabel = fopen(labelFile, "rb");
+	if (!fimage){fprintf(stderr,"Labels nao foram encontradas em %s\n",labelFile);err = -1;goto error;}
 	fread(*labels, 1, remainLabel, fimage);
-	loadTargetData(*labels, *labelsI, numberOfSamples,numeroClasse, cnn->cl, cnn->queue, cnn->kernelInt2Vector, flabel, &samples);
+	loadTargetData(*labels, *labelsI, numeroClasse,numberOfSamples,  cnn->cl, cnn->queue, cnn->kernelInt2Vector, flabel,
+	               &samples);
 	fclose(flabel);
 
 	if (numberOfSamples != samples) {
-		err = 1;
+	fprintf(stderr,"Smp %lld lidos %lld\n",numberOfSamples,samples);
+		err = -3;
 		goto error;
 	}
 
@@ -47,15 +52,17 @@ int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **label
 		free(*images);
 		free(*labels);
 		free(*labelsI);
-		*images = *labels = NULL;
+		*images = *labels = NULL ;
+		*labelsI = NULL;
 		fprintf(stderr, "Error while try read data\n");
-		return -2;
+		return err;
 	}
 	return 0;
 }
 
 int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int epocs, int saveCNN, int samples,
           char *outputMDTable) {
+	printf("here\n");
 	int caso = 0;
 	int acertos = 0;
 	int epoca = 0;
@@ -98,8 +105,9 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	return 0;
 }
 
-int fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *names, int samples, size_t imagesSaveOutput,
-        char *path, char *outputMDTable) {
+int
+fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *names, int samples, size_t imagesSaveOutput,
+       char *name, char *outputMDTable) {
 	int caso = 0;
 	int acertos = 0;
 	int *acertosPorClasse = calloc(sizeof(int), nClass);
@@ -128,7 +136,7 @@ int fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *
 		numeroCasosOcorridos[labelsI[caso]]++;
 		erroPorClasse[labelsI[caso]] += cnn->normaErro;
 		if (imPrint < imagesSaveOutput) {
-			snprintf(buff, 250, "../testes/imgs/im%d.ppm", caso + 1);
+			snprintf(buff, 250, "/imgs/%s%d.ppm",name, caso + 1);
 			salveCnnOutAsPPM(cnn, buff);
 		}
 		if (r == labelsI[caso]) {
@@ -146,24 +154,120 @@ int fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *
 	fprintf(f, "| Classe | total | acertos | erro quadratico |\n");
 	fprintf(f, "| :----: | :----: | :----: | :----: |\n");
 	for (int i = 0; i < 10; i++) {
-		fprintf(f, "| %s | %d | %d | %g |\n", names[i].names, numeroCasosOcorridos[i], acertosPorClasse[i], erroPorClasse[i]);
+		fprintf(f, "| %s | %d | %d | %g |\n", names[i].names, numeroCasosOcorridos[i], acertosPorClasse[i],
+		        erroPorClasse[i]);
 	}
 	fclose(f);
 }
 
-
-
-
-Cnn loadLuaParameters(char *luaFile) {
+int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
 	lua_State *L = luaL_newstate();
 	luaL_openlibs(L);
+	loadCnnLuaLibrary(L);
+	printf("%s\n", luaFile);
+	luaL_loadfile(L, luaFile);
+	int error = lua_pcall(L, 0, 0, 0);
 
-	luaL_loadstring(L,luaProgram)
-	return NULL;
+	// o scrip foi executado
+	if (error) {
+		fprintf(stderr, "stack:%d\n", lua_gettop(L));
+		fprintf(stderr, "erro:%d\n", error);
+		fprintf(stderr, "message:%s\n", lua_tostring(L, -1));
+		return error;
+	}
+	// verificar se as variaveis foram setadas
+	char *tmp;
+	GETLUAVALUE(p->Numero_epocas, L, "Numero_epocas", integer,
+	            printf("ERRO: Numero_epocas nao foi atribuido");return -1;);
+	GETLUAVALUE(p->Numero_Imagens, L, "Numero_Imagens", integer,
+	            printf("ERRO: Numero_Imagens nao foi atribuido");return -1;);
+	GETLUAVALUE(p->Numero_ImagensAvaliacao, L, "Numero_ImagensAvaliacao", integer,
+	            printf("ERRO: Numero_ImagensAvaliacao nao foi atribuido");return -1;);
+	GETLUAVALUE(p->Numero_ImagensTreino, L, "Numero_ImagensTreino", integer,
+	            printf("ERRO: Numero_ImagensTreino nao foi atribuido");return -1;);
+	GETLUAVALUE(p->SalvarSaidasComoPPM, L, "SalvarSaidasComoPPM", integer,
+	            printf("ERRO: SalvarSaidasComoPPM nao foi atribuido");return -1;);
+	GETLUAVALUE(p->SalvarBackupACada, L, "SalvarSaidasComoPPM", integer,
+	            printf("ERRO: SalvarSaidasComoPPM nao foi atribuido");return -1;);
+	GETLUAVALUE(p->Numero_Classes, L, "Numero_Classes", integer,
+	            printf("ERRO: Numero_Classes nao foi atribuido");return -1;);
+	GETLUAVALUE(p->bytes_remanessentes_classes, L, "bytes_remanessentes_classes", integer,
+	            printf("ERRO: bytes_remanessentes_classes nao foi atribuido");return -1;);
+	GETLUAVALUE(p->bytes_remanessentes_imagem, L, "bytes_remanessentes_imagem", integer,
+	            printf("ERRO: bytes_remanessentes_imagem nao foi atribuido");return -1;);
+
+	GETLUASTRING(p->nome, tmp, MAX_STRING_LEN, L, "nome", printf("ERRO: nome nao foi atribuido");return -1;);
+	GETLUASTRING(p->home, tmp, MAX_STRING_LEN, L, "home", printf("ERRO: home nao foi atribuido");return -1;);
+
+	GETLUASTRING(p->estatisticasDeTreino, tmp, MAX_STRING_LEN, L, "estatisticasDeTreino",
+	             printf("ERRO: estatisticasDeTreino nao foi atribuido");return -1;);
+	GETLUASTRING(p->estatiscasDeAvaliacao, tmp, MAX_STRING_LEN, L, "estatiscasDeAvaliacao",
+	             printf("ERRO: estatiscasDeAvaliacao nao foi atribuido");return -1;);
+	GETLUASTRING(p->arquivoContendoImagens, tmp, MAX_STRING_LEN, L, "arquivoContendoImagens",
+	             printf("ERRO: arquivoContendoImagens nao foi atribuido");return -1;);
+	GETLUASTRING(p->arquivoContendoRespostas, tmp, MAX_STRING_LEN, L, "arquivoContendoRespostas",
+	             printf("ERRO: arquivoContendoRespostas nao foi atribuido");return -1;);
+
+	p->names = (Nomes *) calloc(sizeof(Nomes), p->Numero_Classes);
+
+	lua_getglobal(L, "classes"); // classes
+	for (int i = 1; i <= p->Numero_Classes; i++) {
+		lua_pushinteger(L, i);//classes, i
+		lua_gettable(L, -2); // classes, i, classes[i]
+		tmp = (char *) lua_tostring(L, -1);
+		snprintf(p->names[i - 1].names, MAX_STRING_LEN, "%s", tmp);
+		lua_pop(L, 1);
+	}
+	lua_close(L);
+	return 0;
 }
 
 int main(int nargs, char **args) {
+	Cnn cnn = NULL;
+	globalcnn = &cnn;
+	char kernelFile[] = "../kernels/gpu_function.cl";
+	globalKernel = kernelFile;
+	char path[] = "..";
+	char buff[300];
+	char luaFile[] = "TESTE_NUMEROS_0_9.lua";
+	snprintf(buff, 300, "%s/%s", path, luaFile);
+	ParametrosCnnALL p = {0};
 
-	return 0;
+
+	int erro = loadLuaParameters(buff, &p);
+	double *input = NULL, *target = NULL;
+	unsigned char *targeti = NULL;
+	if (erro )goto end;
+	if (!cnn) {fprintf(stderr,"Nao foi encontrado uma arquitetura de rede"); goto end; }
+
+	if(!SetCurrentDirectory(p.home)){
+		fprintf(stderr,"Falha ao mudar para o diretorio %s\n",p.home);
+		erro = 2;
+		goto end;
+	}
+
+	erro = loadSamples(cnn, &input, &target, &targeti, p.arquivoContendoImagens, p.arquivoContendoRespostas,
+	                   p.Numero_Classes, p.Numero_Imagens,
+	                   p.bytes_remanessentes_imagem, p.bytes_remanessentes_classes);
+	if (erro )goto end;
+	train(cnn,input,target,targeti,p.Numero_epocas,p.SalvarBackupACada,p.Numero_ImagensTreino,p.estatisticasDeTreino);
+
+	size_t inputSize = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
+	size_t outputSize = cnn->camadas[cnn->size - 1]->entrada->x * cnn->camadas[cnn->size - 1]->entrada->y *
+	                    cnn->camadas[cnn->size - 1]->entrada->z;
+	fitness(cnn,input+p.Numero_ImagensTreino*inputSize,targeti+p.Numero_ImagensTreino,
+		 p.Numero_Classes,p.names,p.Numero_ImagensAvaliacao,p.SalvarSaidasComoPPM,p.nome,p.estatiscasDeAvaliacao);
+
+	end:
+	if (input)free(input);
+	if (target)free(target);
+	if (targeti)free(targeti);
+	if (cnn) {
+//		printf("cnn foi carregada\n");
+		releaseCnn(&cnn);
+	}
+	if (p.names)free(p.names);
+	getchar();
+	return erro;
 }
 
