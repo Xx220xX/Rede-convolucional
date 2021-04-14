@@ -94,9 +94,9 @@ void *showInfoTrain(InfoTrain *info) {
 	printf("Acertos");
 	gotoxy(10, y0 + 1);
 	printf("imagem ");
-	gotoxy(40, y0 + 1);
+	gotoxy(44, y0 + 1);
 	printf("Tempo restante ");
-	gotoxy(40, y0);
+	gotoxy(44, y0);
 	printf("Tempo restante ");
 	gotoxy(10, y0 + 4);
 	printf("Erro");
@@ -117,7 +117,7 @@ void *showInfoTrain(InfoTrain *info) {
 		       *info->acertos / (*info->imagemAtual + 1.0) * 100.0);
 
 		t = getms() - *info->msInitEpoca;
-		gotoxy(56, y0 + 1);
+		gotoxy(60, y0 + 1);
 		printf("-");
 		printTime((size_t) (t / (double) imagemFeitas * imagensFaltando));
 
@@ -130,13 +130,13 @@ void *showInfoTrain(InfoTrain *info) {
 
 		imagemFeitas += *info->totalImagensTreino * *info->epoca;
 		imagensFaltando += *info->totalImagensTreino * (*info->totalEpocas - *info->epoca);
-		gotoxy(56, y0);
+		gotoxy(60, y0);
 		printf("-");
 		printTime((size_t) (t / (double) imagemFeitas * imagensFaltando));
 
 		gotoxy(18, y0 + 4);
 		printf("% 8.3lf", *info->erro);
-		Sleep(10);
+		Sleep(200);
 	}
 	return NULL;
 }
@@ -158,7 +158,7 @@ void *showInfoTest(InfoTeste *info) {
 	gotoxy(10, y0 + 1);
 	printf("imagem ");
 
-	gotoxy(40, y0 + 1);
+	gotoxy(44, y0 + 1);
 	printf("Tempo restante ");
 	gotoxy(10, y0 + 4);
 	printf("classes");
@@ -181,14 +181,14 @@ void *showInfoTest(InfoTeste *info) {
 		hidecursor();
 
 		t = getms() - *info->msInitTest;
-		gotoxy(56, y0 + 1);
+		gotoxy(60, y0 + 1);
 		printf("-");
 		printTime((size_t) (t / (double) imagemFeitas * imagensFaltando));
 
-		gotoxy(18, y0);
+		gotoxy(22, y0);
 		printf("% 3d de % 3d  % 3.2f%%", *info->acertos, *info->imagemAtual + 1,
 		       *info->acertos / (*info->imagemAtual + 1.0) * 100.0);
-		gotoxy(18, y0 + 1);
+		gotoxy(22, y0 + 1);
 		perc = (int) (*info->imagemAtual / (double) *info->totalImagensTeste * 22.0);
 		snprintf(buf, 250, "% 3d de % 3d  % 3.2f%%", *info->imagemAtual, *info->totalImagensTeste,
 		         (*info->imagemAtual * 100.0) / *info->totalImagensTeste);
@@ -202,7 +202,7 @@ void *showInfoTest(InfoTeste *info) {
 			gotoxy(10 + 3 * dx, y0 + 5 + c);
 			printf("% 4.2lf", info->estatiscaErro[c]);
 		}
-		Sleep(10);
+		Sleep(200);
 	}
 	return NULL;
 }

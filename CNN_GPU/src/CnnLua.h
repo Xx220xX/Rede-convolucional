@@ -32,6 +32,17 @@ static int l_createCnn(lua_State *L) {
 	return 0;
 }
 
+static int l_loadCnn(lua_State *L) {
+	checkLua(*globalcnn,"A entrada não foi definida");
+	Params p = {0.1, 0.0, 0.0, 1};
+	char *file ;
+	file = (char *)lua_tostring(L, 1);
+	FILE *f = fopen(file,"rb");
+	checkLua(f,"arquivo %s nao foi encontrado\n",file);
+	cnnCarregar(*globalcnn ,f);
+	fclose(f);
+	return 0;
+}
 static int l_convolution(lua_State *L) {
 	int passo, sfiltro, nfiltro;
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
@@ -84,6 +95,7 @@ void loadCnnLuaLibrary(lua_State *L) {
 	REGISTERC_L(L, l_relu, "Relu");
 	REGISTERC_L(L, l_dropout, "Dropout");
 	REGISTERC_L(L, l_fullConnect, "FullConnect");
+	REGISTERC_L(L, l_loadCnn, "CarregarRede");
 	lua_pushinteger(L, FSIGMOID);
 	lua_setglobal(L, "SIGMOID");
 	lua_pushinteger(L, FTANH);

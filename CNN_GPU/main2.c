@@ -23,7 +23,11 @@ int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **label
 	*labels = (double *) calloc(sizeof(double), numberOfLabels * numberOfSamples);
 	*labelsI = (unsigned char *) calloc(sizeof(unsigned char), numberOfLabels * numberOfSamples);
 	FILE *fimage = fopen(imageFile, "rb");
-	if (!fimage){fprintf(stderr,"Imagens nao foram encontradas em %s\n",imageFile);err = -1;goto error;}
+	if (!fimage) {
+		fprintf(stderr, "Imagens nao foram encontradas em %s\n", imageFile);
+		err = -1;
+		goto error;
+	}
 	fread(*images, 1, remainImage, fimage);// bytes remanessentes de cabeçalho
 	normalizeImage(*images, numberOfSamples
 	                        * pixelsByImage, cnn->cl, cnn->queue, cnn->kerneldivInt, fimage, &samples);
@@ -35,14 +39,18 @@ int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **label
 	}
 
 	FILE *flabel = fopen(labelFile, "rb");
-	if (!fimage){fprintf(stderr,"Labels nao foram encontradas em %s\n",labelFile);err = -1;goto error;}
+	if (!fimage) {
+		fprintf(stderr, "Labels nao foram encontradas em %s\n", labelFile);
+		err = -1;
+		goto error;
+	}
 	fread(*labels, 1, remainLabel, fimage);
-	loadTargetData(*labels, *labelsI, numeroClasse,numberOfSamples,  cnn->cl, cnn->queue, cnn->kernelInt2Vector, flabel,
+	loadTargetData(*labels, *labelsI, numeroClasse, numberOfSamples, cnn->cl, cnn->queue, cnn->kernelInt2Vector, flabel,
 	               &samples);
 	fclose(flabel);
 
 	if (numberOfSamples != samples) {
-	fprintf(stderr,"Smp %lld lidos %lld\n",numberOfSamples,samples);
+		fprintf(stderr, "Smp %lld lidos %lld\n", numberOfSamples, samples);
 		err = -3;
 		goto error;
 	}
@@ -52,7 +60,7 @@ int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **label
 		free(*images);
 		free(*labels);
 		free(*labelsI);
-		*images = *labels = NULL ;
+		*images = *labels = NULL;
 		*labelsI = NULL;
 		fprintf(stderr, "Error while try read data\n");
 		return err;
@@ -62,7 +70,6 @@ int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **label
 
 int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int epocs, int saveCNN, int samples,
           char *outputMDTable) {
-	printf("here\n");
 	int caso = 0;
 	int acertos = 0;
 	int epoca = 0;
@@ -78,19 +85,20 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	fprintf(f, "\n|EPOCA | erro | acertos | tempo |\n|----|----|----|----|\n");
 
 	size_t inputSize = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
-	size_t outputSize = cnn->camadas[cnn->size - 1]->entrada->x * cnn->camadas[cnn->size - 1]->entrada->y *
-	                    cnn->camadas[cnn->size - 1]->entrada->z;
+	size_t outputSize = cnn->camadas[cnn->size - 1]->saida->x * cnn->camadas[cnn->size - 1]->saida->y *
+	                    cnn->camadas[cnn->size - 1]->saida->z;
 
 	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTrain, (void *) &info);
 	int r;
+	int stop=0;
 	for (; epoca < epocs; epoca++) {
-		if (kbhit() && tolower(getch()) == 'q')break;
+		if (stop =='q')break;
 		initTime = getms();
 		erro = 0;
 		acertos = 0;
 		fprintf(f, "|%d ", epoca);
 		for (caso = 0; caso < samples; caso++) {
-			if (kbhit() && tolower(getch()) == 'q')break;
+			if (kbhit() && (stop = tolower(getch())) == 'q')break;
 			CnnCall(cnn, images + inputSize * caso);
 			CnnLearn(cnn, labels + outputSize * caso);
 			r = CnnGetIndexMax(cnn);
@@ -101,13 +109,14 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	}
 	fclose(f);
 	threadInfoStop = 1;
+
 	pthread_join(tid, NULL);
 	return 0;
 }
 
 int
 fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *names, int samples, size_t imagesSaveOutput,
-       char *name, char *outputMDTable) {
+        char *name, char *outputMDTable) {
 	int caso = 0;
 	int acertos = 0;
 	int *acertosPorClasse = calloc(sizeof(int), nClass);
@@ -120,32 +129,37 @@ fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *name
 	pthread_t tid;
 
 
-	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTrain, (void *) &info);
+	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTest, (void *) &info);
 	int r;
 
 
 	size_t inputSize = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
-	size_t outputSize = cnn->camadas[cnn->size - 1]->entrada->x * cnn->camadas[cnn->size - 1]->entrada->y *
-	                    cnn->camadas[cnn->size - 1]->entrada->z;
+	size_t outputSize = cnn->camadas[cnn->size - 1]->saida->x * cnn->camadas[cnn->size - 1]->saida->y *
+	                    cnn->camadas[cnn->size - 1]->saida->z;
 
 	char buff[250];
 	int imPrint = 0;
 	for (caso = 0; caso < samples; caso++) {
+		if (kbhit() && tolower(getch()) == 'q')break;
 		CnnCall(cnn, images + inputSize * caso);
 		r = CnnGetIndexMax(cnn);
 		numeroCasosOcorridos[labelsI[caso]]++;
 		erroPorClasse[labelsI[caso]] += cnn->normaErro;
 		if (imPrint < imagesSaveOutput) {
-			snprintf(buff, 250, "/imgs/%s%d.ppm",name, caso + 1);
+			snprintf(buff, 250, "/imgs/%s%d.ppm", name, caso + 1);
 			salveCnnOutAsPPM(cnn, buff);
+			imPrint++;
 		}
 		if (r == labelsI[caso]) {
 			acertosPorClasse[r]++;
 			acertos++;
 		}
 	}
+	threadStop = 1;
+	pthread_join(tid,NULL);
 	FILE *f;
 	f = fopen(outputMDTable, "w");
+
 	if (!f)return -1;
 	fprintf(f, "\n#Fitnes\n");
 	fprintf(f, "acertos %d/%d %.2lf%%\n", acertos, samples, (double) acertos / (samples + 0.000001) * 100.0);
@@ -158,6 +172,24 @@ fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *name
 		        erroPorClasse[i]);
 	}
 	fclose(f);
+
+}
+
+#include<dirent.h>
+
+void showDir() {
+	DIR *dir;
+	struct dirent *ent;
+	char currentDir[250] = {0};
+	GetCurrentDirectory(250, currentDir);
+	printf("Current dir:%s\n", currentDir);
+	if ((dir = opendir(currentDir)) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
+			printf("%s\n", ent->d_name);
+		}
+		closedir(dir);
+	}
+	getchar();
 }
 
 int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
@@ -165,14 +197,18 @@ int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
 	luaL_openlibs(L);
 	loadCnnLuaLibrary(L);
 	printf("%s\n", luaFile);
+	printf("carregando script: %s\n", luaFile);
+	//showDir();
 	luaL_loadfile(L, luaFile);
 	int error = lua_pcall(L, 0, 0, 0);
 
 	// o scrip foi executado
 	if (error) {
+		fprintf(stderr, "Falha ao carregar scrip\n");
 		fprintf(stderr, "stack:%d\n", lua_gettop(L));
 		fprintf(stderr, "erro:%d\n", error);
 		fprintf(stderr, "message:%s\n", lua_tostring(L, -1));
+		system("pause");
 		return error;
 	}
 	// verificar se as variaveis foram setadas
@@ -219,29 +255,76 @@ int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
 		lua_pop(L, 1);
 	}
 	lua_close(L);
+	printf("script carregado\n");
+
+
 	return 0;
 }
 
+void getpath(char *fileabsolutpath, char *dst, int len_dst) {
+	int len = strlen(fileabsolutpath);
+	for (len = len - 1; len >= 0 && fileabsolutpath[len] != '/' && fileabsolutpath[len] != '\\'; len--);
+	if (len >= len_dst || dst == NULL) {
+		fprintf(stderr, "Tamanho do destino invalido");
+		system("pause");
+		return;
+	}
+	memcpy(dst, fileabsolutpath, len);
+	dst[len + 1] = 0;
+
+}
+
 int main(int nargs, char **args) {
+	if (nargs != 2) {
+		fprintf(stderr, "Um script lua de configuração é esperado");
+		return -1;
+	}
+	char buff[300] = {0};
+	int erro;
+	getpath(args[0], buff, 300);
+	if (!SetCurrentDirectory(buff)) {
+		fprintf(stderr, "Falha ao mudar para o diretorio %s\n", buff);
+		erro = 2;
+		goto end;
+	}
 	Cnn cnn = NULL;
 	globalcnn = &cnn;
-	char kernelFile[] = "../kernels/gpu_function.cl";
+	char kernelFile[300] = "../kernels/gpu_function.cl";
 	globalKernel = kernelFile;
-	char path[] = "..";
-	char buff[300];
-	char luaFile[] = "TESTE_NUMEROS_0_9.lua";
-	snprintf(buff, 300, "%s/%s", path, luaFile);
+	char *luaFile = args[1];
 	ParametrosCnnALL p = {0};
-
-
-	int erro = loadLuaParameters(buff, &p);
+	erro = loadLuaParameters(luaFile, &p);
 	double *input = NULL, *target = NULL;
 	unsigned char *targeti = NULL;
-	if (erro )goto end;
-	if (!cnn) {fprintf(stderr,"Nao foi encontrado uma arquitetura de rede"); goto end; }
-
-	if(!SetCurrentDirectory(p.home)){
-		fprintf(stderr,"Falha ao mudar para o diretorio %s\n",p.home);
+	if (erro)goto end;
+	if (!cnn) {
+		fprintf(stderr, "Nao foi encontrado uma arquitetura de rede");
+		goto end;
+	}
+	printf("ARQUITETURA DA REDE\n");
+	globalcnn = NULL;
+	printf("entrada   (%d,%d,%d)\n",cnn->camadas[0]->entrada->x,cnn->camadas[0]->entrada->y,cnn->camadas[0]->entrada->z);
+	printf("camada    Tipo       saida\n");
+	for(int i=0;i<cnn->size;i++){
+		printf("% 2d         ",i);
+		switch (cnn->camadas[i]->type) {
+			case CONV:          printf("CONV       ");break;
+			case RELU:          printf("RELU       ");break;
+			case FULLCONNECT:   printf("FULLCONNECT");break;
+			case DROPOUT:       printf("DROPOUT    ");break;
+			case POOL:       printf("POOLING    ");break;
+		}
+		printf(" (%  4d,%  4d,%  4d)\n",cnn->camadas[i]->saida->x,cnn->camadas[i]->saida->y,cnn->camadas[i]->saida->z);
+	}
+	printf("ESTA CORRETO? (S/N)");
+	int c = toupper(getch());
+	if(c=='N') {
+		erro=-5;
+		goto end;
+	}
+	cnn->flags = CNN_FLAG_CALCULE_ERROR;
+	if (!SetCurrentDirectory(p.home)) {
+		fprintf(stderr, "Falha ao mudar para o diretorio %s\n", p.home);
 		erro = 2;
 		goto end;
 	}
@@ -249,25 +332,27 @@ int main(int nargs, char **args) {
 	erro = loadSamples(cnn, &input, &target, &targeti, p.arquivoContendoImagens, p.arquivoContendoRespostas,
 	                   p.Numero_Classes, p.Numero_Imagens,
 	                   p.bytes_remanessentes_imagem, p.bytes_remanessentes_classes);
-	if (erro )goto end;
-	train(cnn,input,target,targeti,p.Numero_epocas,p.SalvarBackupACada,p.Numero_ImagensTreino,p.estatisticasDeTreino);
+	if (erro)goto end;
+	train(cnn, input, target, targeti, p.Numero_epocas, p.SalvarBackupACada, p.Numero_ImagensTreino,
+	      p.estatisticasDeTreino);
 
 	size_t inputSize = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
 	size_t outputSize = cnn->camadas[cnn->size - 1]->entrada->x * cnn->camadas[cnn->size - 1]->entrada->y *
 	                    cnn->camadas[cnn->size - 1]->entrada->z;
-	fitness(cnn,input+p.Numero_ImagensTreino*inputSize,targeti+p.Numero_ImagensTreino,
-		 p.Numero_Classes,p.names,p.Numero_ImagensAvaliacao,p.SalvarSaidasComoPPM,p.nome,p.estatiscasDeAvaliacao);
-
+	fitness(cnn, input + p.Numero_ImagensTreino * inputSize, targeti + p.Numero_ImagensTreino,
+	        p.Numero_Classes, p.names, p.Numero_ImagensAvaliacao, p.SalvarSaidasComoPPM, p.nome,
+	        p.estatiscasDeAvaliacao);
+	printf("treino terminado\n");
 	end:
 	if (input)free(input);
 	if (target)free(target);
 	if (targeti)free(targeti);
 	if (cnn) {
-//		printf("cnn foi carregada\n");
 		releaseCnn(&cnn);
 	}
 	if (p.names)free(p.names);
-	getchar();
+	printf("\n");
+	system("pause");
 	return erro;
 }
 

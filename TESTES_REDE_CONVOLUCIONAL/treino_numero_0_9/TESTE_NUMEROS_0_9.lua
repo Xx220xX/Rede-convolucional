@@ -1,5 +1,5 @@
 -- Diretorio inicial
-home  = 'C:/Users/Henrique/Desktop/CNN/CNN_GPU/testes/'
+home  = 'C:/Users/Henrique/Desktop/CNN/TESTES_REDE_CONVOLUCIONAL/treino_numero_0_9'
 
 -- Nome do treinamento
 nome = 'numeros0_9'
