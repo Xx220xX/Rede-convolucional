@@ -10,73 +10,97 @@
 #include "src/lua/lauxlib.h"
 #include "src/CnnLua.h"
 
-
-int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **labelsI, char *imageFile, char *labelFile,
-                size_t numberOfLabels, size_t numberOfSamples, size_t remainImage, size_t remainLabel) {
-	int err = 0;
+int loadImage(Cnn cnn, double **images, size_t remainImage, size_t numberOfSamples, char *imageFile) {
 	size_t pixelsByImage = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
-	int numeroClasse = cnn->camadas[cnn->size - 1]->entrada->x * cnn->camadas[cnn->size - 1]->entrada->y *
-	                   cnn->camadas[cnn->size - 1]->entrada->z;
-
 	size_t samples;
-	*images = (double *) calloc(sizeof(double), pixelsByImage * numberOfSamples);
-	*labels = (double *) calloc(sizeof(double), numberOfLabels * numberOfSamples);
-	*labelsI = (unsigned char *) calloc(sizeof(unsigned char), numberOfLabels * numberOfSamples);
+
 	FILE *fimage = fopen(imageFile, "rb");
 	if (!fimage) {
 		fprintf(stderr, "Imagens nao foram encontradas em %s\n", imageFile);
-		err = -1;
-		goto error;
+		*images = NULL;
+		return -1;
 	}
+	*images = (double *) calloc(sizeof(double), pixelsByImage * numberOfSamples);
 	fread(*images, 1, remainImage, fimage);// bytes remanessentes de cabeçalho
-	normalizeImage(*images, numberOfSamples
-	                        * pixelsByImage, cnn->cl, cnn->queue, cnn->kerneldivInt, fimage, &samples);
+	normalizeImage(*images, numberOfSamples * pixelsByImage,
+	               cnn->cl, cnn->queue, cnn->kerneldivInt, fimage, &samples);
 	fclose(fimage);
 
 	if (numberOfSamples * pixelsByImage != samples) {
-		err = -2;
-		goto error;
-	}
-
-	FILE *flabel = fopen(labelFile, "rb");
-	if (!fimage) {
-		fprintf(stderr, "Labels nao foram encontradas em %s\n", labelFile);
-		err = -1;
-		goto error;
-	}
-	fread(*labels, 1, remainLabel, fimage);
-	loadTargetData(*labels, *labelsI, numeroClasse, numberOfSamples, cnn->cl, cnn->queue, cnn->kernelInt2Vector, flabel,
-	               &samples);
-	fclose(flabel);
-
-	if (numberOfSamples != samples) {
-		fprintf(stderr, "Smp %lld lidos %lld\n", numberOfSamples, samples);
-		err = -3;
-		goto error;
-	}
-
-	error:
-	if (err) {
+		fprintf(stderr, "As imagens nao foram lidas corretamente\n");
 		free(*images);
-		free(*labels);
-		free(*labelsI);
-		*images = *labels = NULL;
-		*labelsI = NULL;
-		fprintf(stderr, "Error while try read data\n");
-		return err;
+		*images = NULL;
+		return -2;
 	}
 	return 0;
+
+}
+
+int loadLabel(Cnn cnn, double **labels, unsigned char **labelsI, size_t remainLabel, size_t numberOfSamples,
+              size_t numeroSaidas, char *labelFile) {
+	FILE *flabel = fopen(labelFile, "rb");
+	if (!flabel) {
+		fprintf(stderr, "Labels nao foram encontradas em %s\n", labelFile);
+		*labels = NULL;
+		*labelsI = NULL;
+		return -1;
+	}
+	*labels = (double *) calloc(sizeof(double), numeroSaidas * numberOfSamples);
+	*labelsI = (unsigned char *) calloc(sizeof(unsigned char), numberOfSamples);
+
+	fread(*labels, 1, remainLabel, flabel);
+	size_t lidos = 0;
+	loadTargetData(*labels, *labelsI, numeroSaidas, numberOfSamples, cnn->cl, cnn->queue, cnn->kernelInt2Vector, flabel,
+	               &lidos);
+	fclose(flabel);
+
+	if (numberOfSamples != lidos) {
+		fprintf(stderr, "Esperado %lld, lidos %lld\n", numberOfSamples, lidos);
+		*labels = NULL;
+		*labelsI = NULL;
+		return -2;
+	}
+	return 0;
+}
+
+int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **labelsI, char *imageFile, char *labelFile,
+                size_t numberOfLabels, size_t numberOfSamples, size_t remainImage, size_t remainLabel) {
+
+
+	if (loadImage(cnn, images, remainImage, numberOfSamples, imageFile))return -7;
+
+	if (loadLabel(cnn, labels, labelsI, remainLabel, numberOfSamples, numberOfLabels, labelFile))return -8;
+	error:
+	return 0;
+}
+
+void printTestImages(double *images, double *labels, unsigned char *labelsI, int n, int x, int y, int z, int m) {
+	char buff[500];
+	system("mkdir \"imgTeste\"");
+	for (int i = 0; i < n; i++) {
+		snprintf(buff, 500, "imgTeste/[%d][%d] ", (int) labelsI[i], m);
+		for (int j = 0; j < m; j++) {
+			snprintf(buff, 500, "%s%.1lf,", buff, labels[i * m + j]);
+		}
+		snprintf(buff, 500, "%s.ppm", buff);
+		ppmp2(images + i * x * y * z, x, y, buff);
+	}
 }
 
 int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int epocs, int saveCNN, int samples,
           char *outputMDTable) {
 	int caso = 0;
 	int acertos = 0;
+	printTestImages(images, labels, labelsI, samples, cnn->camadas[0]->entrada->x, cnn->camadas[0]->entrada->y,
+	                cnn->camadas[0]->entrada->z, cnn->camadas[cnn->size - 1]->saida->x);
+	system("pause");
 	int epoca = 0;
 	int threadInfoStop = 0;
 	size_t initTime = getms();
 	size_t initTimeAll = getms();
 	double erro = 0.0;
+
+
 	InfoTrain info = {&samples, &caso, &acertos, &epoca, &epocs, &threadInfoStop, &initTime, &initTimeAll, &erro};
 	pthread_t tid;
 	FILE *f;
@@ -90,9 +114,9 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 
 	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTrain, (void *) &info);
 	int r;
-	int stop=0;
+	int stop = 0;
 	for (; epoca < epocs; epoca++) {
-		if (stop =='q')break;
+		if (stop == 'q')break;
 		initTime = getms();
 		erro = 0;
 		acertos = 0;
@@ -102,7 +126,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 			CnnCall(cnn, images + inputSize * caso);
 			CnnLearn(cnn, labels + outputSize * caso);
 			r = CnnGetIndexMax(cnn);
-			if (r == labelsI[caso]) { acertos++; }
+			if (r == labelsI[caso]) { acertos += 1; }
 			erro += cnn->normaErro;
 		}
 		fprintf(f, "| %g | %d | %llu |\n", erro, acertos, (unsigned long long int) (getms() - initTime) * 1000);
@@ -146,7 +170,7 @@ fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *name
 		numeroCasosOcorridos[labelsI[caso]]++;
 		erroPorClasse[labelsI[caso]] += cnn->normaErro;
 		if (imPrint < imagesSaveOutput) {
-			snprintf(buff, 250, "/imgs/%s%d.ppm", name, caso + 1);
+			snprintf(buff, 250, "imgs/%s%d.ppm", name, caso + 1);
 			salveCnnOutAsPPM(cnn, buff);
 			imPrint++;
 		}
@@ -156,7 +180,7 @@ fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *name
 		}
 	}
 	threadStop = 1;
-	pthread_join(tid,NULL);
+	pthread_join(tid, NULL);
 	FILE *f;
 	f = fopen(outputMDTable, "w");
 
@@ -275,6 +299,7 @@ void getpath(char *fileabsolutpath, char *dst, int len_dst) {
 }
 
 int main(int nargs, char **args) {
+	srand(time(NULL));
 	if (nargs != 2) {
 		fprintf(stderr, "Um script lua de configuração é esperado");
 		return -1;
@@ -303,23 +328,35 @@ int main(int nargs, char **args) {
 	}
 	printf("ARQUITETURA DA REDE\n");
 	globalcnn = NULL;
-	printf("entrada   (%d,%d,%d)\n",cnn->camadas[0]->entrada->x,cnn->camadas[0]->entrada->y,cnn->camadas[0]->entrada->z);
+	printf("entrada   (%d,%d,%d)\n", cnn->camadas[0]->entrada->x, cnn->camadas[0]->entrada->y,
+	       cnn->camadas[0]->entrada->z);
 	printf("camada    Tipo       saida\n");
-	for(int i=0;i<cnn->size;i++){
-		printf("% 2d         ",i);
+	for (int i = 0; i < cnn->size; i++) {
+		printf("% 2d         ", i);
 		switch (cnn->camadas[i]->type) {
-			case CONV:          printf("CONV       ");break;
-			case RELU:          printf("RELU       ");break;
-			case FULLCONNECT:   printf("FULLCONNECT");break;
-			case DROPOUT:       printf("DROPOUT    ");break;
-			case POOL:       printf("POOLING    ");break;
+			case CONV:
+				printf("CONV       ");
+				break;
+			case RELU:
+				printf("RELU       ");
+				break;
+			case FULLCONNECT:
+				printf("FULLCONNECT");
+				break;
+			case DROPOUT:
+				printf("DROPOUT    ");
+				break;
+			case POOL:
+				printf("POOLING    ");
+				break;
 		}
-		printf(" (%  4d,%  4d,%  4d)\n",cnn->camadas[i]->saida->x,cnn->camadas[i]->saida->y,cnn->camadas[i]->saida->z);
+		printf(" (%  4d,%  4d,%  4d)\n", cnn->camadas[i]->saida->x, cnn->camadas[i]->saida->y,
+		       cnn->camadas[i]->saida->z);
 	}
 	printf("ESTA CORRETO? (S/N)");
-	int c = toupper(getch());
-	if(c=='N') {
-		erro=-5;
+	int c = 'S';//toupper(getch());
+	if (c == 'N') {
+		erro = -5;
 		goto end;
 	}
 	cnn->flags = CNN_FLAG_CALCULE_ERROR;

@@ -21,6 +21,25 @@ void ppmp2(double *data, int x, int y, char *fileName) {
 	fclose(f);
 }
 
+void ppmp3(double *data, int x, int y, int z, char *fileName) {
+	FILE *f = fopen(fileName, "w");
+	fprintf(f, "P3\n");
+	fprintf(f, "%d %d\n", y, x);
+	fprintf(f, "255\n");
+	for (int i = 0; i < x; i++) {
+		for (int j = 0; j < y; ++j) {
+			for (int k = 0; k < z; ++k) {
+				fprintf(f, "%d", (int) (data[k*y*x+ i * y + j] * 255));
+				if (k < z - 1)fprintf(f, " ");
+			}
+			if (j < y - 1)fprintf(f, " ");
+		}
+		if (i < x - 1)
+			fprintf(f, "\n");
+	}
+	fclose(f);
+}
+
 int readBytes(FILE *f, unsigned char *buff, size_t bytes, size_t *bytesReaded) {
 	if (feof(f)) {
 		fseek(f, 0, SEEK_SET);
@@ -50,16 +69,17 @@ int normalizeImage(double *imagem, size_t bytes, WrapperCL *cl, cl_command_queue
 	return 0;
 }
 
-int loadTargetData(double *target,unsigned char * labelchar,int numeroClasse, size_t bytes, WrapperCL *cl, cl_command_queue queue, Kernel int2vector, FILE *f,
+int loadTargetData(double *target, unsigned char *labelchar, int numeroDeClasses, size_t bytes, WrapperCL *cl,
+                   cl_command_queue queue, Kernel int2vector, FILE *f,
                    size_t *bytesReadd) {
-	if (labelchar==NULL)labelchar = (unsigned char *) target;
+	if (labelchar == NULL)labelchar = (unsigned char *) target;
 	if (readBytes(f, labelchar, bytes, bytesReadd) || !*bytesReadd)
 		return 1;
 	cl_mem mInt, mDou;
 	int error = 0;
 	mInt = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes, NULL, &error);
-	mDou = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes * numeroClasse * sizeof(double), NULL, &error);
-	int2doubleVector(cl, labelchar, target, mInt, mDou, *bytesReadd, numeroClasse, int2vector, queue);
+	mDou = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes * numeroDeClasses * sizeof(double), NULL, &error);
+	int2doubleVector(cl, labelchar, target, mInt, mDou, *bytesReadd, numeroDeClasses, int2vector, queue);
 	clReleaseMemObject(mInt);
 	clReleaseMemObject(mDou);
 	return 0;
@@ -94,7 +114,7 @@ void salveTernsorAsPPM(const char *name, Tensor t, Cnn c) {
 
 void salveCnnOutAsPPM(Cnn c, const char *name) {
 	size_t w = 0, h = 0;
-	char *im = salveCnnOutAsPPMGPU(c,&h,&w);
+	char *im = salveCnnOutAsPPMGPU(c, &h, &w);
 	FILE *f = fopen(name, "wb");
 	fprintf(f, "P5 ");
 	fprintf(f, "%d %d ", w, h);

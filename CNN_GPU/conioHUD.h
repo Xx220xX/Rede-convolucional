@@ -83,7 +83,7 @@ void *showInfoTrain(InfoTrain *info) {
 	int perc;
 	char buf[250] = {0};
 	size_t imagemFeitas, imagensFaltando;
-	size_t t;
+	size_t t,t2;
 
 	clrscr();
 	gotoxy(10, 2);
@@ -117,6 +117,7 @@ void *showInfoTrain(InfoTrain *info) {
 		       *info->acertos / (*info->imagemAtual + 1.0) * 100.0);
 
 		t = getms() - *info->msInitEpoca;
+		t2 = getms() - *info->msInitTrain;
 		gotoxy(60, y0 + 1);
 		printf("-");
 		printTime((size_t) (t / (double) imagemFeitas * imagensFaltando));
@@ -132,7 +133,8 @@ void *showInfoTrain(InfoTrain *info) {
 		imagensFaltando += *info->totalImagensTreino * (*info->totalEpocas - *info->epoca);
 		gotoxy(60, y0);
 		printf("-");
-		printTime((size_t) (t / (double) imagemFeitas * imagensFaltando));
+
+		printTime((size_t) (t2 / (double) imagemFeitas * imagensFaltando) );
 
 		gotoxy(18, y0 + 4);
 		printf("% 8.3lf", *info->erro);

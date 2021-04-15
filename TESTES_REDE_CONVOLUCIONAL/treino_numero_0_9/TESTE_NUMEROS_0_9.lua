@@ -7,17 +7,19 @@ nome = 'numeros0_9'
 
 
 -- epocas e parametros de treinamento
-Numero_epocas = 10
+Numero_epocas = 1
 SalvarBackupACada = 5
-Numero_Imagens =  60000
-Numero_ImagensTreino = 50000
+Numero_Imagens =  50
+Numero_ImagensTreino = 49
 Numero_ImagensAvaliacao = Numero_Imagens-Numero_ImagensTreino
 Numero_Classes = 10
 classes = {'zero','um','dois','tres','quatro','cinco','seis','sete','oito','nove'}
 bytes_remanessentes_imagem = 16
 bytes_remanessentes_classes = 8
 
-SalvarSaidasComoPPM =  1 -- somente as 10 primeiras
+SalvarSaidasComoPPM =  100 -- somente as 10 primeiras
+
+
 
 
 -- saidas de arquivos
@@ -27,6 +29,8 @@ estatiscasDeAvaliacao = nome..'estatisticasAvaliacao.md'
 -- entradas
 arquivoContendoImagens = 'train-images.idx3-ubyte'
 arquivoContendoRespostas = 'train-labels.idx1-ubyte'
+
+
 
 --  Arquitetura  rede
 Entrada(28,28,1)

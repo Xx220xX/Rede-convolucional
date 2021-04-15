@@ -161,7 +161,7 @@ void int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, cl_mem mi,
     clEnqueueWriteBuffer(queue, mi, CL_TRUE, 0, len * sizeof(unsigned char), src, 0, NULL, NULL);
     kernel_run_recursive(&func,queue,len,max_works, &mi, &mout, &nop);
     clFinish(queue);
-    clEnqueueReadBuffer(queue, mout, CL_TRUE, 0, len * 10 * sizeof(double), dst, 0, NULL, NULL);
+    clEnqueueReadBuffer(queue, mout, CL_TRUE, 0, len * nop * sizeof(double), dst, 0, NULL, NULL);
 }
 
 #endif //CNN_GPU_TENSOR_H
