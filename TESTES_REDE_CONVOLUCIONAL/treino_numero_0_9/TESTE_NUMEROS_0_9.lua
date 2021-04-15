@@ -7,10 +7,10 @@ nome = 'numeros0_9'
 
 
 -- epocas e parametros de treinamento
-Numero_epocas = 1
+Numero_epocas = 10
 SalvarBackupACada = 5
-Numero_Imagens =  50
-Numero_ImagensTreino = 49
+Numero_Imagens =  60000
+Numero_ImagensTreino = 50000
 Numero_ImagensAvaliacao = Numero_Imagens-Numero_ImagensTreino
 Numero_Classes = 10
 classes = {'zero','um','dois','tres','quatro','cinco','seis','sete','oito','nove'}

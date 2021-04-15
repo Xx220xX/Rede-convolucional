@@ -70,7 +70,6 @@ int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **label
 	if (loadImage(cnn, images, remainImage, numberOfSamples, imageFile))return -7;
 
 	if (loadLabel(cnn, labels, labelsI, remainLabel, numberOfSamples, numberOfLabels, labelFile))return -8;
-	error:
 	return 0;
 }
 
@@ -91,9 +90,9 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
           char *outputMDTable) {
 	int caso = 0;
 	int acertos = 0;
-	printTestImages(images, labels, labelsI, samples, cnn->camadas[0]->entrada->x, cnn->camadas[0]->entrada->y,
-	                cnn->camadas[0]->entrada->z, cnn->camadas[cnn->size - 1]->saida->x);
-	system("pause");
+//	printTestImages(images, labels, labelsI, samples, cnn->camadas[0]->entrada->x, cnn->camadas[0]->entrada->y,
+//	                cnn->camadas[0]->entrada->z, cnn->camadas[cnn->size - 1]->saida->x);
+//	system("pause");
 	int epoca = 0;
 	int threadInfoStop = 0;
 	size_t initTime = getms();
@@ -354,8 +353,9 @@ int main(int nargs, char **args) {
 		       cnn->camadas[i]->saida->z);
 	}
 	printf("ESTA CORRETO? (S/N)");
-	int c = 'S';//toupper(getch());
+	int c = toupper(getchar());
 	if (c == 'N') {
+
 		erro = -5;
 		goto end;
 	}
