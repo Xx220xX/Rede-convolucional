@@ -279,8 +279,6 @@ int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
 	}
 	lua_close(L);
 	printf("script carregado\n");
-
-
 	return 0;
 }
 
@@ -372,6 +370,10 @@ int main(int nargs, char **args) {
 	if (erro)goto end;
 	train(cnn, input, target, targeti, p.Numero_epocas, p.SalvarBackupACada, p.Numero_ImagensTreino,
 	      p.estatisticasDeTreino);
+	snprintf(buff,300,"%s.cnn",p.nome);
+	FILE *fileCnn = fopen(buff,"wb");
+	cnnSave(cnn,fileCnn);
+	fclose(fileCnn);
 
 	size_t inputSize = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
 	size_t outputSize = cnn->camadas[cnn->size - 1]->entrada->x * cnn->camadas[cnn->size - 1]->entrada->y *
@@ -379,7 +381,9 @@ int main(int nargs, char **args) {
 	fitness(cnn, input + p.Numero_ImagensTreino * inputSize, targeti + p.Numero_ImagensTreino,
 	        p.Numero_Classes, p.names, p.Numero_ImagensAvaliacao, p.SalvarSaidasComoPPM, p.nome,
 	        p.estatiscasDeAvaliacao);
-	printf("treino terminado\n");
+
+	printf("\ntreino terminado\n");
+
 	end:
 	if (input)free(input);
 	if (target)free(target);

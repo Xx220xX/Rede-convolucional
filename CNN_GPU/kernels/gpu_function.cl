@@ -15,7 +15,7 @@ static double tanghG(double x) { return tanh(x); }
 
 static double diftanhG(double x) {
 	double tmp = tanh(x);
-	return (1 - tmp * tmp);
+	return (1.0 - tmp * tmp);
 }
 
 static double relu(double x) { return x > 0 ? x : 0.0; }

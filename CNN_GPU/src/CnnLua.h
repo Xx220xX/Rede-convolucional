@@ -22,7 +22,7 @@ int globalLuaError = 0;
 lua_setglobal(state,name)
 
 static int l_createCnn(lua_State *L) {
-	checkLua(!*globalcnn,"A entrada ja foi definida");
+	checkLua(!*globalcnn, "A entrada ja foi definida");
 	Params p = {0.1, 0.0, 0.0, 1};
 	int x, y, z;
 	x = luaL_checkinteger(L, 1);
@@ -33,16 +33,17 @@ static int l_createCnn(lua_State *L) {
 }
 
 static int l_loadCnn(lua_State *L) {
-	checkLua(*globalcnn,"A entrada não foi definida");
+	checkLua(*globalcnn, "A entrada não foi definida");
 	Params p = {0.1, 0.0, 0.0, 1};
-	char *file ;
-	file = (char *)lua_tostring(L, 1);
-	FILE *f = fopen(file,"rb");
-	checkLua(f,"arquivo %s nao foi encontrado\n",file);
-	cnnCarregar(*globalcnn ,f);
+	char *file;
+	file = (char *) lua_tostring(L, 1);
+	FILE *f = fopen(file, "rb");
+	checkLua(f, "arquivo %s nao foi encontrado\n", file);
+	cnnCarregar(*globalcnn, f);
 	fclose(f);
 	return 0;
 }
+
 static int l_convolution(lua_State *L) {
 	int passo, sfiltro, nfiltro;
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
@@ -50,7 +51,6 @@ static int l_convolution(lua_State *L) {
 	sfiltro = luaL_checkinteger(L, 2);
 	nfiltro = luaL_checkinteger(L, 3);
 	CnnAddConvLayer(*globalcnn, passo, sfiltro, nfiltro);
-
 	return 0;
 }
 
@@ -84,6 +84,7 @@ static int l_fullConnect(lua_State *L) {
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	int neuros = luaL_checkinteger(L, 1);
 	int func = luaL_checkinteger(L, 2);
+	checkLua(func == FTANH || func == FSIGMOID || func == FRELU, "FUNCAO DE ATIVACAO INVALIDA");
 	CnnAddFullConnectLayer(*globalcnn, neuros, func);
 	return 0;
 }
@@ -106,7 +107,7 @@ void loadCnnLuaLibrary(lua_State *L) {
 
 #define GETLUAVALUE(to, L, key, type, isnil) lua_getglobal(L,key);if(lua_isnoneornil(L,-1)){lua_pop(L,1);isnil}else{to =  luaL_check##type(L,-1);lua_pop(L,1);}
 
-#define GETLUASTRING(to,aux,len, L, key,  isnil) lua_getglobal(L,key);if(lua_isnoneornil(L,-1)){lua_pop(L,1);isnil}else{ \
+#define GETLUASTRING(to, aux, len, L, key, isnil) lua_getglobal(L,key);if(lua_isnoneornil(L,-1)){lua_pop(L,1);isnil}else{ \
 aux = (char *) lua_tostring(L,-1);snprintf(to,len,"%s",aux);lua_pop(L,1);}
 #ifndef MAX_STRING_LEN
 #define MAX_STRING_LEN 256
@@ -130,6 +131,5 @@ typedef struct {
 	char arquivoContendoImagens[MAX_STRING_LEN];
 	char arquivoContendoRespostas[MAX_STRING_LEN];
 	Nomes *names;
-
 } ParametrosCnnALL;
 #endif //CNN_GPU_CNNLUA_H
