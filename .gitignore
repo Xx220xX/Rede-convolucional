@@ -1,0 +1,3 @@
+*.ppm
+testes/
+cmake-build-debug/
