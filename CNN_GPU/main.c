@@ -104,5 +104,6 @@ int main(int nargs, char **args) {
     if (p.names)free(p.names);
     printf("\n");
     system("pause");
+
     return erro;
 }

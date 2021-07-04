@@ -12,6 +12,7 @@
 typedef struct {
 	Typecamada super;
 	size_t top, bottom, left, right;
+	Kernel ativa,calcGrad;
 } *CamadaPadding, TypecamadaPadding;
 
 void realeasePadding(CamadaPadding *pc);

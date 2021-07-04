@@ -74,8 +74,8 @@ void printTime(unsigned long long int t) {
 	t = t % 3600000;
 	printf("%02d:", (int) t / 60000);
 	t = t % 60000;
-	printf("%02d:", (int) t / 1000);
-	printf("%02d", (int) t % 1000);
+	printf("%02d", (int) t / 1000);
+
 }
 
 void *showInfoTrain(InfoTrain *info) {

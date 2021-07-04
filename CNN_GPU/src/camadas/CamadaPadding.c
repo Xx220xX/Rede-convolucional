@@ -8,10 +8,10 @@ const char *tostringPadding(CamadaPadding c) {
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
 	int len = snprintf(c->super.__string__, 1000,
 	                   "Padding  Layer: (%u,%u,%u) -> (%u,%u,%u)\n"
-					"\ttop %u, bottom %u, left %d, right %u\n",
+	                   "\ttop %u, bottom %u, left %d, right %u\n",
 	                   c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
 	                   c->super.saida->x, c->super.saida->y, c->super.saida->z,
-	                   c->top,c->bottom,c->left,c->right
+	                   c->top, c->bottom, c->left, c->right
 	);
 	len += 1;
 	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
@@ -40,6 +40,18 @@ Camada createPadding(WrapperCL *cl, cl_command_queue queue,
 	c->bottom = bottom;
 	c->left = left;
 	c->right = right;
+	c->ativa = new_Kernel(cl->program, "paddingfeed", 9,
+	                      K_VOID_P, K_VOID_P,
+	                      K_INT, K_INT, K_INT,
+	                      K_INT, K_INT, K_INT,
+	                      K_INT
+	);
+	c->calcGrad = new_Kernel(cl->program, "paddingBack", 9,
+	                         K_VOID_P, K_VOID_P,
+	                         K_INT, K_INT, K_INT,
+	                         K_INT, K_INT, K_INT,
+	                         K_INT
+	);
 	return (Camada) c;
 }
 
@@ -50,55 +62,43 @@ void realeasePadding(CamadaPadding *pc) {
 	if (c->super.__string__ != NULL) {
 		free(c->super.__string__);
 	}
+	releaseKernel(&c->ativa);
+	releaseKernel(&c->calcGrad);
 	releaseTensor(&c->super.saida);
 	free(c);
 	*pc = NULL;
 }
 
 void ativaPadding(CamadaPadding c) {
-	unsigned long long int ofin, ofout;
-	for (int z=0; z < c->super.entrada->z; z++) {
-		for (int x = 0; x < c->super.entrada->x; ++x) {
-			ofout = z * c->super.saida->x * c->super.saida->y + (c->top + x) * c->super.saida->y + c->left;
-			ofin = z * c->super.entrada->x * c->super.entrada->y + x * c->super.entrada->y;
-			clEnqueueCopyBuffer(
-					c->super.queue,
-					c->super.entrada->data,
-					c->super.saida->data,
-					ofin*sizeof(double),
-					ofout*sizeof(double),
-					c->super.entrada->y*sizeof (double),
-					0,
-					NULL,
-					NULL
-			);
-
-		}
-	}
-
+	kernel_run_recursive(&c->ativa, c->super.queue,
+	                     c->super.entrada->x * c->super.entrada->x * c->super.entrada->z,
+	                     *c->super.max_works,
+	                     &c->super.entrada->data,
+	                     &c->super.saida->data,
+	                     &c->super.entrada->x,
+	                     &c->super.entrada->y,
+	                     &c->super.saida->x,
+	                     &c->super.saida->y,
+	                     &c->top,
+	                     &c->left
+	);
 }
 
 void corrige_pesosPadding(CamadaPadding c) {}
 
 void calc_gradsPadding(CamadaPadding c, Tensor GradNext) {
-	unsigned long long int ofin, ofout;
-	for (int z=0; z < c->super.entrada->z; z++) {
-		for (int x = 0; x < c->super.entrada->x; ++x) {
-			ofout = z * c->super.saida->x * c->super.saida->y + (c->top + x) * c->super.saida->y + c->left;
-			ofin = z * c->super.entrada->x * c->super.entrada->y + x * c->super.entrada->y;
-			clEnqueueCopyBuffer(
-					c->super.queue,
-					GradNext->data,
-					c->super.gradsEntrada->data,
-					ofout*sizeof(double),
-					ofin*sizeof(double),
-					c->super.gradsEntrada->y*sizeof (double),
-					0,
-					NULL,
-					NULL
-			);
-		}
-	}
+	kernel_run_recursive(&c->calcGrad, c->super.queue,
+	                     c->super.entrada->x * c->super.entrada->x * c->super.entrada->z,
+	                     *c->super.max_works,
+	                     &GradNext->data,
+	                     &c->super.gradsEntrada->data,
+	                     &c->super.entrada->x,
+	                     &c->super.entrada->y,
+	                     &c->super.saida->x,
+	                     &c->super.saida->y,
+	                     &c->top,
+	                     &c->left
+	);
 
 }
 

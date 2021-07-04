@@ -281,7 +281,7 @@ kV convFixWeight(Vector filtro, Vector grad, Vector gradOld, double hitlearn,
 	gradOld[k] = m;
 }
 
-kV convCalcFiltro(Vector ds,
+kV convCalcFiltro(     Vector ds,
 					   Vector entrada,
 					   Vector gradFiltro,
                        int gradFiltro_tx,
@@ -307,7 +307,8 @@ kV convCalcFiltro(Vector ds,
 	gradFiltro[k] = soma;
 }
 
-kV convCalcGrads(Vector filtro,Vector entrada,
+kV convCalcGrads(Vector filtro,
+				 Vector entrada,
                  Vector gradEntrada,
                  Vector gradNext,
                  int lenFilter,
@@ -457,6 +458,28 @@ kV fullcalcgrads2(Vector dz, Vector da, Vector pesos, int pesosx, int pesosy,
 	da[m] = soma;
 }
 
+//padding.h
+kV paddingfeed(Vector in,Vector out,
+			   int txi,int tyi,
+			   int txo,int tyo,
+			   int t, int l ,
+			   int k0){
+	int k = get_global_id(0) + k0;
+	int x, y, z;
+	TensorRemap(k, x, y, z, txi, tyi)
+	int s = TensorMap(x+t,y+l,z,txo,tyo);
+	out[s] = in[k];
+}
+kV paddingBack(Vector gradNext,Vector gradin,
+			   int txi,int tyi,
+			   int txo,int tyo,
+			   int t, int l , int k0){
+	int k = get_global_id(0) + k0;
+	int x, y, z;
+	TensorRemap(k, x, y, z, txi, tyi)
+	int s = TensorMap(x+t,y+l,z,txo,tyo);
+	gradin[k] = gradNext[s];
+}
 //pool.h
 kV poolativa(Vector entrada, Vector saida, int lenFilter,
              int passo, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
