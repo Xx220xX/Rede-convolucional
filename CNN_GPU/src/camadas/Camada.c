@@ -22,6 +22,12 @@ carregarCamada(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
 			return carregarFullConnect(cl, src, queue, entrada, param, error);
 		case BATCHNORM:
 			return carregarBatchNorm(cl,src,queue,entrada,param,error);
+		case POOLAV:
+			return carregarPoolAv(cl,src,queue,entrada,param,error);
+		case PADDING:
+			return carregarPadding(cl,src,queue,entrada,param,error);
+		case CONVNC:
+			return carregarConvNc(cl,src,queue,entrada,param,error);
 		default:
 			return NULL;
 	}

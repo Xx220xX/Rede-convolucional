@@ -58,7 +58,10 @@ Ponto3d __addLayer(Cnn c);
 
 int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros);
 
+int CnnAddConvNcLayer(Cnn c, UINT passox,UINT passoy,UINT largx,UINT largy, UINT filtrox,UINT filtroy, UINT numeroDeFiltros);
+
 int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro);
+
 int CnnAddPoolAvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro);
 
 int CnnAddReluLayer(Cnn c);
@@ -93,7 +96,8 @@ void printCnn(Cnn c);
 
 char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r);
 
-const char * getVersion();
-const char * getInfo();
+const char *getVersion();
+
+const char *getInfo();
 
 #endif

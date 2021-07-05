@@ -60,9 +60,13 @@ Camada createConvNc(WrapperCL *cl, cl_command_queue queue, UINT passox,
 
 	if (randomize) ConvNcRandomize(c, cl, error);
 	if (error->error) return (Camada) c;
-	c->kernelConvNcSum = new_Kernel(cl->program, "ConvNcSum", 11, K_VOID_P, K_VOID_P, K_VOID_P,
-	                                K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
-	c->kernelConvNcFixWeight = new_Kernel(cl->program, "ConvNcFixWeight", 7, K_VOID_P, K_VOID_P, K_VOID_P,
+	c->kernelConvNcSum = new_Kernel(cl->program, "convncSum", 15,
+	                                K_VOID_P, K_VOID_P, K_VOID_P,
+	                                K_INT, K_INT, K_INT,
+	                                K_INT, K_INT, K_INT,
+	                                K_INT, K_INT, K_INT, K_INT,
+	                                K_INT, K_INT);
+	c->kernelConvNcFixWeight = new_Kernel(cl->program, "convncFixWeight", 7, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                      K_DOUBLE, K_DOUBLE, K_DOUBLE, K_INT);
 	c->kernelConvNcCalcGradsFiltro = new_Kernel(cl->program, "ConvNcCalcFiltro", 12,
 	                                            K_VOID_P, K_VOID_P, K_VOID_P,
@@ -70,16 +74,20 @@ Camada createConvNc(WrapperCL *cl, cl_command_queue queue, UINT passox,
 	                                            K_INT, K_INT, K_INT,
 	                                            K_INT, K_INT, K_INT
 	);
-	c->kernelConvNcCalcGrads = new_Kernel(cl->program, "ConvNcCalcGrads", 13,
-	                                      K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	c->kernelConvNcCalcGrads = new_Kernel(cl->program, "convncCalcFiltro",
+	                                      15,
+	                                      K_VOID_P, K_VOID_P, K_VOID_P,
 	                                      K_INT, K_INT, K_INT,
-	                                      K_INT, K_INT, K_INT,
-	                                      K_INT, K_INT, K_INT);
+	                                      K_INT, K_INT,
+	                                      K_INT, K_INT,
+	                                      K_INT, K_INT,
+	                                      K_INT, K_INT,
+	                                      K_INT);
 	return (Camada) c;
 }
 
 int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, GPU_ERROR *error) {
-	UINT fx = c->filtros->x,fy = c->filtros->y,
+	UINT fx = c->filtros->x, fy = c->filtros->y,
 			inz = c->super.entrada->z,
 			numeroFiltros = c->numeroFiltros;
 	cl_context context = cl->context;
@@ -88,7 +96,7 @@ int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, GPU_ERROR *error) {
 	double *data = (double *) calloc(fx * fy * inz, sizeof(double));
 	cl_command_queue queue = c->super.queue;
 	if (error->error) {
-		snprintf(error->msg, 255, "nao foi possivel cruiar a queue\n");
+		snprintf(error->msg, 255, "nao foi possivel criar a queue\n");
 		return error->error;
 	}
 	for (int a = 0; a < numeroFiltros; a++) {
@@ -133,60 +141,74 @@ void releaseConvNc(CamadaConvNc *pc) {
 
 int ativaConvNc(CamadaConvNc c) {
 	//iteraçao nos filtros
-//	kernel_run_recursive(&c->kernelConvNcSum, c->super.queue, c->super.saida->x * c->super.saida->y * c->numeroFiltros,
-//	                     *c->super.max_works,
-//	                     &c->filtros->data, &c->super.entrada->data, &c->super.saida->data,
-//	                     &c->passo, &c->super.saida->x, &c->super.saida->y, &c->super.entrada->x, &c->super.entrada->y,
-//	                     &c->tamanhoFiltro, &c->super.entrada->z);
+	kernel_run_recursive(&c->kernelConvNcSum, c->super.queue, c->super.saida->x * c->super.saida->y * c->numeroFiltros,
+	                     *c->super.max_works,
+	                     &c->filtros->data, &c->super.entrada->data, &c->super.saida->data,
+	                     &c->passox, &c->passoy, &c->largx,
+	                     &c->largy, &c->super.saida->x, &c->super.saida->y,
+	                     &c->super.entrada->x, &c->super.entrada->y,
+	                     &c->filtros->x, &c->filtros->y,
+	                     &c->super.entrada->z);
 	return 0;
 }
 
 void corrige_pesosConvNc(CamadaConvNc c) {
-//	kernel_run_recursive(&c->kernelConvNcFixWeight, c->super.queue,
-//	                     c->tamanhoFiltro * c->tamanhoFiltro * c->super.entrada->z * c->numeroFiltros,
-//	                     *c->super.max_works,
-//	                     &c->filtros->data,
-//	                     &c->grad_filtros->data,
-//	                     &c->grad_filtros_old->data,
-//	                     &c->super.parametros->hitLearn,
-//	                     &c->super.parametros->momento,
-//	                     &c->super.parametros->decaimentoDePeso);
+	kernel_run_recursive(&c->kernelConvNcFixWeight, c->super.queue,
+	                     c->filtros->x * c->filtros->y * c->super.entrada->z * c->numeroFiltros,
+	                     *c->super.max_works,
+	                     &c->filtros->data,
+	                     &c->grad_filtros->data,
+	                     &c->grad_filtros_old->data,
+	                     &c->super.parametros->hitLearn,
+	                     &c->super.parametros->momento,
+	                     &c->super.parametros->decaimentoDePeso);
 }
 
 void calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
-//	kernel_run_recursive(&c->kernelConvNcCalcGradsFiltro, c->super.queue,
-//	                     c->filtros->x * c->filtros->y * c->filtros->z * c->numeroFiltros,
-//	                     *c->super.max_works,
-//	                     &Gradnext->data,
-//	                     &c->super.entrada->data,
-//	                     &c->grad_filtros->data,
-//	                     &c->filtros->x,
-//	                     &c->filtros->y,
-//	                     &c->filtros->z,
-//	                     &c->super.entrada->x,
-//	                     &c->super.entrada->y,
-//	                     &c->super.saida->x,
-//	                     &c->super.saida->y,
-//	                     &c->passo
-//	);
-	//clFinish(c->super.queue);
+	kernel_run_recursive(&c->kernelConvNcCalcGradsFiltro, c->super.queue,
+	                     c->filtros->x * c->filtros->y * c->filtros->z * c->numeroFiltros,
+	                     *c->super.max_works,
+	                     &Gradnext->data,
+	                     &c->super.entrada->data,
+	                     &c->grad_filtros->data,
+	                     &c->filtros->x,
+	                     &c->filtros->y,
+	                     &c->filtros->z,
 
-//	kernel_run_recursive(&c->kernelConvNcCalcGrads, c->super.queue,
-//	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
-//	                     *c->super.max_works,
-//	                     &c->filtros->data,
-//	                     &c->super.entrada->data,
-//	                     &c->super.gradsEntrada->data,
-//	                     &Gradnext->data,
-//	                     &c->tamanhoFiltro,
-//	                     &c->filtros->z,
-//	                     &c->passo,
-//	                     &c->super.entrada->x,
-//	                     &c->super.entrada->y,
-//	                     &c->super.saida->x,
-//	                     &c->super.saida->y,
-//	                     &c->numeroFiltros);
+	                     &c->super.entrada->x,
+	                     &c->super.entrada->y,
 
+	                     &c->super.saida->x,
+	                     &c->super.saida->y,
+	                     &c->passox,
+	                     &c->passoy,
+	                     &c->largx,
+	                     &c->largy
+
+	);
+
+	kernel_run_recursive(&c->kernelConvNcCalcGrads, c->super.queue,
+	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
+	                     *c->super.max_works,
+	                     &c->filtros->data,
+	                     &c->super.entrada->data,
+	                     &c->super.gradsEntrada->data,
+	                     &Gradnext->data,
+
+	                     &c->passox,
+	                     &c->passoy,
+	                     &c->largx,
+	                     &c->largy,
+
+	                     &c->super.entrada->x,
+	                     &c->super.entrada->y,
+
+	                     &c->super.saida->x,
+	                     &c->super.saida->y,
+	                     &c->filtros->x,
+	                     &c->filtros->y,
+	                     &c->filtros->z,
+	                     &c->numeroFiltros);
 
 }
 
@@ -214,13 +236,14 @@ void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, GPU_ERROR *error) {
 	clFinish(queue);
 }
 
-Camada carregarConvNc(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
+Camada
+carregarConvNc(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
-	UINT passox, passoy,largx,largy,fx,fy,numeroFiltros, inx, iny, inz;
+	UINT passox, passoy, largx, largy, fx, fy, numeroFiltros, inx, iny, inz;
 	fread(&passox, sizeof(UINT), 1, src);
 	fread(&passoy, sizeof(UINT), 1, src);
 	fread(&fx, sizeof(UINT), 1, src);
@@ -231,9 +254,9 @@ Camada carregarConvNc(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor e
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	CamadaConvNc c = (CamadaConvNc) createConvNc(cl, queue, passox, passoy,largx,largy
-											  ,fx,fy, numeroFiltros, inx, iny, inz,
-											  entrada,params,error, 0);
+	CamadaConvNc c = (CamadaConvNc) createConvNc(cl, queue, passox, passoy, largx, largy, fx, fy, numeroFiltros, inx,
+	                                             iny, inz,
+	                                             entrada, params, error, 0);
 	double *data = callocdouble(c->filtros->x * c->filtros->y * c->super.entrada->z);
 	for (int a = 0; a < c->numeroFiltros; a++) {
 		fread(data, 1, c->filtros->bytes, src);

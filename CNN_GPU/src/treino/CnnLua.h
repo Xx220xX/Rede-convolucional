@@ -63,6 +63,20 @@ static int l_convolution(lua_State *L) {
 	return 0;
 }
 
+static int l_convolution_non_causal(lua_State *L) {
+	int passox, passoy, largx, largy, filtrox, filtroy, nfiltro;
+	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	passox = luaL_checkinteger(L, 1);
+	passoy = luaL_checkinteger(L, 2);
+	largx = luaL_checkinteger(L, 3);
+	largy = luaL_checkinteger(L, 4);
+	filtrox = luaL_checkinteger(L, 5);
+	filtroy = luaL_checkinteger(L, 6);
+	nfiltro = luaL_checkinteger(L, 7);
+	CnnAddConvNcLayer(*globalcnn, passox, passoy, largx, largy, filtrox, filtroy, nfiltro);
+	return 0;
+}
+
 
 static int l_pooling(lua_State *L) {
 	int passo, sfiltro;
@@ -128,6 +142,7 @@ static int l_batchnorm(lua_State *L) {
 void loadCnnLuaLibrary(lua_State *L) {
 	REGISTERC_L(L, l_createCnn, "Entrada");
 	REGISTERC_L(L, l_convolution, "Convolucao");
+	REGISTERC_L(L, l_convolution_non_causal, "ConvolucaoNcausal");
 	REGISTERC_L(L, l_pooling, "Pooling");
 	REGISTERC_L(L, l_poolingav, "PoolingAv");
 	REGISTERC_L(L, l_relu, "Relu");

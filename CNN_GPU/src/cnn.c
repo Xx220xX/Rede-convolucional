@@ -3,12 +3,14 @@
 //
 #include "cnn.h"
 
-char __version__[] = "2.0.012";
+char __version__[] = "2.0.014";
 char __notas__[] =
 		"camada conv corrigida 2.0.007\n"
 		"camada padding adicionada 2.0.009\n"
 		"camada padding corrigida 2.0.011\n"
 		"corrigido implementacao dropout 2.0.012\n"
+		"camada polling av adicionada 2.0.013\n"
+		"camada convNc adicionada 2.0.014\n"
 		;
 
 const char *getVersion() {
@@ -126,6 +128,44 @@ int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltro
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passo, tamanhoDoFiltro, numeroDeFiltros, sizeIn.x, sizeIn.y,
+	                                     sizeIn.z,
+	                                     entrada,
+	                                     &c->parametros, &c->error, 1);
+	if (!c->error.error) {
+		c->lastGrad = newTensor(c->cl->context, c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
+		                        c->camadas[c->size - 1]->saida->z, &c->error);
+		c->target = newTensor(c->cl->context, c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
+		                      c->camadas[c->size - 1]->saida->z, &c->error);
+	}
+	return c->error.error;
+}
+
+int CnnAddConvNcLayer(Cnn c, UINT passox,UINT passoy,UINT largx,UINT largy, UINT filtrox,UINT filtroy, UINT numeroDeFiltros){
+	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
+	* em que:
+	* 			S = tamanho da saida
+	* 			E = tamanho da entrada
+	* 			F = tamanho do filtro
+	* 			Pd = preenchimento com zeros
+	* 			P = passo
+	**/
+
+	Ponto3d sizeIn = __addLayer(c);
+	if (
+			((sizeIn.x -1 - (filtrox-1)*largx)/passox !=(sizeIn.x -1 - (filtrox-1)*largx)/(double)passox )||
+			((sizeIn.y -1 - (filtroy-1)*largy)/passoy !=(sizeIn.y -1 - (filtroy-1)*largy)/(double)passoy )
+	) {
+		c->warning = INVALID_FILTER_SIZE;
+		c->size--;
+		c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
+		fprintf(stderr, "tamanho do filtro invalido\n");
+		return c->warning;
+
+	}
+
+	Tensor entrada = NULL;
+	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
+	c->camadas[c->size - 1] = createConvNc(c->cl, c->queue, passox,passoy, largx,largy,filtrox,filtroy, numeroDeFiltros, sizeIn.x, sizeIn.y,
 	                                     sizeIn.z,
 	                                     entrada,
 	                                     &c->parametros, &c->error, 1);

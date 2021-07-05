@@ -1,7 +1,9 @@
 //#include"utils.h"
 kV convncSum(Vector filtro, Vector entrada, Vector saida,
-             int passox, int passoy, int largx, int largy, int saidatx, int saidaty, int entradatx, int entradaty,
-             int fx, int fy, int entradatz, int k0) {
+             int passox, int passoy, int largx,
+             int largy, int saidatx, int saidaty,
+             int entradatx, int entradaty,int fx, int fy,
+             int entradatz, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, filtrok;
 	TensorRemap(k, x, y, filtrok, saidatx, saidaty)
@@ -17,7 +19,8 @@ kV convncSum(Vector filtro, Vector entrada, Vector saida,
 	saida[k] = sum;
 }
 
-kV convncFixWeight(Vector filtro, Vector grad, Vector gradOld, double hitlearn,
+kV convncFixWeight(Vector filtro, Vector grad, Vector gradOld,
+				   double hitlearn,
                    double momento, double weightDecay, int k0) {
 	int k = get_global_id(0) + k0;
 	double m = grad[k] + gradOld[k] * momento;
@@ -32,12 +35,16 @@ kV convncCalcFiltro(Vector ds,
                     int gradFiltro_tx,
                     int gradFiltro_ty,
                     int gradFiltro_tz,
+
                     int entrada_tx,
                     int entrada_ty,
+
                     int saida_tx,
                     int saida_ty,
+
                     int passox,
                     int passoy,
+
                     int largx,
                     int largy,
                     int k0) {
@@ -67,10 +74,12 @@ kV convncCalcGrads(Vector filtro,
                    Vector entrada,
                    Vector gradEntrada,
                    Vector gradNext,
+
                    int passox,
                    int passoy,
                    int largx,
                    int largy,
+
                    int entradatx,
                    int entradaty,
                    int saidatx,
@@ -104,10 +113,12 @@ kV convncCalcGrads(Vector filtro,
 	double somaErro = 0, pesoAplicado = 0;
 	for (int m = range_filtro.min.x; i <= range_filtro.max.x; i++) {
 		sx = (x - m * largx) / passox;
+		if (sx * passox + m * largx != x)continue;
 		for (int n = range_filtro.min.y; j <= range_filtro.max.y; j++) {
 			sy = (y - n * largy) / passox;
-			for (int l = 0; l < filtoz; l++) {
-				pesoAplicado = filtro[TensorMap4D(m, n, z, l, fx, fy, filtroz)];
+			if (sy * passoy + n * largy != y)continue;
+			for (int l = 0; l < fz; l++) {
+				pesoAplicado = filtro[TensorMap4D(m, n, z, l, fx, fy, fz)];
 				somaErro += pesoAplicado * gradNext[TensorMap(sx, sy, l, saidatx, saidaty)];
 			}
 		}

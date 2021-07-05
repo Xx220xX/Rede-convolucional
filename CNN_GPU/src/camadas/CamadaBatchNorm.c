@@ -212,8 +212,7 @@ void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, GPU_ERROR *err
 
 }
 
-Camada
-carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
+Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
