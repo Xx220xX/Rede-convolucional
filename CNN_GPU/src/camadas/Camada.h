@@ -30,6 +30,7 @@ typedef const char *(*fch)(void *);
 #define BATCHNORM   7
 #define PADDING     8
 #define POOLAV      9
+#define CONVNC     10
 
 
 typedef struct {

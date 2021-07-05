@@ -3,6 +3,7 @@
 
 #include "camadas/Camada.h"
 #include "camadas/CamadaConv.h"
+#include "camadas/CamadaConvNC.h"
 #include "camadas/CamadaRelu.h"
 #include "camadas/CamadaPadding.h"
 #include "camadas/CamadaDropOut.h"
