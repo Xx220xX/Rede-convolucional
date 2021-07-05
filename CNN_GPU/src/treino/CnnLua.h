@@ -37,105 +37,116 @@ static int l_createCnn(lua_State *L) {
 			device = CL_DEVICE_TYPE_CPU;
 		}
 	}
-		*globalcnn = createCnnWithWrapperProgram(default_kernel, p, x, y, z, device);
-		return 0;
-	}
-	static int l_loadCnn(lua_State *L) {
-		checkLua(*globalcnn, "A entrada não foi definida");
-		Params p = {0.1, 0.0, 0.0};
-		char *file;
-		file = (char *) lua_tostring(L, 1);
-		FILE *f = fopen(file, "rb");
-		checkLua(f, "arquivo %s nao foi encontrado\n", file);
-		cnnCarregar(*globalcnn, f);
-		fclose(f);
-		return 0;
-	}
+	*globalcnn = createCnnWithWrapperProgram(default_kernel, p, x, y, z, device);
+	return 0;
+}
 
-	static int l_convolution(lua_State *L) {
-		int passo, sfiltro, nfiltro;
-		checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-		passo = luaL_checkinteger(L, 1);
-		sfiltro = luaL_checkinteger(L, 2);
-		nfiltro = luaL_checkinteger(L, 3);
-		CnnAddConvLayer(*globalcnn, passo, sfiltro, nfiltro);
-		return 0;
-	}
+static int l_loadCnn(lua_State *L) {
+	checkLua(*globalcnn, "A entrada não foi definida");
+	Params p = {0.1, 0.0, 0.0};
+	char *file;
+	file = (char *) lua_tostring(L, 1);
+	FILE *f = fopen(file, "rb");
+	checkLua(f, "arquivo %s nao foi encontrado\n", file);
+	cnnCarregar(*globalcnn, f);
+	fclose(f);
+	return 0;
+}
 
-
-	static int l_pooling(lua_State *L) {
-		int passo, sfiltro;
-		checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-		passo = luaL_checkinteger(L, 1);
-		sfiltro = luaL_checkinteger(L, 2);
-		CnnAddPoolLayer(*globalcnn, passo, sfiltro);
-		return 0;
-	}
+static int l_convolution(lua_State *L) {
+	int passo, sfiltro, nfiltro;
+	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	passo = luaL_checkinteger(L, 1);
+	sfiltro = luaL_checkinteger(L, 2);
+	nfiltro = luaL_checkinteger(L, 3);
+	CnnAddConvLayer(*globalcnn, passo, sfiltro, nfiltro);
+	return 0;
+}
 
 
-	static int l_relu(lua_State *L) {
-		checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-		CnnAddReluLayer(*globalcnn);
-		return 0;
-	}
+static int l_pooling(lua_State *L) {
+	int passo, sfiltro;
+	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	passo = luaL_checkinteger(L, 1);
+	sfiltro = luaL_checkinteger(L, 2);
+	CnnAddPoolLayer(*globalcnn, passo, sfiltro);
+	return 0;
+}
 
-	static int l_padding(lua_State *L) {
-		checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-		UINT top = luaL_checkinteger(L, 1);
-		UINT bottom = luaL_checkinteger(L, 2);
-		UINT left = luaL_checkinteger(L, 3);
-		UINT right = luaL_checkinteger(L, 4);
-		CnnAddPaddingLayer(*globalcnn, top, bottom, left, right);
-		return 0;
-	}
+static int l_poolingav(lua_State *L) {
+	int passo, sfiltro;
+	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	passo = luaL_checkinteger(L, 1);
+	sfiltro = luaL_checkinteger(L, 2);
+	CnnAddPoolAvLayer(*globalcnn, passo, sfiltro);
+	return 0;
+}
 
 
-	static int l_dropout(lua_State *L) {
-		checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-		double ativa = luaL_checknumber(L, 1);
-		long long int seed = time(NULL);
-		if(!lua_isnoneornil(L,2))
-			seed = luaL_checkinteger(L, 2);
-		CnnAddDropOutLayer(*globalcnn, ativa, seed);
-		return 0;
-	}
+static int l_relu(lua_State *L) {
+	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	CnnAddReluLayer(*globalcnn);
+	return 0;
+}
 
-	static int l_fullConnect(lua_State *L) {
-		checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-		int neuros = luaL_checkinteger(L, 1);
-		int func = luaL_checkinteger(L, 2);
-		checkLua(func == FTANH || func == FSIGMOID || func == FRELU, "FUNCAO DE ATIVACAO INVALIDA");
-		CnnAddFullConnectLayer(*globalcnn, neuros, func);
-		return 0;
-	}
+static int l_padding(lua_State *L) {
+	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	UINT top = luaL_checkinteger(L, 1);
+	UINT bottom = luaL_checkinteger(L, 2);
+	UINT left = luaL_checkinteger(L, 3);
+	UINT right = luaL_checkinteger(L, 4);
+	CnnAddPaddingLayer(*globalcnn, top, bottom, left, right);
+	return 0;
+}
 
-	static int l_batchnorm(lua_State *L) {
-		checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-		CnnAddBatchNorm(*globalcnn, 1e-12);
-		return 0;
-	}
 
-	void loadCnnLuaLibrary(lua_State *L) {
-		REGISTERC_L(L, l_createCnn, "Entrada");
-		REGISTERC_L(L, l_convolution, "Convolucao");
-		REGISTERC_L(L, l_pooling, "Pooling");
-		REGISTERC_L(L, l_relu, "Relu");
-		REGISTERC_L(L, l_padding, "Padding");
-		REGISTERC_L(L, l_dropout, "Dropout");
-		REGISTERC_L(L, l_fullConnect, "FullConnect");
-		REGISTERC_L(L, l_batchnorm, "BatchNorm");
-		REGISTERC_L(L, l_loadCnn, "CarregarRede");
-		lua_pushinteger(L, FSIGMOID);
-		lua_setglobal(L, "SIGMOID");
-		lua_pushinteger(L, FTANH);
-		lua_setglobal(L, "TANH");
-		lua_pushinteger(L, FRELU);
-		lua_setglobal(L, "RELU");
-		lua_pushinteger(L, 0b10);
-		lua_setglobal(L, "CPU");
-		lua_pushinteger(L, 0b100);
-		lua_setglobal(L, "GPU");
-	}
+static int l_dropout(lua_State *L) {
+	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	double ativa = luaL_checknumber(L, 1);
+	long long int seed = time(NULL);
+	if (!lua_isnoneornil(L, 2))
+		seed = luaL_checkinteger(L, 2);
+	CnnAddDropOutLayer(*globalcnn, ativa, seed);
+	return 0;
+}
+
+static int l_fullConnect(lua_State *L) {
+	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	int neuros = luaL_checkinteger(L, 1);
+	int func = luaL_checkinteger(L, 2);
+	checkLua(func == FTANH || func == FSIGMOID || func == FRELU, "FUNCAO DE ATIVACAO INVALIDA");
+	CnnAddFullConnectLayer(*globalcnn, neuros, func);
+	return 0;
+}
+
+static int l_batchnorm(lua_State *L) {
+	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	CnnAddBatchNorm(*globalcnn, 1e-12);
+	return 0;
+}
+
+void loadCnnLuaLibrary(lua_State *L) {
+	REGISTERC_L(L, l_createCnn, "Entrada");
+	REGISTERC_L(L, l_convolution, "Convolucao");
+	REGISTERC_L(L, l_pooling, "Pooling");
+	REGISTERC_L(L, l_poolingav, "PoolingAv");
+	REGISTERC_L(L, l_relu, "Relu");
+	REGISTERC_L(L, l_padding, "Padding");
+	REGISTERC_L(L, l_dropout, "Dropout");
+	REGISTERC_L(L, l_fullConnect, "FullConnect");
+	REGISTERC_L(L, l_batchnorm, "BatchNorm");
+	REGISTERC_L(L, l_loadCnn, "CarregarRede");
+	lua_pushinteger(L, FSIGMOID);
+	lua_setglobal(L, "SIGMOID");
+	lua_pushinteger(L, FTANH);
+	lua_setglobal(L, "TANH");
+	lua_pushinteger(L, FRELU);
+	lua_setglobal(L, "RELU");
+	lua_pushinteger(L, 0b10);
+	lua_setglobal(L, "CPU");
+	lua_pushinteger(L, 0b100);
+	lua_setglobal(L, "GPU");
+}
 
 #define GETLUAVALUE(to, L, key, type, isnil) lua_getglobal(L,key);if(lua_isnoneornil(L,-1)){lua_pop(L,1);isnil}else{to =  luaL_check##type(L,-1);lua_pop(L,1);}
 
@@ -144,24 +155,24 @@ aux = (char *) lua_tostring(L,-1);snprintf(to,len,"%s",aux);lua_pop(L,1);}
 #ifndef MAX_STRING_LEN
 #define MAX_STRING_LEN 256
 #endif
-	typedef struct {
-		char nome[MAX_STRING_LEN];
-		char home[MAX_STRING_LEN];
-		int Numero_epocas;
-		int SalvarBackupACada;
-		int Numero_Imagens;
-		int Numero_ImagensTreino;
-		int Numero_ImagensAvaliacao;
-		int Numero_Classes;
-		int SalvarSaidasComoPPM;
-		int bytes_remanessentes_imagem;
-		int bytes_remanessentes_classes;
+typedef struct {
+	char nome[MAX_STRING_LEN];
+	char home[MAX_STRING_LEN];
+	int Numero_epocas;
+	int SalvarBackupACada;
+	int Numero_Imagens;
+	int Numero_ImagensTreino;
+	int Numero_ImagensAvaliacao;
+	int Numero_Classes;
+	int SalvarSaidasComoPPM;
+	int bytes_remanessentes_imagem;
+	int bytes_remanessentes_classes;
 
-		char estatisticasDeTreino[MAX_STRING_LEN];
-		char estatiscasDeAvaliacao[MAX_STRING_LEN];
+	char estatisticasDeTreino[MAX_STRING_LEN];
+	char estatiscasDeAvaliacao[MAX_STRING_LEN];
 
-		char arquivoContendoImagens[MAX_STRING_LEN];
-		char arquivoContendoRespostas[MAX_STRING_LEN];
-		Nomes *names;
-	} ParametrosCnnALL;
+	char arquivoContendoImagens[MAX_STRING_LEN];
+	char arquivoContendoRespostas[MAX_STRING_LEN];
+	Nomes *names;
+} ParametrosCnnALL;
 #endif //CNN_GPU_CNNLUA_H

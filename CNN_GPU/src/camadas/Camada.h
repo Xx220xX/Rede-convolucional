@@ -29,6 +29,7 @@ typedef const char *(*fch)(void *);
 #define SOFTMAX     6
 #define BATCHNORM   7
 #define PADDING     8
+#define POOLAV      9
 
 
 typedef struct {
@@ -51,8 +52,7 @@ typedef struct {
 	fv release;
 } *Camada, Typecamada;
 
-void
-__newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, cl_command_queue queue, Params *params, size_t xi,
+void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, cl_command_queue queue, Params *params, size_t xi,
               size_t yi, size_t zi, size_t xo, size_t yo, size_t zo, GPU_ERROR *error);
 
 Camada carregarConv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error);
@@ -75,5 +75,7 @@ carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entra
 
 Camada carregarPadding(WrapperCL *cl, FILE *src, cl_command_queue queue,
                        Tensor entrada, Params *params, GPU_ERROR *error);
+
+Camada carregarPoolAv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error);
 
 #endif //CNN_GPU_CAMADA_H

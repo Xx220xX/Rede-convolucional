@@ -171,6 +171,39 @@ int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
 	return c->error.error;
 }
 
+int CnnAddPoolAvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
+	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
+	* em que:
+	* 			S = tamanho da saida
+	* 			E = tamanho da entrada
+	* 			F = tamanho do filtro
+	* 			Pd = preenchimento com zeros
+	* 			P = passo
+	**/
+
+	Ponto3d sizeIn = __addLayer(c);
+	if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
+		c->warning = INVALID_FILTER_SIZE;
+		c->size--;
+		c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
+		fprintf(stderr, "tamanho do filtro invalido\n");
+		return c->warning;
+
+	}
+
+	Tensor entrada = NULL;
+	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
+	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
+	                                     &c->parametros, &c->error);
+	if (!c->error.error) {
+		c->lastGrad = newTensor(c->cl->context, c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
+		                        c->camadas[c->size - 1]->saida->z, &c->error);
+		c->target = newTensor(c->cl->context, c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
+		                      c->camadas[c->size - 1]->saida->z, &c->error);
+	}
+	return c->error.error;
+}
+
 int CnnAddBatchNorm(Cnn c, double epsilon) {
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;

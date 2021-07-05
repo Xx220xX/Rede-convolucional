@@ -20,6 +20,7 @@ set(LCG_RANDOM src/LCG_Random/lcg.h src/LCG_Random/lcg.c)
 set(camadasCNN src/camadas/Camada.h src/camadas/Camada.c
         src/camadas/CamadaConv.h src/camadas/CamadaConv.c
         src/camadas/CamadaPool.h src/camadas/CamadaPool.c
+        src/camadas/CamadaPoolAv.h src/camadas/CamadaPoolAv.c
         src/camadas/CamadaDropOut.h src/camadas/CamadaDropOut.c
         src/camadas/CamadaFullConnect.h src/camadas/CamadaFullConnect.c
         src/camadas/CamadaBatchNorm.h src/camadas/CamadaBatchNorm.c

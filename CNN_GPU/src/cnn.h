@@ -8,6 +8,7 @@
 #include "camadas/CamadaDropOut.h"
 #include "camadas/CamadaFullConnect.h"
 #include "camadas/CamadaPool.h"
+#include "camadas/CamadaPoolAv.h"
 #include "camadas/CamadaBatchNorm.h"
 
 
@@ -57,6 +58,7 @@ Ponto3d __addLayer(Cnn c);
 int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros);
 
 int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro);
+int CnnAddPoolAvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro);
 
 int CnnAddReluLayer(Cnn c);
 
