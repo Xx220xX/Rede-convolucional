@@ -69,12 +69,12 @@ void printBk(char *msg, int mx1, int color1, int color2) {
 }
 
 void printTime(unsigned long long int t) {
-	//t = t/1000;
-	printf("%02d:", (int) t / 3600000);
-	t = t % 3600000;
-	printf("%02d:", (int) t / 60000);
-	t = t % 60000;
-	printf("%02d", (int) t / 1000);
+	t = t/1000;
+	printf("%02d:", (int) t / 3600);
+	t = t % 3600;
+	printf("%02d:", (int) t / 60);
+	t = t % 60;
+	printf("%02d", (int) t );
 
 }
 
@@ -101,6 +101,7 @@ void *showInfoTrain(InfoTrain *info) {
 	gotoxy(10, y0 + 4);
 	printf("Erro");
 	gotoxy(28, y0 + 4);
+
 	while (!*info->stop_listener) {
 		imagemFeitas = *info->imagemAtual + 1;
 		imagensFaltando = *info->totalImagensTreino - imagemFeitas;
@@ -108,12 +109,12 @@ void *showInfoTrain(InfoTrain *info) {
 
 		perc = (int) (*info->epoca / (double) *info->totalEpocas * 22.0);
 		gotoxy(18, y0);
-		snprintf(buf, 250, "% 3d de % 3d  % 3.2f%%", *info->epoca, *info->totalEpocas,
+		snprintf(buf, 250, "% 3d de % 3d  %03.2f%%", *info->epoca, *info->totalEpocas,
 		         *info->epoca / (double) *info->totalEpocas * 100.0);
 		printBk(buf, perc, GREEN, BLACK);
 
 		gotoxy(18, y0 + 2);
-		printf("% 3d de % 3d  % 3.2f%%", *info->acertos, *info->imagemAtual + 1,
+		printf("%3d de %3d  %03.2f%%", *info->acertos, *info->imagemAtual + 1,
 		       *info->acertos / (*info->imagemAtual + 1.0) * 100.0);
 
 		t = getms() - *info->msInitEpoca;
@@ -124,7 +125,7 @@ void *showInfoTrain(InfoTrain *info) {
 
 		gotoxy(18, y0 + 1);
 		perc = (int) (*info->imagemAtual / (double) *info->totalImagensTreino * 22.0);
-		snprintf(buf, 250, "% 3d de % 3d  % 3.2f%%", *info->imagemAtual, *info->totalImagensTreino,
+		snprintf(buf, 250, "% 3d de % 3d  %03.2f%%", *info->imagemAtual, *info->totalImagensTreino,
 		         (*info->imagemAtual * 100.0) / *info->totalImagensTreino);
 		printBk(buf, perc, GREEN, BLACK);
 
@@ -137,7 +138,7 @@ void *showInfoTrain(InfoTrain *info) {
 		printTime((size_t) (t2 / (double) imagemFeitas * imagensFaltando) );
 
 		gotoxy(18, y0 + 4);
-		printf("% 8.8lf", *info->erro);
+		printf("%08.8lf", *info->erro);
 		Sleep(200);
 	}
 	return NULL;
