@@ -4,6 +4,7 @@ import time
 import numpy as np
 from random import  randint
 from PIL import Image
+import matplotlib.pyplot as plt
 
 __dir = os.path.abspath(__file__)
 __dir = os.path.realpath(__dir)
@@ -27,6 +28,7 @@ clib.CnnAddFullConnectLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint]
 clib.CnnCall.argtypes = [c.c_void_p, c.c_void_p]
 clib.CnnLearn.argtypes = [c.c_void_p, c.c_void_p]
 clib.TensorGetValues.argtypes = [c.c_void_p, c.c_void_p, c.c_void_p]
+clib.TensorGetValuesOffset.argtypes = [c.c_void_p, c.c_void_p, c.c_int, c.c_void_p]
 clib.TensorPutValues.argtypes = [c.c_void_p, c.c_void_p, c.c_void_p]
 
 clib.CnnSaveInFile.argtypes = [c.c_void_p, c.c_char_p]
@@ -88,19 +90,25 @@ class Tensor(c.Structure):
         tmp = c.c_double * (self.x * self.y * self.z)
         return clib.TensorPutValues(queue, c.addressof(self), tmp(*values))
 
-    @property
-    def value(self):
+    def value(self, offset=0):
         temp = self.x * self.y * self.z
         temp = c.c_double * temp
         temp = temp(0)
-        clib.TensorGetValues(queue, c.addressof(self), temp)
+        clib.TensorGetValuesOffset(queue, c.addressof(self), offset,temp)
         return list(temp)
 
-    @property
-    def value_np(self):
-        data = np.array(self.value)
+    def value_np(self, offset=0):
+        data = np.array(self.value(offset))
         data = data.reshape(self.z, self.x, self.y)
         return data
+
+    def histogram(self, offset=0):
+        data = self.value(offset*self.bytes)
+        plt.figure()
+        plt.hist(data, density=True, bins=20)
+        plt.ylabel('Probability')
+        plt.xlabel('Data')
+        plt.title('%d'%(len(data),))
 
     def __iter__(self):
         return self.value.__iter__()
