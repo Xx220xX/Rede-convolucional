@@ -17,7 +17,7 @@ typedef struct {
 	TensorChar hitmap;
 	char flag_releaseInput;
 	double p_ativacao;
-	cl_long seed;
+	cl_ulong seed;
 	Kernel kerneldropativa;
 	Kernel kerneldropcalcgrad;
 } *CamadaDropOut, Typecamadadropout;

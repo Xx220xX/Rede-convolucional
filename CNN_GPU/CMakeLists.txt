@@ -38,7 +38,7 @@ set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/c
         kernels/camadas/relu.h kernels/camadas/softmax.h
         )
 #add_library(CNNGPU SHARED ${CNNpython}
-        add_executable(CNN_GPU main.c ${lua}
+add_executable(CNN_GPU main.c ${lua}
         src/defaultkernel.h
         src/icon/icon.o
         ${gpu}

@@ -125,12 +125,12 @@ class TensorChar(Tensor):
         tmp = c.c_ubyte * (self.x * self.y * self.z)
         return clib.TensorPutValues(queue, c.addressof(self), tmp(*values))
 
-    @property
-    def value(self):
+
+    def value(self,offset=0):
         temp = self.x * self.y * self.z
-        temp = c.c_char * temp
+        temp = c.c_uint8 * temp
         temp = temp(0)
-        clib.TensorGetValues(queue, self.cnn, temp)
+        clib.TensorGetValuesOffset(queue, c.addressof(self), offset*self.bytes, temp)
         return list(temp)
 
 
@@ -248,7 +248,7 @@ class CamadaDropOut(c.Structure):
                 ('hitmap', TOPOINTER(TensorChar)),
                 ('flag_releaseInput', c.c_char),
                 ('p_ativacao', c.c_double),
-                ('seed', c.c_void_p),
+                ('seed', c.c_ulonglong),
                 ('kerneldropativa', Kernel),
                 ('kerneldropcalcgrad', Kernel)]
 
@@ -494,7 +494,7 @@ class Cnn:
         return clib.CnnAddBatchNorm(self.cnn, episolon)
 
     def addDropOut(self, ativacao, seed=time.time()):
-        return clib.CnnAddBatchNorm(self.cnn, ativacao, seed)
+        return clib.CnnAddDropOutLayer(self.cnn, ativacao, int(seed))
 
     def addFullConnect(self, saida, FuncaoAtivacao=FTANH):
         return clib.CnnAddFullConnectLayer(self.cnn, saida, FuncaoAtivacao)
