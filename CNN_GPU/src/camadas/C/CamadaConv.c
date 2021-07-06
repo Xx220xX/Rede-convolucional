@@ -2,7 +2,7 @@
 // Created by Henrique on 5/8/2021.
 //
 
-#include "CamadaConv.h"
+#include "../CamadaConv.h"
 
 const char *tostringConv(CamadaConv c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
@@ -24,10 +24,10 @@ const char *tostringConv(CamadaConv c) {
 	return c->super.__string__;
 }
 
-Camada
-createConv(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT lenFilter, UINT numeroFiltros, UINT inx, UINT iny,
-           UINT inz,
-           Tensor entrada, Params *params, GPU_ERROR *error, int randomize) {
+
+Camada createConv(WrapperCL *cl, QUEUE queue, UINT passo, UINT lenFilter,
+                  UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
+                  Tensor entrada, Params params, GPU_ERROR *error, int randomize) {
 	if (error->error)return NULL;
 	CamadaConv c = (CamadaConv) calloc(1, sizeof(Typecamadaconv));
 	cl_context context = cl->context;
@@ -65,10 +65,10 @@ createConv(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT lenFilter, UI
 	                                          K_INT, K_INT, K_INT
 	);
 	c->kernelConvCalcGrads = new_Kernel(cl->program, "convCalcGrads", 13,
-									 K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-									 K_INT, K_INT, K_INT,
-									 K_INT, K_INT, K_INT,
-									 K_INT, K_INT, K_INT);
+	                                    K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                    K_INT, K_INT, K_INT,
+	                                    K_INT, K_INT, K_INT,
+	                                    K_INT, K_INT, K_INT);
 	return (Camada) c;
 }
 
@@ -80,7 +80,7 @@ int convRandomize(CamadaConv c, WrapperCL *cl, GPU_ERROR *error) {
 	double maxVal = 1.0 / (double) (lenFilter * lenFilter * inz);
 
 	double *data = (double *) calloc(lenFilter * lenFilter * inz, sizeof(double));
-	cl_command_queue queue = c->super.queue;
+	QUEUE queue = c->super.queue;
 	if (error->error) {
 		snprintf(error->msg, 255, "nao foi possivel cruiar a queue\n");
 		return error->error;
@@ -142,14 +142,14 @@ void corrige_pesosConv(CamadaConv c) {
 	                     &c->filtros->data,
 	                     &c->grad_filtros->data,
 	                     &c->grad_filtros_old->data,
-	                     &c->super.parametros->hitLearn,
-	                     &c->super.parametros->momento,
-	                     &c->super.parametros->decaimentoDePeso);
+	                     &c->super.parametros.hitLearn,
+	                     &c->super.parametros.momento,
+	                     &c->super.parametros.decaimentoDePeso);
 }
 
 void calc_gradsConv(CamadaConv c, Tensor Gradnext) {
 	kernel_run_recursive(&c->kernelConvCalcGradsFiltro, c->super.queue,
-	                     c->filtros->x * c->filtros->y * c->filtros->z*c->numeroFiltros,
+	                     c->filtros->x * c->filtros->y * c->filtros->z * c->numeroFiltros,
 	                     *c->super.max_works,
 	                     &Gradnext->data,
 	                     &c->super.entrada->data,
@@ -195,7 +195,7 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, GPU_ERROR *error) {
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
 	double *data = callocdouble(c->tamanhoFiltro * c->tamanhoFiltro * c->super.entrada->z);
-	cl_command_queue queue = c->super.queue;
+	QUEUE queue = c->super.queue;
 	for (int a = 0; a < c->numeroFiltros; a++) {
 		clEnqueueReadBuffer(queue, c->filtros->data, CL_TRUE, a * c->filtros->bytes, c->filtros->bytes, data, 0, NULL,
 		                    NULL);
@@ -204,8 +204,8 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, GPU_ERROR *error) {
 	clFinish(queue);
 }
 
-Camada
-carregarConv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
+Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
+                    Params params, GPU_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);

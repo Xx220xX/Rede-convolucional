@@ -40,10 +40,9 @@ int convRandomize(CamadaConv c, WrapperCL *cl, GPU_ERROR *error);
 
 void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, GPU_ERROR *error);
 
-Camada
-createConv(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT lenFilter, UINT numeroFiltros, UINT inx, UINT iny,
-           UINT inz,
-           Tensor entrada, Params *params, GPU_ERROR *error, int randomize);
+Camada createConv(WrapperCL *cl, QUEUE queue, UINT passo, UINT lenFilter,
+                  UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
+                  Tensor entrada, Params params, GPU_ERROR *error, int randomize);
 
 
 #endif //CNN_GPU_CAMADACONV_H

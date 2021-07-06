@@ -32,8 +32,8 @@ void calc_gradsPoolAv(CamadaPoolAv c, Tensor GradNext);
 
 void salvarPoolAv(WrapperCL *cl, CamadaPoolAv c, FILE *dst, GPU_ERROR *error);
 
-Camada createPoolAv(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz,
-           Tensor entrada, Params *params,
+Camada createPoolAv(WrapperCL *cl, QUEUE queue, UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz,
+           Tensor entrada, Params params,
            GPU_ERROR *error);
 
 

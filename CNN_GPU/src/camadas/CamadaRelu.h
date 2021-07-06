@@ -8,6 +8,7 @@
 #include "Camada.h"
 #include"../tensor/Tensor.h"
 #include <stdlib.h>
+
 #ifndef UINT
 //#define UINT unsigned int
 #endif
@@ -27,8 +28,9 @@ void calc_gradsRelu(CamadaRelu c, Tensor GradNext);
 
 void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, GPU_ERROR *error);
 
-Camada
-createRelu(WrapperCL *cl, cl_command_queue  queue, unsigned int inx, unsigned int iny, unsigned int inz, Tensor entrada, GPU_ERROR *error) ;
+Camada createRelu(WrapperCL *cl, QUEUE queue, unsigned int inx, unsigned int iny,
+                  unsigned int inz,
+                  Tensor entrada, GPU_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADA_RELU_H

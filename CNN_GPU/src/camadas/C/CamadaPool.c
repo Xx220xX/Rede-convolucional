@@ -1,33 +1,35 @@
 //
 // Created by Henrique on 5/8/2021.
 //
-#include "CamadaPool.h"
-const char *tostringPool(CamadaPool c){
-    if(c->super.__string__ != NULL)free(c->super.__string__);
-    c->super.__string__ = (char *) calloc(1000, sizeof(char));
-    int len = snprintf(c->super.__string__, 1000,
-                       "Pooling  Layer: (%u,%u,%u) -> (%u,%u,%u)\n"
-                       "\tStep %u\n",
+#include "../CamadaPool.h"
 
-                       c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
-                       c->super.saida->x, c->super.saida->y, c->super.saida->z,
-                       c->passo
-    );
-    len+=1;
-    c->super.__string__ = realloc(c->super.__string__, sizeof (char) * len);
-    return c->super.__string__;
+const char *tostringPool(CamadaPool c) {
+	if (c->super.__string__ != NULL)free(c->super.__string__);
+	c->super.__string__ = (char *) calloc(1000, sizeof(char));
+	int len = snprintf(c->super.__string__, 1000,
+	                   "Pooling  Layer: (%u,%u,%u) -> (%u,%u,%u)\n"
+	                   "\tStep %u\n",
+
+	                   c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
+	                   c->super.saida->x, c->super.saida->y, c->super.saida->z,
+	                   c->passo
+	);
+	len += 1;
+	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
+	return c->super.__string__;
 }
-Camada
-createPool(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz,
-           Tensor entrada, Params *params,
-           GPU_ERROR *error) {
+
+Camada createPool(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro,
+                  UINT inx, UINT iny, UINT inz,
+                  Tensor entrada, Params params,
+                  GPU_ERROR *error) {
 	CamadaPool c = (CamadaPool) calloc(1, sizeof(Typecamadapool));
 	c->passo = passo;
 	c->tamanhoFiltro = tamanhoFiltro;
-	__newCamada__((Camada) c, cl, POOL, entrada, queue, NULL, inx, iny, inz, (inx - tamanhoFiltro) / passo + 1,
+	__newCamada__((Camada) c, cl, POOL, entrada, queue, params, inx, iny, inz, (inx - tamanhoFiltro) / passo + 1,
 	              (iny - tamanhoFiltro) / passo + 1, inz,
 	              error);
-    c->super.toString = (fch) tostringPool;
+	c->super.toString = (fch) tostringPool;
 	c->super.release = (fv) releasePool;
 	c->super.ativa = (fv) ativaPool;
 	c->super.corrige_pesos = (fv) corrige_pesosPool;
@@ -45,9 +47,9 @@ createPool(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro
 void releasePool(CamadaPool *pc) {
 	CamadaPool c = *pc;
 	if (c->super.flag_releaseInput)releaseTensor(&c->super.entrada);
-    if(c->super.__string__ != NULL){
-        free(c->super.__string__);
-    }
+	if (c->super.__string__ != NULL) {
+		free(c->super.__string__);
+	}
 	releaseTensor(&c->super.gradsEntrada);
 	releaseTensor(&c->super.saida);
 	releaseKernel(&c->kernelPoolCalcGrads);
@@ -88,8 +90,8 @@ void salvarPool(WrapperCL *cl, CamadaPool c, FILE *dst, GPU_ERROR *error) {
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
 }
 
-Camada
-carregarPool(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
+Camada carregarPool(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
+                    Params params, GPU_ERROR *error) {
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')
@@ -100,5 +102,5 @@ carregarPool(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, P
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createPool(cl,queue, passo, tamanhoFiltro, inx, iny, inz, entrada, params, error);
+	return createPool(cl, queue, passo, tamanhoFiltro, inx, iny, inz, entrada, params, error);
 }

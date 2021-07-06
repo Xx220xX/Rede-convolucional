@@ -1,7 +1,9 @@
 //
 // Created by Henrique on 5/8/2021.
 //
-#include "CamadaRelu.h"
+#include "../CamadaRelu.h"
+#include "../Camada.h"
+
 const char *tostringRelu(CamadaRelu c){
     if(c->super.__string__ != NULL)free(c->super.__string__);
     c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -15,12 +17,13 @@ const char *tostringRelu(CamadaRelu c){
     c->super.__string__ = realloc(c->super.__string__, sizeof (char) * len);
     return c->super.__string__;
 }
-Camada createRelu(WrapperCL *cl, cl_command_queue  queue,unsigned int inx, unsigned int iny, unsigned int inz, Tensor entrada, GPU_ERROR *error) {
+Camada createRelu(WrapperCL *cl, cl_command_queue  queue,unsigned int inx, unsigned int iny,
+				  unsigned int inz, Tensor entrada, GPU_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaRelu c = (CamadaRelu) calloc(1, sizeof(TypecamadaRelu));
 
-	__newCamada__((Camada) c, cl, RELU, entrada, queue, NULL, inx, iny, inz, inx, iny, inz, error);
+	__newCamada__((Camada) c, cl, RELU, entrada, queue, (Params){0}, inx, iny, inz, inx, iny, inz, error);
 	c->super.toString = (fch) tostringRelu;
 	c->super.release = (fv) realeaseRelu;
 	c->super.ativa = (fv) ativaRelu;
@@ -74,7 +77,7 @@ void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, GPU_ERROR *error) {
 
 }
 
-Camada carregarRelu(WrapperCL *cl, FILE *src,cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
+Camada carregarRelu(WrapperCL *cl, FILE *src,cl_command_queue queue, Tensor entrada, Params params, GPU_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -85,4 +88,14 @@ Camada carregarRelu(WrapperCL *cl, FILE *src,cl_command_queue queue, Tensor entr
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
 	return createRelu(cl, queue,inx, iny, inz, entrada, error);
+}
+
+void CamadaSetLearn(Camada c, char learn) {
+	c->flag_notlearn = !learn;
+}
+
+void CamadaSetParams(Camada c, double hitlearn, double momento, double decaimento) {
+	c->parametros.hitLearn = hitlearn;
+	c->parametros.momento = momento;
+	c->parametros.decaimentoDePeso = decaimento;
 }

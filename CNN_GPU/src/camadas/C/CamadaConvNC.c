@@ -2,7 +2,7 @@
 // Created by Henrique on 05-jul-2021.
 //
 
-#include "CamadaConvNc.h"
+#include "../CamadaConvNC.h"
 
 const char *tostringConvNc(CamadaConvNc c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
@@ -17,7 +17,7 @@ const char *tostringConvNc(CamadaConvNc c) {
 	                   c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
 	                   c->super.saida->x, c->super.saida->y, c->super.saida->z,
 	                   c->passox, c->passoy,
-	                   c->largx, c->passoy,
+	                   c->largx, c->largy,
 	                   c->filtros->x, c->filtros->y,
 	                   c->numeroFiltros
 	);
@@ -26,10 +26,10 @@ const char *tostringConvNc(CamadaConvNc c) {
 	return c->super.__string__;
 }
 
-Camada createConvNc(WrapperCL *cl, cl_command_queue queue, UINT passox,
+Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
                     UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
                     UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-                    Tensor entrada, Params *params, GPU_ERROR *error, int randomize) {
+                    Tensor entrada, Params params, GPU_ERROR *error, int randomize) {
 	if (error->error)return NULL;
 	CamadaConvNc c = (CamadaConvNc) calloc(1, sizeof(TypecamadaConvNc));
 
@@ -68,20 +68,18 @@ Camada createConvNc(WrapperCL *cl, cl_command_queue queue, UINT passox,
 	                                K_INT, K_INT);
 	c->kernelConvNcFixWeight = new_Kernel(cl->program, "convncFixWeight", 7, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                      K_DOUBLE, K_DOUBLE, K_DOUBLE, K_INT);
-	c->kernelConvNcCalcGradsFiltro = new_Kernel(cl->program, "ConvNcCalcFiltro", 12,
+	c->kernelConvNcCalcGradsFiltro = new_Kernel(cl->program, "convncCalcFiltro", 15,
 	                                            K_VOID_P, K_VOID_P, K_VOID_P,
 	                                            K_INT, K_INT, K_INT,
 	                                            K_INT, K_INT, K_INT,
 	                                            K_INT, K_INT, K_INT
 	);
-	c->kernelConvNcCalcGrads = new_Kernel(cl->program, "convncCalcFiltro",
-	                                      15,
-	                                      K_VOID_P, K_VOID_P, K_VOID_P,
-	                                      K_INT, K_INT, K_INT,
-	                                      K_INT, K_INT,
-	                                      K_INT, K_INT,
-	                                      K_INT, K_INT,
-	                                      K_INT, K_INT,
+	c->kernelConvNcCalcGrads = new_Kernel(cl->program, "convncCalcGrads",
+	                                      17,
+	                                      K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                      K_INT, K_INT,K_INT, K_INT,
+	                                      K_INT, K_INT,K_INT, K_INT,
+	                                      K_INT, K_INT,K_INT, K_INT,
 	                                      K_INT);
 	return (Camada) c;
 }
@@ -94,7 +92,7 @@ int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, GPU_ERROR *error) {
 	double maxVal = 1.0 / (double) (fx * fx * inz);
 
 	double *data = (double *) calloc(fx * fy * inz, sizeof(double));
-	cl_command_queue queue = c->super.queue;
+	QUEUE queue = c->super.queue;
 	if (error->error) {
 		snprintf(error->msg, 255, "nao foi possivel criar a queue\n");
 		return error->error;
@@ -159,9 +157,9 @@ void corrige_pesosConvNc(CamadaConvNc c) {
 	                     &c->filtros->data,
 	                     &c->grad_filtros->data,
 	                     &c->grad_filtros_old->data,
-	                     &c->super.parametros->hitLearn,
-	                     &c->super.parametros->momento,
-	                     &c->super.parametros->decaimentoDePeso);
+	                     &c->super.parametros.hitLearn,
+	                     &c->super.parametros.momento,
+	                     &c->super.parametros.decaimentoDePeso);
 }
 
 void calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
@@ -190,6 +188,7 @@ void calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
 	kernel_run_recursive(&c->kernelConvNcCalcGrads, c->super.queue,
 	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 	                     *c->super.max_works,
+
 	                     &c->filtros->data,
 	                     &c->super.entrada->data,
 	                     &c->super.gradsEntrada->data,
@@ -202,9 +201,9 @@ void calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
 
 	                     &c->super.entrada->x,
 	                     &c->super.entrada->y,
-
 	                     &c->super.saida->x,
 	                     &c->super.saida->y,
+
 	                     &c->filtros->x,
 	                     &c->filtros->y,
 	                     &c->filtros->z,
@@ -227,7 +226,7 @@ void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, GPU_ERROR *error) {
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
 	double *data = callocdouble(c->filtros->x * c->filtros->y * c->super.entrada->z);
-	cl_command_queue queue = c->super.queue;
+	QUEUE queue = c->super.queue;
 	for (int a = 0; a < c->numeroFiltros; a++) {
 		clEnqueueReadBuffer(queue, c->filtros->data, CL_TRUE, a * c->filtros->bytes, c->filtros->bytes, data, 0, NULL,
 		                    NULL);
@@ -236,8 +235,8 @@ void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, GPU_ERROR *error) {
 	clFinish(queue);
 }
 
-Camada
-carregarConvNc(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
+Camada carregarConvNc(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
+                      Params params, GPU_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);

@@ -1,7 +1,7 @@
 //
 // Created by Henrique on 5/8/2021.
 //
-#include "CamadaSoftMax.h"
+#include "../CamadaSoftMax.h"
 const char *tostringSoftMax(CamadaSoftMax c){
     if(c->super.__string__ != NULL)free(c->super.__string__);
     c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -15,12 +15,13 @@ const char *tostringSoftMax(CamadaSoftMax c){
     c->super.__string__ = realloc(c->super.__string__, sizeof (char) * len);
     return c->super.__string__;
 }
-Camada createSoftMax(WrapperCL *cl, cl_command_queue  queue,unsigned int inx, unsigned int iny, unsigned int inz, Tensor entrada, GPU_ERROR *error) {
+Camada createSoftMax(WrapperCL *cl, cl_command_queue  queue,unsigned int inx, unsigned int iny,
+					 unsigned int inz, Tensor entrada, GPU_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaSoftMax c = (CamadaSoftMax) calloc(1, sizeof(TypecamadaSoftMax));
 
-	__newCamada__((Camada) c, cl, SOFTMAX, entrada, queue, NULL, inx, iny, inz, inx, iny, inz, error);
+	__newCamada__((Camada) c, cl, SOFTMAX, entrada, queue, (Params){0}, inx, iny, inz, inx, iny, inz, error);
 	c->super.toString = (fch) tostringSoftMax;
 	c->super.release = (fv) realeaseSoftMax;
 	c->super.ativa = (fv) ativaSoftMax;
@@ -86,7 +87,8 @@ void salvarSoftMax(WrapperCL *cl, CamadaSoftMax c, FILE *dst, GPU_ERROR *error) 
 
 }
 
-Camada carregarSoftMax(WrapperCL *cl, FILE *src,cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
+Camada carregarSoftMax(WrapperCL *cl, FILE *src,cl_command_queue queue, Tensor entrada,
+					   Params params, GPU_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);

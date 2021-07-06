@@ -2,10 +2,10 @@
 // Created by Henrique on 5/8/2021.
 //
 
-#include "Camada.h"
+#include "../Camada.h"
 
-Camada
-carregarCamada(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *param, GPU_ERROR *error) {
+Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
+               Params param, GPU_ERROR *error) {
 	char identify = 0;
 	fread(&identify, sizeof(char), 1, src);
 	if (feof(src))return NULL;
@@ -21,20 +21,21 @@ carregarCamada(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
 		case FULLCONNECT:
 			return carregarFullConnect(cl, src, queue, entrada, param, error);
 		case BATCHNORM:
-			return carregarBatchNorm(cl,src,queue,entrada,param,error);
+			return carregarBatchNorm(cl, src, queue, entrada, param, error);
 		case POOLAV:
-			return carregarPoolAv(cl,src,queue,entrada,param,error);
+			return carregarPoolAv(cl, src, queue, entrada, param, error);
 		case PADDING:
-			return carregarPadding(cl,src,queue,entrada,param,error);
+			return carregarPadding(cl, src, queue, entrada, param, error);
 		case CONVNC:
-			return carregarConvNc(cl,src,queue,entrada,param,error);
+			return carregarConvNc(cl, src, queue, entrada, param, error);
 		default:
 			return NULL;
 	}
 
 }
 
-void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, cl_command_queue queue, Params *params, size_t xi,
+void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE queue,
+                   Params params, size_t xi,
                    size_t yi, size_t zi, size_t xo, size_t yo, size_t zo, GPU_ERROR *error) {
 	cl_context context = cl->context;
 	if (error->error)return;

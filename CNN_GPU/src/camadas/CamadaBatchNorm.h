@@ -50,7 +50,7 @@ void calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext);
 
 void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, GPU_ERROR *error);
 
-Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params *params, unsigned int inx, unsigned int iny,
+Camada createBatchNorm(WrapperCL *cl, QUEUE queue, Params params, unsigned int inx, unsigned int iny,
                        unsigned int inz, Tensor entrada, double epsilon, int randomize, GPU_ERROR *error);
 
 

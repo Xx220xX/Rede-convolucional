@@ -32,7 +32,7 @@ void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext);
 
 void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error);
 
-Camada createDropOut(WrapperCL *cl,cl_command_queue queue, UINT inx, UINT iny, UINT inz, double p_ativacao, long long seed, Tensor entrada,
+Camada createDropOut(WrapperCL *cl,QUEUE queue, UINT inx, UINT iny, UINT inz, double p_ativacao, long long seed, Tensor entrada,
                      GPU_ERROR *error);
 
 void releaseDropOut(CamadaDropOut *pc) ;
@@ -46,6 +46,7 @@ void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext);
 
 void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error);
 
-Camada carregarDropOut(WrapperCL *cl, FILE *src,cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) ;
+Camada carregarDropOut(WrapperCL *cl, FILE *src,QUEUE queue, Tensor entrada,
+					   Params params, GPU_ERROR *error) ;
 
 #endif //CNN_GPU_CAMADADROPOUT_H

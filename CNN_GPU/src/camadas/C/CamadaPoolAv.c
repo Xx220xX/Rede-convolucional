@@ -1,7 +1,7 @@
 //
 // Created by Henrique on 5/8/2021.
 //
-#include "CamadaPoolAv.h"
+#include "../CamadaPoolAv.h"
 const char *tostringPoolAv(CamadaPoolAv c){
     if(c->super.__string__ != NULL)free(c->super.__string__);
     c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -18,12 +18,12 @@ const char *tostringPoolAv(CamadaPoolAv c){
     return c->super.__string__;
 }
 Camada createPoolAv(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz,
-           Tensor entrada, Params *params,
+           Tensor entrada, Params params,
            GPU_ERROR *error) {
 	CamadaPoolAv c = (CamadaPoolAv) calloc(1, sizeof(TypecamadaPoolAv));
 	c->passo = passo;
 	c->tamanhoFiltro = tamanhoFiltro;
-	__newCamada__((Camada) c, cl, POOLAV, entrada, queue, NULL, inx, iny, inz, (inx - tamanhoFiltro) / passo + 1,
+	__newCamada__((Camada) c, cl, POOLAV, entrada, queue, params, inx, iny, inz, (inx - tamanhoFiltro) / passo + 1,
 	              (iny - tamanhoFiltro) / passo + 1, inz,
 	              error);
     c->super.toString = (fch) tostringPoolAv;
@@ -87,7 +87,8 @@ void salvarPoolAv(WrapperCL *cl, CamadaPoolAv c, FILE *dst, GPU_ERROR *error) {
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
 }
 
-Camada carregarPoolAv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
+Camada carregarPoolAv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
+					  Params params, GPU_ERROR *error) {
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')

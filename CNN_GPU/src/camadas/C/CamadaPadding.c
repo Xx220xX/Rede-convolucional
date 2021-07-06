@@ -1,7 +1,7 @@
 //
 // Created by Henrique on 03/08/2021.
 //
-#include "CamadaPadding.h"
+#include "../CamadaPadding.h"
 
 const char *tostringPadding(CamadaPadding c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
@@ -27,7 +27,7 @@ Camada createPadding(WrapperCL *cl, cl_command_queue queue,
 	CamadaPadding c = (CamadaPadding) calloc(1, sizeof(TypecamadaPadding));
 
 	__newCamada__((Camada) c, cl, PADDING, entrada, queue,
-	              NULL, inx, iny, inz, inx + top + bottom, iny + left + right,
+	              (Params){0}, inx, iny, inz, inx + top + bottom, iny + left + right,
 	              inz, error);
 
 	c->super.toString = (fch) tostringPadding;
@@ -117,7 +117,7 @@ void salvarPadding(WrapperCL *cl, CamadaPadding c, FILE *dst, GPU_ERROR *error) 
 }
 
 Camada carregarPadding(WrapperCL *cl, FILE *src, cl_command_queue queue,
-                       Tensor entrada, Params *params, GPU_ERROR *error) {
+                       Tensor entrada, Params params, GPU_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);

@@ -1,7 +1,7 @@
 //
 // Created by Henrique on 5/8/2021.
 //
-#include "CamadaBatchNorm.h"
+#include "../CamadaBatchNorm.h"
 
 const char *tostringBatchNorm(CamadaBatchNorm c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
@@ -18,8 +18,10 @@ const char *tostringBatchNorm(CamadaBatchNorm c) {
 
 int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, GPU_ERROR *error);
 
-Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params *params, unsigned int inx, unsigned int iny,
-                       unsigned int inz, Tensor entrada, double epsilon, int randomize, GPU_ERROR *error) {
+Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
+                       unsigned int inx, unsigned int iny,
+                       unsigned int inz, Tensor entrada, double epsilon, int randomize,
+                       GPU_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaBatchNorm c = (CamadaBatchNorm) calloc(1, sizeof(TypecamadaBatchNorm));
@@ -212,7 +214,8 @@ void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, GPU_ERROR *err
 
 }
 
-Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params, GPU_ERROR *error) {
+Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
+                         Params params, GPU_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -236,7 +239,6 @@ Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tenso
 
 int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, GPU_ERROR *error) {
 	unsigned int inz = c->super.entrada->z;
-	unsigned int tamanhoSaida = c->super.saida->x;
 	unsigned int valmax = inz;
 	double max_weight = 1.0 / (valmax);
 	//unsigned int valmax = (int) sqrt(inx * iny * inz) + 1;

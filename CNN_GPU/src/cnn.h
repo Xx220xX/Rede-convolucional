@@ -58,7 +58,9 @@ Ponto3d __addLayer(Cnn c);
 
 int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros);
 
-int CnnAddConvNcLayer(Cnn c, UINT passox,UINT passoy,UINT largx,UINT largy, UINT filtrox,UINT filtroy, UINT numeroDeFiltros);
+int CnnAddConvNcLayer(Cnn c, UINT passox, UINT passoy, UINT largx, UINT largy,
+                      UINT filtrox, UINT filtroy,
+                      UINT numeroDeFiltros);
 
 int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro);
 

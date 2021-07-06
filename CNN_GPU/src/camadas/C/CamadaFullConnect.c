@@ -1,7 +1,7 @@
 //
 // Created by Henrique on 5/8/2021.
 //
-#include "CamadaFullConnect.h"
+#include "../CamadaFullConnect.h"
 
 const char *tostringFullConnect(CamadaFullConnect c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
@@ -20,7 +20,7 @@ const char *tostringFullConnect(CamadaFullConnect c) {
 }
 
 Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida,
-                         Tensor entrada, Params *params,
+                         Tensor entrada, Params params,
                          int funcaoDeAtivacao, int randomize, GPU_ERROR *error) {
 	if (error->error)return NULL;
 	CamadaFullConnect c = (CamadaFullConnect) calloc(1, sizeof(Typecamadafullconnect));
@@ -128,8 +128,8 @@ void corrigePesosFullConnect(CamadaFullConnect c) {
 	                     &c->pesos->data,
 	                     &c->dz->data,
 	                     &c->dz_old->data,
-	                     &c->super.parametros->hitLearn, &c->super.parametros->decaimentoDePeso,
-	                     &c->super.parametros->momento,
+	                     &c->super.parametros.hitLearn, &c->super.parametros.decaimentoDePeso,
+	                     &c->super.parametros.momento,
 	                     &c->super.entrada->x,
 	                     &c->super.entrada->y,
 	                     &c->super.entrada->z,
@@ -172,7 +172,8 @@ void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, GPU_ERROR 
 	clReleaseCommandQueue(queue);
 }
 
-Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params *params,
+Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
+						   Params params,
                            GPU_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;

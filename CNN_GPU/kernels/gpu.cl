@@ -353,8 +353,8 @@ kV convncSum(Vector filtro, Vector entrada, Vector saida,
 	TensorRemap(k, x, y, filtrok, saidatx, saidaty)
 	Ponto3d mapeado = {x * passox, y * passoy, 0};
 	double sum = 0, f, v;
-	for (int i = 0; i < lenFilter; i++)
-		for (int j = 0; j < lenFilter; j++)
+	for (int i = 0; i < fx; i++)
+		for (int j = 0; j < fy; j++)
 			for (int z = 0; z < entradatz; z++) {
 				f = filtro[TensorMap4D(i, j, z, filtrok, fx, fy, entradatz)];
 				v = entrada[TensorMap(mapeado.x + i * largx, mapeado.y + j * largy, z, entradatx, entradaty)];
@@ -428,15 +428,17 @@ kV convncCalcGrads(Vector filtro,
                    int entradaty,
                    int saidatx,
                    int saidaty,
+
                    int fx,
                    int fy,
                    int fz,
                    int numFilters,
+
                    int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	TensorRemap(k, x, y, z, entradatx, entradaty)
-	Range range_filtro = {0};
+	Range range_filtro ;
 	range_filtro.min.x = 0;
 	if ((entradatx - x - (fx - 1) * largx) < 0) {
 		range_filtro.min.x = -entradatx + x + fx;
@@ -451,14 +453,14 @@ kV convncCalcGrads(Vector filtro,
 	}
 	range_filtro.max.y = fy - 1;
 	if (y - (fy - 1) * largy < 0) {
-		range.max.y = y / largy;
+		range_filtro.max.y = y / largy;
 	}
 	int sx, sy;
 	double somaErro = 0, pesoAplicado = 0;
-	for (int m = range_filtro.min.x; i <= range_filtro.max.x; i++) {
+	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		sx = (x - m * largx) / passox;
 		if (sx * passox + m * largx != x)continue;
-		for (int n = range_filtro.min.y; j <= range_filtro.max.y; j++) {
+		for (int n = range_filtro.min.y; n <= range_filtro.max.y; n++) {
 			sy = (y - n * largy) / passox;
 			if (sy * passoy + n * largy != y)continue;
 			for (int l = 0; l < fz; l++) {

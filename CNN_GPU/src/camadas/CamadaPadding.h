@@ -25,7 +25,7 @@ void calc_gradsPadding(CamadaPadding c, Tensor GradNext);
 
 void salvarPadding(WrapperCL *cl, CamadaPadding c, FILE *dst, GPU_ERROR *error);
 
-Camada createPadding(WrapperCL *cl, cl_command_queue queue,
+Camada createPadding(WrapperCL *cl, QUEUE queue,
                      UINT inx, UINT iny, UINT inz,
                      UINT top, UINT bottom, UINT left, UINT right, Tensor entrada,
                      GPU_ERROR *error);

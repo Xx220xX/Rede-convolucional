@@ -13,7 +13,6 @@
 
 typedef unsigned int UINT;
 
-
 typedef struct {
 	Typecamada super;
 	UINT passo;
@@ -33,11 +32,9 @@ void calc_gradsPool(CamadaPool c, Tensor GradNext);
 
 void salvarPool(WrapperCL *cl, CamadaPool c, FILE *dst, GPU_ERROR *error);
 
-Camada
-createPool(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz,
-           Tensor entrada, Params *params,
-           GPU_ERROR *error);
-
+Camada createPool(WrapperCL *cl, QUEUE queue, UINT passo, UINT tamanhoFiltro,
+                  UINT inx, UINT iny, UINT inz, Tensor entrada, Params params,
+                  GPU_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADAPOOL_H

@@ -2,14 +2,14 @@ import ctypes as c
 import os
 import time
 import numpy as np
-from random import  randint
+from random import randint
 from PIL import Image
 import matplotlib.pyplot as plt
 
 __dir = os.path.abspath(__file__)
 __dir = os.path.realpath(__dir)
 __dir = os.path.dirname(__dir)
-__dll = os.path.join(__dir, 'bin/libCNNGPU.dll')
+__dll = os.path.join(__dir, '../bin/libCNNGPU.dll')
 clib = c.CDLL(__dll)
 
 queue = c.c_void_p(0)
@@ -19,7 +19,9 @@ clib.camadaToString.argtypes = [c.c_void_p]
 clib.camadaToString.restype = c.c_char_p
 
 clib.CnnAddConvLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint, c.c_uint]
+clib.CnnAddConvNcLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint, c.c_uint, c.c_uint, c.c_uint, c.c_uint, c.c_uint]
 clib.CnnAddPoolLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint]
+clib.CnnAddPoolAvLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint]
 clib.CnnAddReluLayer.argtypes = [c.c_void_p]
 clib.CnnAddPaddingLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint, c.c_uint, c.c_uint]
 clib.CnnAddBatchNorm.argtypes = [c.c_void_p, c.c_double]
@@ -30,6 +32,8 @@ clib.CnnLearn.argtypes = [c.c_void_p, c.c_void_p]
 clib.TensorGetValues.argtypes = [c.c_void_p, c.c_void_p, c.c_void_p]
 clib.TensorGetValuesOffset.argtypes = [c.c_void_p, c.c_void_p, c.c_int, c.c_void_p]
 clib.TensorPutValues.argtypes = [c.c_void_p, c.c_void_p, c.c_void_p]
+
+clib.CamadaSetParams.argtypes = [c.c_void_p, c.c_double, c.c_double, c.c_double]
 
 clib.CnnSaveInFile.argtypes = [c.c_void_p, c.c_char_p]
 clib.CnnLoadByFile.argtypes = [c.c_void_p, c.c_char_p]
@@ -50,6 +54,8 @@ FULLCONNECT = 5
 SOFTMAX = 6
 BATCHNORM = 7
 PADDING = 8
+POOLAV = 9
+CONVNC = 10
 
 
 def TOPOINTER(c_type):
@@ -94,7 +100,7 @@ class Tensor(c.Structure):
         temp = self.x * self.y * self.z
         temp = c.c_double * temp
         temp = temp(0)
-        clib.TensorGetValuesOffset(queue, c.addressof(self), offset,temp)
+        clib.TensorGetValuesOffset(queue, c.addressof(self), offset*self.bytes, temp)
         return list(temp)
 
     def value_np(self, offset=0):
@@ -103,15 +109,15 @@ class Tensor(c.Structure):
         return data
 
     def histogram(self, offset=0):
-        data = self.value(offset*self.bytes)
+        data = self.value(offset * self.bytes)
         plt.figure()
         plt.hist(data, density=True, bins=20)
         plt.ylabel('Probability')
         plt.xlabel('Data')
-        plt.title('%d'%(len(data),))
+        plt.title('%d' % (len(data),))
 
     def __iter__(self):
-        return self.value.__iter__()
+        return self.value().__iter__()
 
 
 class TensorChar(Tensor):
@@ -156,7 +162,7 @@ class Kernel(c.Structure):
 
 class Camada(c.Structure):
     _fields_ = [('type', c.c_ubyte),
-                ('parametros', c.c_void_p),
+                ('parametros', Params),
                 ('gradsEntrada', TOPOINTER(Tensor)),
                 ('entrada', TOPOINTER(Tensor)),
                 ('saida', TOPOINTER(Tensor)),
@@ -169,13 +175,16 @@ class Camada(c.Structure):
                 ('corrige_pesos', c.c_void_p),
                 ('ativa', c.c_void_p),
                 ('salvar', c.c_void_p),
-                ('toString', c.c_void_p),  # c.CFUNCTYPE(c.c_char_p,c.c_void_p)),
+                ('toString', c.c_void_p),
                 ('__string', c.c_char_p),
                 ('release', c.c_void_p)]
 
     def __repr__(self):
         cstr = clib.camadaToString(c.addressof(self))
         return cstr.decode('utf-8')
+
+    def setParams(self, hitlearn, momento, decaimento):
+        clib.CamadaSetParams(c.addressof(self), hitlearn, momento, decaimento)
 
 
 class CamadaConv(c.Structure):
@@ -188,6 +197,7 @@ class CamadaConv(c.Structure):
                 ('numeroFiltros', c.c_uint),
                 ('kernelConvSum', Kernel),
                 ('kernelConvFixWeight', Kernel),
+                ('kernelConvCalcGradsFiltro', Kernel),
                 ('kernelConvCalcGrads', Kernel),
                 ]
 
@@ -198,6 +208,35 @@ class CamadaConv(c.Structure):
         if LP_camada.type != CONV:
             raise Exception('Esperado camada Convolucional')
         cst = c.cast(LP_camada, TOPOINTER(CamadaConv))
+        return cst
+
+    def __getattr__(self, item):
+        return self.super.__getattr__(item)
+
+
+class CamadaConvNc(c.Structure):
+    _fields_ = [('super', Camada),
+                ('filtros', TOPOINTER(Tensor)),
+                ('grad_filtros', TOPOINTER(Tensor)),
+                ('grad_filtros_old', TOPOINTER(Tensor)),
+                ('passox', c.c_uint),
+                ('passoy', c.c_uint),
+                ('largx', c.c_uint),
+                ('largy', c.c_uint),
+                ('numeroFiltros', c.c_uint),
+                ('kernelConvNcSum', Kernel),
+                ('kernelConvNcFixWeight', Kernel),
+                ('kernelConvNcCalcGradsFiltro', Kernel),
+                ('kernelConvNcCalcGrads', Kernel),
+                ]
+
+    @staticmethod
+    def cast(LP_camada: TOPOINTER(Camada)):
+        if not isinstance(LP_camada, TOPOINTER(Camada)):
+            raise Exception('Invalid format')
+        if LP_camada.type != CONVNC:
+            raise Exception('Esperado camada Convolucional Não causal')
+        cst = c.cast(LP_camada, TOPOINTER(CamadaConvNc))
         return cst
 
     def __getattr__(self, item):
@@ -266,6 +305,26 @@ class CamadaPool(c.Structure):
         if LP_camada.type != POOL:
             raise Exception('Esperado camada FullConnect')
         cst = c.cast(LP_camada, TOPOINTER(CamadaPool))
+        return cst
+
+    def __getattr__(self, item):
+        return self.super.__getattr__(item)
+
+
+class CamadaPoolAv(c.Structure):
+    _fields_ = [('super', Camada),
+                ('passo', c.c_uint),
+                ('tamanhoFiltro', c.c_uint),
+                ('kernelPoolAtiva', Kernel),
+                ('kernelPoolCalcGrads', Kernel)]
+
+    @staticmethod
+    def cast(LP_camada: TOPOINTER(Camada)):
+        if not isinstance(LP_camada, TOPOINTER(Camada)):
+            raise Exception('Invalid format')
+        if LP_camada.type != POOLAV:
+            raise Exception('Esperado camada Pooling')
+        cst = c.cast(LP_camada, TOPOINTER(CamadaPoolAv))
         return cst
 
     def __getattr__(self, item):
@@ -416,8 +475,14 @@ class Cnn:
     def addConv(self, passo, tamanhoFiltro, numeroFiltros):
         return clib.CnnAddConvLayer(self.cnn, passo, tamanhoFiltro, numeroFiltros)
 
+    def addConvNc(self, passox, passoy, largx, largy, filtrox, filtroy, numeroFiltros):
+        return clib.CnnAddConvNcLayer(self.cnn, passox,passoy,largx,largy,filtrox,filtroy,numeroFiltros)
+
     def addPool(self, passo, tamanhoFiltro):
         return clib.CnnAddPoolLayer(self.cnn, passo, tamanhoFiltro)
+
+    def addPoolAv(self, passo, tamanhoFiltro):
+        return clib.CnnAddPoolAvLayer(self.cnn, passo, tamanhoFiltro)
 
     def addRelu(self):
         return clib.CnnAddReluLayer(self.cnn)
@@ -436,7 +501,7 @@ class Cnn:
 
     @property
     def out(self):
-        return self.camadas[self.size - 1].saida.value
+        return self.camadas[self.size - 1].saida.value()
 
     def predict(self, input_values):
         # entrada da rede

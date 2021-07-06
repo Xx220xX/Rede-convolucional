@@ -3,7 +3,7 @@
 //
 #include "cnn.h"
 
-char __version__[] = "2.0.014";
+char __version__[] = "2.0.015";
 char __notas__[] =
 		"camada conv corrigida 2.0.007\n"
 		"camada padding adicionada 2.0.009\n"
@@ -11,6 +11,7 @@ char __notas__[] =
 		"corrigido implementacao dropout 2.0.012\n"
 		"camada polling av adicionada 2.0.013\n"
 		"camada convNc adicionada 2.0.014\n"
+		"Todas as camadas possui seus proprios parametros 2.0.015\n"
 		;
 
 const char *getVersion() {
@@ -130,7 +131,7 @@ int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltro
 	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passo, tamanhoDoFiltro, numeroDeFiltros, sizeIn.x, sizeIn.y,
 	                                     sizeIn.z,
 	                                     entrada,
-	                                     &c->parametros, &c->error, 1);
+	                                     c->parametros, &c->error, 1);
 	if (!c->error.error) {
 		c->lastGrad = newTensor(c->cl->context, c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
 		                        c->camadas[c->size - 1]->saida->z, &c->error);
@@ -168,7 +169,7 @@ int CnnAddConvNcLayer(Cnn c, UINT passox,UINT passoy,UINT largx,UINT largy, UINT
 	c->camadas[c->size - 1] = createConvNc(c->cl, c->queue, passox,passoy, largx,largy,filtrox,filtroy, numeroDeFiltros, sizeIn.x, sizeIn.y,
 	                                     sizeIn.z,
 	                                     entrada,
-	                                     &c->parametros, &c->error, 1);
+	                                     c->parametros, &c->error, 1);
 	if (!c->error.error) {
 		c->lastGrad = newTensor(c->cl->context, c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
 		                        c->camadas[c->size - 1]->saida->z, &c->error);
@@ -201,7 +202,7 @@ int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-	                                     &c->parametros, &c->error);
+	                                     c->parametros, &c->error);
 	if (!c->error.error) {
 		c->lastGrad = newTensor(c->cl->context, c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
 		                        c->camadas[c->size - 1]->saida->z, &c->error);
@@ -234,7 +235,7 @@ int CnnAddPoolAvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-	                                     &c->parametros, &c->error);
+	                                     c->parametros, &c->error);
 	if (!c->error.error) {
 		c->lastGrad = newTensor(c->cl->context, c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
 		                        c->camadas[c->size - 1]->saida->z, &c->error);
@@ -248,7 +249,7 @@ int CnnAddBatchNorm(Cnn c, double epsilon) {
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, &c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
+	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
 	                                          epsilon, 1,
 	                                          &c->error);
 	if (!c->error.error) {
@@ -314,7 +315,7 @@ int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createFullConnect(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada,
-	                                            &c->parametros, funcaoDeAtivacao, 1, &c->error);
+	                                            c->parametros, funcaoDeAtivacao, 1, &c->error);
 	if (!c->error.error) {
 		c->lastGrad = newTensor(c->cl->context, c->camadas[c->size - 1]->saida->x, c->camadas[c->size - 1]->saida->y,
 		                        c->camadas[c->size - 1]->saida->z, &c->error);
@@ -380,7 +381,7 @@ int cnnCarregar(Cnn c, FILE *src) {
 	Camada cm;
 	Tensor entrada = NULL;
 	while (1) {
-		cm = carregarCamada(c->cl, src, c->queue, entrada, &c->parametros, &c->error);
+		cm = carregarCamada(c->cl, src, c->queue, entrada, c->parametros, &c->error);
 		if (cm == NULL) { break; }
 		entrada = cm->saida;
 		__addLayer(c);

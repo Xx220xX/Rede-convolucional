@@ -1,5 +1,4 @@
 #include"src/treino/treinoWithLua.h"
-
 int main(int nargs, char **args) {
 	printf("##############################\n");
 	printf("Gabriela IA\n");
@@ -37,6 +36,11 @@ int main(int nargs, char **args) {
     if (!cnn) {
         fprintf(stderr, "Nao foi encontrado uma arquitetura de rede");
         goto end;
+    }
+    if(cnn->error.error){
+    	erro = cnn->error.error;
+	    fprintf(stderr, "%s\n",cnn->error.msg);
+	    goto end;
     }
     // por questoes de vazamento de memoria, a  variavel global é resetada
     globalcnn = NULL;

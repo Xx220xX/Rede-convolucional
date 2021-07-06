@@ -21,7 +21,11 @@ typedef struct {
 	Tensor filtros;
 	Tensor grad_filtros;
 	Tensor grad_filtros_old;
-	UINT passox,largx,passoy,largy, numeroFiltros;
+	UINT passox;
+	UINT passoy;
+	UINT largx;
+	UINT largy;
+	UINT numeroFiltros;
 	Kernel kernelConvNcSum;
 	Kernel kernelConvNcFixWeight;
 	Kernel kernelConvNcCalcGradsFiltro;
@@ -40,10 +44,10 @@ int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, GPU_ERROR *error);
 
 void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, GPU_ERROR *error);
 
-Camada createConvNc(WrapperCL *cl, cl_command_queue queue, UINT passox,
+Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
                     UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
                     UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-                    Tensor entrada, Params *params, GPU_ERROR *error, int randomize);
+                    Tensor entrada, Params params, GPU_ERROR *error, int randomize);
 
 
 #endif //CNN_GPU_CAMADAConvNc_H

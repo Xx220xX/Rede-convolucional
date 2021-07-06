@@ -41,8 +41,8 @@ int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error);
 
 void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, GPU_ERROR *error);
 
-Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida,
-                         Tensor entrada, Params *params,
+Camada createFullConnect(WrapperCL *cl, QUEUE queue, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida,
+                         Tensor entrada, Params params,
                          int funcaoDeAtivacao, int randomize, GPU_ERROR *error);
 
 
