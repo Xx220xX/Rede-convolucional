@@ -35,9 +35,9 @@ Camada createDropOut(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, 
 	c->super.corrige_pesos = (fv) corrigePesosDropOut;
 	c->seed = seed;
 	c->super.salvar = (fsl) salvarDropOut;
-	c->kerneldropativa = new_Kernel(cl->program, "dropativa", 6, K_VOID_P, K_VOID_P, K_VOID_P, sizeof(cl_long),
+	c->kerneldropativa = new_Kernel(cl->program,error, "dropativa", 6, K_VOID_P, K_VOID_P, K_VOID_P, sizeof(cl_long),
 	                                K_DOUBLE, K_INT);
-	c->kerneldropcalcgrad = new_Kernel(cl->program, "dropcalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
+	c->kerneldropcalcgrad = new_Kernel(cl->program,error, "dropcalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
 	return (Camada) c;
 }
 

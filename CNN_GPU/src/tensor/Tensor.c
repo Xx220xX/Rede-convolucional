@@ -7,14 +7,11 @@ GPU_ERROR defaultError;
 
 void fillTensor(Tensor t, cl_context context, size_t bytes, GPU_ERROR *error) {
     t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, bytes, NULL, &error->error);
-    if (!t->data) {
-        error->error = -1;
-        snprintf(error->msg, 255, "A memoria retornada foi NULL\n");
+	if (!t->data) {
+	    snprintf(error->msg, 255, "A memoria retornada foi NULL\n");
     }
-    if (!error)error = &defaultError;
     if (error->error) {
         snprintf(error->msg, 255, "nao foi possivel allocar memoria vram\n");
-
     }
     LOG_CNN_TENSOR_MEMORY("aloc (0x%X,0x%X)", t, t->data)
 }
@@ -36,7 +33,6 @@ void TensorGetValuesOffset(cl_command_queue queue, Tensor t,int offset, void *da
 
 
 Tensor newTensor(cl_context context, unsigned int x, unsigned int y, unsigned int z, GPU_ERROR *error) {
-
     if (!error)error = &defaultError;
     if (error->error)return NULL;
     if (x <= 0 | y <= 0 | z <= 0) {

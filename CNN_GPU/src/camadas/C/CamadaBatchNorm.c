@@ -48,29 +48,29 @@ Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
 	c->norma = newTensor(cl->context, inx, iny, inz, error);
 
 	c->epsilon = epsilon;
-	c->kernelBatchNormAtiva1 = new_Kernel(cl->program, "BatchNormMedia", 5,
+	c->kernelBatchNormAtiva1 = new_Kernel(cl->program,error, "BatchNormMedia", 5,
 	                                      K_VOID_P, K_VOID_P,
 	                                      K_INT, K_INT, K_INT);
 
-	c->kernelBatchNormAtiva2 = new_Kernel(cl->program, "BatchNormDiferenca", 7,
+	c->kernelBatchNormAtiva2 = new_Kernel(cl->program, error,"BatchNormDiferenca", 7,
 	                                      K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                      K_INT, K_INT, K_INT);
-	c->kernelBatchNormAtiva3 = new_Kernel(cl->program, "BatchNormVariance", 8,
+	c->kernelBatchNormAtiva3 = new_Kernel(cl->program,error, "BatchNormVariance", 8,
 	                                      K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                      K_DOUBLE, K_INT, K_INT, K_INT);
-	c->kernelBatchNormAtiva4 = new_Kernel(cl->program, "BatchNormNormaliza", 9,
+	c->kernelBatchNormAtiva4 = new_Kernel(cl->program, error,"BatchNormNormaliza", 9,
 	                                      K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                      K_VOID_P, K_VOID_P,
 	                                      K_INT, K_INT, K_INT);
 
-	c->kernelBatchNormCalcGrads1 = new_Kernel(cl->program, "BatchNormaCalcGrad1", 10,
+	c->kernelBatchNormCalcGrads1 = new_Kernel(cl->program,error, "BatchNormaCalcGrad1", 10,
 	                                          K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                          K_VOID_P, K_VOID_P, K_VOID_P,
 	                                          K_INT, K_INT, K_INT);
-	c->kernelBatchNormCalcGrads2 = new_Kernel(cl->program, "BatchNormaCalcGrad2", 7,
+	c->kernelBatchNormCalcGrads2 = new_Kernel(cl->program,error, "BatchNormaCalcGrad2", 7,
 	                                          K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                          K_INT, K_INT, K_INT);
-	c->kernelBatchNormCorrige = new_Kernel(cl->program, "batchNormCorrigePeso", 6,
+	c->kernelBatchNormCorrige = new_Kernel(cl->program,error, "batchNormCorrigePeso", 6,
 	                                       K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                       K_DOUBLE, K_INT);
 	if (randomize)

@@ -38,6 +38,7 @@ static int l_createCnn(lua_State *L) {
 		}
 	}
 	*globalcnn = createCnnWithWrapperProgram(default_kernel, p, x, y, z, device);
+//	printCLInfo(getClinfo((*globalcnn)->cl));
 	return 0;
 }
 

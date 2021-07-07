@@ -25,6 +25,7 @@ void showDir() {
 	}
 	getchar();*/
 }
+
 /**
  *  Carrega as imagens do arquivo
  * @param cnn  instancia valida de uma cnn (para utilizar a gpu)
@@ -206,9 +207,9 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	int r;
 	int stop = 0;
 	// vetor para treinar com dados aleatorios
-	int *index = (int *)calloc(samples,sizeof(int));
+	int *index = (int *) calloc(samples, sizeof(int));
 	// inicializa vetor index
-	for(int i=0;i<samples;index[i] = i++);
+	for (int i = 0; i < samples; index[i] = i++);
 
 	// inicia treinamento
 	for (; epoca < epocs; epoca++) {
@@ -216,7 +217,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 		// captura o tempo em millissegundos
 		initTime = getms();
 		//mistura vetor de indices
-		LCG_shuffle(index,samples,sizeof(int));
+		LCG_shuffle(index, samples, sizeof(int));
 
 		erro = 0;
 		erroMedio = 0;
@@ -237,7 +238,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 			if (r == labelsI[caso]) { acertos += 1; }
 			// soma o erro
 			erro += cnn->normaErro;
-			erroMedio = erro/(key+1);
+			erroMedio = erro / (key + 1);
 		}
 		fprintf(f, "| %g | %d | %llu |\n", erroMedio, acertos, (unsigned long long int) (getms() - initTime) * 1000);
 	}
@@ -281,11 +282,12 @@ fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *name
 		r = CnnGetIndexMax(cnn);
 		numeroCasosOcorridos[labelsI[caso]]++;
 		erroPorClasse[labelsI[caso]] += cnn->normaErro;
-		if (imPrint < imagesSaveOutput) {
-			snprintf(buff, 250, "imgs/%s_%d.ppm", name, caso + 1);
-			salveCnnOutAsPPM(cnn, buff);
-			imPrint++;
-		}
+//removido pois estava atrasando o teste
+//		if (imPrint < imagesSaveOutput) {
+//			snprintf(buff, 250, "imgs/%s_%d.ppm", name, caso + 1);
+//			salveCnnOutAsPPM(cnn, buff);
+//			imPrint++;
+//		}
 		if (r == labelsI[caso]) {
 			acertosPorClasse[r]++;
 			acertos++;
@@ -305,12 +307,11 @@ fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *name
 	fprintf(f, "| ---- | ---- | ---- | ---- |\n");
 	for (int i = 0; i < 10; i++) {
 		fprintf(f, "| %s | %d | %d | %g |\n", names[i].names, numeroCasosOcorridos[i], acertosPorClasse[i],
-		        erroPorClasse[i]/(double)numeroCasosOcorridos[i]);
+		        erroPorClasse[i] / (double) numeroCasosOcorridos[i]);
 	}
 	fclose(f);
 
 }
-
 
 
 int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
@@ -322,6 +323,7 @@ int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
 //	printf(" %s", luaFile);
 	printf("\n");
 	//showDir();
+
 	luaL_loadfile(L, luaFile);
 	int error = lua_pcall(L, 0, 0, 0);
 

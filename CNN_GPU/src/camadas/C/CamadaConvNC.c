@@ -60,21 +60,21 @@ Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
 
 	if (randomize) ConvNcRandomize(c, cl, error);
 	if (error->error) return (Camada) c;
-	c->kernelConvNcSum = new_Kernel(cl->program, "convncSum", 15,
+	c->kernelConvNcSum = new_Kernel(cl->program,error, "convncSum", 15,
 	                                K_VOID_P, K_VOID_P, K_VOID_P,
 	                                K_INT, K_INT, K_INT,
 	                                K_INT, K_INT, K_INT,
 	                                K_INT, K_INT, K_INT, K_INT,
 	                                K_INT, K_INT);
-	c->kernelConvNcFixWeight = new_Kernel(cl->program, "convncFixWeight", 7, K_VOID_P, K_VOID_P, K_VOID_P,
+	c->kernelConvNcFixWeight = new_Kernel(cl->program,error, "convncFixWeight", 7, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                      K_DOUBLE, K_DOUBLE, K_DOUBLE, K_INT);
-	c->kernelConvNcCalcGradsFiltro = new_Kernel(cl->program, "convncCalcFiltro", 15,
+	c->kernelConvNcCalcGradsFiltro = new_Kernel(cl->program,error, "convncCalcFiltro", 15,
 	                                            K_VOID_P, K_VOID_P, K_VOID_P,
 	                                            K_INT, K_INT, K_INT,
 	                                            K_INT, K_INT, K_INT,
 	                                            K_INT, K_INT, K_INT
 	);
-	c->kernelConvNcCalcGrads = new_Kernel(cl->program, "convncCalcGrads",
+	c->kernelConvNcCalcGrads = new_Kernel(cl->program,error, "convncCalcGrads",
 	                                      17,
 	                                      K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                      K_INT, K_INT,K_INT, K_INT,

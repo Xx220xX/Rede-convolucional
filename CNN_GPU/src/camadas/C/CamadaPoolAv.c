@@ -34,9 +34,9 @@ Camada createPoolAv(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tama
 	c->super.parametros = params;
 	c->super.salvar = (fsl) salvarPoolAv;
 
-	c->kernelPoolAvAtiva = new_Kernel(cl->program, "PoolAvativa", 9, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT, K_INT, K_INT,
+	c->kernelPoolAvAtiva = new_Kernel(cl->program,error, "PoolAvativa", 9, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT, K_INT, K_INT,
 	                                K_INT, K_INT);
-	c->kernelPoolAvCalcGrads = new_Kernel(cl->program, "PoolAvCalcGrads", 12, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	c->kernelPoolAvCalcGrads = new_Kernel(cl->program,error, "PoolAvCalcGrads", 12, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                    K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
 	return (Camada) c;
 }

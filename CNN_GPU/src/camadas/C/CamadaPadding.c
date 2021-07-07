@@ -40,13 +40,13 @@ Camada createPadding(WrapperCL *cl, cl_command_queue queue,
 	c->bottom = bottom;
 	c->left = left;
 	c->right = right;
-	c->ativa = new_Kernel(cl->program, "paddingfeed", 9,
+	c->ativa = new_Kernel(cl->program,error, "paddingfeed", 9,
 	                      K_VOID_P, K_VOID_P,
 	                      K_INT, K_INT, K_INT,
 	                      K_INT, K_INT, K_INT,
 	                      K_INT
 	);
-	c->calcGrad = new_Kernel(cl->program, "paddingBack", 9,
+	c->calcGrad = new_Kernel(cl->program,error, "paddingBack", 9,
 	                         K_VOID_P, K_VOID_P,
 	                         K_INT, K_INT, K_INT,
 	                         K_INT, K_INT, K_INT,

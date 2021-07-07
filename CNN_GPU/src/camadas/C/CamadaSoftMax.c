@@ -32,9 +32,9 @@ Camada createSoftMax(WrapperCL *cl, cl_command_queue  queue,unsigned int inx, un
 	c->soma = newTensor(cl->context,1,1,inz,error);
 	c->exponent = newTensor(cl->context,inx,iny,inz,error);
 
-	c->kernelSoftMaxAtiva1 = new_Kernel(cl->program, "SoftMaxativa1", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT);
-	c->kernelSoftMaxAtiva2 = new_Kernel(cl->program, "SoftMaxativa2", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT);
-	c->kernelSoftMaxCalcGrads = new_Kernel(cl->program, "softMaxcalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelSoftMaxAtiva1 = new_Kernel(cl->program,error, "SoftMaxativa1", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT);
+	c->kernelSoftMaxAtiva2 = new_Kernel(cl->program,error, "SoftMaxativa2", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT);
+	c->kernelSoftMaxCalcGrads = new_Kernel(cl->program,error, "softMaxcalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
 	return (Camada) c;
 }
 

@@ -17,10 +17,14 @@ typedef struct {
 	char *kernel_name;
 	int nArgs;
 	size_t *l_args;
-	int error;
-} Kernel;
 
-Kernel new_Kernel(cl_program pg, const char *f_name, int n_args, ...);
+} Kernel;
+typedef struct {
+	cl_int error;
+	char msg[255];
+} GPU_ERROR;
+
+Kernel new_Kernel(cl_program pg,GPU_ERROR *error, const char *f_name, int n_args, ...);
 
 cl_kernel Kernel_putArgs(Kernel *self, int n_args, ...);
 

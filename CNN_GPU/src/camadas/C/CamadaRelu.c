@@ -31,8 +31,8 @@ Camada createRelu(WrapperCL *cl, cl_command_queue  queue,unsigned int inx, unsig
 	c->super.corrige_pesos = (fv) corrige_pesosRelu;
 	c->super.salvar = (fsl) salvarRelu;
 
-	c->kernelReluAtiva = new_Kernel(cl->program, "reluativa", 3, K_VOID_P, K_VOID_P, K_INT);
-	c->kernelReluCalcGrads = new_Kernel(cl->program, "relucalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelReluAtiva = new_Kernel(cl->program,error, "reluativa", 3, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelReluCalcGrads = new_Kernel(cl->program,error, "relucalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
 	return (Camada) c;
 }
 

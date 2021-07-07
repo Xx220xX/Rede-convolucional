@@ -24,6 +24,8 @@ int main(int nargs, char **args) {
     char *luaFile = args[1];
     ParametrosCnnALL p = {0};
 
+
+
     // carrega script lua, e inicia a rede neural
     erro = loadLuaParameters(luaFile, &p);
     //variaveis para imagens de entrada e suas respectivas respostas

@@ -3,7 +3,7 @@
 //
 #include "cnn.h"
 
-char __version__[] = "2.0.015";
+char __version__[] = "2.0.016";
 char __notas__[] =
 		"camada conv corrigida 2.0.007\n"
 		"camada padding adicionada 2.0.009\n"
@@ -12,6 +12,7 @@ char __notas__[] =
 		"camada polling av adicionada 2.0.013\n"
 		"camada convNc adicionada 2.0.014\n"
 		"Todas as camadas possui seus proprios parametros 2.0.015\n"
+		"verificação interna de erros adicionada 2.0.016\n"
 		;
 
 const char *getVersion() {
@@ -34,17 +35,16 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 		c->error.error = error;
 		snprintf(c->error.msg, 255, "nao foi possivel criar queue\n");
 	}
-	c->kernelsub = new_Kernel(cl->program, "sub", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
-	c->kerneldiv = new_Kernel(cl->program, "div", 3, K_VOID_P, K_DOUBLE, K_INT);
-	c->kerneldivInt = new_Kernel(cl->program, "divIntDo", 4, K_VOID_P, K_VOID_P, K_DOUBLE, K_INT);
-	c->kernelNorm = new_Kernel(cl->program, "norm", 3, K_VOID_P, K_VOID_P, K_INT);
-	c->kernelMax = new_Kernel(cl->program, "maxID", 3, K_VOID_P, K_VOID_P, K_INT);
-	c->kernelInt2Vector = new_Kernel(cl->program, "int2vector", 4, K_VOID_P, K_VOID_P, K_INT, K_INT);
-
-	c->kernelNormalize = new_Kernel(cl->program, "normalizeVector", 6, K_VOID_P, K_VOID_P, K_DOUBLE, K_DOUBLE, K_DOUBLE,
+	c->kernelsub = new_Kernel(cl->program,&c->error, "sub", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
+	c->kerneldiv = new_Kernel(cl->program, &c->error,"div", 3, K_VOID_P, K_DOUBLE, K_INT);
+	c->kerneldivInt = new_Kernel(cl->program, &c->error,"divIntDo", 4, K_VOID_P, K_VOID_P, K_DOUBLE, K_INT);
+	c->kernelNorm = new_Kernel(cl->program,&c->error, "norm", 3, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelMax = new_Kernel(cl->program, &c->error,"maxID", 3, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelInt2Vector = new_Kernel(cl->program, &c->error,"int2vector", 4, K_VOID_P, K_VOID_P, K_INT, K_INT);
+	c->kernelNormalize = new_Kernel(cl->program, &c->error,"normalizeVector", 6, K_VOID_P, K_VOID_P, K_DOUBLE, K_DOUBLE, K_DOUBLE,
 	                                K_INT);
-	c->kernelfindExtreme = new_Kernel(cl->program, "findExtremes", 3, K_VOID_P, K_VOID_P, K_INT);
-	c->kernelcreateIMG = new_Kernel(cl->program, "createImg", 7, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT, K_INT, K_INT);
+	c->kernelfindExtreme = new_Kernel(cl->program, &c->error,"findExtremes", 3, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelcreateIMG = new_Kernel(cl->program, &c->error,"createImg", 7, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT, K_INT, K_INT);
 	return c;
 }
 
@@ -326,6 +326,7 @@ int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 }
 
 int CnnCall(Cnn c, double *input) {
+	if (c->error.error)return c->error.error;
 	c->error.error = TensorPutValues(c->queue, c->camadas[0]->entrada, input);
 	for (int i = 0; i < c->size; ++i) {
 		c->camadas[i]->ativa(c->camadas[i]);
@@ -335,17 +336,30 @@ int CnnCall(Cnn c, double *input) {
 }
 
 int CnnLearn(Cnn c, double *target) {
-	if (c->size == 0)return -1;
+	if (c->error.error)return c->error.error;
+	if (c->size == 0){
+		c->error.error = -70;
+		sprintf(c->error.msg,"A rede não possui nenhuma camada\n");
+		return c->error.error;
+
+	}
 	Tensor lastGrad, targ;
 	Tensor gradNext;
 	lastGrad = c->lastGrad;
 	targ = c->target;
 
-	clEnqueueWriteBuffer(c->queue, targ->data, CL_TRUE, 0, targ->bytes, target, 0, NULL, NULL);
+	c->error.error = clEnqueueWriteBuffer(c->queue, targ->data, CL_TRUE, 0, targ->bytes, target, 0, NULL, NULL);
+	if(c->error.error){
+		getClError(c->error.error,c->error.msg);
+		return c->error.error;
+	}
 	clFinish(c->queue);
-	kernel_run_recursive(&c->kernelsub, c->queue, targ->x * targ->y * targ->z, c->cl->maxworks,
+	c->error.error = kernel_run_recursive(&c->kernelsub, c->queue, targ->x * targ->y * targ->z, c->cl->maxworks,
 	                     &lastGrad->data, &c->camadas[c->size - 1]->saida->data, &targ->data);
-
+	if(c->error.error){
+		getClError(c->error.error,c->error.msg);
+		return c->error.error;
+	}
 	gradNext = lastGrad;
 	for (int l = c->size - 1; l >= 0; l--) {
 		c->camadas[l]->calc_grads(c->camadas[l], gradNext);
@@ -355,9 +369,13 @@ int CnnLearn(Cnn c, double *target) {
 	}
 	if (c->flags & CNN_FLAG_CALCULE_ERROR) {
 		size_t len = lastGrad->x * lastGrad->y * lastGrad->z;
-		kernel_run(&c->kernelNorm, c->queue, len, 1, &lastGrad->data, &targ->data, &len);
+		c->error.error = kernel_run(&c->kernelNorm, c->queue, len, 1, &lastGrad->data, &targ->data, &len);
+		if(c->error.error){
+			getClError(c->error.error,c->error.msg);
+			return c->error.error;
+		}
 		clFinish(c->queue);
-		clEnqueueReadBuffer(c->queue, targ->data, CL_TRUE, 0, sizeof(double), &c->normaErro, 0, NULL, NULL);
+		c->error.error = clEnqueueReadBuffer(c->queue, targ->data, CL_TRUE, 0, sizeof(double), &c->normaErro, 0, NULL, NULL);
 	}
 	return c->error.error;
 }
