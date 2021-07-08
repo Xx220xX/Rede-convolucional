@@ -131,6 +131,7 @@ void salveCnnOutAsPPM(Cnn c, const char *name) {
  * @param dir
  */
 void createDir(char *dir) {
+	printf("%s\n", dir);
 	char msg[250] = {0};
 	DWORD dwatt = GetFileAttributes(dir);
 	if (dwatt != INVALID_FILE_ATTRIBUTES && dwatt & FILE_ATTRIBUTE_DIRECTORY) {
@@ -140,6 +141,7 @@ void createDir(char *dir) {
 	sprintf(msg, "mkdir  %s", dir);
 	system(msg);
 }
+
 /*
 void salveCnnOutAsPPM(const char *name, Cnn c) {
 	FILE *f = fopen(name, "wb");
@@ -206,4 +208,92 @@ void salveCnnOutAsPPM(const char *name, Cnn c) {
 	fclose(f);
 }
 */
+const char INDEX_HTML[] =
+		"<!doctype html>\n"
+		"<html lang=\"pt-br\">\n"
+		"<head>\n"
+		"\t<meta charset=\"utf-8\">\n"
+		"\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+		"\t<link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css\" rel=\"stylesheet\"\n"
+		"\tintegrity=\"sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC\" crossorigin=\"anonymous\">\n"
+		"\t<script src=\"https://polyfill.io/v3/polyfill.min.js?features=es6\"></script>\n"
+		"\t<script type=\"text/javascript\" id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js\"/>\n"
+		"\t<script src=\"https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js\"\n"
+		"\tintegrity=\"sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p\"\n"
+		"\tcrossorigin=\"anonymous\"></script>\n"
+		"\t<script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js\"\n"
+		"\tintegrity=\"sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF\"\n"
+		"\tcrossorigin=\"anonymous\"></script>\n"
+		"\t<script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>\n"
+		"\t\n"
+		"\t<title>Treino</title>\n"
+		"</head>\n"
+		"<body class=\"d-flex justify-content-md-center\">\n"
+		"\t<div class=\"container\">\n"
+		"\t\t<div id='Camadas'>\n"
+		"\t\t\t<h5 class=\"alert alert-primary\" role=\"alert\">Arquitetura</h5>\n"
+		"\t\t\t<p></p>\n"
+		"\t\t\t<table class = \"table table-sm \" id=\"tabela_arquitetura\"></table>\n"
+		"\t\t</div>\n"
+		"\t\t<div id=Treino>\n"
+		"\t\t\t<h5 class=\"alert alert-primary\" role=\"alert\">Treinamento</h5>\n"
+		"\t\t\t<div id=\"graficoErro\" style=\"height:600px\"></div>\n"
+		"\t\t\t<div id=\"graficoAcerto\" style=\"height:600px\"></div>\n"
+		"\t\t</div>\n"
+		"\t\t<div id='Camadas'>\n"
+		"\t\t\t<h5 class=\"alert alert-primary\" role=\"alert\">Avaliação</h5>\n"
+		"\t\t\t<p></p>\n"
+		"\t\t\t<table class = \"table table-sm\" id=\"tabela_fitnes\">\n"
+		"\t\t\t</table>\n"
+		"\t\t\t\n"
+		"\t\t</div>\n"
+		"\t</div>\n"
+		"</body>\n"
+		"<script type=\"text/javascript\" >\n"
+		"\tfunction plot(elementID,x,y,xlabel,ylabel,title='',curve_name='',xlim=[null,null],ylim=[null,null]) {\n"
+		"\t\tgoogle.charts.load('current', {'packages':['corechart']});\n"
+		"\t\tgoogle.charts.setOnLoadCallback(drawChart);\n"
+		"\t\telement = document.getElementById(elementID);\n"
+		"\t\tfunction drawChart(){\n"
+		"\t\t\tlet dt = [['',curve_name]];\n"
+		"\t\t\tfor (let i in x){\n"
+		"\t\t\t\tdt.push([x[i],y[i]]);\n"
+		"\t\t\t}\n"
+		"\n"
+		"\t\t\tlet data = google.visualization.arrayToDataTable(dt);\n"
+		"\n"
+		"\t\t\tlet options = {\n"
+		"\t\t\t\ttitle: title,\n"
+		"\t\t\t//curveType: 'function',\n"
+		"\t\t\tlegend: { position: 'top' },\n"
+		"\t\t\thAxis:{title:xlabel,viewWindow:{min:xlim[0],max:xlim[1]}},\n"
+		"\t\t\tvAxis:{title:ylabel,viewWindow:{min:ylim[0],max:ylim[1]}},\n"
+		"\t\t\t\n"
+		"\t\t};\n"
+		"\t\tlet chart = new google.visualization.LineChart(element);\n"
+		"\t\tchart.draw(data, options);\n"
+		"\t\t\n"
+		"\t}\n"
+		"}\n"
+		"//document.getElementById(\"numeroCamadas\").innerHTML = 5;\n"
+		"\n"
+		"var tabela_arquitetura = document.getElementById(\"tabela_arquitetura\");\n"
+		"var tabela_fitnes = document.getElementById(\"tabela_fitnes\");\n"
+		"\n"
+		"// tabela_arquitetura.innerHTML = '<tr><th scope=\"col\">#</th><th scope=\"col\">First</th><th scope=\"col\">Second</th></tr>'\n"
+		"function tablePutColum(table,colum){\n"
+		"\tlet st = \t'<tr>';\n"
+		"\tlet c;\n"
+		"\tfor(let cl in colum){\n"
+		"\t\tc = '<th scope=\"col\" aligned=\"center\">'+ colum[cl] +'</th>';\n"
+		"\t\tst +=\tc;\n"
+		"\t}\n"
+		"\tst +=\t'<tr>\\n';\n"
+		"\ttable.innerHTML +=st;\n"
+		"}\n"
+		"</script>\n"
+		"<script type=\"text/javascript\" src=\"js/camada.js\"></script>\n"
+		"<script type=\"text/javascript\" src=\"js/grafico.js\"></script>\n"
+		"<script type=\"text/javascript\" src=\"js/fitnes.js\"></script>\n"
+		"</html>";
 #endif //CNN_GPU_UTEISTREINO_H

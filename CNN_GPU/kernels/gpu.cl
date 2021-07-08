@@ -56,9 +56,11 @@ kV printTensor(Vector t, int mx, int my, int mz, int ofset) {
 }
 
 kV norm(Vector v, Vector out, int len) {
-	double s = 0;
+	double s = 0,aux;
 	for (int i = 0; i < len; ++i) {
-		s += v[i] * v[i];
+		aux = v[i] * v[i];
+		aux = (!(isnan(aux) || isinf(aux)))*aux;
+		s += aux;
 	}
 	out[0] = pow(s, 0.5);
 }
@@ -297,11 +299,13 @@ kV convCalcFiltro(     Vector ds,
 	int m, n, z, l;
 //	printf("kernel %d\n",k);
 	TensorRemap4D(k, m, n, z, l, gradFiltro_tx, gradFiltro_ty, gradFiltro_tz)
-	double soma = 0;
+	double soma = 0,aux;
 	for (int i = 0; i < saida_tx; ++i) {
 		for (int j = 0; j < saida_ty; ++j) {
-			soma += entrada[TensorMap(i*passo+m, j*passo+n,z,entrada_tx,entrada_ty)]
+			aux = entrada[TensorMap(i*passo+m, j*passo+n,z,entrada_tx,entrada_ty)]
 				   *ds[TensorMap(i,j,l,saida_tx,saida_ty)];
+			aux = (!(isnan(aux) || isinf(aux)))*aux;
+			soma +=aux;
 		}
 	}
 	gradFiltro[k] = soma;
@@ -326,14 +330,16 @@ kV convCalcGrads(Vector filtro,
 	Range range = mapeia_entrada_saida(x, y, passo, lenFilter, saidatx, saidaty, numFilters);
 	int minX, minY;
 	double somaErro = 0, pesoAplicado = 0;
-
+	double aux;
 	for (int i = range.min.x; i <= range.max.x; i++) {
 		minX = i * passo;
 		for (int j = range.min.y; j <= range.max.y; j++) {
 			minY = j * passo;
 			for (int l = range.min.z; l <= range.max.z; l++) {
 				pesoAplicado = filtro[TensorMap4D(x - minX, y - minY, z, l, lenFilter, lenFilter, filtroz)];
-				somaErro += pesoAplicado * gradNext[TensorMap(i, j, l, saidatx, saidaty)];
+				aux = pesoAplicado * gradNext[TensorMap(i, j, l, saidatx, saidaty)];
+				aux = (!(isnan(aux) || isinf(aux)))*aux;
+				somaErro +=aux;
 			}
 		}
 	}
@@ -358,6 +364,7 @@ kV convncSum(Vector filtro, Vector entrada, Vector saida,
 			for (int z = 0; z < entradatz; z++) {
 				f = filtro[TensorMap4D(i, j, z, filtrok, fx, fy, entradatz)];
 				v = entrada[TensorMap(mapeado.x + i * largx, mapeado.y + j * largy, z, entradatx, entradaty)];
+
 				sum += f * v;
 			}
 	saida[k] = sum;
@@ -395,11 +402,13 @@ kV convncCalcFiltro(Vector ds,
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
 	TensorRemap4D(k, m, n, z, l, gradFiltro_tx, gradFiltro_ty, gradFiltro_tz)
-	double soma = 0;
+	double soma = 0,aux;
 	for (int i = 0; i < saida_tx; ++i) {
 		for (int j = 0; j < saida_ty; ++j) {
-			soma += entrada[TensorMap(i * passox + m * largx, j * passoy + n * largy, z, entrada_tx, entrada_ty)]
+			aux = entrada[TensorMap(i * passox + m * largx, j * passoy + n * largy, z, entrada_tx, entrada_ty)]
 			        * ds[TensorMap(i, j, l, saida_tx, saida_ty)];
+			aux = (!(isnan(aux) || isinf(aux)))*aux;
+			soma += aux;
 		}
 	}
 	gradFiltro[k] = soma;
@@ -456,7 +465,7 @@ kV convncCalcGrads(Vector filtro,
 		range_filtro.max.y = y / largy;
 	}
 	int sx, sy;
-	double somaErro = 0, pesoAplicado = 0;
+	double somaErro = 0,aux, pesoAplicado = 0;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		sx = (x - m * largx) / passox;
 		if (sx * passox + m * largx != x)continue;
@@ -465,7 +474,9 @@ kV convncCalcGrads(Vector filtro,
 			if (sy * passoy + n * largy != y)continue;
 			for (int l = 0; l < fz; l++) {
 				pesoAplicado = filtro[TensorMap4D(m, n, z, l, fx, fy, fz)];
-				somaErro += pesoAplicado * gradNext[TensorMap(sx, sy, l, saidatx, saidaty)];
+				aux = pesoAplicado * gradNext[TensorMap(sx, sy, l, saidatx, saidaty)];
+				aux = (!(isnan(aux) || isinf(aux)))*aux;
+				somaErro +=aux;
 			}
 		}
 	}
@@ -579,15 +590,19 @@ fullfixweight(Vector a,
 
 kV fullcalcgrads1(Vector dz, Vector ds, Vector z, int dfa, int k0) {
 	int m = get_global_id(0) + k0;
-	dz[m] = ds[m] * func(dfa, z[m]);
+	double aux = ds[m] * func(dfa, z[m]);
+	aux = (!(isnan(aux) || isinf(aux)))*aux;
+	dz[m] = aux;
 }
 
 kV fullcalcgrads2(Vector dz, Vector da, Vector pesos, int pesosx, int pesosy,
                   int k0) {
 	int m = get_global_id(0) + k0;
-	double soma = 0;
+	double soma = 0,aux;
 	for (int n = 0; n < pesosx; ++n) {
-		soma += dz[n] * pesos[TensorMap(n, m, 0, pesosx, pesosy)];
+		aux = dz[n] * pesos[TensorMap(n, m, 0, pesosx, pesosy)];
+		aux = (!(isnan(aux) || isinf(aux)))*aux;
+		soma += aux;
 	}
 	da[m] = soma;
 }

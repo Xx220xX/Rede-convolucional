@@ -42,11 +42,11 @@ typedef struct {
 
 void realeaseBatchNorm(CamadaBatchNorm *pc);
 
-void ativaBatchNorm(CamadaBatchNorm c);
+int ativaBatchNorm(CamadaBatchNorm c);
 
-void corrige_pesosBatchNorm(CamadaBatchNorm c);
+int corrige_pesosBatchNorm(CamadaBatchNorm c);
 
-void calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext);
+int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext);
 
 void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, GPU_ERROR *error);
 

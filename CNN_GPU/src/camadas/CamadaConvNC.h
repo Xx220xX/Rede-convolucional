@@ -32,13 +32,13 @@ typedef struct {
 	Kernel kernelConvNcCalcGrads;
 } *CamadaConvNc, TypecamadaConvNc;
 
-void calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext);
+int calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext);
 
 void releaseConvNc(CamadaConvNc *pc);
 
 int ativaConvNc(CamadaConvNc c);
 
-void corrige_pesosConvNc(CamadaConvNc c);
+int corrige_pesosConvNc(CamadaConvNc c);
 
 int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, GPU_ERROR *error);
 

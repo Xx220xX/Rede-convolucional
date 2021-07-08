@@ -55,9 +55,11 @@ kV printTensor(Vector t, int mx, int my, int mz, int ofset) {
 }
 
 kV norm(Vector v, Vector out, int len) {
-	double s = 0;
+	double s = 0,aux;
 	for (int i = 0; i < len; ++i) {
-		s += v[i] * v[i];
+		aux = v[i] * v[i];
+		aux = (!(isnan(aux) || isinf(aux)))*aux;
+		s += aux;
 	}
 	out[0] = pow(s, 0.5);
 }

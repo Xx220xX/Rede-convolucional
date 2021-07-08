@@ -295,7 +295,7 @@ cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source) {
 	return program;
 }
 
-char *printBytes(cl_ulong bytes, char buff[250]) {
+char *printBytes(cl_ulong bytes, char *buff) {
 	unsigned int G, M, K, B;
 	G = bytes / (1024 * 1024 * 1024);
 	bytes %= (1024 * 1024 * 1024);
@@ -304,7 +304,7 @@ char *printBytes(cl_ulong bytes, char buff[250]) {
 	K = bytes / (1024);
 	bytes %= (1024);
 	B = bytes;
-	snprintf(buff, 250, "%uGB %uMB %u kB %uB", G, M, K, B);
+	sprintf(buff,  "%uGB %uMB %u kB %uB", G, M, K, B);
 	return buff;
 }
 

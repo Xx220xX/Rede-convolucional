@@ -22,11 +22,11 @@ typedef struct {
 
 void realeaseSoftMax(CamadaSoftMax *pc);
 
-void ativaSoftMax(CamadaSoftMax c);
+int ativaSoftMax(CamadaSoftMax c);
 
-void corrige_pesosSoftMax(CamadaSoftMax);
+int corrige_pesosSoftMax(CamadaSoftMax);
 
-void calc_gradsSoftMax(CamadaSoftMax c, Tensor GradNext);
+int calc_gradsSoftMax(CamadaSoftMax c, Tensor GradNext);
 
 void salvarSoftMax(WrapperCL *cl, CamadaSoftMax c, FILE *dst, GPU_ERROR *error);
 

@@ -5,7 +5,7 @@
 #include "../Camada.h"
 
 Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
-               Params param, GPU_ERROR *error) {
+                      Params param, GPU_ERROR *error) {
 	char identify = 0;
 	fread(&identify, sizeof(char), 1, src);
 	if (feof(src))return NULL;
@@ -22,6 +22,8 @@ Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 			return carregarFullConnect(cl, src, queue, entrada, param, error);
 		case BATCHNORM:
 			return carregarBatchNorm(cl, src, queue, entrada, param, error);
+		case SOFTMAX:
+			return carregarSoftMax(cl, src, queue, entrada, param, error);
 		case POOLAV:
 			return carregarPoolAv(cl, src, queue, entrada, param, error);
 		case PADDING:
@@ -39,18 +41,19 @@ void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE que
                    size_t yi, size_t zi, size_t xo, size_t yo, size_t zo, GPU_ERROR *error) {
 	cl_context context = cl->context;
 	if (error->error)return;
+	c->queue = queue;
 	c->type = type;
 	c->entrada = entrada;
 	if (!entrada) {
-		c->entrada = newTensor(context, xi, yi, zi, error);
+		c->entrada = newTensor(context, c->queue, xi, yi, zi, error);
 		c->flag_releaseInput = 1;
 	}
 
-	c->saida = newTensor(context, xo, yo, zo, error);
-	c->gradsEntrada = newTensor(context, xi, yi, zi, error);
+	c->saida = newTensor(context, queue, xo, yo, zo, error);
+	c->gradsEntrada = c->entrada; //newTensor(context, xi, yi, zi, error);
 	c->parametros = params;
 	c->max_works = &cl->maxworks;
 	c->context = cl->context;
-	c->queue = queue;
+
 }
 

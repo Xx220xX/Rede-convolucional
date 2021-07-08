@@ -22,6 +22,7 @@ typedef struct {
 typedef struct {
 	cl_int error;
 	char msg[255];
+	char *context;
 } GPU_ERROR;
 
 Kernel new_Kernel(cl_program pg,GPU_ERROR *error, const char *f_name, int n_args, ...);

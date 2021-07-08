@@ -20,11 +20,11 @@ typedef struct {
 
 void realeaseRelu(CamadaRelu *pc);
 
-void ativaRelu(CamadaRelu c);
+int ativaRelu(CamadaRelu c);
 
-void corrige_pesosRelu(CamadaRelu);
+int corrige_pesosRelu(CamadaRelu);
 
-void calc_gradsRelu(CamadaRelu c, Tensor GradNext);
+int calc_gradsRelu(CamadaRelu c, Tensor GradNext);
 
 void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, GPU_ERROR *error);
 

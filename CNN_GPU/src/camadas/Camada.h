@@ -17,7 +17,7 @@ typedef int (*fvv)(void *, void *);
 
 typedef int (*fv)(void *);
 
-typedef void  (*fsl)(void *, void *, void *, void *);
+typedef int  (*fsl)(void *, void *, void *, void *);
 
 typedef const char *(*fch)(void *);
 
@@ -49,6 +49,7 @@ typedef struct {
 	fv ativa;
 	fsl salvar;
 	fch toString;
+	fch getCreateParams;
 	char *__string__;
 	fv release;
 } *Camada, Typecamada;
@@ -81,6 +82,9 @@ Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue,
 
 Camada carregarBatchNorm(WrapperCL *cl, FILE *src, QUEUE queue,
                          Tensor entrada, Params param, GPU_ERROR *error);
+
+Camada carregarSoftMax(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
+                       Params params, GPU_ERROR *error);
 
 Camada carregarPadding(WrapperCL *cl, FILE *src, QUEUE queue,
                        Tensor entrada, Params param, GPU_ERROR *error);

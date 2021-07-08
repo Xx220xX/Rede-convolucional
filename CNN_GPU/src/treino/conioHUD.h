@@ -32,7 +32,6 @@ typedef struct {
 			*stop_listener;
 	size_t *msInitTest;
 	int *estatisticasAcerto, *ncasos;
-	double *estatiscaErro;
 	Nomes *classesName;
 	int dx;
 } InfoTeste;
@@ -169,8 +168,7 @@ void *showInfoTest(InfoTeste *info) {
 	printf("acertos");
 	gotoxy(10 + 2 * dx, y0 + 4);
 	printf("Casos");
-	gotoxy(10 + 3 * dx, y0 + 4);
-	printf("erro medio quadratico");
+
 	for (int c = 0; c < info->nClasses; c++) {
 		gotoxy(10, y0 + 5 + c);
 		if (info->classesName != NULL)
@@ -202,8 +200,6 @@ void *showInfoTest(InfoTeste *info) {
 			printf("% 4d", info->estatisticasAcerto[c]);
 			gotoxy(10 + 2 * dx, y0 + 5 + c);
 			printf("% 4d", info->ncasos[c]);
-			gotoxy(10 + 3 * dx, y0 + 5 + c);
-			printf("% 4.2lf", info->estatiscaErro[c]);
 		}
 		Sleep(200);
 	}
@@ -224,7 +220,7 @@ int testeConio2HUD() {
 	char p;
 	int stop = 0;
 	InfoTeste info = {3, &totalImagens, &caso, &acertos, &stop, &t0, estatisticasAcerto, ncasos,
-	                  estatiscaErro, classesName, 20};
+	                  classesName, 20};
 	pthread_t tid;
 
 	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTest, (void *) &info);

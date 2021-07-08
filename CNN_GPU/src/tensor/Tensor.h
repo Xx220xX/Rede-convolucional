@@ -39,7 +39,9 @@ typedef struct {
 	double *data;
 } *TensorC, typeTensorC;
 
-void fillTensor(Tensor t, cl_context context, size_t bytes, GPU_ERROR *error);
+void printTensor(QUEUE q, Tensor t, FILE *f);
+
+void fillTensor(Tensor t, cl_context context,QUEUE queue, size_t bytes, GPU_ERROR *error);
 
 int TensorPutValues(QUEUE queue, Tensor t, void *data);
 
@@ -49,11 +51,11 @@ void TensorGetValues(QUEUE queue, Tensor t, void *data);
 
 void TensorGetValuesOffset(QUEUE queue, Tensor t, int offset, void *data);
 
-Tensor newTensor(cl_context context, UINT x, UINT y, UINT z, GPU_ERROR *error);
+Tensor newTensor(cl_context context,QUEUE queue, UINT x, UINT y, UINT z, GPU_ERROR *error);
 
-TensorChar newTensorChar(cl_context context, UINT x, UINT y, UINT z, GPU_ERROR *error);
+TensorChar newTensorChar(cl_context context,QUEUE queue, UINT x, UINT y, UINT z, GPU_ERROR *error);
 
-Tensor newTensor4D(cl_context context, UINT x, UINT y, UINT z,
+Tensor newTensor4D(cl_context context,QUEUE queue, UINT x, UINT y, UINT z,
                    UINT l, GPU_ERROR *error);
 
 void releaseTensor(Tensor *t);

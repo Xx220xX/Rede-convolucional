@@ -24,11 +24,11 @@ typedef struct {
 
 void releasePoolAv(CamadaPoolAv *pc);
 
-void ativaPoolAv(CamadaPoolAv c);
+int ativaPoolAv(CamadaPoolAv c);
 
-void corrige_pesosPoolAv(CamadaPoolAv c);
+int corrige_pesosPoolAv(CamadaPoolAv c);
 
-void calc_gradsPoolAv(CamadaPoolAv c, Tensor GradNext);
+int  calc_gradsPoolAv(CamadaPoolAv c, Tensor GradNext);
 
 void salvarPoolAv(WrapperCL *cl, CamadaPoolAv c, FILE *dst, GPU_ERROR *error);
 

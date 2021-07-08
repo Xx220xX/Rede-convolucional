@@ -9,10 +9,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
+char CNN_KERNEL_CONTEXT[] = "new kernel";
 Kernel new_Kernel(cl_program pg, GPU_ERROR *error, const char *f_name, int n_args, ...) {
 	Kernel self = {0};
 	if (error->error)return self;
+	error->context = CNN_KERNEL_CONTEXT;
 	self.kernel = clCreateKernel(pg, f_name, &error->error);
 	if(error->error)
 		getClError(error->error, error->msg + sprintf(error->msg, "erro ao criar o kernel : %s\n\t", f_name));
@@ -73,6 +74,7 @@ int kernel_run(Kernel *self, cl_command_queue queue, size_t globals, size_t loca
 }
 
 int kernel_run_recursive(Kernel *self, cl_command_queue queue, size_t globals, size_t max_works, ...) {
+//	printf("works %zu trabalhos = %zu\n",globals,globals/max_works+globals%max_works);
 	va_list vaList;
 	int error = 0;
 	int i;

@@ -4,7 +4,20 @@
 
 #include "../CamadaConvNC.h"
 
-const char *tostringConvNc(CamadaConvNc c) {
+const char *getCreateParamsConvNc(CamadaConvNc c) {
+	if (c->super.__string__ != NULL)free(c->super.__string__);
+	c->super.__string__ = (char *) calloc(1000, sizeof(char));
+	int len = snprintf(c->super.__string__, 1000,
+	                   "['ConvolucaoNcausal',%d,%d,%d,%d,%d,%d,%d]",
+	                   c->passox, c->passoy,
+	                   c->largx, c->largy,
+	                   c->filtros->x, c->filtros->y,
+	                   c->numeroFiltros
+	);
+	len += 1;
+	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
+	return c->super.__string__;
+}const char *tostringConvNc(CamadaConvNc c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
 	int len = snprintf(c->super.__string__, 1000,
@@ -41,6 +54,7 @@ Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
 	              numeroFiltros, error);
 
 	c->super.toString = (fch) tostringConvNc;
+	c->super.getCreateParams = (fch) getCreateParamsConvNc;
 	c->super.release = (fv) releaseConvNc;
 	c->super.ativa = (fv) ativaConvNc;
 	c->super.calc_grads = (fvv) calc_gradsConvNc;
@@ -53,9 +67,9 @@ Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
 	c->numeroFiltros = numeroFiltros;
 	if (error->error)return (Camada) c;
 	if (error->error)return (Camada) c;
-	c->filtros = newTensor4D(cl->context, filtrox, filtroy, inz, numeroFiltros, error);
-	c->grad_filtros = newTensor4D(cl->context, filtrox, filtroy, inz, numeroFiltros, error);
-	c->grad_filtros_old = newTensor4D(cl->context, filtrox, filtroy, inz, numeroFiltros, error);
+	c->filtros = newTensor4D(cl->context,queue, filtrox, filtroy, inz, numeroFiltros, error);
+	c->grad_filtros = newTensor4D(cl->context,queue, filtrox, filtroy, inz, numeroFiltros, error);
+	c->grad_filtros_old = newTensor4D(cl->context,queue, filtrox, filtroy, inz, numeroFiltros, error);
 
 
 	if (randomize) ConvNcRandomize(c, cl, error);
@@ -118,7 +132,6 @@ int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, GPU_ERROR *error) {
 
 void releaseConvNc(CamadaConvNc *pc) {
 	CamadaConvNc c = *pc;
-	releaseTensor(&c->super.gradsEntrada);
 	if (c->super.flag_releaseInput)
 		releaseTensor(&c->super.entrada);
 	releaseTensor(&c->super.saida);
@@ -139,7 +152,7 @@ void releaseConvNc(CamadaConvNc *pc) {
 
 int ativaConvNc(CamadaConvNc c) {
 	//iteraçao nos filtros
-	kernel_run_recursive(&c->kernelConvNcSum, c->super.queue, c->super.saida->x * c->super.saida->y * c->numeroFiltros,
+	int erro = kernel_run_recursive(&c->kernelConvNcSum, c->super.queue, c->super.saida->x * c->super.saida->y * c->numeroFiltros,
 	                     *c->super.max_works,
 	                     &c->filtros->data, &c->super.entrada->data, &c->super.saida->data,
 	                     &c->passox, &c->passoy, &c->largx,
@@ -147,11 +160,11 @@ int ativaConvNc(CamadaConvNc c) {
 	                     &c->super.entrada->x, &c->super.entrada->y,
 	                     &c->filtros->x, &c->filtros->y,
 	                     &c->super.entrada->z);
-	return 0;
+	return erro;
 }
 
-void corrige_pesosConvNc(CamadaConvNc c) {
-	kernel_run_recursive(&c->kernelConvNcFixWeight, c->super.queue,
+int corrige_pesosConvNc(CamadaConvNc c) {
+	int erro = kernel_run_recursive(&c->kernelConvNcFixWeight, c->super.queue,
 	                     c->filtros->x * c->filtros->y * c->super.entrada->z * c->numeroFiltros,
 	                     *c->super.max_works,
 	                     &c->filtros->data,
@@ -160,10 +173,11 @@ void corrige_pesosConvNc(CamadaConvNc c) {
 	                     &c->super.parametros.hitLearn,
 	                     &c->super.parametros.momento,
 	                     &c->super.parametros.decaimentoDePeso);
+	return erro;
 }
 
-void calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
-	kernel_run_recursive(&c->kernelConvNcCalcGradsFiltro, c->super.queue,
+int  calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
+	int erro = kernel_run_recursive(&c->kernelConvNcCalcGradsFiltro, c->super.queue,
 	                     c->filtros->x * c->filtros->y * c->filtros->z * c->numeroFiltros,
 	                     *c->super.max_works,
 	                     &Gradnext->data,
@@ -184,8 +198,8 @@ void calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
 	                     &c->largy
 
 	);
-
-	kernel_run_recursive(&c->kernelConvNcCalcGrads, c->super.queue,
+if (erro)return erro;
+	erro = kernel_run_recursive(&c->kernelConvNcCalcGrads, c->super.queue,
 	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 	                     *c->super.max_works,
 
@@ -208,6 +222,7 @@ void calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
 	                     &c->filtros->y,
 	                     &c->filtros->z,
 	                     &c->numeroFiltros);
+	return erro;
 
 }
 

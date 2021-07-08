@@ -31,11 +31,11 @@ typedef struct {
 void releaseFullConnect(CamadaFullConnect *pc);
 
 
-void corrigePesosFullConnect(CamadaFullConnect c);
+int corrigePesosFullConnect(CamadaFullConnect c);
 
-void ativaFullConnect(CamadaFullConnect c);
+int ativaFullConnect(CamadaFullConnect c);
 
-void calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext);
+int calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext);
 
 int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error);
 

@@ -3,6 +3,18 @@
 //
 #include "../CamadaPadding.h"
 
+const char *getCreateParamsPadding(CamadaPadding c) {
+	if (c->super.__string__ != NULL)free(c->super.__string__);
+	c->super.__string__ = (char *) calloc(1000, sizeof(char));
+	int len = snprintf(c->super.__string__, 1000,
+	                   "['Padding',%u,%u,%u,%u]",
+	                   c->top, c->bottom, c->left, c->right
+	);
+	len += 1;
+	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
+	return c->super.__string__;
+}
+
 const char *tostringPadding(CamadaPadding c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -18,7 +30,7 @@ const char *tostringPadding(CamadaPadding c) {
 	return c->super.__string__;
 }
 
-Camada createPadding(WrapperCL *cl, cl_command_queue queue,
+Camada createPadding(WrapperCL *cl, QUEUE queue,
                      UINT inx, UINT iny, UINT inz,
                      UINT top, UINT bottom, UINT left, UINT right, Tensor entrada,
                      GPU_ERROR *error) {
@@ -27,10 +39,10 @@ Camada createPadding(WrapperCL *cl, cl_command_queue queue,
 	CamadaPadding c = (CamadaPadding) calloc(1, sizeof(TypecamadaPadding));
 
 	__newCamada__((Camada) c, cl, PADDING, entrada, queue,
-	              (Params){0}, inx, iny, inz, inx + top + bottom, iny + left + right,
+	              (Params) {0}, inx, iny, inz, inx + top + bottom, iny + left + right,
 	              inz, error);
-
 	c->super.toString = (fch) tostringPadding;
+	c->super.getCreateParams = (fch) getCreateParamsPadding;
 	c->super.release = (fv) realeasePadding;
 	c->super.ativa = (fv) ativaPadding;
 	c->super.calc_grads = (fvv) calc_gradsPadding;
@@ -40,13 +52,13 @@ Camada createPadding(WrapperCL *cl, cl_command_queue queue,
 	c->bottom = bottom;
 	c->left = left;
 	c->right = right;
-	c->ativa = new_Kernel(cl->program,error, "paddingfeed", 9,
+	c->ativa = new_Kernel(cl->program, error, "paddingfeed", 9,
 	                      K_VOID_P, K_VOID_P,
 	                      K_INT, K_INT, K_INT,
 	                      K_INT, K_INT, K_INT,
 	                      K_INT
 	);
-	c->calcGrad = new_Kernel(cl->program,error, "paddingBack", 9,
+	c->calcGrad = new_Kernel(cl->program, error, "paddingBack", 9,
 	                         K_VOID_P, K_VOID_P,
 	                         K_INT, K_INT, K_INT,
 	                         K_INT, K_INT, K_INT,
@@ -57,7 +69,6 @@ Camada createPadding(WrapperCL *cl, cl_command_queue queue,
 
 void realeasePadding(CamadaPadding *pc) {
 	CamadaPadding c = *pc;
-	releaseTensor(&c->super.gradsEntrada);
 	if (c->super.flag_releaseInput)releaseTensor(&c->super.entrada);
 	if (c->super.__string__ != NULL) {
 		free(c->super.__string__);
@@ -69,36 +80,38 @@ void realeasePadding(CamadaPadding *pc) {
 	*pc = NULL;
 }
 
-void ativaPadding(CamadaPadding c) {
-	kernel_run_recursive(&c->ativa, c->super.queue,
-	                     c->super.entrada->x * c->super.entrada->x * c->super.entrada->z,
-	                     *c->super.max_works,
-	                     &c->super.entrada->data,
-	                     &c->super.saida->data,
-	                     &c->super.entrada->x,
-	                     &c->super.entrada->y,
-	                     &c->super.saida->x,
-	                     &c->super.saida->y,
-	                     &c->top,
-	                     &c->left
+int ativaPadding(CamadaPadding c) {
+	int erro = kernel_run_recursive(&c->ativa, c->super.queue,
+	                                c->super.entrada->x * c->super.entrada->x * c->super.entrada->z,
+	                                *c->super.max_works,
+	                                &c->super.entrada->data,
+	                                &c->super.saida->data,
+	                                &c->super.entrada->x,
+	                                &c->super.entrada->y,
+	                                &c->super.saida->x,
+	                                &c->super.saida->y,
+	                                &c->top,
+	                                &c->left
 	);
+	return erro;
 }
 
-void corrige_pesosPadding(CamadaPadding c) {}
+int corrige_pesosPadding(CamadaPadding c) { return 0; }
 
-void calc_gradsPadding(CamadaPadding c, Tensor GradNext) {
-	kernel_run_recursive(&c->calcGrad, c->super.queue,
-	                     c->super.entrada->x * c->super.entrada->x * c->super.entrada->z,
-	                     *c->super.max_works,
-	                     &GradNext->data,
-	                     &c->super.gradsEntrada->data,
-	                     &c->super.entrada->x,
-	                     &c->super.entrada->y,
-	                     &c->super.saida->x,
-	                     &c->super.saida->y,
-	                     &c->top,
-	                     &c->left
+int calc_gradsPadding(CamadaPadding c, Tensor GradNext) {
+	int erro = kernel_run_recursive(&c->calcGrad, c->super.queue,
+	                                c->super.entrada->x * c->super.entrada->x * c->super.entrada->z,
+	                                *c->super.max_works,
+	                                &GradNext->data,
+	                                &c->super.gradsEntrada->data,
+	                                &c->super.entrada->x,
+	                                &c->super.entrada->y,
+	                                &c->super.saida->x,
+	                                &c->super.saida->y,
+	                                &c->top,
+	                                &c->left
 	);
+	return erro;
 
 }
 

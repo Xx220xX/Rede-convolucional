@@ -2,20 +2,32 @@
 // Created by Henrique on 5/8/2021.
 //
 #include "../CamadaPoolAv.h"
-const char *tostringPoolAv(CamadaPoolAv c){
+const char *getCreateParamsPoolAv(CamadaPoolAv c){
     if(c->super.__string__ != NULL)free(c->super.__string__);
     c->super.__string__ = (char *) calloc(1000, sizeof(char));
     int len = snprintf(c->super.__string__, 1000,
-                       "Average Pooling  Layer: (%u,%u,%u) -> (%u,%u,%u)\n"
-                       "\tStep %u\n",
-
-                       c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
-                       c->super.saida->x, c->super.saida->y, c->super.saida->z,
-                       c->passo
+                       "['PoolingAv',%d,%d]",
+                       c->passo,c->tamanhoFiltro
     );
     len+=1;
     c->super.__string__ = realloc(c->super.__string__, sizeof (char) * len);
     return c->super.__string__;
+}
+
+const char *tostringPoolAv(CamadaPoolAv c) {
+	if (c->super.__string__ != NULL)free(c->super.__string__);
+	c->super.__string__ = (char *) calloc(1000, sizeof(char));
+	int len = snprintf(c->super.__string__, 1000,
+	                   "Average Pooling  Layer: (%u,%u,%u) -> (%u,%u,%u)\n"
+	                   "\tStep %u\n",
+
+	                   c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
+	                   c->super.saida->x, c->super.saida->y, c->super.saida->z,
+	                   c->passo
+	);
+	len += 1;
+	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
+	return c->super.__string__;
 }
 Camada createPoolAv(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz,
            Tensor entrada, Params params,
@@ -27,6 +39,7 @@ Camada createPoolAv(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tama
 	              (iny - tamanhoFiltro) / passo + 1, inz,
 	              error);
     c->super.toString = (fch) tostringPoolAv;
+    c->super.getCreateParams = (fch) getCreateParamsPoolAv;
 	c->super.release = (fv) releasePoolAv;
 	c->super.ativa = (fv) ativaPoolAv;
 	c->super.corrige_pesos = (fv) corrige_pesosPoolAv;
@@ -47,7 +60,6 @@ void releasePoolAv(CamadaPoolAv *pc) {
     if(c->super.__string__ != NULL){
         free(c->super.__string__);
     }
-	releaseTensor(&c->super.gradsEntrada);
 	releaseTensor(&c->super.saida);
 	releaseKernel(&c->kernelPoolAvCalcGrads);
 	releaseKernel(&c->kernelPoolAvAtiva);
@@ -55,18 +67,19 @@ void releasePoolAv(CamadaPoolAv *pc) {
 	*pc = NULL;
 }
 
-void ativaPoolAv(CamadaPoolAv c) {
-	kernel_run_recursive(&c->kernelPoolAvAtiva, c->super.queue, c->super.saida->x * c->super.saida->y * c->super.saida->z,
+int  ativaPoolAv(CamadaPoolAv c) {
+	int erro = kernel_run_recursive(&c->kernelPoolAvAtiva, c->super.queue, c->super.saida->x * c->super.saida->y * c->super.saida->z,
 	                     *c->super.max_works,
 	                     &c->super.entrada->data, &c->super.saida->data, &c->tamanhoFiltro, &c->passo,
 	                     &c->super.saida->x, &c->super.saida->y, &c->super.entrada->x, &c->super.entrada->y);
+	return erro;
 }
 
-void corrige_pesosPoolAv(CamadaPoolAv c) {}
+int corrige_pesosPoolAv(CamadaPoolAv c) {return 0;}
 
 
-void calc_gradsPoolAv(CamadaPoolAv c, Tensor GradNext) {
-	kernel_run_recursive(&c->kernelPoolAvCalcGrads, c->super.queue,
+int  calc_gradsPoolAv(CamadaPoolAv c, Tensor GradNext) {
+	int erro = kernel_run_recursive(&c->kernelPoolAvCalcGrads, c->super.queue,
 	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 	                     *c->super.max_works,
 	                     &c->super.entrada->data, &c->super.gradsEntrada->data,
@@ -74,6 +87,7 @@ void calc_gradsPoolAv(CamadaPoolAv c, Tensor GradNext) {
 	                     &c->super.saida->data, &c->tamanhoFiltro, &c->passo, &c->super.entrada->x,
 	                     &c->super.entrada->y, &c->super.entrada->z,
 	                     &c->super.saida->x, &c->super.saida->y);
+	return erro ;
 }
 
 void salvarPoolAv(WrapperCL *cl, CamadaPoolAv c, FILE *dst, GPU_ERROR *error) {

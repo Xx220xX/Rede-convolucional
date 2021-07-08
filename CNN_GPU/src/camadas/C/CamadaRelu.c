@@ -4,6 +4,16 @@
 #include "../CamadaRelu.h"
 #include "../Camada.h"
 
+const char *getCreateParamsRelu(CamadaRelu c){
+    if(c->super.__string__ != NULL)free(c->super.__string__);
+    c->super.__string__ = (char *) calloc(1000, sizeof(char));
+    int len = snprintf(c->super.__string__, 1000,
+                       "['Relu']"
+    );
+    len+=1;
+    c->super.__string__ = realloc(c->super.__string__, sizeof (char) * len);
+    return c->super.__string__;
+}
 const char *tostringRelu(CamadaRelu c){
     if(c->super.__string__ != NULL)free(c->super.__string__);
     c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -25,6 +35,7 @@ Camada createRelu(WrapperCL *cl, cl_command_queue  queue,unsigned int inx, unsig
 
 	__newCamada__((Camada) c, cl, RELU, entrada, queue, (Params){0}, inx, iny, inz, inx, iny, inz, error);
 	c->super.toString = (fch) tostringRelu;
+	c->super.getCreateParams = (fch) getCreateParamsRelu;
 	c->super.release = (fv) realeaseRelu;
 	c->super.ativa = (fv) ativaRelu;
 	c->super.calc_grads = (fvv) calc_gradsRelu;
@@ -38,7 +49,6 @@ Camada createRelu(WrapperCL *cl, cl_command_queue  queue,unsigned int inx, unsig
 
 void realeaseRelu(CamadaRelu *pc) {
 	CamadaRelu c = *pc;
-	releaseTensor(&c->super.gradsEntrada);
 	if (c->super.flag_releaseInput)releaseTensor(&c->super.entrada);
     if(c->super.__string__ != NULL){
         free(c->super.__string__);
@@ -50,20 +60,22 @@ void realeaseRelu(CamadaRelu *pc) {
 	*pc = NULL;
 }
 
-void ativaRelu(CamadaRelu c) {
-	kernel_run_recursive(&c->kernelReluAtiva, c->super.queue,
+int ativaRelu(CamadaRelu c) {
+	int erro = kernel_run_recursive(&c->kernelReluAtiva, c->super.queue,
 	                     c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
 	                     &c->super.entrada->data, &c->super.saida->data);
 
+	return erro;
 }
 
-void corrige_pesosRelu(CamadaRelu c) {}
+int corrige_pesosRelu(CamadaRelu c) {return 0;}
 
-void calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
-	kernel_run_recursive(&c->kernelReluCalcGrads, c->super.queue,
+int calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
+	int erro = kernel_run_recursive(&c->kernelReluCalcGrads, c->super.queue,
 	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z, *c->super.max_works,
 	                     &c->super.gradsEntrada->data, &c->super.entrada->data,
 	                     &GradNext->data);
+	return erro;
 
 }
 

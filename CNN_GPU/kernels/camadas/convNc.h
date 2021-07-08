@@ -14,6 +14,7 @@ kV convncSum(Vector filtro, Vector entrada, Vector saida,
 			for (int z = 0; z < entradatz; z++) {
 				f = filtro[TensorMap4D(i, j, z, filtrok, fx, fy, entradatz)];
 				v = entrada[TensorMap(mapeado.x + i * largx, mapeado.y + j * largy, z, entradatx, entradaty)];
+
 				sum += f * v;
 			}
 	saida[k] = sum;
@@ -51,11 +52,13 @@ kV convncCalcFiltro(Vector ds,
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
 	TensorRemap4D(k, m, n, z, l, gradFiltro_tx, gradFiltro_ty, gradFiltro_tz)
-	double soma = 0;
+	double soma = 0,aux;
 	for (int i = 0; i < saida_tx; ++i) {
 		for (int j = 0; j < saida_ty; ++j) {
-			soma += entrada[TensorMap(i * passox + m * largx, j * passoy + n * largy, z, entrada_tx, entrada_ty)]
+			aux = entrada[TensorMap(i * passox + m * largx, j * passoy + n * largy, z, entrada_tx, entrada_ty)]
 			        * ds[TensorMap(i, j, l, saida_tx, saida_ty)];
+			aux = (!(isnan(aux) || isinf(aux)))*aux;
+			soma += aux;
 		}
 	}
 	gradFiltro[k] = soma;
@@ -112,7 +115,7 @@ kV convncCalcGrads(Vector filtro,
 		range_filtro.max.y = y / largy;
 	}
 	int sx, sy;
-	double somaErro = 0, pesoAplicado = 0;
+	double somaErro = 0,aux, pesoAplicado = 0;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		sx = (x - m * largx) / passox;
 		if (sx * passox + m * largx != x)continue;
@@ -121,7 +124,9 @@ kV convncCalcGrads(Vector filtro,
 			if (sy * passoy + n * largy != y)continue;
 			for (int l = 0; l < fz; l++) {
 				pesoAplicado = filtro[TensorMap4D(m, n, z, l, fx, fy, fz)];
-				somaErro += pesoAplicado * gradNext[TensorMap(sx, sy, l, saidatx, saidaty)];
+				aux = pesoAplicado * gradNext[TensorMap(sx, sy, l, saidatx, saidaty)];
+				aux = (!(isnan(aux) || isinf(aux)))*aux;
+				somaErro +=aux;
 			}
 		}
 	}

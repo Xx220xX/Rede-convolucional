@@ -17,11 +17,11 @@ typedef struct {
 
 void realeasePadding(CamadaPadding *pc);
 
-void ativaPadding(CamadaPadding c);
+int  ativaPadding(CamadaPadding c);
 
-void corrige_pesosPadding(CamadaPadding);
+int corrige_pesosPadding(CamadaPadding);
 
-void calc_gradsPadding(CamadaPadding c, Tensor GradNext);
+int calc_gradsPadding(CamadaPadding c, Tensor GradNext);
 
 void salvarPadding(WrapperCL *cl, CamadaPadding c, FILE *dst, GPU_ERROR *error);
 

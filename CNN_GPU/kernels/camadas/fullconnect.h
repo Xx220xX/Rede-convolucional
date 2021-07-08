@@ -77,15 +77,19 @@ fullfixweight(Vector a,
 
 kV fullcalcgrads1(Vector dz, Vector ds, Vector z, int dfa, int k0) {
 	int m = get_global_id(0) + k0;
-	dz[m] = ds[m] * func(dfa, z[m]);
+	double aux = ds[m] * func(dfa, z[m]);
+	aux = (!(isnan(aux) || isinf(aux)))*aux;
+	dz[m] = aux;
 }
 
 kV fullcalcgrads2(Vector dz, Vector da, Vector pesos, int pesosx, int pesosy,
                   int k0) {
 	int m = get_global_id(0) + k0;
-	double soma = 0;
+	double soma = 0,aux;
 	for (int n = 0; n < pesosx; ++n) {
-		soma += dz[n] * pesos[TensorMap(n, m, 0, pesosx, pesosy)];
+		aux = dz[n] * pesos[TensorMap(n, m, 0, pesosx, pesosy)];
+		aux = (!(isnan(aux) || isinf(aux)))*aux;
+		soma += aux;
 	}
 	da[m] = soma;
 }

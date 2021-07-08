@@ -10,12 +10,11 @@
 #include "camadas/CamadaFullConnect.h"
 #include "camadas/CamadaPool.h"
 #include "camadas/CamadaPoolAv.h"
+#include "camadas/CamadaSoftMax.h"
 #include "camadas/CamadaBatchNorm.h"
 
 
-#define INVALID_FILTER_SIZE (-1)
-#define CNN_FLAG_CALCULE_ERROR 1
-
+#define INVALID_FILTER_SIZE (-71)
 typedef struct {
 	Params parametros;
 	Camada *camadas;
@@ -23,7 +22,6 @@ typedef struct {
 	Tensor target;
 	int size;
 	Ponto3d sizeIn;
-	char warning;
 	cl_command_queue queue;
 	WrapperCL *cl;
 	char releaseCL;
@@ -38,8 +36,6 @@ typedef struct {
 	Kernel kernelInt2Vector;
 	Kernel kernelcreateIMG;
 
-	char flags;
-
 	double normaErro;
 } *Cnn, TypeCnn;
 
@@ -47,10 +43,13 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz);
 
 void releaseCnn(Cnn *pc);
 
-Cnn
-createCnnWithWrapperFile(char *kernelFile, Params p, UINT inx, UINT iny, UINT inz, unsigned long long int devicetype);
+Cnn createCnnWithWrapperFile(char *kernelFile, Params p, UINT inx, UINT iny, UINT inz,
+                             unsigned long long int devicetype);
 
-Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, UINT iny, UINT inz, ULL devicetype);
+Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, UINT iny,
+                                UINT inz, ULL devicetype);
+
+int CnnCalculeError(Cnn c);
 
 Ponto3d __addLayer(Cnn c);
 
@@ -71,6 +70,8 @@ int CnnAddReluLayer(Cnn c);
 int CnnAddPaddingLayer(Cnn c, UINT top, UINT bottom, UINT left, UINT right);
 
 int CnnAddBatchNorm(Cnn c, double epsilon);
+
+int CnnAddSoftMax(Cnn c);
 
 int CnnAddDropOutLayer(Cnn c, double pontoAtivacao, long long int seed);
 

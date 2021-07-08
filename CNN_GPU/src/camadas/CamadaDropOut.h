@@ -24,11 +24,11 @@ typedef struct {
 
 void releaseDropOut(CamadaDropOut *pc);
 
-void corrigePesosDropOut(CamadaDropOut c);
+int corrigePesosDropOut(CamadaDropOut c);
 
-void ativaDropOut(CamadaDropOut c);
+int ativaDropOut(CamadaDropOut c);
 
-void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext);
+int calc_gradsDropOut(CamadaDropOut c, Tensor GradNext);
 
 void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error);
 
@@ -37,11 +37,11 @@ Camada createDropOut(WrapperCL *cl,QUEUE queue, UINT inx, UINT iny, UINT inz, do
 
 void releaseDropOut(CamadaDropOut *pc) ;
 
-void ativaDropOut(CamadaDropOut c);
+int ativaDropOut(CamadaDropOut c);
 
-void corrigePesosDropOut(CamadaDropOut c) ;
+int corrigePesosDropOut(CamadaDropOut c) ;
 
-void calc_gradsDropOut(CamadaDropOut c, Tensor GradNext);
+int calc_gradsDropOut(CamadaDropOut c, Tensor GradNext);
 
 
 void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error);

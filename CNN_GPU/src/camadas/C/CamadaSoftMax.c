@@ -2,49 +2,64 @@
 // Created by Henrique on 5/8/2021.
 //
 #include "../CamadaSoftMax.h"
-const char *tostringSoftMax(CamadaSoftMax c){
-    if(c->super.__string__ != NULL)free(c->super.__string__);
-    c->super.__string__ = (char *) calloc(1000, sizeof(char));
-    int len = snprintf(c->super.__string__, 1000,
-                       "SoftMax  Layer: (%u,%u,%u) -> (%u,%u,%u)\n"
 
-            , c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
-                       c->super.saida->x, c->super.saida->y, c->super.saida->z
-    );
-    len+=1;
-    c->super.__string__ = realloc(c->super.__string__, sizeof (char) * len);
-    return c->super.__string__;
+const char *getCreateParamsSoftMax(CamadaSoftMax c) {
+	if (c->super.__string__ != NULL)free(c->super.__string__);
+	c->super.__string__ = (char *) calloc(1000, sizeof(char));
+	int len = snprintf(c->super.__string__, 1000,
+	                   "['SoftMax']"
+	);
+	len += 1;
+	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
+	return c->super.__string__;
 }
-Camada createSoftMax(WrapperCL *cl, cl_command_queue  queue,unsigned int inx, unsigned int iny,
-					 unsigned int inz, Tensor entrada, GPU_ERROR *error) {
+
+const char *tostringSoftMax(CamadaSoftMax c) {
+	if (c->super.__string__ != NULL)free(c->super.__string__);
+	c->super.__string__ = (char *) calloc(1000, sizeof(char));
+	int len = snprintf(c->super.__string__, 1000,
+	                   "SoftMax  Layer: (%u,%u,%u) -> (%u,%u,%u)\n", c->super.entrada->x, c->super.entrada->y,
+	                   c->super.entrada->z,
+	                   c->super.saida->x, c->super.saida->y, c->super.saida->z
+	);
+	len += 1;
+	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
+	return c->super.__string__;
+}
+
+Camada createSoftMax(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsigned int iny,
+                     unsigned int inz, Tensor entrada, GPU_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaSoftMax c = (CamadaSoftMax) calloc(1, sizeof(TypecamadaSoftMax));
 
-	__newCamada__((Camada) c, cl, SOFTMAX, entrada, queue, (Params){0}, inx, iny, inz, inx, iny, inz, error);
+	__newCamada__((Camada) c, cl, SOFTMAX, entrada, queue, (Params) {0}, inx, iny, inz, inx, iny, inz, error);
 	c->super.toString = (fch) tostringSoftMax;
+	c->super.getCreateParams = (fch) getCreateParamsSoftMax;
 	c->super.release = (fv) realeaseSoftMax;
 	c->super.ativa = (fv) ativaSoftMax;
 	c->super.calc_grads = (fvv) calc_gradsSoftMax;
 	c->super.corrige_pesos = (fv) corrige_pesosSoftMax;
 	c->super.salvar = (fsl) salvarSoftMax;
 
-	c->soma = newTensor(cl->context,1,1,inz,error);
-	c->exponent = newTensor(cl->context,inx,iny,inz,error);
+	c->soma = newTensor(cl->context,queue, 1, 1, inz, error);
+	c->exponent = newTensor(cl->context,queue, inx, iny, inz, error);
 
-	c->kernelSoftMaxAtiva1 = new_Kernel(cl->program,error, "SoftMaxativa1", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT);
-	c->kernelSoftMaxAtiva2 = new_Kernel(cl->program,error, "SoftMaxativa2", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT);
-	c->kernelSoftMaxCalcGrads = new_Kernel(cl->program,error, "softMaxcalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelSoftMaxAtiva1 = new_Kernel(cl->program, error, "SoftMaxativa1", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
+	                                    K_INT, K_INT);
+	c->kernelSoftMaxAtiva2 = new_Kernel(cl->program, error, "SoftMaxativa2", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
+	                                    K_INT, K_INT);
+	c->kernelSoftMaxCalcGrads = new_Kernel(cl->program, error, "softMaxcalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                       K_INT);
 	return (Camada) c;
 }
 
 void realeaseSoftMax(CamadaSoftMax *pc) {
 	CamadaSoftMax c = *pc;
-	releaseTensor(&c->super.gradsEntrada);
 	if (c->super.flag_releaseInput)releaseTensor(&c->super.entrada);
-    if(c->super.__string__ != NULL){
-        free(c->super.__string__);
-    }
+	if (c->super.__string__ != NULL) {
+		free(c->super.__string__);
+	}
 	releaseTensor(&c->super.saida);
 	releaseTensor(&c->soma);
 	releaseTensor(&c->exponent);
@@ -55,25 +70,30 @@ void realeaseSoftMax(CamadaSoftMax *pc) {
 	*pc = NULL;
 }
 
-void ativaSoftMax(CamadaSoftMax c) {
+int ativaSoftMax(CamadaSoftMax c) {
 	double zero = 0.0;
-	clEnqueueFillBuffer(c->super.queue,c->soma->data,&zero,sizeof(double),0,c->soma->bytes,0,NULL,NULL);
-	kernel_run_recursive(&c->kernelSoftMaxAtiva1, c->super.queue,
-	                     c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
-	                     &c->super.entrada->data, &c->super.saida->data);
-	kernel_run_recursive(&c->kernelSoftMaxAtiva2, c->super.queue,
-	                     c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
-	                      &c->exponent->data,&c->soma->data,&c->super.saida->data,&c->super.entrada->x,&c->super.entrada->y);
-
+	int erro = clEnqueueFillBuffer(c->super.queue, c->soma->data, &zero, sizeof(double), 0, c->soma->bytes, 0, NULL,
+	                               NULL);
+	if (erro)return erro;
+	erro = kernel_run_recursive(&c->kernelSoftMaxAtiva1, c->super.queue,
+	                            c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
+	                            &c->super.entrada->data, &c->super.saida->data);
+	if (erro)return erro;
+	erro = kernel_run_recursive(&c->kernelSoftMaxAtiva2, c->super.queue,
+	                            c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
+	                            &c->exponent->data, &c->soma->data, &c->super.saida->data, &c->super.entrada->x,
+	                            &c->super.entrada->y);
+	return erro;
 }
 
-void corrige_pesosSoftMax(CamadaSoftMax c) {}
+int corrige_pesosSoftMax(CamadaSoftMax c) {return 0;}
 
-void calc_gradsSoftMax(CamadaSoftMax c, Tensor GradNext) {
-	kernel_run_recursive(&c->kernelSoftMaxCalcGrads, c->super.queue,
+int  calc_gradsSoftMax(CamadaSoftMax c, Tensor GradNext) {
+	int erro = kernel_run_recursive(&c->kernelSoftMaxCalcGrads, c->super.queue,
 	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z, *c->super.max_works,
 	                     &c->super.gradsEntrada->data, &c->super.entrada->data,
 	                     &GradNext->data);
+	return erro;
 
 }
 
@@ -87,8 +107,8 @@ void salvarSoftMax(WrapperCL *cl, CamadaSoftMax c, FILE *dst, GPU_ERROR *error) 
 
 }
 
-Camada carregarSoftMax(WrapperCL *cl, FILE *src,cl_command_queue queue, Tensor entrada,
-					   Params params, GPU_ERROR *error) {
+Camada carregarSoftMax(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
+                       Params params, GPU_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -98,5 +118,5 @@ Camada carregarSoftMax(WrapperCL *cl, FILE *src,cl_command_queue queue, Tensor e
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createSoftMax(cl,queue, inx, iny, inz, entrada, error);
+	return createSoftMax(cl, queue, inx, iny, inz, entrada, error);
 }

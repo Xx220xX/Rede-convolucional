@@ -23,6 +23,7 @@ int globalLuaError = 0;
 lua_setglobal(state,name)
 
 static int l_createCnn(lua_State *L) {
+	//printf("l_createCnn\n");
 	checkLua(!*globalcnn, "A entrada ja foi definida");
 	Params p = {0.1, 0.0, 0.0};
 	int x, y, z, d;
@@ -38,11 +39,12 @@ static int l_createCnn(lua_State *L) {
 		}
 	}
 	*globalcnn = createCnnWithWrapperProgram(default_kernel, p, x, y, z, device);
-//	printCLInfo(getClinfo((*globalcnn)->cl));
+
 	return 0;
 }
 
 static int l_loadCnn(lua_State *L) {
+	//printf("l_loadCnn\n");
 	checkLua(*globalcnn, "A entrada não foi definida");
 	Params p = {0.1, 0.0, 0.0};
 	char *file;
@@ -55,16 +57,23 @@ static int l_loadCnn(lua_State *L) {
 }
 
 static int l_convolution(lua_State *L) {
+	//printf("l_convolution\n");
 	int passo, sfiltro, nfiltro;
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	passo = luaL_checkinteger(L, 1);
 	sfiltro = luaL_checkinteger(L, 2);
 	nfiltro = luaL_checkinteger(L, 3);
-	CnnAddConvLayer(*globalcnn, passo, sfiltro, nfiltro);
+	int erro = CnnAddConvLayer(*globalcnn, passo, sfiltro, nfiltro);
+	if (erro) {
+		char msg[250];
+		getClError(erro, msg);
+		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+	}
 	return 0;
 }
 
 static int l_convolution_non_causal(lua_State *L) {
+	//printf("l_convolution_non_causal\n");
 	int passox, passoy, largx, largy, filtrox, filtroy, nfiltro;
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	passox = luaL_checkinteger(L, 1);
@@ -74,69 +83,128 @@ static int l_convolution_non_causal(lua_State *L) {
 	filtrox = luaL_checkinteger(L, 5);
 	filtroy = luaL_checkinteger(L, 6);
 	nfiltro = luaL_checkinteger(L, 7);
-	CnnAddConvNcLayer(*globalcnn, passox, passoy, largx, largy, filtrox, filtroy, nfiltro);
+	int erro = CnnAddConvNcLayer(*globalcnn, passox, passoy, largx, largy, filtrox, filtroy, nfiltro);
+	if (erro) {
+		char msg[250];
+		getClError(erro, msg);
+		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+	}
 	return 0;
 }
 
 
 static int l_pooling(lua_State *L) {
+	//printf("l_pooling\n");
 	int passo, sfiltro;
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	passo = luaL_checkinteger(L, 1);
 	sfiltro = luaL_checkinteger(L, 2);
-	CnnAddPoolLayer(*globalcnn, passo, sfiltro);
+	int erro = CnnAddPoolLayer(*globalcnn, passo, sfiltro);
+	if (erro) {
+		char msg[250];
+		getClError(erro, msg);
+		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+	}
 	return 0;
 }
 
 static int l_poolingav(lua_State *L) {
+	//printf("l_poolingav\n");
 	int passo, sfiltro;
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	passo = luaL_checkinteger(L, 1);
 	sfiltro = luaL_checkinteger(L, 2);
-	CnnAddPoolAvLayer(*globalcnn, passo, sfiltro);
+	int erro = CnnAddPoolAvLayer(*globalcnn, passo, sfiltro);
+	if (erro) {
+		char msg[250];
+		getClError(erro, msg);
+		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+	}
 	return 0;
 }
 
 
 static int l_relu(lua_State *L) {
+	//printf("l_relu\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	CnnAddReluLayer(*globalcnn);
+	int erro = CnnAddReluLayer(*globalcnn);
+	if (erro) {
+		char msg[250];
+		getClError(erro, msg);
+		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+	}
 	return 0;
 }
 
 static int l_padding(lua_State *L) {
+	//printf("l_padding\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	UINT top = luaL_checkinteger(L, 1);
 	UINT bottom = luaL_checkinteger(L, 2);
 	UINT left = luaL_checkinteger(L, 3);
 	UINT right = luaL_checkinteger(L, 4);
-	CnnAddPaddingLayer(*globalcnn, top, bottom, left, right);
+	int erro = CnnAddPaddingLayer(*globalcnn, top, bottom, left, right);
+	if (erro) {
+		char msg[250];
+		getClError(erro, msg);
+		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+	}
 	return 0;
 }
 
 
 static int l_dropout(lua_State *L) {
+	//printf("l_dropout\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	double ativa = luaL_checknumber(L, 1);
 	long long int seed = time(NULL);
 	if (!lua_isnoneornil(L, 2))
 		seed = luaL_checkinteger(L, 2);
-	CnnAddDropOutLayer(*globalcnn, ativa, seed);
+	int erro = CnnAddDropOutLayer(*globalcnn, ativa, seed);
+	if (erro) {
+		char msg[250];
+		getClError(erro, msg);
+		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+	}
 	return 0;
 }
 
 static int l_fullConnect(lua_State *L) {
+	//printf("l_fullConnect\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	int neuros = luaL_checkinteger(L, 1);
 	int func = luaL_checkinteger(L, 2);
 	checkLua(func == FTANH || func == FSIGMOID || func == FRELU, "FUNCAO DE ATIVACAO INVALIDA");
-	CnnAddFullConnectLayer(*globalcnn, neuros, func);
+	int erro = CnnAddFullConnectLayer(*globalcnn, neuros, func);
+	if (erro) {
+		char msg[250];
+		getClError(erro, msg);
+		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+	}
 	return 0;
 }
 
 static int l_batchnorm(lua_State *L) {
+	//printf("l_batchnorm\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	CnnAddBatchNorm(*globalcnn, 1e-12);
+	int erro = CnnAddBatchNorm(*globalcnn, 1e-12);
+	if (erro) {
+		char msg[250];
+		getClError(erro, msg);
+		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+	}
+	return 0;
+}
+
+static int l_softmax(lua_State *L) {
+	//printf("l_batchnorm\n");
+	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	int erro = CnnAddSoftMax(*globalcnn);
+	if (erro) {
+		char msg[250];
+		getClError(erro, msg);
+		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+	}
 	return 0;
 }
 
@@ -151,6 +219,7 @@ void loadCnnLuaLibrary(lua_State *L) {
 	REGISTERC_L(L, l_dropout, "Dropout");
 	REGISTERC_L(L, l_fullConnect, "FullConnect");
 	REGISTERC_L(L, l_batchnorm, "BatchNorm");
+	REGISTERC_L(L, l_softmax, "SoftMax");
 	REGISTERC_L(L, l_loadCnn, "CarregarRede");
 	lua_pushinteger(L, FSIGMOID);
 	lua_setglobal(L, "SIGMOID");
