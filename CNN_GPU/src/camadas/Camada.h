@@ -6,7 +6,7 @@
 #define CNN_GPU_CAMADA_H
 
 #include"../tensor/Tensor.h"
-#include <time.h>
+
 
 typedef struct {
 	double hitLearn, momento, decaimentoDePeso;
@@ -35,28 +35,34 @@ typedef const char *(*fch)(void *);
 
 typedef struct {
 	char type;
+	char flag_releaseInput;
+	char flag_notlearn;
+	char flag_usehost;
 	Params parametros;
 	Tensor gradsEntrada;
 	Tensor entrada;
 	Tensor saida;
-	char flag_releaseInput;
-	char flag_notlearn;
+
 	QUEUE queue;
 	cl_context context;
 	size_t *max_works;
 	fvv calc_grads;
 	fv corrige_pesos;
 	fv ativa;
+	fv release;
 	fsl salvar;
 	fch toString;
 	fch getCreateParams;
+
 	char *__string__;
-	fv release;
 } *Camada, Typecamada;
 
 void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE queue,
-                   Params params, size_t xi, size_t yi, size_t zi, size_t xo, size_t yo,
-                   size_t zo, GPU_ERROR *error);
+                   Params params, size_t xi, size_t yi, size_t zi,
+                   size_t xo, size_t yo, size_t zo,
+                   char usehost, GPU_ERROR *error);
+
+void __releaseCamada__(Camada c);
 
 void CamadaSetLearn(Camada c, char learn);
 
@@ -87,7 +93,7 @@ Camada carregarSoftMax(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor 
                        Params params, GPU_ERROR *error);
 
 Camada carregarPadding(WrapperCL *cl, FILE *src, QUEUE queue,
-                       Tensor entrada, Params param, GPU_ERROR *error);
+                       Tensor entrada, Params param,  GPU_ERROR *error);
 
 Camada carregarPoolAv(WrapperCL *cl, FILE *src, QUEUE queue,
                       Tensor entrada, Params param, GPU_ERROR *error);

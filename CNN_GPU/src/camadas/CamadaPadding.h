@@ -12,22 +12,14 @@
 typedef struct {
 	Typecamada super;
 	size_t top, bottom, left, right;
-	Kernel ativa,calcGrad;
+	Kernel ativa, calcGrad;
 } *CamadaPadding, TypecamadaPadding;
-
-void realeasePadding(CamadaPadding *pc);
-
-int  ativaPadding(CamadaPadding c);
-
-int corrige_pesosPadding(CamadaPadding);
-
-int calc_gradsPadding(CamadaPadding c, Tensor GradNext);
-
-void salvarPadding(WrapperCL *cl, CamadaPadding c, FILE *dst, GPU_ERROR *error);
 
 Camada createPadding(WrapperCL *cl, QUEUE queue,
                      UINT inx, UINT iny, UINT inz,
                      UINT top, UINT bottom, UINT left, UINT right, Tensor entrada,
-                     GPU_ERROR *error);
+                     char usehost, GPU_ERROR *error);
+
+
 
 #endif //CNN_GPU_CAMADA_Padding_H

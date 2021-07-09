@@ -28,22 +28,9 @@ typedef struct {
 	Kernel kernelfullcalcgrad2;
 } *CamadaFullConnect, Typecamadafullconnect;
 
-void releaseFullConnect(CamadaFullConnect *pc);
-
-
-int corrigePesosFullConnect(CamadaFullConnect c);
-
-int ativaFullConnect(CamadaFullConnect c);
-
-int calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext);
-
-int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error);
-
-void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, GPU_ERROR *error);
-
 Camada createFullConnect(WrapperCL *cl, QUEUE queue, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida,
-                         Tensor entrada, Params params,
-                         int funcaoDeAtivacao, int randomize, GPU_ERROR *error);
+                         Tensor entrada, Params params,int funcaoDeAtivacao, int randomize,
+                         char usehost,GPU_ERROR *error);
 
 
 

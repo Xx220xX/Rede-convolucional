@@ -20,18 +20,10 @@ typedef struct {
 
 } *CamadaSoftMax, TypecamadaSoftMax;
 
-void realeaseSoftMax(CamadaSoftMax *pc);
-
-int ativaSoftMax(CamadaSoftMax c);
-
-int corrige_pesosSoftMax(CamadaSoftMax);
-
-int calc_gradsSoftMax(CamadaSoftMax c, Tensor GradNext);
-
-void salvarSoftMax(WrapperCL *cl, CamadaSoftMax c, FILE *dst, GPU_ERROR *error);
 
 Camada createSoftMax(WrapperCL *cl, QUEUE queue, unsigned int inx, unsigned int iny,
-                     unsigned int inz, Tensor entrada, GPU_ERROR *error);
+                     unsigned int inz, Tensor entrada,
+                     char usehost, GPU_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADASOFTMAX_H

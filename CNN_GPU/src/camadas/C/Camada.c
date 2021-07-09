@@ -38,22 +38,41 @@ Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 
 void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE queue,
                    Params params, size_t xi,
-                   size_t yi, size_t zi, size_t xo, size_t yo, size_t zo, GPU_ERROR *error) {
+                   size_t yi, size_t zi, size_t xo, size_t yo, size_t zo,char usehost, GPU_ERROR *error) {
 	cl_context context = cl->context;
 	if (error->error)return;
+	c->flag_usehost = usehost;
 	c->queue = queue;
 	c->type = type;
 	c->entrada = entrada;
 	if (!entrada) {
-		c->entrada = newTensor(context, c->queue, xi, yi, zi, error);
+		c->entrada = newTensor(context, c->queue, xi, yi, zi,c->flag_usehost, error);
 		c->flag_releaseInput = 1;
 	}
-
-	c->saida = newTensor(context, queue, xo, yo, zo, error);
-	c->gradsEntrada = c->entrada; //newTensor(context, xi, yi, zi, error);
+	c->saida = newTensor(context, queue, xo, yo, zo,c->flag_usehost, error);
+	c->gradsEntrada = newTensor(context, queue, xo, yo, zo,c->flag_usehost, error);;
 	c->parametros = params;
 	c->max_works = &cl->maxworks;
 	c->context = cl->context;
 
 }
 
+void __releaseCamada__(Camada c){
+	if(c->entrada!=c->gradsEntrada){
+		releaseTensor(&c->gradsEntrada);
+	}
+	if (c->flag_releaseInput){
+		releaseTensor(&c->entrada);
+	}
+	releaseTensor(&c->saida);
+
+}
+void CamadaSetLearn(Camada c, char learn) {
+	c->flag_notlearn = !learn;
+}
+
+void CamadaSetParams(Camada c, double hitlearn, double momento, double decaimento) {
+	c->parametros.hitLearn = hitlearn;
+	c->parametros.momento = momento;
+	c->parametros.decaimentoDePeso = decaimento;
+}

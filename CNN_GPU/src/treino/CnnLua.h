@@ -63,7 +63,11 @@ static int l_convolution(lua_State *L) {
 	passo = luaL_checkinteger(L, 1);
 	sfiltro = luaL_checkinteger(L, 2);
 	nfiltro = luaL_checkinteger(L, 3);
-	int erro = CnnAddConvLayer(*globalcnn, passo, sfiltro, nfiltro);
+	char usehost = 1;
+	if(lua_isnoneornil(L,4)){
+		usehost = luaL_checkinteger(L, 4);
+	}
+	int erro = CnnAddConvLayer(*globalcnn,usehost, passo, sfiltro, nfiltro);
 	if (erro) {
 		char msg[250];
 		getClError(erro, msg);
@@ -83,7 +87,11 @@ static int l_convolution_non_causal(lua_State *L) {
 	filtrox = luaL_checkinteger(L, 5);
 	filtroy = luaL_checkinteger(L, 6);
 	nfiltro = luaL_checkinteger(L, 7);
-	int erro = CnnAddConvNcLayer(*globalcnn, passox, passoy, largx, largy, filtrox, filtroy, nfiltro);
+	char usehost = 1;
+	if(lua_isnoneornil(L,8)){
+		usehost = luaL_checkinteger(L, 8);
+	}
+	int erro = CnnAddConvNcLayer(*globalcnn,usehost, passox, passoy, largx, largy, filtrox, filtroy, nfiltro);
 	if (erro) {
 		char msg[250];
 		getClError(erro, msg);
@@ -99,7 +107,11 @@ static int l_pooling(lua_State *L) {
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	passo = luaL_checkinteger(L, 1);
 	sfiltro = luaL_checkinteger(L, 2);
-	int erro = CnnAddPoolLayer(*globalcnn, passo, sfiltro);
+	char usehost = 1;
+	if(lua_isnoneornil(L,3)){
+		usehost = luaL_checkinteger(L, 3);
+	}
+	int erro = CnnAddPoolLayer(*globalcnn,usehost, passo, sfiltro);
 	if (erro) {
 		char msg[250];
 		getClError(erro, msg);
@@ -114,7 +126,11 @@ static int l_poolingav(lua_State *L) {
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	passo = luaL_checkinteger(L, 1);
 	sfiltro = luaL_checkinteger(L, 2);
-	int erro = CnnAddPoolAvLayer(*globalcnn, passo, sfiltro);
+	char usehost = 1;
+	if(lua_isnoneornil(L,3)){
+		usehost = luaL_checkinteger(L, 3);
+	}
+	int erro = CnnAddPoolAvLayer(*globalcnn,usehost, passo, sfiltro);
 	if (erro) {
 		char msg[250];
 		getClError(erro, msg);
@@ -127,7 +143,11 @@ static int l_poolingav(lua_State *L) {
 static int l_relu(lua_State *L) {
 	//printf("l_relu\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	int erro = CnnAddReluLayer(*globalcnn);
+	char usehost = 1;
+	if(lua_isnoneornil(L,1)){
+		usehost = luaL_checkinteger(L, 1);
+	}
+	int erro = CnnAddReluLayer(*globalcnn,usehost);
 	if (erro) {
 		char msg[250];
 		getClError(erro, msg);
@@ -143,7 +163,11 @@ static int l_padding(lua_State *L) {
 	UINT bottom = luaL_checkinteger(L, 2);
 	UINT left = luaL_checkinteger(L, 3);
 	UINT right = luaL_checkinteger(L, 4);
-	int erro = CnnAddPaddingLayer(*globalcnn, top, bottom, left, right);
+	char usehost = 1;
+	if(lua_isnoneornil(L,5)){
+		usehost = luaL_checkinteger(L, 5);
+	}
+	int erro = CnnAddPaddingLayer(*globalcnn,usehost, top, bottom, left, right);
 	if (erro) {
 		char msg[250];
 		getClError(erro, msg);
@@ -160,7 +184,11 @@ static int l_dropout(lua_State *L) {
 	long long int seed = time(NULL);
 	if (!lua_isnoneornil(L, 2))
 		seed = luaL_checkinteger(L, 2);
-	int erro = CnnAddDropOutLayer(*globalcnn, ativa, seed);
+	char usehost = 1;
+	if(lua_isnoneornil(L,3)){
+		usehost = luaL_checkinteger(L, 3);
+	}
+	int erro = CnnAddDropOutLayer(*globalcnn,usehost, ativa, seed);
 	if (erro) {
 		char msg[250];
 		getClError(erro, msg);
@@ -175,7 +203,11 @@ static int l_fullConnect(lua_State *L) {
 	int neuros = luaL_checkinteger(L, 1);
 	int func = luaL_checkinteger(L, 2);
 	checkLua(func == FTANH || func == FSIGMOID || func == FRELU, "FUNCAO DE ATIVACAO INVALIDA");
-	int erro = CnnAddFullConnectLayer(*globalcnn, neuros, func);
+	char usehost = 1;
+	if(lua_isnoneornil(L,3)){
+		usehost = luaL_checkinteger(L, 3);
+	}
+	int erro = CnnAddFullConnectLayer(*globalcnn,usehost, neuros, func);
 	if (erro) {
 		char msg[250];
 		getClError(erro, msg);
@@ -187,7 +219,11 @@ static int l_fullConnect(lua_State *L) {
 static int l_batchnorm(lua_State *L) {
 	//printf("l_batchnorm\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	int erro = CnnAddBatchNorm(*globalcnn, 1e-12);
+	char usehost = 1;
+	if(lua_isnoneornil(L,1)){
+		usehost = luaL_checkinteger(L, 1);
+	}
+	int erro = CnnAddBatchNorm(*globalcnn,usehost, 1e-12);
 	if (erro) {
 		char msg[250];
 		getClError(erro, msg);
@@ -199,7 +235,11 @@ static int l_batchnorm(lua_State *L) {
 static int l_softmax(lua_State *L) {
 	//printf("l_batchnorm\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	int erro = CnnAddSoftMax(*globalcnn);
+	char usehost = 1;
+	if(lua_isnoneornil(L,1)){
+		usehost = luaL_checkinteger(L, 1);
+	}
+	int erro = CnnAddSoftMax(*globalcnn,usehost);
 	if (erro) {
 		char msg[250];
 		getClError(erro, msg);

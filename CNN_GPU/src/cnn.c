@@ -13,8 +13,7 @@ char __notas__[] =
 		"camada convNc adicionada 2.0.014\n"
 		"Todas as camadas possui seus proprios parametros 2.0.015\n"
 		"verificação interna de erros adicionada 2.0.016\n"
-		"verificação de camadas 2.0.017\n"
-		;
+		"verificação de camadas 2.0.017\n";
 char CNN_ADD_CONV_CONTEXT[] = "ADD_CONV";
 char CNN_ADD_CONVNC_CONTEXT[] = "ADD_CONVNC";
 char CNN_ADD_POOL_CONTEXT[] = "ADD_POOL";
@@ -123,7 +122,27 @@ Ponto3d __addLayer(Cnn c) {
 	return in;
 }
 
-int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros) {
+int __CnnCheckNewLayer__(Cnn c) {
+	if (c->size <= 0) {
+		c->error.error = -80;
+		snprintf(c->error.msg, 255, "invalid call function\n");
+		return c->error.error;
+	}
+	if (c->error.error || c->camadas[0] == NULL) {
+		c->size -= 1;
+		c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
+		return c->error.error;
+	}
+	c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
+	                        c->camadas[c->size - 1]->saida->y,
+	                        c->camadas[c->size - 1]->saida->z, 0, &c->error);
+	c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
+	                      c->camadas[c->size - 1]->saida->y,
+	                      c->camadas[c->size - 1]->saida->z, 0, &c->error);
+	return c->error.error;
+}
+
+int CnnAddConvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros) {
 	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
 	* em que:
 	* 			S = tamanho da saida
@@ -141,9 +160,7 @@ int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltro
 		snprintf(c->error.msg, 255, "conv: tamanho do filtro invalido\n");
 		c->size--;
 		c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
-
 		return c->error.error;
-
 	}
 
 	Tensor entrada = NULL;
@@ -151,19 +168,11 @@ int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltro
 	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passo, tamanhoDoFiltro, numeroDeFiltros, sizeIn.x, sizeIn.y,
 	                                     sizeIn.z,
 	                                     entrada,
-	                                     c->parametros, &c->error, 1);
-	if (!c->error.error) {
-		c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                        c->camadas[c->size - 1]->saida->y,
-		                        c->camadas[c->size - 1]->saida->z, &c->error);
-		c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                      c->camadas[c->size - 1]->saida->y,
-		                      c->camadas[c->size - 1]->saida->z, &c->error);
-	}
-	return c->error.error;
+	                                     c->parametros, usehost, &c->error, 1);
+	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddConvNcLayer(Cnn c, UINT passox, UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
+int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
                       UINT numeroDeFiltros) {
 	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
 	* em que:
@@ -198,19 +207,11 @@ int CnnAddConvNcLayer(Cnn c, UINT passox, UINT passoy, UINT largx, UINT largy, U
 	                                       numeroDeFiltros, sizeIn.x, sizeIn.y,
 	                                       sizeIn.z,
 	                                       entrada,
-	                                       c->parametros, &c->error, 1);
-	if (!c->error.error) {
-		c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                        c->camadas[c->size - 1]->saida->y,
-		                        c->camadas[c->size - 1]->saida->z, &c->error);
-		c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                      c->camadas[c->size - 1]->saida->y,
-		                      c->camadas[c->size - 1]->saida->z, &c->error);
-	}
-	return c->error.error;
+	                                       c->parametros, usehost, &c->error, 1);
+	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
+int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
 	* em que:
 	* 			S = tamanho da saida
@@ -236,19 +237,11 @@ int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-	                                     c->parametros, &c->error);
-	if (!c->error.error) {
-		c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                        c->camadas[c->size - 1]->saida->y,
-		                        c->camadas[c->size - 1]->saida->z, &c->error);
-		c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                      c->camadas[c->size - 1]->saida->y,
-		                      c->camadas[c->size - 1]->saida->z, &c->error);
-	}
-	return c->error.error;
+	                                     c->parametros, usehost, &c->error);
+	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddPoolAvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
+int CnnAddPoolAvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
 	* em que:
 	* 			S = tamanho da saida
@@ -274,19 +267,11 @@ int CnnAddPoolAvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro) {
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z,
 	                                       entrada,
-	                                       c->parametros, &c->error);
-	if (!c->error.error) {
-		c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                        c->camadas[c->size - 1]->saida->y,
-		                        c->camadas[c->size - 1]->saida->z, &c->error);
-		c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                      c->camadas[c->size - 1]->saida->y,
-		                      c->camadas[c->size - 1]->saida->z, &c->error);
-	}
-	return c->error.error;
+	                                       c->parametros, usehost, &c->error);
+	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddBatchNorm(Cnn c, double epsilon) {
+int CnnAddBatchNorm(Cnn c, char usehost, double epsilon) {
 	if (c->error.error)return c->error.error;
 	c->error.context = CNN_ADD_BATCHNORM_CONTEXT;
 	Ponto3d sizeIn = __addLayer(c);
@@ -294,98 +279,59 @@ int CnnAddBatchNorm(Cnn c, double epsilon) {
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
 	                                          epsilon, 1,
-	                                          &c->error);
-	if (!c->error.error) {
-		c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                        c->camadas[c->size - 1]->saida->y,
-		                        c->camadas[c->size - 1]->saida->z, &c->error);
-		c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                      c->camadas[c->size - 1]->saida->y,
-		                      c->camadas[c->size - 1]->saida->z, &c->error);
-	}
-	return c->error.error;
+	                                          usehost, &c->error);
+	return __CnnCheckNewLayer__(c);
 
 }
-int CnnAddReluLayer(Cnn c) {
+
+int CnnAddReluLayer(Cnn c, char usehost) {
 	if (c->error.error)return c->error.error;
 	c->error.context = CNN_ADD_RELU_CONTEXT;
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada, &c->error);
-	if (!c->error.error) {
-		c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                        c->camadas[c->size - 1]->saida->y,
-		                        c->camadas[c->size - 1]->saida->z, &c->error);
-		c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                      c->camadas[c->size - 1]->saida->y,
-		                      c->camadas[c->size - 1]->saida->z, &c->error);
-	}
-	return c->error.error;
+	c->camadas[c->size - 1] = createRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada, usehost, &c->error);
+	return __CnnCheckNewLayer__(c);
 
 }
 
-int CnnAddPaddingLayer(Cnn c, UINT top, UINT bottom, UINT left, UINT right) {
+int CnnAddPaddingLayer(Cnn c, char usehost, UINT top, UINT bottom, UINT left, UINT right) {
 	if (c->error.error)return c->error.error;
 	c->error.context = CNN_ADD_PADD_CONTEXT;
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] =
-			createPadding(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, top, bottom, left, right, entrada, &c->error);
+			createPadding(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, top, bottom, left, right, entrada,
+			              usehost, &c->error);
 
 
-	if (!c->error.error) {
-		c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                        c->camadas[c->size - 1]->saida->y,
-		                        c->camadas[c->size - 1]->saida->z, &c->error);
-		c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                      c->camadas[c->size - 1]->saida->y,
-		                      c->camadas[c->size - 1]->saida->z, &c->error);
-	}
-	return c->error.error;
-
+	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddSoftMax(Cnn c) {
+int CnnAddSoftMax(Cnn c, char usehost) {
 	if (c->error.error)return c->error.error;
 	c->error.context = CNN_ADD_DROPOUT_CONTEXT;
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createSoftMax(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-	                                        &c->error);
-	if (!c->error.error) {
-		c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                        c->camadas[c->size - 1]->saida->y,
-		                        c->camadas[c->size - 1]->saida->z, &c->error);
-		c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                      c->camadas[c->size - 1]->saida->y,
-		                      c->camadas[c->size - 1]->saida->z, &c->error);
-	}
-	return c->error.error;
+	                                        usehost, &c->error);
+	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddDropOutLayer(Cnn c, double pontoAtivacao, long long int seed) {
+int CnnAddDropOutLayer(Cnn c, char usehost, double pontoAtivacao, long long int seed) {
 	if (c->error.error)return c->error.error;
 	c->error.context = CNN_ADD_DROPOUT_CONTEXT;
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createDropOut(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, pontoAtivacao, seed, entrada,
-	                                        &c->error);
-	if (!c->error.error) {
-		c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                        c->camadas[c->size - 1]->saida->y,
-		                        c->camadas[c->size - 1]->saida->z, &c->error);
-		c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                      c->camadas[c->size - 1]->saida->y,
-		                      c->camadas[c->size - 1]->saida->z, &c->error);
-	}
-	return c->error.error;
+	                                        usehost, &c->error);
+	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
+int CnnAddFullConnectLayer(Cnn c, char usehost, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 	if (c->error.error)return c->error.error;
 	c->error.context = CNN_ADD_FULLCONNECT_CONTEXT;
 	Ponto3d sizeIn = __addLayer(c);
@@ -393,16 +339,8 @@ int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createFullConnect(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada,
-	                                            c->parametros, funcaoDeAtivacao, 1, &c->error);
-	if (!c->error.error) {
-		c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                        c->camadas[c->size - 1]->saida->y,
-		                        c->camadas[c->size - 1]->saida->z, &c->error);
-		c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-		                      c->camadas[c->size - 1]->saida->y,
-		                      c->camadas[c->size - 1]->saida->z, &c->error);
-	}
-	return c->error.error;
+	                                            c->parametros, funcaoDeAtivacao, 1, usehost, &c->error);
+	return __CnnCheckNewLayer__(c);
 }
 
 int CnnCall(Cnn c, double *input) {
@@ -429,12 +367,11 @@ int CnnLearn(Cnn c, double *target) {
 	Tensor targ = c->target;
 	Tensor gradNext;
 
-	c->error.error = clEnqueueWriteBuffer(c->queue, targ->data, CL_TRUE, 0, targ->bytes, target, 0, NULL, NULL);
+	c->error.error = TensorPutValues(c->queue, targ, target);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg);
 		return c->error.error;
 	}
-	clFinish(c->queue);
 	c->error.error = kernel_run_recursive(&c->kernelsub, c->queue, targ->x * targ->y * targ->z, c->cl->maxworks,
 	                                      &lastGrad->data, &c->camadas[c->size - 1]->saida->data, &targ->data);
 	if (c->error.error) {
@@ -455,25 +392,24 @@ int CnnCalculeError(Cnn c) {
 	if (c->error.error)return c->error.error;
 	c->error.context = CNN_CALCERROR_CONTEXT;
 	Tensor lastGrad = c->lastGrad;
-	Tensor targ = c->target;
+	typetensor norma = *c->target;
+	norma.x = 1;
+	norma.y = 1;
+	norma.z = 1;
+	norma.l = 1;
+
 	size_t len = lastGrad->x * lastGrad->y * lastGrad->z;
-	c->error.error = kernel_run(&c->kernelNorm, c->queue, len, 1ULL, &lastGrad->data, &targ->data, &len);
+	c->error.error = kernel_run(&c->kernelNorm, c->queue, len, 1, &lastGrad->data, &norma.data, &len);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg);
 		return c->error.error;
 	}
-
-	c->error.error = clEnqueueReadBuffer(c->queue, targ->data, CL_TRUE, 0, sizeof(double), &c->normaErro, 0, NULL,
-	                                     NULL);
-	clFinish(c->queue);
-
+	c->error.error = TensorGetValues(c->queue, &norma, &c->normaErro);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg);
 		return c->error.error;
 	}
-
 	return 0;
-
 }
 
 void cnnSave(Cnn c, FILE *dst) {
@@ -512,25 +448,18 @@ int cnnCarregar(Cnn c, FILE *src) {
 	return c->error.error;
 }
 
-void Cnngetout(Cnn c, double *out) {
-	if (c->size < 1)return;
-	clFinish(c->queue);
-	clEnqueueReadBuffer(c->queue, c->camadas[c->size - 1]->saida->data, CL_TRUE, 0,
-	                    c->camadas[c->size - 1]->saida->bytes, out, 0, NULL, NULL);
-}
 
 void normalizeGPU(Cnn c, double *input, double *output, int len, double maximo, double minimo) {
 	if (len < 2)return;
 	Tensor tinp, tout;
 	double mx, mn;
-	tinp = newTensor(c->cl->context,c->queue, len, 1, 1, &c->error);
-	tout = newTensor(c->cl->context,c->queue, len, 1, 1, &c->error);
+	tinp = newTensor(c->cl->context, c->queue, len, 1, 1, 0, &c->error);
+	tout = newTensor(c->cl->context, c->queue, len, 1, 1, 0, &c->error);
 	TensorPutValues(c->queue, tinp, input);
 	// achar o maximo e minimo
 	kernel_run(&c->kernelfindExtreme, c->queue, len, 1, &tinp->data, &tout->data, &len);
-	clFinish(c->queue);
-	clEnqueueReadBuffer(c->queue, tout->data, CL_TRUE, 0, sizeof(double), &mn, 0, NULL, NULL);
-	clEnqueueReadBuffer(c->queue, tout->data, CL_TRUE, sizeof(double), sizeof(double), &mx, 0, NULL, NULL);
+	TensorGetValues(c->queue, tout, &mn);
+	TensorGetValues(c->queue, tout, &mx);
 	// nao da para normalizar
 	if (mx - mn == 0.0)goto finish;
 	double somador = -mn;
@@ -550,8 +479,8 @@ void normalizeGPUSpaceKnow(Cnn c, double *input, double *output, int len, double
 
 	Tensor tinp, tout;
 	double mx, mn;
-	tinp = newTensor(c->cl->context,c->queue,len, 1, 1, &c->error);
-	tout = newTensor(c->cl->context,c->queue, len, 1, 1, &c->error);
+	tinp = newTensor(c->cl->context, c->queue, len, 1, 1, 1, &c->error);
+	tout = newTensor(c->cl->context, c->queue, len, 1, 1, 1, &c->error);
 	TensorPutValues(c->queue, tinp, input);
 	// achar o maximo e minimo
 	mn = input_minimo;
@@ -575,11 +504,24 @@ int CnnGetIndexMax(Cnn c) {
 	if (c->error.error)return 0;
 	c->error.context = CNN_GETINDEX_CONTEXT;
 	Tensor saida = c->camadas[c->size - 1]->saida;
-	Tensor entrada = c->camadas[0]->gradsEntrada;
+	Tensor clmen_norma = newTensor(c->cl->context, c->queue, 1, 1, 1, 0, &c->error);
+	if (c->error.error) {
+		getClError(c->error.error, c->error.msg);
+		releaseTensor(&clmen_norma);
+	}
 	int len = (int) (saida->x * saida->y * saida->z);
-	int error = kernel_run(&c->kernelMax, c->queue, 1, 1, &saida->data, &entrada->data, &len);
+	c->error.error = kernel_run(&c->kernelMax, c->queue, 1, 1, &saida->data, &clmen_norma->data, &len);
+	if (c->error.error) {
+		getClError(c->error.error, c->error.msg);
+		releaseTensor(&clmen_norma);
+	}
 	double indice = 0;
-	clEnqueueReadBuffer(c->queue, entrada->data, CL_TRUE, 0, sizeof(double), &indice, 0, NULL, NULL);
+	c->error.error = TensorGetValues(c->queue, clmen_norma, &indice);
+	if (c->error.error) {
+		getClError(c->error.error, c->error.msg);
+		releaseTensor(&clmen_norma);
+	}
+	releaseTensor(&clmen_norma);
 	return (int) indice;
 }
 
@@ -612,8 +554,8 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 	Tensor img, tout;
 	double mx, mn, somador, multiplicador, minimo = 0;
 	size_t len;
-	tout = newTensor(c->cl->context,c->queue, max_bytes, 1, 1, &c->error);
-	img = newTensorChar(c->cl->context,c->queue, maxH, maxW, 1, &c->error);
+	tout = newTensor(c->cl->context, c->queue, max_bytes, 1, 1, 0, &c->error);
+	img = newTensorChar(c->cl->context, c->queue, maxH, maxW, 1, 1, &c->error);
 	int imi = 0;
 	int x, y;
 
@@ -626,7 +568,6 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 		len = t->x * t->y * t->z;
 		// achar o maximo e minimo
 		kernel_run(&c->kernelfindExtreme, c->queue, len, 1, &t->data, &tout->data, &len);
-		clFinish(c->queue);
 		clEnqueueReadBuffer(c->queue, tout->data, CL_TRUE, 0, sizeof(double), &mn, 0, NULL, NULL);
 		clEnqueueReadBuffer(c->queue, tout->data, CL_TRUE, sizeof(double), sizeof(double), &mx, 0, NULL, NULL);
 		// nao da para normalizar

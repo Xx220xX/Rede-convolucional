@@ -30,49 +30,9 @@ const char *tostringPadding(CamadaPadding c) {
 	return c->super.__string__;
 }
 
-Camada createPadding(WrapperCL *cl, QUEUE queue,
-                     UINT inx, UINT iny, UINT inz,
-                     UINT top, UINT bottom, UINT left, UINT right, Tensor entrada,
-                     GPU_ERROR *error) {
-	if (error->error)return NULL;
-
-	CamadaPadding c = (CamadaPadding) calloc(1, sizeof(TypecamadaPadding));
-
-	__newCamada__((Camada) c, cl, PADDING, entrada, queue,
-	              (Params) {0}, inx, iny, inz, inx + top + bottom, iny + left + right,
-	              inz, error);
-	c->super.toString = (fch) tostringPadding;
-	c->super.getCreateParams = (fch) getCreateParamsPadding;
-	c->super.release = (fv) realeasePadding;
-	c->super.ativa = (fv) ativaPadding;
-	c->super.calc_grads = (fvv) calc_gradsPadding;
-	c->super.corrige_pesos = (fv) corrige_pesosPadding;
-	c->super.salvar = (fsl) salvarPadding;
-	c->top = top;
-	c->bottom = bottom;
-	c->left = left;
-	c->right = right;
-	c->ativa = new_Kernel(cl->program, error, "paddingfeed", 9,
-	                      K_VOID_P, K_VOID_P,
-	                      K_INT, K_INT, K_INT,
-	                      K_INT, K_INT, K_INT,
-	                      K_INT
-	);
-	c->calcGrad = new_Kernel(cl->program, error, "paddingBack", 9,
-	                         K_VOID_P, K_VOID_P,
-	                         K_INT, K_INT, K_INT,
-	                         K_INT, K_INT, K_INT,
-	                         K_INT
-	);
-	return (Camada) c;
-}
-
 void realeasePadding(CamadaPadding *pc) {
 	CamadaPadding c = *pc;
-	if (c->super.flag_releaseInput)releaseTensor(&c->super.entrada);
-	if (c->super.__string__ != NULL) {
-		free(c->super.__string__);
-	}
+	__releaseCamada__((Camada) c);
 	releaseKernel(&c->ativa);
 	releaseKernel(&c->calcGrad);
 	releaseTensor(&c->super.saida);
@@ -119,6 +79,7 @@ void salvarPadding(WrapperCL *cl, CamadaPadding c, FILE *dst, GPU_ERROR *error) 
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
+	fwrite(&c->super.flag_usehost, sizeof(char), 1, dst);
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
@@ -137,6 +98,8 @@ Camada carregarPadding(WrapperCL *cl, FILE *src, cl_command_queue queue,
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
 	UINT inx, iny, inz, top, bottom, left, right;
+	char flag_usehost = 0;
+	fread(&flag_usehost, sizeof(char), 1, src);
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
@@ -144,5 +107,43 @@ Camada carregarPadding(WrapperCL *cl, FILE *src, cl_command_queue queue,
 	fread(&bottom, sizeof(UINT), 1, src);
 	fread(&left, sizeof(UINT), 1, src);
 	fread(&right, sizeof(UINT), 1, src);
-	return createPadding(cl, queue, inx, iny, inz, top, bottom, left, right, entrada, error);
+	return createPadding(cl, queue, inx, iny, inz, top, bottom, left, right, entrada, flag_usehost,error);
+}
+
+Camada createPadding(WrapperCL *cl, QUEUE queue,
+                     UINT inx, UINT iny, UINT inz,
+                     UINT top, UINT bottom, UINT left, UINT right, Tensor entrada,
+                     char usehost, GPU_ERROR *error) {
+	if (error->error)return NULL;
+
+	CamadaPadding c = (CamadaPadding) calloc(1, sizeof(TypecamadaPadding));
+
+	__newCamada__((Camada) c, cl, PADDING, entrada, queue,
+	              (Params) {0}, inx, iny, inz, inx + top + bottom, iny + left + right,
+	              inz,usehost, error);
+	c->super.gradsEntrada = newTensor(cl->context, queue, inx, iny, inz, 1, error);
+	c->super.toString = (fch) tostringPadding;
+	c->super.getCreateParams = (fch) getCreateParamsPadding;
+	c->super.release = (fv) realeasePadding;
+	c->super.ativa = (fv) ativaPadding;
+	c->super.calc_grads = (fvv) calc_gradsPadding;
+	c->super.corrige_pesos = (fv) corrige_pesosPadding;
+	c->super.salvar = (fsl) salvarPadding;
+	c->top = top;
+	c->bottom = bottom;
+	c->left = left;
+	c->right = right;
+	c->ativa = new_Kernel(cl->program, error, "paddingfeed", 9,
+	                      K_VOID_P, K_VOID_P,
+	                      K_INT, K_INT, K_INT,
+	                      K_INT, K_INT, K_INT,
+	                      K_INT
+	);
+	c->calcGrad = new_Kernel(cl->program, error, "paddingBack", 9,
+	                         K_VOID_P, K_VOID_P,
+	                         K_INT, K_INT, K_INT,
+	                         K_INT, K_INT, K_INT,
+	                         K_INT
+	);
+	return (Camada) c;
 }

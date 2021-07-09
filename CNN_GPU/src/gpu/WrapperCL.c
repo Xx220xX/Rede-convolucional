@@ -297,6 +297,7 @@ cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source) {
 
 char *printBytes(cl_ulong bytes, char *buff) {
 	unsigned int G, M, K, B;
+	int b = 0;
 	G = bytes / (1024 * 1024 * 1024);
 	bytes %= (1024 * 1024 * 1024);
 	M = bytes / (1024 * 1024);
@@ -304,7 +305,16 @@ char *printBytes(cl_ulong bytes, char *buff) {
 	K = bytes / (1024);
 	bytes %= (1024);
 	B = bytes;
-	sprintf(buff,  "%uGB %uMB %u kB %uB", G, M, K, B);
+	if (G)
+		b += sprintf(buff + b, "%uGB ", G);
+	if (M)
+		b += sprintf(buff + b, "%uMB ", M);
+	if (K)
+		b += sprintf(buff + b, "%uKB ", K);
+	if (B||!b)
+		b += sprintf(buff + b, "%uB ", B);
+
+	buff[b-1]=0;
 	return buff;
 }
 

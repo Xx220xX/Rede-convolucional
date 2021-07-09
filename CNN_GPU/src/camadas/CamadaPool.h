@@ -22,19 +22,10 @@ typedef struct {
 	Kernel kernelPoolCalcGrads;
 } *CamadaPool, Typecamadapool;
 
-void releasePool(CamadaPool *pc);
-
-int ativaPool(CamadaPool c);
-
-int corrige_pesosPool(CamadaPool c);
-
-int  calc_gradsPool(CamadaPool c, Tensor GradNext);
-
-void salvarPool(WrapperCL *cl, CamadaPool c, FILE *dst, GPU_ERROR *error);
 
 Camada createPool(WrapperCL *cl, QUEUE queue, UINT passo, UINT tamanhoFiltro,
                   UINT inx, UINT iny, UINT inz, Tensor entrada, Params params,
-                  GPU_ERROR *error);
+                 char usehost, GPU_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADAPOOL_H

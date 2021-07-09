@@ -8,7 +8,6 @@ void createCnnPy(Pointer *p, double hitLearn, double momento, double decaimentoD
 
 	WrapperCL_init(cl,default_kernel);
 	Cnn c = createCnn(cl, pr, inx, iny, inz);
-	c->flags = CNN_FLAG_CALCULE_ERROR;
 	c->releaseCL = 1;
 	p->p = c;
 }

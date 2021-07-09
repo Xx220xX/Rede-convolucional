@@ -40,18 +40,9 @@ typedef struct {
 
 } *CamadaBatchNorm, TypecamadaBatchNorm;
 
-void realeaseBatchNorm(CamadaBatchNorm *pc);
-
-int ativaBatchNorm(CamadaBatchNorm c);
-
-int corrige_pesosBatchNorm(CamadaBatchNorm c);
-
-int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext);
-
-void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, GPU_ERROR *error);
 
 Camada createBatchNorm(WrapperCL *cl, QUEUE queue, Params params, unsigned int inx, unsigned int iny,
-                       unsigned int inz, Tensor entrada, double epsilon, int randomize, GPU_ERROR *error);
+                       unsigned int inz, Tensor entrada, double epsilon, int randomize,char usehost, GPU_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADABATCHNORM_H

@@ -205,7 +205,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	                    cnn->camadas[cnn->size - 1]->saida->z;
 
 	// incia thread ui
-	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTrain, (void *) &info);
+//	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTrain, (void *) &info);
 	int r;
 	int stop = 0;
 	// vetor para treinar com dados aleatorios

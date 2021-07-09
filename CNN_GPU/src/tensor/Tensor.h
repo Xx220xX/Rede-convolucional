@@ -26,37 +26,45 @@ typedef struct {
 #else
 #define TensorMap(T, xx, yy, zz) (zz)*((T)->y*(T)->x)+(xx)*(T)->y+(yy)
 #endif
+
 typedef unsigned int UINT;
 /***
  * Tensor armazena uma matriz 3D juntamente com os parametros dela
  */
 typedef struct {
 	cl_mem data;
-	UINT bytes, x, y, z;
-} *Tensor, typetensor, *TensorChar, typetensorchar;
+	void *host;
+	char flag;
+	UINT bytes, x, y, z, l;
+} *Tensor, typetensor,*TensorChar;
+
+#define TENSOR_HOST 0b0001
+
+
 typedef struct {
 	int x, y, z;
 	double *data;
 } *TensorC, typeTensorC;
 
+
+Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, GPU_ERROR *error);
+
+TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, GPU_ERROR *error);
+
+Tensor newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z,UINT l, char usehost, GPU_ERROR *error);
+
 void printTensor(QUEUE q, Tensor t, FILE *f);
 
-void fillTensor(Tensor t, cl_context context,QUEUE queue, size_t bytes, GPU_ERROR *error);
+void fillTensor(Tensor t, cl_context context, QUEUE queue, size_t bytes, GPU_ERROR *error);
 
 int TensorPutValues(QUEUE queue, Tensor t, void *data);
 
 int TensorPutValuesOffSet(QUEUE queue, Tensor t, void *data, UINT ofset);
 
-void TensorGetValues(QUEUE queue, Tensor t, void *data);
+int TensorGetValues(QUEUE queue, Tensor t, void *data);
 
-void TensorGetValuesOffset(QUEUE queue, Tensor t, int offset, void *data);
+int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data ,int offset);
 
-Tensor newTensor(cl_context context,QUEUE queue, UINT x, UINT y, UINT z, GPU_ERROR *error);
-
-TensorChar newTensorChar(cl_context context,QUEUE queue, UINT x, UINT y, UINT z, GPU_ERROR *error);
-
-Tensor newTensor4D(cl_context context,QUEUE queue, UINT x, UINT y, UINT z,
-                   UINT l, GPU_ERROR *error);
 
 void releaseTensor(Tensor *t);
 

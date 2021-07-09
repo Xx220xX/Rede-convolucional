@@ -8,12 +8,13 @@ const char *getCreateParamsPool(CamadaPool c) {
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
 	int len = snprintf(c->super.__string__, 1000,
 	                   "['Pooling',%d,%d]",
-	                   c->passo,c->tamanhoFiltro
+	                   c->passo, c->tamanhoFiltro
 	);
 	len += 1;
 	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
 	return c->super.__string__;
 }
+
 const char *tostringPool(CamadaPool c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -30,38 +31,9 @@ const char *tostringPool(CamadaPool c) {
 	return c->super.__string__;
 }
 
-Camada createPool(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro,
-                  UINT inx, UINT iny, UINT inz,
-                  Tensor entrada, Params params,
-                  GPU_ERROR *error) {
-	CamadaPool c = (CamadaPool) calloc(1, sizeof(Typecamadapool));
-	c->passo = passo;
-	c->tamanhoFiltro = tamanhoFiltro;
-	__newCamada__((Camada) c, cl, POOL, entrada, queue, params, inx, iny, inz, (inx - tamanhoFiltro) / passo + 1,
-	              (iny - tamanhoFiltro) / passo + 1, inz,
-	              error);
-	c->super.toString = (fch) tostringPool;
-	c->super.getCreateParams = (fch) getCreateParamsPool;
-	c->super.release = (fv) releasePool;
-	c->super.ativa = (fv) ativaPool;
-	c->super.corrige_pesos = (fv) corrige_pesosPool;
-	c->super.calc_grads = (fvv) calc_gradsPool;
-	c->super.parametros = params;
-	c->super.salvar = (fsl) salvarPool;
-
-	c->kernelPoolAtiva = new_Kernel(cl->program,error, "poolativa", 9, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT, K_INT, K_INT,
-	                                K_INT, K_INT);
-	c->kernelPoolCalcGrads = new_Kernel(cl->program,error, "poolCalcGrads", 12, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-	                                    K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
-	return (Camada) c;
-}
-
 void releasePool(CamadaPool *pc) {
 	CamadaPool c = *pc;
-	if (c->super.flag_releaseInput)releaseTensor(&c->super.entrada);
-	if (c->super.__string__ != NULL) {
-		free(c->super.__string__);
-	}
+	__releaseCamada__((Camada) c);
 	releaseTensor(&c->super.saida);
 	releaseKernel(&c->kernelPoolCalcGrads);
 	releaseKernel(&c->kernelPoolAtiva);
@@ -69,28 +41,29 @@ void releasePool(CamadaPool *pc) {
 	*pc = NULL;
 }
 
-int  ativaPool(CamadaPool c) {
-	int erro  = kernel_run_recursive(&c->kernelPoolAtiva, c->super.queue, c->super.saida->x * c->super.saida->y * c->super.saida->z,
-	                     *c->super.max_works,
-	                     &c->super.entrada->data, &c->super.saida->data, &c->tamanhoFiltro, &c->passo,
-	                     &c->super.saida->x, &c->super.saida->y, &c->super.entrada->x, &c->super.entrada->y);
+int ativaPool(CamadaPool c) {
+	int erro = kernel_run_recursive(&c->kernelPoolAtiva, c->super.queue,
+	                                c->super.saida->x * c->super.saida->y * c->super.saida->z,
+	                                *c->super.max_works,
+	                                &c->super.entrada->data, &c->super.saida->data, &c->tamanhoFiltro, &c->passo,
+	                                &c->super.saida->x, &c->super.saida->y, &c->super.entrada->x, &c->super.entrada->y);
 	return erro;
 }
 
-int  corrige_pesosPool(CamadaPool c) {return 0;}
-
+int corrige_pesosPool(CamadaPool c) { return 0; }
 
 int calc_gradsPool(CamadaPool c, Tensor GradNext) {
 	int erro = kernel_run_recursive(&c->kernelPoolCalcGrads, c->super.queue,
-	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
-	                     *c->super.max_works,
-	                     &c->super.entrada->data, &c->super.gradsEntrada->data,
-	                     &GradNext->data,
-	                     &c->super.saida->data, &c->tamanhoFiltro, &c->passo, &c->super.entrada->x,
-	                     &c->super.entrada->y, &c->super.entrada->z,
-	                     &c->super.saida->x, &c->super.saida->y);
+	                                c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
+	                                *c->super.max_works,
+	                                &c->super.entrada->data, &c->super.gradsEntrada->data,
+	                                &GradNext->data,
+	                                &c->super.saida->data, &c->tamanhoFiltro, &c->passo, &c->super.entrada->x,
+	                                &c->super.entrada->y, &c->super.entrada->z,
+	                                &c->super.saida->x, &c->super.saida->y);
 	return erro;
 }
+
 
 void salvarPool(WrapperCL *cl, CamadaPool c, FILE *dst, GPU_ERROR *error) {
 	char flag = '#';
@@ -110,10 +83,39 @@ Camada carregarPool(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor ent
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
 	UINT passo, tamanhoFiltro, inx, iny, inz;
+	char flag_usehost ;
+	fread(&flag_usehost, sizeof(char), 1, src);
 	fread(&passo, sizeof(UINT), 1, src);
 	fread(&tamanhoFiltro, sizeof(UINT), 1, src);
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createPool(cl, queue, passo, tamanhoFiltro, inx, iny, inz, entrada, params, error);
+	return createPool(cl, queue, passo, tamanhoFiltro, inx, iny, inz, entrada, params,flag_usehost, error);
+}
+
+Camada createPool(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro,
+                  UINT inx, UINT iny, UINT inz,
+                  Tensor entrada, Params params,
+                  char usehost, GPU_ERROR *error) {
+	CamadaPool c = (CamadaPool) calloc(1, sizeof(Typecamadapool));
+	c->passo = passo;
+	c->tamanhoFiltro = tamanhoFiltro;
+	__newCamada__((Camada) c, cl, POOL, entrada, queue, params, inx, iny, inz, (inx - tamanhoFiltro) / passo + 1,
+	              (iny - tamanhoFiltro) / passo + 1, inz,
+	              usehost, error);
+	c->super.toString = (fch) tostringPool;
+	c->super.getCreateParams = (fch) getCreateParamsPool;
+	c->super.release = (fv) releasePool;
+	c->super.ativa = (fv) ativaPool;
+	c->super.corrige_pesos = (fv) corrige_pesosPool;
+	c->super.calc_grads = (fvv) calc_gradsPool;
+	c->super.parametros = params;
+	c->super.salvar = (fsl) salvarPool;
+
+	c->kernelPoolAtiva = new_Kernel(cl->program, error, "poolativa", 9, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT, K_INT,
+	                                K_INT,
+	                                K_INT, K_INT);
+	c->kernelPoolCalcGrads = new_Kernel(cl->program, error, "poolCalcGrads", 12, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                    K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
+	return (Camada) c;
 }

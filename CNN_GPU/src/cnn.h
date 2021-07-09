@@ -55,27 +55,27 @@ Ponto3d __addLayer(Cnn c);
 
 #define checkSizeFilter(v, tam, pas) ((((v)-(tam))/(pas)) ==((double)(v)-(tam))/((double)(pas)))
 
-int CnnAddConvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros);
+int CnnAddConvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros);
 
-int CnnAddConvNcLayer(Cnn c, UINT passox, UINT passoy, UINT largx, UINT largy,
+int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx, UINT largy,
                       UINT filtrox, UINT filtroy,
                       UINT numeroDeFiltros);
 
-int CnnAddPoolLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro);
+int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro);
 
-int CnnAddPoolAvLayer(Cnn c, UINT passo, UINT tamanhoDoFiltro);
+int CnnAddPoolAvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro);
 
-int CnnAddReluLayer(Cnn c);
+int CnnAddReluLayer(Cnn c, char usehost);
 
-int CnnAddPaddingLayer(Cnn c, UINT top, UINT bottom, UINT left, UINT right);
+int CnnAddPaddingLayer(Cnn c, char usehost, UINT top, UINT bottom, UINT left, UINT right);
 
-int CnnAddBatchNorm(Cnn c, double epsilon);
+int CnnAddBatchNorm(Cnn c, char usehost, double epsilon);
 
-int CnnAddSoftMax(Cnn c);
+int CnnAddSoftMax(Cnn c, char usehost);
 
-int CnnAddDropOutLayer(Cnn c, double pontoAtivacao, long long int seed);
+int CnnAddDropOutLayer(Cnn c, char usehost, double pontoAtivacao, long long int seed);
 
-int CnnAddFullConnectLayer(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao);
+int CnnAddFullConnectLayer(Cnn c, char usehost, UINT tamanhoDaSaida, int funcaoDeAtivacao);
 
 int CnnCall(Cnn c, double *input);
 
@@ -85,7 +85,6 @@ void cnnSave(Cnn c, FILE *dst);
 
 int cnnCarregar(Cnn c, FILE *src);
 
-void Cnngetout(Cnn c, double *out);
 
 void normalizeGPU(Cnn c, double *input, double *output, int len, double maximo, double minimo);
 

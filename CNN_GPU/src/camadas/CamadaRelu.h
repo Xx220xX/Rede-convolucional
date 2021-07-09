@@ -18,19 +18,12 @@ typedef struct {
 	Kernel kernelReluCalcGrads;
 } *CamadaRelu, TypecamadaRelu;
 
-void realeaseRelu(CamadaRelu *pc);
 
-int ativaRelu(CamadaRelu c);
 
-int corrige_pesosRelu(CamadaRelu);
-
-int calc_gradsRelu(CamadaRelu c, Tensor GradNext);
-
-void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, GPU_ERROR *error);
 
 Camada createRelu(WrapperCL *cl, QUEUE queue, unsigned int inx, unsigned int iny,
-                  unsigned int inz,
-                  Tensor entrada, GPU_ERROR *error);
+                  unsigned int inz,Tensor entrada,
+                  char usehost,GPU_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADA_RELU_H
