@@ -40,7 +40,6 @@ int main(int nargs, char **args) {
 	printf("%d\n",CnnAddFullConnectLayer(cnn,usehost, 10,FTANH));
 	printCnn(cnn);
 	if (cnn->error.error) {
-		fprintf(stderr, "%s\n", cnn->error.context);
 		fprintf(stderr, "%d: %s\n", cnn->error.error, cnn->error.msg);
 		goto end;
 	}
@@ -63,7 +62,6 @@ int main(int nargs, char **args) {
 		CnnCalculeError(cnn);
 		printf("%lf\n",cnn->normaErro);
 		if (cnn->error.error) {
-			fprintf(stderr, "%s\n", cnn->error.context);
 			fprintf(stderr, "%d: %s\n", cnn->error.error, cnn->error.msg);
 			goto end;
 		}

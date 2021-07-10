@@ -17,12 +17,13 @@ typedef struct {
 	char *kernel_name;
 	int nArgs;
 	size_t *l_args;
-
 } Kernel;
+#ifndef GPU_ERROR_MAX_MSG_SIZE
+#define GPU_ERROR_MAX_MSG_SIZE 500
+#endif
 typedef struct {
 	cl_int error;
-	char msg[255];
-	char context[500];
+	char msg[GPU_ERROR_MAX_MSG_SIZE];
 } GPU_ERROR;
 
 Kernel new_Kernel(cl_program pg,GPU_ERROR *error, const char *f_name, int n_args, ...);
@@ -36,5 +37,5 @@ int kernel_run_recursive(Kernel *self, cl_command_queue queue, size_t globals, s
 cl_kernel Kernel_get(Kernel *self);
 
 void releaseKernel(Kernel *self);
-
+void printKernel(Kernel *self);
 #endif //GAB_KERNEL_H

@@ -170,7 +170,7 @@ int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, GPU_ERROR *error) {
 	error->error = TensorPutValues(c->super.queue, c->Y, data);
 	clFinish(c->super.queue);
 	if (error->error) {
-		getClError(error->error, error->msg);
+		getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
 		free(data);
 		return error->error;
 	}
@@ -180,7 +180,7 @@ int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, GPU_ERROR *error) {
 	error->error = TensorPutValues(c->super.queue, c->B, data);
 	clFinish(c->super.queue);
 	if (error->error) {
-		getClError(error->error, error->msg);
+		getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
 		free(data);
 		return error->error;
 	}

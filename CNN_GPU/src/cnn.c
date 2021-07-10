@@ -26,7 +26,7 @@ const char *getInfo() {
 
 Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 	Cnn c = (Cnn) calloc(1, sizeof(TypeCnn));
-	int len = sprintf(c->error.context, "createCnn");
+//	//int len = sprintf(c->error.context, "createCnn");
 	c->parametros = p;
 	c->cl = cl;
 	int error = 0;
@@ -49,9 +49,7 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 	c->kernelcreateIMG = new_Kernel(cl->program, &c->error, "createImg", 7, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT,
 	                                K_INT, K_INT);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg);
-	} else {
-		*(c->error.context - len) = 0;
+		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 	}
 	return c;
 }
@@ -115,7 +113,7 @@ Ponto3d __addLayer(Cnn c) {
 }
 
 int __CnnCheckNewLayer__(Cnn c) {
-	int len = sprintf(c->error.context, "%s/%s", c->error.context, "__CnnCheckNewLayer__");
+	//int len = sprintf(c->error.context, "%s/%s", c->error.context, "__CnnCheckNewLayer__");
 	if (c->size <= 0) {
 		c->error.error = -80;
 		snprintf(c->error.msg, 255, "invalid call function\n");
@@ -133,7 +131,6 @@ int __CnnCheckNewLayer__(Cnn c) {
 	                      c->camadas[c->size - 1]->saida->y,
 	                      c->camadas[c->size - 1]->saida->z, 0, &c->error);
 	if (c->error.error)return c->error.error;
-	*(c->error.context) = 0;
 	return 0;
 }
 
@@ -149,7 +146,7 @@ int CnnAddConvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro, UINT 
 
 	if (c->error.error)return c->error.error;
 
-	int len = sprintf(c->error.context, "%s", "CnnAddConvLayer");
+//	//int len = sprintf(c->error.context, "%s", "CnnAddConvLayer");
 	Ponto3d sizeIn = __addLayer(c);
 	if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
 		c->error.error = INVALID_FILTER_SIZE;
@@ -179,7 +176,7 @@ int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx,
 	* 			P = passo
 	**/
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnAddConvNcLayer");
+	//int len = sprintf(c->error.context, "%s", "CnnAddConvNcLayer");
 
 	Ponto3d sizeIn = __addLayer(c);
 	if (
@@ -217,7 +214,7 @@ int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 	* 			P = passo
 	**/
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnAddPoolLayer");
+	//int len = sprintf(c->error.context, "%s", "CnnAddPoolLayer");
 
 	Ponto3d sizeIn = __addLayer(c);
 	if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
@@ -247,7 +244,7 @@ int CnnAddPoolAvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 	* 			P = passo
 	**/
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnAddPoolAvLayer");
+	//int len = sprintf(c->error.context, "%s", "CnnAddPoolAvLayer");
 
 	Ponto3d sizeIn = __addLayer(c);
 	if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
@@ -269,7 +266,7 @@ int CnnAddPoolAvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 
 int CnnAddBatchNorm(Cnn c, char usehost, double epsilon) {
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnAddBatchNorm");
+	//int len = sprintf(c->error.context, "%s", "CnnAddBatchNorm");
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
@@ -282,7 +279,7 @@ int CnnAddBatchNorm(Cnn c, char usehost, double epsilon) {
 
 int CnnAddReluLayer(Cnn c, char usehost) {
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnAddReluLayer");
+	//int len = sprintf(c->error.context, "%s", "CnnAddReluLayer");
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
@@ -293,7 +290,7 @@ int CnnAddReluLayer(Cnn c, char usehost) {
 
 int CnnAddPaddingLayer(Cnn c, char usehost, UINT top, UINT bottom, UINT left, UINT right) {
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnAddPaddingLayer");
+	//int len = sprintf(c->error.context, "%s", "CnnAddPaddingLayer");
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
@@ -307,7 +304,7 @@ int CnnAddPaddingLayer(Cnn c, char usehost, UINT top, UINT bottom, UINT left, UI
 
 int CnnAddSoftMax(Cnn c, char usehost) {
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnAddSoftMax");
+	//int len = sprintf(c->error.context, "%s", "CnnAddSoftMax");
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
@@ -318,7 +315,7 @@ int CnnAddSoftMax(Cnn c, char usehost) {
 
 int CnnAddDropOutLayer(Cnn c, char usehost, double pontoAtivacao, long long int seed) {
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnAddDropOutLayer");
+	//int len = sprintf(c->error.context, "%s", "CnnAddDropOutLayer");
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
@@ -329,7 +326,7 @@ int CnnAddDropOutLayer(Cnn c, char usehost, double pontoAtivacao, long long int 
 
 int CnnAddFullConnectLayer(Cnn c, char usehost, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnAddFullConnectLayer");
+	//int len = sprintf(c->error.context, "%s", "CnnAddFullConnectLayer");
 	Ponto3d sizeIn = __addLayer(c);
 	Tensor entrada = NULL;
 
@@ -341,23 +338,19 @@ int CnnAddFullConnectLayer(Cnn c, char usehost, UINT tamanhoDaSaida, int funcaoD
 
 int CnnCall(Cnn c, double *input) {
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnCall");
-	sprintf(c->error.context + len, "/TensorPutValues");
+	//int len = sprintf(c->error.context, "%s", "CnnCall");
 	c->error.error = TensorPutValues(c->queue, c->camadas[0]->entrada, input);
-	if(c->error.error)getClError(c->error.error,c->error.msg);
+	if(c->error.error)getClError(c->error.error,c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 	for (int i = 0; i < c->size && !c->error.error; ++i) {
-		sprintf(c->error.context + len, "/%d", i);
+		
 		c->error.error = c->camadas[i]->ativa(c->camadas[i]);
 	}
-	if (!c->error.error) {
-		*c->error.context = 0;
-	}
+	
 	return c->error.error;
 }
 
 int CnnLearn(Cnn c, double *target) {
 	if (c->error.error)return c->error.error;
-	int len = sprintf(c->error.context, "%s", "CnnLearn");
 	if (c->size == 0) {
 		c->error.error = -70;
 		sprintf(c->error.msg, "A rede não possui nenhuma camada\n");
@@ -366,40 +359,41 @@ int CnnLearn(Cnn c, double *target) {
 	Tensor lastGrad = c->lastGrad;
 	Tensor targ = c->target;
 	Tensor gradNext;
-	sprintf(c->error.context + len, "/TensorPutValues");
 	c->error.error = TensorPutValues(c->queue, targ, target);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg);
+		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 		return c->error.error;
 	}
-	sprintf(c->error.context + len, "/kernelsub");
+	printf("init ");
+	printKernel(&c->kernelsub);
 	c->error.error = kernel_run_recursive(&c->kernelsub, c->queue, targ->x * targ->y * targ->z,
 									   c->cl->maxworks,
 	                                      &lastGrad->data, &c->camadas[c->size - 1]->saida->data,
 	                                      &targ->data);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg);
+		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 		return c->error.error;
 	}
 	gradNext = lastGrad;
+	printf("before for ");
+	printKernel(&c->kernelsub);
 	for (int l = c->size - 1 && !c->error.error; l >= 0; l--) {
-		sprintf(c->error.context + len, "/%d/calc_grads", l);
+		
 		c->error.error = c->camadas[l]->calc_grads(c->camadas[l], gradNext);
 		if (!c->camadas[l]->flag_notlearn && !c->error.error) {
-			sprintf(c->error.context + len, "/%d/corrige_pesos", l);
+			
 			c->camadas[l]->corrige_pesos(c->camadas[l]);
 		}
 		gradNext = c->camadas[l]->gradsEntrada;
 	}
-	if (!c->error.error) {
-		*c->error.context = 0;
-	}
+	printf("end ");
+	printKernel(&c->kernelsub);
 	return c->error.error;
 }
 
 int CnnCalculeError(Cnn c) {
 	if (c->error.error)return c->error.error;
-	int lenContext = sprintf(c->error.context, "%s", "CnnCalculeError");
+	//int lenContext = sprintf(c->error.context, "%s", "CnnCalculeError");
 	Tensor lastGrad = c->lastGrad;
 	typetensor norma = *c->target;
 	norma.x = 1;
@@ -410,15 +404,16 @@ int CnnCalculeError(Cnn c) {
 	size_t len = lastGrad->x * lastGrad->y * lastGrad->z;
 	c->error.error = kernel_run(&c->kernelNorm, c->queue, len, 1, &lastGrad->data, &norma.data, &len);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg);
+		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 		return c->error.error;
 	}
 	c->error.error = TensorGetValues(c->queue, &norma, &c->normaErro);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg);
+		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 		return c->error.error;
 	}
-	*c->error.context = 0;
+
+
 	return 0;
 }
 
@@ -462,7 +457,7 @@ int cnnCarregar(Cnn c, FILE *src) {
 void normalizeGPU(Cnn c, double *input, double *output, int len, double maximo, double minimo) {
 	if (len < 2)return;
 	if (c->error.error)return;
-	int lenContext = sprintf(c->error.context, "%s", "normalizeGPU");
+	//int lenContext = sprintf(c->error.context, "%s", "normalizeGPU");
 	Tensor tinp, tout;
 	double mx, mn;
 	tinp = newTensor(c->cl->context, c->queue, len, 1, 1, 0, &c->error);
@@ -485,9 +480,8 @@ void normalizeGPU(Cnn c, double *input, double *output, int len, double maximo, 
 		goto finish;
 	clFinish(c->queue);
 	if ((c->error.error = TensorGetValues(c->queue, tout, output)))goto finish;
-	*c->error.context = 0;
 	finish:
-	getClError(c->error.error, c->error.msg);
+	getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 	releaseTensor(&tinp);
 	releaseTensor(&tout);
 }
@@ -497,7 +491,7 @@ void normalizeGPUSpaceKnow(Cnn c, double *input, double *output, int len, double
 
 	Tensor tinp, tout;
 	double mx, mn;
-	int lenContext = sprintf(c->error.context, "%s", "normalizeGPUSpaceKnow");
+	//int lenContext = sprintf(c->error.context, "%s", "normalizeGPUSpaceKnow");
 	tinp = newTensor(c->cl->context, c->queue, len, 1, 1, 1, &c->error);
 	tout = newTensor(c->cl->context, c->queue, len, 1, 1, 1, &c->error);
 	if ((c->error.error = TensorPutValues(c->queue, tinp, input)))goto finish;
@@ -515,7 +509,6 @@ void normalizeGPUSpaceKnow(Cnn c, double *input, double *output, int len, double
 		goto finish;
 	clFinish(c->queue);
 	if ((c->error.error = TensorGetValues(c->queue, tout, output)))goto finish;
-	*c->error.context = 0;
 	finish:
 	releaseTensor(&tinp);
 	releaseTensor(&tout);
@@ -524,23 +517,23 @@ void normalizeGPUSpaceKnow(Cnn c, double *input, double *output, int len, double
 
 int CnnGetIndexMax(Cnn c) {
 	if (c->error.error)return 0;
-	int lenContext = sprintf(c->error.context, "%s", "normalizeGPU");
+	//int lenContext = sprintf(c->error.context, "%s", "normalizeGPU");
 	Tensor saida = c->camadas[c->size - 1]->saida;
 	Tensor clmen_norma = newTensor(c->cl->context, c->queue, 1, 1, 1, 0, &c->error);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg);
+		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 		releaseTensor(&clmen_norma);
 	}
 	int len = (int) (saida->x * saida->y * saida->z);
 	c->error.error = kernel_run(&c->kernelMax, c->queue, 1, 1, &saida->data, &clmen_norma->data, &len);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg);
+		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 		releaseTensor(&clmen_norma);
 	}
 	double indice = 0;
 	c->error.error = TensorGetValues(c->queue, clmen_norma, &indice);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg);
+		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 		releaseTensor(&clmen_norma);
 	}
 	releaseTensor(&clmen_norma);

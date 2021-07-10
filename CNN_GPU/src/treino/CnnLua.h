@@ -64,14 +64,14 @@ static int l_convolution(lua_State *L) {
 	sfiltro = luaL_checkinteger(L, 2);
 	nfiltro = luaL_checkinteger(L, 3);
 	char usehost = 1;
-	if(lua_isnoneornil(L,4)){
+	if (lua_isnoneornil(L, 4)) {
 		usehost = luaL_checkinteger(L, 4);
 	}
-	int erro = CnnAddConvLayer(*globalcnn,usehost, passo, sfiltro, nfiltro);
+	int erro = CnnAddConvLayer(*globalcnn, usehost, passo, sfiltro, nfiltro);
 	if (erro) {
-		char msg[250];
-		getClError(erro, msg);
-		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+		char msg[GPU_ERROR_MAX_MSG_SIZE];
+		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
 }
@@ -88,14 +88,14 @@ static int l_convolution_non_causal(lua_State *L) {
 	filtroy = luaL_checkinteger(L, 6);
 	nfiltro = luaL_checkinteger(L, 7);
 	char usehost = 1;
-	if(lua_isnoneornil(L,8)){
+	if (lua_isnoneornil(L, 8)) {
 		usehost = luaL_checkinteger(L, 8);
 	}
-	int erro = CnnAddConvNcLayer(*globalcnn,usehost, passox, passoy, largx, largy, filtrox, filtroy, nfiltro);
+	int erro = CnnAddConvNcLayer(*globalcnn, usehost, passox, passoy, largx, largy, filtrox, filtroy, nfiltro);
 	if (erro) {
-		char msg[250];
-		getClError(erro, msg);
-		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+		char msg[GPU_ERROR_MAX_MSG_SIZE];
+		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
 }
@@ -108,14 +108,14 @@ static int l_pooling(lua_State *L) {
 	passo = luaL_checkinteger(L, 1);
 	sfiltro = luaL_checkinteger(L, 2);
 	char usehost = 1;
-	if(lua_isnoneornil(L,3)){
+	if (lua_isnoneornil(L, 3)) {
 		usehost = luaL_checkinteger(L, 3);
 	}
-	int erro = CnnAddPoolLayer(*globalcnn,usehost, passo, sfiltro);
+	int erro = CnnAddPoolLayer(*globalcnn, usehost, passo, sfiltro);
 	if (erro) {
-		char msg[250];
-		getClError(erro, msg);
-		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+		char msg[GPU_ERROR_MAX_MSG_SIZE];
+		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
 }
@@ -127,14 +127,14 @@ static int l_poolingav(lua_State *L) {
 	passo = luaL_checkinteger(L, 1);
 	sfiltro = luaL_checkinteger(L, 2);
 	char usehost = 1;
-	if(lua_isnoneornil(L,3)){
+	if (lua_isnoneornil(L, 3)) {
 		usehost = luaL_checkinteger(L, 3);
 	}
-	int erro = CnnAddPoolAvLayer(*globalcnn,usehost, passo, sfiltro);
+	int erro = CnnAddPoolAvLayer(*globalcnn, usehost, passo, sfiltro);
 	if (erro) {
-		char msg[250];
-		getClError(erro, msg);
-		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+		char msg[GPU_ERROR_MAX_MSG_SIZE];
+		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
 }
@@ -144,14 +144,14 @@ static int l_relu(lua_State *L) {
 	//printf("l_relu\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	char usehost = 1;
-	if(lua_isnoneornil(L,1)){
+	if (lua_isnoneornil(L, 1)) {
 		usehost = luaL_checkinteger(L, 1);
 	}
-	int erro = CnnAddReluLayer(*globalcnn,usehost);
+	int erro = CnnAddReluLayer(*globalcnn, usehost);
 	if (erro) {
-		char msg[250];
-		getClError(erro, msg);
-		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+		char msg[GPU_ERROR_MAX_MSG_SIZE];
+		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
 }
@@ -164,14 +164,14 @@ static int l_padding(lua_State *L) {
 	UINT left = luaL_checkinteger(L, 3);
 	UINT right = luaL_checkinteger(L, 4);
 	char usehost = 1;
-	if(lua_isnoneornil(L,5)){
+	if (lua_isnoneornil(L, 5)) {
 		usehost = luaL_checkinteger(L, 5);
 	}
-	int erro = CnnAddPaddingLayer(*globalcnn,usehost, top, bottom, left, right);
+	int erro = CnnAddPaddingLayer(*globalcnn, usehost, top, bottom, left, right);
 	if (erro) {
-		char msg[250];
-		getClError(erro, msg);
-		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+		char msg[GPU_ERROR_MAX_MSG_SIZE];
+		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
 }
@@ -185,14 +185,14 @@ static int l_dropout(lua_State *L) {
 	if (!lua_isnoneornil(L, 2))
 		seed = luaL_checkinteger(L, 2);
 	char usehost = 1;
-	if(lua_isnoneornil(L,3)){
+	if (lua_isnoneornil(L, 3)) {
 		usehost = luaL_checkinteger(L, 3);
 	}
-	int erro = CnnAddDropOutLayer(*globalcnn,usehost, ativa, seed);
+	int erro = CnnAddDropOutLayer(*globalcnn, usehost, ativa, seed);
 	if (erro) {
-		char msg[250];
-		getClError(erro, msg);
-		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+		char msg[GPU_ERROR_MAX_MSG_SIZE];
+		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
 }
@@ -204,14 +204,14 @@ static int l_fullConnect(lua_State *L) {
 	int func = luaL_checkinteger(L, 2);
 	checkLua(func == FTANH || func == FSIGMOID || func == FRELU, "FUNCAO DE ATIVACAO INVALIDA");
 	char usehost = 1;
-	if(lua_isnoneornil(L,3)){
+	if (lua_isnoneornil(L, 3)) {
 		usehost = luaL_checkinteger(L, 3);
 	}
-	int erro = CnnAddFullConnectLayer(*globalcnn,usehost, neuros, func);
+	int erro = CnnAddFullConnectLayer(*globalcnn, usehost, neuros, func);
 	if (erro) {
-		char msg[250];
-		getClError(erro, msg);
-		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+		char msg[GPU_ERROR_MAX_MSG_SIZE];
+		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
 }
@@ -220,14 +220,14 @@ static int l_batchnorm(lua_State *L) {
 	//printf("l_batchnorm\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	char usehost = 1;
-	if(lua_isnoneornil(L,1)){
+	if (lua_isnoneornil(L, 1)) {
 		usehost = luaL_checkinteger(L, 1);
 	}
-	int erro = CnnAddBatchNorm(*globalcnn,usehost, 1e-12);
+	int erro = CnnAddBatchNorm(*globalcnn, usehost, 1e-12);
 	if (erro) {
-		char msg[250];
-		getClError(erro, msg);
-		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+		char msg[GPU_ERROR_MAX_MSG_SIZE];
+		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
 }
@@ -236,14 +236,14 @@ static int l_softmax(lua_State *L) {
 	//printf("l_batchnorm\n");
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	char usehost = 1;
-	if(lua_isnoneornil(L,1)){
+	if (lua_isnoneornil(L, 1)) {
 		usehost = luaL_checkinteger(L, 1);
 	}
-	int erro = CnnAddSoftMax(*globalcnn,usehost);
+	int erro = CnnAddSoftMax(*globalcnn, usehost);
 	if (erro) {
-		char msg[250];
-		getClError(erro, msg);
-		luaL_error(L, "falha ao adicionar camada  %s: %d %s", (*globalcnn)->error.context, erro, msg);
+		char msg[GPU_ERROR_MAX_MSG_SIZE];
+		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
 }

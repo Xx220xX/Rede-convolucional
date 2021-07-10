@@ -53,7 +53,7 @@ int convRandomize(CamadaConv c, WrapperCL *cl, GPU_ERROR *error) {
 		error->error = TensorPutValuesOffSet(queue, c->filtros, data, a * c->filtros->bytes);
 		if (error->error) {
 			printf("here %d \n",a);
-			getClError(error->error, error->msg);
+			getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
 			free(data);
 			return error->error;
 		}
@@ -141,7 +141,7 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, GPU_ERROR *error) {
 	for (int a = 0; a < c->numeroFiltros; a++) {
 		error->error = TensorGetValuesOffset(queue,c->filtros,data,a * c->filtros->bytes);
 		if(error->error){
-			getClError(error->error,error->msg);
+			getClError(error->error,error->msg,GPU_ERROR_MAX_MSG_SIZE);
 			break;
 		}
 		fwrite(data, 1, c->filtros->bytes, dst);
@@ -172,7 +172,7 @@ Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 		fread(data, 1, c->filtros->bytes, src);
 		error->error = TensorPutValuesOffSet(queue, c->filtros, data, a * c->filtros->bytes);
 		if (error->error) {
-			getClError(error->error, error->msg);
+			getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
 			break;
 		}
 	}

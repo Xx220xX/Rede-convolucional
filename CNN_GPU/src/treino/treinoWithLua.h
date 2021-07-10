@@ -261,8 +261,8 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	threadInfoStop = 1;
 	pthread_join(tid, NULL);
 	if (cnn->error.error) {
-		getClError(cnn->error.error, cnn->error.msg);
-		fprintf(stderr, "%s:falha ao treinar  %d: %s\n", cnn->error.context, cnn->error.error, cnn->error.msg);
+		getClError(cnn->error.error, cnn->error.msg,GPU_ERROR_MAX_MSG_SIZE);
+		fprintf(stderr, "falha ao treinar  %d: %s\n",cnn->error.error, cnn->error.msg);
 		system("pause");
 	}
 	return 0;

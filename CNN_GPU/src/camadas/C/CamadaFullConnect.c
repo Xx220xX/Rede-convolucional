@@ -49,7 +49,7 @@ int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error) {
 	error->error = TensorPutValues(c->super.queue, c->pesos, data);
 	free(data);
 	if (error->error) {
-		getClError(error->error, error->msg);
+		getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
 		return error->error;
 
 	}

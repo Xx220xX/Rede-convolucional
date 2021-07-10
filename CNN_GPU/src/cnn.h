@@ -35,8 +35,9 @@ typedef struct {
 	Kernel kernelMax;
 	Kernel kernelInt2Vector;
 	Kernel kernelcreateIMG;
-
 	double normaErro;
+
+
 } *Cnn, TypeCnn;
 
 Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz);

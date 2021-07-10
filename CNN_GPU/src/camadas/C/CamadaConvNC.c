@@ -61,7 +61,7 @@ int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, GPU_ERROR *error) {
 				}
 		error->error = TensorGetValuesOffset(queue, c->filtros,data, a * c->filtros->bytes);
 		if (error->error) {
-			getClError(error->error, error->msg);
+			getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
 			break;
 		}
 	}

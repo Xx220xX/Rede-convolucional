@@ -9,7 +9,7 @@ size_t allmem = 0;
 
 void fillTensor(Tensor t, cl_context context, QUEUE queue, size_t bytes, GPU_ERROR *error) {
 	if (error->error)return;
-	int lencontext = sprintf(error->context + strlen(error->context), "/%s", "fillTensor");
+	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "fillTensor");
 	int flag = 0;
 	if (t->flag) {
 		flag = CL_MEM_USE_HOST_PTR;
@@ -29,11 +29,10 @@ void fillTensor(Tensor t, cl_context context, QUEUE queue, size_t bytes, GPU_ERR
 		flag = 0;
 		error->error = clEnqueueFillBuffer(queue, t->data, &flag, sizeof(char), 0, bytes, 0, NULL, NULL);
 		if (error->error) {
-			getClError(error->error, error->msg);
+			getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
 		}
 	}
 	if (error->error) return;
-	*(error->context - lencontext) = 0;
 //	char buf[250];
 	allmem += bytes;
 //	printf("%d ",t->flag);
@@ -87,7 +86,7 @@ int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data, int offset) {
 
 Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, GPU_ERROR *error) {
 	if (error->error)return NULL;
-	int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensor");
+	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensor");
 	if (x <= 0 | y <= 0 | z <= 0) {
 		error->error = -1;
 	}
@@ -99,16 +98,14 @@ Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char u
 	t->l = 1;
 	t->flag = usehost;
 	fillTensor(t, context, queue, t->bytes, error);
-	if (!error->error) {
-		*(error->context - lencontext) = 0;
-	}
+
 	return t;
 }
 
 
 Tensor newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT l, char usehost, GPU_ERROR *error) {
 	if (error->error)return NULL;
-	int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensor4D");
+	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensor4D");
 	Tensor t = (Tensor) calloc(1, sizeof(typetensor));
 	t->bytes = x * y * z * sizeof(double);
 	t->x = x;
@@ -116,16 +113,14 @@ Tensor newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT
 	t->z = z;
 	t->l = l;
 	fillTensor(t, context, queue, t->bytes * l, error);
-	if (!error->error) {
-		*(error->context - lencontext) = 0;
-	}
+
 	return t;
 }
 
 
 TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, GPU_ERROR *error) {
 	if (error->error)return NULL;
-	int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensorChar");
+	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensorChar");
 	TensorChar t = (Tensor) calloc(1, sizeof(typetensor));
 	t->bytes = x * y * z * sizeof(char);
 	t->x = x;
@@ -133,9 +128,7 @@ TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z
 	t->z = z;
 	t->l = 1;
 	fillTensor(t, context, queue, t->bytes, error);
-	if (!error->error) {
-		*(error->context - lencontext) = 0;
-	}
+
 	return t;
 }
 
@@ -225,7 +218,7 @@ int int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, cl_mem mi, 
 
 void printTensor(QUEUE q, Tensor t, FILE *f) {
 	double *v = calloc(t->bytes, 1);
-	char buff[250];
+	char buff[GPU_ERROR_MAX_MSG_SIZE];
 	int error = 0;
 	fprintf(f, "%u %u %u %u (%s)\n", t->x, t->y, t->z, t->l, printBytes(t->bytes * t->l, buff));
 	for (int l = 0; l < t->l; l++) {
@@ -245,7 +238,7 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 	fprintf(f, "\n");
 	free(v);
 	if(error){
-		fprintf(stderr,"printTensor: %d %s",error,getClError(error,buff));
+		fprintf(stderr,"printTensor: %d %s",error,getClError(error,buff,GPU_ERROR_MAX_MSG_SIZE));
 	}
 
 }
