@@ -5,7 +5,6 @@ void createCnnPy(Pointer *p, double hitLearn, double momento, double decaimentoD
 	Params pr = {hitLearn, momento, decaimentoDePeso};
 	WrapperCL *cl = (WrapperCL *) calloc(sizeof(WrapperCL), 1);
 	cl->type_device = CL_DEVICE_TYPE_GPU;
-
 	WrapperCL_init(cl,default_kernel);
 	Cnn c = createCnn(cl, pr, inx, iny, inz);
 	c->releaseCL = 1;

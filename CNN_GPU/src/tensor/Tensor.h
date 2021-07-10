@@ -63,7 +63,7 @@ int TensorPutValuesOffSet(QUEUE queue, Tensor t, void *data, UINT ofset);
 
 int TensorGetValues(QUEUE queue, Tensor t, void *data);
 
-int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data ,int offset);
+int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data ,unsigned int offset);
 
 
 void releaseTensor(Tensor *t);

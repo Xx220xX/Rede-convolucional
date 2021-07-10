@@ -50,7 +50,7 @@ void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE que
 		c->flag_releaseInput = 1;
 	}
 	c->saida = newTensor(context, queue, xo, yo, zo,c->flag_usehost, error);
-	c->gradsEntrada = newTensor(context, queue, xo, yo, zo,c->flag_usehost, error);;
+	c->gradsEntrada = newTensor(context, queue, xi, yi, zi,c->flag_usehost, error);;
 	c->parametros = params;
 	c->max_works = &cl->maxworks;
 	c->context = cl->context;

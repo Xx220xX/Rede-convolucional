@@ -121,7 +121,6 @@ Camada createPadding(WrapperCL *cl, QUEUE queue,
 	__newCamada__((Camada) c, cl, PADDING, entrada, queue,
 	              (Params) {0}, inx, iny, inz, inx + top + bottom, iny + left + right,
 	              inz,usehost, error);
-	c->super.gradsEntrada = newTensor(cl->context, queue, inx, iny, inz, 1, error);
 	c->super.toString = (fch) tostringPadding;
 	c->super.getCreateParams = (fch) getCreateParamsPadding;
 	c->super.release = (fv) realeasePadding;

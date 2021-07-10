@@ -13,15 +13,14 @@
 Kernel new_Kernel(cl_program pg, GPU_ERROR *error, const char *f_name, int n_args, ...) {
 	Kernel self = {0};
 	if (error->error)return self;
-//	int len = sprintf(error->context + strlen(error->context), "/%s", "new_kernel");
 	self.kernel = clCreateKernel(pg, f_name, &error->error);
 	if (error->error) {
-		getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
+		getClErrorWithContext(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE,"new_kernel/%s:",f_name);
 		return self;
 	}
 	if (!self.kernel) {
 		error->error = -81;
-		sprintf(error->msg, "erro ao criar o kernel : %s\n\t", f_name);
+		snprintf(error->msg,GPU_ERROR_MAX_MSG_SIZE, "erro ao criar o kernel : %s\n\t", f_name);
 		return self;
 	}
 	self.l_args = calloc(n_args, sizeof(size_t));
@@ -36,7 +35,6 @@ Kernel new_Kernel(cl_program pg, GPU_ERROR *error, const char *f_name, int n_arg
 		self.l_args[i] = va_arg(vaList, size_t);
 	}
 	va_end(vaList);
-//	*(error->context - len) = 0;
 	return self;
 }
 
@@ -74,10 +72,11 @@ int kernel_run(Kernel *self, cl_command_queue queue, size_t globals, size_t loca
 	int error = 0;
 	for (int i = 0; i < self->nArgs; ++i) {
 		error = clSetKernelArg(self->kernel, i, self->l_args[i], va_arg(vaList, void *));
-		PERR(error, "erro ao colocar argumentos no kernel", self->kernel_name);
+		PERR(error, "erro ao colocar argumentos no kernel %s,%d:", self->kernel_name,i);
 	}
 	va_end(vaList);
 	error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
+	PERR(error, "erro chamar kernel %s,(%zu,%zu):", self->kernel_name,globals,locals);
 	return error;
 }
 
@@ -101,12 +100,13 @@ int kernel_run_recursive(Kernel *self, cl_command_queue queue, size_t globals, s
 	if (globals < max_works) {
 		locals = globals;
 		error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
+
 	} else {
 		size_t resto = globals % max_works;
 		globals = (globals / max_works) * max_works;
 		locals = max_works;
 		error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
-		PERR(error, "erro ao rodar kernel", self->kernel_name);
+		PERR(error, "erro ao rodar kernel %s", self->kernel_name);
 		if (resto) {
 			id = globals;
 			locals = resto;
@@ -114,8 +114,9 @@ int kernel_run_recursive(Kernel *self, cl_command_queue queue, size_t globals, s
 
 			error = clSetKernelArg(self->kernel, i, self->l_args[i], &id);
 			PERR(error, "erro ao colocar argumentos no kernel 2 chamada %s", self->kernel_name);
-
 			error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
+			PERR(error, "erro ao rodar kernel 2 chamada %s", self->kernel_name);
+
 		}
 	}
 	PERR(error, "erro ao rodar kernel %s", self->kernel_name);

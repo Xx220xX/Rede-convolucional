@@ -202,7 +202,8 @@ Camada createConv(WrapperCL *cl, QUEUE queue, UINT passo, UINT lenFilter,
 	CamadaConv c = (CamadaConv) calloc(1, sizeof(Typecamadaconv));
 	__newCamada__(&c->super, cl, CONV, entrada, queue, params,
 	              inx, iny, inz,
-	              (inx - lenFilter) / passo + 1, (iny - lenFilter) / passo + 1, numeroFiltros, usehost, error);
+	              (inx - lenFilter) / passo + 1, (iny - lenFilter) / passo + 1,
+	              numeroFiltros, usehost, error);
 
 	c->super.toString = (fch) tostringConv;
 	c->super.getCreateParams = (fch) getCreateParamsConv;

@@ -29,8 +29,9 @@ int main(int nargs, char **args) {
 		goto end;
 	}
 	printf("create cnn\n");
-	int nfiltro =64;
+	int nfiltro =640;
 	char usehost = 0;
+
 	cnn = createCnnWithWrapperProgram(default_kernel, (Params) {0.1, 0.3, 0}, 32, 32, 3, CL_DEVICE_TYPE_GPU);
 	printf("%d\n",CnnAddConvLayer(cnn,usehost, 1, 3, nfiltro));
 	printf("%d\n",CnnAddPoolLayer(cnn,usehost, 1, 2));
@@ -38,11 +39,16 @@ int main(int nargs, char **args) {
 	printf("%d\n",CnnAddFullConnectLayer(cnn,usehost, nfiltro,FTANH));
 	printf("%d\n",CnnAddFullConnectLayer(cnn,usehost, nfiltro,FTANH));
 	printf("%d\n",CnnAddFullConnectLayer(cnn,usehost, 10,FTANH));
-	printCnn(cnn);
+	if(cnn->target->bytes != 10*sizeof(double)){
+		cnn->error.error = -82;
+		fprintf(stderr, "%d: %s\n", cnn->error.error,"invalid size output");
+		goto end;
+	}
 	if (cnn->error.error) {
 		fprintf(stderr, "%d: %s\n", cnn->error.error, cnn->error.msg);
 		goto end;
 	}
+	printCnn(cnn);
 
 	printf("lendo imagens:");
 	int nImagens = 100;
@@ -60,11 +66,11 @@ int main(int nargs, char **args) {
 		CnnCall(cnn, img);
 		CnnLearn(cnn, label);
 		CnnCalculeError(cnn);
-		printf("%lf\n",cnn->normaErro);
 		if (cnn->error.error) {
 			fprintf(stderr, "%d: %s\n", cnn->error.error, cnn->error.msg);
 			goto end;
 		}
+		printf("%lf\n",cnn->normaErro);
 	}
 	printf("for terminado\n");
 	clFinish(cnn->queue);

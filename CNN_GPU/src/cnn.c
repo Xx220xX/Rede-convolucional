@@ -3,7 +3,7 @@
 //
 #include "cnn.h"
 
-char __version__[] = "2.0.016";
+char __version__[] = "2.1.000";
 char __notas__[] =
 		"camada conv corrigida 2.0.007\n"
 		"camada padding adicionada 2.0.009\n"
@@ -13,7 +13,9 @@ char __notas__[] =
 		"camada convNc adicionada 2.0.014\n"
 		"Todas as camadas possui seus proprios parametros 2.0.015\n"
 		"verificação interna de erros adicionada 2.0.016\n"
-		"verificação de camadas 2.0.017\n";
+		"verificação de camadas 2.0.017\n"
+		"Revisado todas camadas, corrigido erros internos 2.1.000\n"
+		;
 
 
 const char *getVersion() {
@@ -361,7 +363,7 @@ int CnnLearn(Cnn c, double *target) {
 	Tensor gradNext;
 	c->error.error = TensorPutValues(c->queue, targ, target);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
+		getClErrorWithContext(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE,"CnnLearn/TensorPutValues:");
 		return c->error.error;
 	}
 
@@ -370,21 +372,22 @@ int CnnLearn(Cnn c, double *target) {
 	                                      &lastGrad->data, &c->camadas[c->size - 1]->saida->data,
 	                                      &targ->data);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
+		getClErrorWithContext(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE,"CnnLearn/kernel_run_recursive/kernelsub:");
 		return c->error.error;
 	}
 	gradNext = lastGrad;
-
-	for (int l = c->size - 1 && !c->error.error; l >= 0; l--) {
+	int l;
+	for ( l = c->size - 1 && !c->error.error; l >= 0; l--) {
 		
 		c->error.error = c->camadas[l]->calc_grads(c->camadas[l], gradNext);
 		if (!c->camadas[l]->flag_notlearn && !c->error.error) {
-			
 			c->camadas[l]->corrige_pesos(c->camadas[l]);
 		}
 		gradNext = c->camadas[l]->gradsEntrada;
 	}
-
+	if (c->error.error) {
+		getClErrorWithContext(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE,"CnnLearn/%d:",l);
+	}
 	return c->error.error;
 }
 
@@ -397,13 +400,13 @@ int CnnCalculeError(Cnn c) {
 	size_t len = lastGrad->x * lastGrad->y * lastGrad->z;
 	c->error.error = kernel_run(&c->kernelNorm, c->queue, len, 1, &lastGrad->data, &norma.data, &len);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
+		getClErrorWithContext(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE,"CnnCalculeError/kernel_run:");
 		return c->error.error;
 	}
 
 	c->error.error = TensorGetValues(c->queue, &norma, &c->normaErro);
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
+		getClErrorWithContext(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE,"CnnCalculeError/TensorGetValues(%u):",norma.bytes);
 		return c->error.error;
 	}
 

@@ -5,6 +5,7 @@
 #include "WrapperCL.h"
 #include<stdio.h>
 #include<stdlib.h>
+#include<stdarg.h>
 
 int WrapperCL_initbyFile(WrapperCL *self, const char *filename) {
 	FILE *f;
@@ -84,184 +85,193 @@ void WrapperCL_release(WrapperCL *self) {
 	clReleaseContext(self->context);
 }
 
-char * getClError(int error, char *msg,int len_msg) {
+char *getClErrorWithContext(int error, char *msg, int len_msg, char *context,...) {
+	va_list args;
+	va_start(args,context);
+	int len = vsnprintf(msg, len_msg,  context,args);
+	va_end(args);
+	getClError(error, msg + len, len_msg - len);
+	return msg;
+}
+
+char *getClError(int error, char *msg, int len_msg) {
 	switch (error) {
 		case 0:
-			snprintf(msg,len_msg, "%s", "SUCCESS");
+			snprintf(msg, len_msg, "%s", "SUCCESS");
 			break;
 		case -1:
-			snprintf(msg,len_msg, "%s", "DEVICE_NOT_FOUND");
+			snprintf(msg, len_msg, "%s", "DEVICE_NOT_FOUND");
 			break;
 		case -2:
-			snprintf(msg,len_msg, "%s", "DEVICE_NOT_AVAILABLE");
+			snprintf(msg, len_msg, "%s", "DEVICE_NOT_AVAILABLE");
 			break;
 		case -3:
-			snprintf(msg,len_msg, "%s", "COMPILER_NOT_AVAILABLE");
+			snprintf(msg, len_msg, "%s", "COMPILER_NOT_AVAILABLE");
 			break;
 		case -4:
-			snprintf(msg,len_msg, "%s", "MEM_OBJECT_ALLOCATION_FAILURE");
+			snprintf(msg, len_msg, "%s", "MEM_OBJECT_ALLOCATION_FAILURE");
 			break;
 		case -5:
-			snprintf(msg,len_msg, "%s", "OUT_OF_RESOURCES");
+			snprintf(msg, len_msg, "%s", "OUT_OF_RESOURCES");
 			break;
 		case -6:
-			snprintf(msg,len_msg, "%s", "OUT_OF_HOST_MEMORY");
+			snprintf(msg, len_msg, "%s", "OUT_OF_HOST_MEMORY");
 			break;
 		case -7:
-			snprintf(msg,len_msg, "%s", "PROFILING_INFO_NOT_AVAILABLE");
+			snprintf(msg, len_msg, "%s", "PROFILING_INFO_NOT_AVAILABLE");
 			break;
 		case -8:
-			snprintf(msg,len_msg, "%s", "MEM_COPY_OVERLAP");
+			snprintf(msg, len_msg, "%s", "MEM_COPY_OVERLAP");
 			break;
 		case -9:
-			snprintf(msg,len_msg, "%s", "IMAGE_FORMAT_MISMATCH");
+			snprintf(msg, len_msg, "%s", "IMAGE_FORMAT_MISMATCH");
 			break;
 		case -10:
-			snprintf(msg,len_msg, "%s", "IMAGE_FORMAT_NOT_SUPPORTED");
+			snprintf(msg, len_msg, "%s", "IMAGE_FORMAT_NOT_SUPPORTED");
 			break;
 		case -11:
-			snprintf(msg,len_msg, "%s", "BUILD_PROGRAM_FAILURE");
+			snprintf(msg, len_msg, "%s", "BUILD_PROGRAM_FAILURE");
 			break;
 		case -12:
-			snprintf(msg,len_msg, "%s", "MAP_FAILURE");
+			snprintf(msg, len_msg, "%s", "MAP_FAILURE");
 			break;
 		case -13:
-			snprintf(msg,len_msg, "%s", "MISALIGNED_SUB_BUFFER_OFFSET");
+			snprintf(msg, len_msg, "%s", "MISALIGNED_SUB_BUFFER_OFFSET");
 			break;
 		case -14:
-			snprintf(msg,len_msg, "%s", "EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST");
+			snprintf(msg, len_msg, "%s", "EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST");
 			break;
 		case -15:
-			snprintf(msg,len_msg, "%s", "COMPILE_PROGRAM_FAILURE");
+			snprintf(msg, len_msg, "%s", "COMPILE_PROGRAM_FAILURE");
 			break;
 		case -16:
-			snprintf(msg,len_msg, "%s", "LINKER_NOT_AVAILABLE");
+			snprintf(msg, len_msg, "%s", "LINKER_NOT_AVAILABLE");
 			break;
 		case -17:
-			snprintf(msg,len_msg, "%s", "LINK_PROGRAM_FAILURE");
+			snprintf(msg, len_msg, "%s", "LINK_PROGRAM_FAILURE");
 			break;
 		case -18:
-			snprintf(msg,len_msg, "%s", "DEVICE_PARTITION_FAILED");
+			snprintf(msg, len_msg, "%s", "DEVICE_PARTITION_FAILED");
 			break;
 		case -19:
-			snprintf(msg,len_msg, "%s", "KERNEL_ARG_INFO_NOT_AVAILABLE");
+			snprintf(msg, len_msg, "%s", "KERNEL_ARG_INFO_NOT_AVAILABLE");
 			break;
 		case -30:
-			snprintf(msg,len_msg, "%s", "INVALID_VALUE");
+			snprintf(msg, len_msg, "%s", "INVALID_VALUE");
 			break;
 		case -31:
-			snprintf(msg,len_msg, "%s", "INVALID_DEVICE_TYPE");
+			snprintf(msg, len_msg, "%s", "INVALID_DEVICE_TYPE");
 			break;
 		case -32:
-			snprintf(msg,len_msg, "%s", "INVALID_PLATFORM");
+			snprintf(msg, len_msg, "%s", "INVALID_PLATFORM");
 			break;
 		case -33:
-			snprintf(msg,len_msg, "%s", "INVALID_DEVICE");
+			snprintf(msg, len_msg, "%s", "INVALID_DEVICE");
 			break;
 		case -34:
-			snprintf(msg,len_msg, "%s", "INVALID_CONTEXT");
+			snprintf(msg, len_msg, "%s", "INVALID_CONTEXT");
 			break;
 		case -35:
-			snprintf(msg,len_msg, "%s", "INVALID_QUEUE_PROPERTIES");
+			snprintf(msg, len_msg, "%s", "INVALID_QUEUE_PROPERTIES");
 			break;
 		case -36:
-			snprintf(msg,len_msg, "%s", "INVALID_COMMAND_QUEUE");
+			snprintf(msg, len_msg, "%s", "INVALID_COMMAND_QUEUE");
 			break;
 		case -37:
-			snprintf(msg,len_msg, "%s", "INVALID_HOST_PTR");
+			snprintf(msg, len_msg, "%s", "INVALID_HOST_PTR");
 			break;
 		case -38:
-			snprintf(msg,len_msg, "%s", "INVALID_MEM_OBJECT");
+			snprintf(msg, len_msg, "%s", "INVALID_MEM_OBJECT");
 			break;
 		case -39:
-			snprintf(msg,len_msg, "%s", "INVALID_IMAGE_FORMAT_DESCRIPTOR");
+			snprintf(msg, len_msg, "%s", "INVALID_IMAGE_FORMAT_DESCRIPTOR");
 			break;
 		case -40:
-			snprintf(msg,len_msg, "%s", "INVALID_IMAGE_SIZE");
+			snprintf(msg, len_msg, "%s", "INVALID_IMAGE_SIZE");
 			break;
 		case -41:
-			snprintf(msg,len_msg, "%s", "INVALID_SAMPLER");
+			snprintf(msg, len_msg, "%s", "INVALID_SAMPLER");
 			break;
 		case -42:
-			snprintf(msg,len_msg, "%s", "INVALID_BINARY");
+			snprintf(msg, len_msg, "%s", "INVALID_BINARY");
 			break;
 		case -43:
-			snprintf(msg,len_msg, "%s", "INVALID_BUILD_OPTIONS");
+			snprintf(msg, len_msg, "%s", "INVALID_BUILD_OPTIONS");
 			break;
 		case -44:
-			snprintf(msg,len_msg, "%s", "INVALID_PROGRAM");
+			snprintf(msg, len_msg, "%s", "INVALID_PROGRAM");
 			break;
 		case -45:
-			snprintf(msg,len_msg, "%s", "INVALID_PROGRAM_EXECUTABLE");
+			snprintf(msg, len_msg, "%s", "INVALID_PROGRAM_EXECUTABLE");
 			break;
 		case -46:
-			snprintf(msg,len_msg, "%s", "INVALID_KERNEL_NAME");
+			snprintf(msg, len_msg, "%s", "INVALID_KERNEL_NAME");
 			break;
 		case -47:
-			snprintf(msg,len_msg, "%s", "INVALID_KERNEL_DEFINITION");
+			snprintf(msg, len_msg, "%s", "INVALID_KERNEL_DEFINITION");
 			break;
 		case -48:
-			snprintf(msg,len_msg, "%s", "INVALID_KERNEL");
+			snprintf(msg, len_msg, "%s", "INVALID_KERNEL");
 			break;
 		case -49:
-			snprintf(msg,len_msg, "%s", "INVALID_ARG_INDEX");
+			snprintf(msg, len_msg, "%s", "INVALID_ARG_INDEX");
 			break;
 		case -50:
-			snprintf(msg,len_msg, "%s", "INVALID_ARG_VALUE");
+			snprintf(msg, len_msg, "%s", "INVALID_ARG_VALUE");
 			break;
 		case -51:
-			snprintf(msg,len_msg, "%s", "INVALID_ARG_SIZE");
+			snprintf(msg, len_msg, "%s", "INVALID_ARG_SIZE");
 			break;
 		case -52:
-			snprintf(msg,len_msg, "%s", "INVALID_KERNEL_ARGS");
+			snprintf(msg, len_msg, "%s", "INVALID_KERNEL_ARGS");
 			break;
 		case -53:
-			snprintf(msg,len_msg, "%s", "INVALID_WORK_DIMENSION");
+			snprintf(msg, len_msg, "%s", "INVALID_WORK_DIMENSION");
 			break;
 		case -54:
-			snprintf(msg,len_msg, "%s", "INVALID_WORK_GROUP_SIZE");
+			snprintf(msg, len_msg, "%s", "INVALID_WORK_GROUP_SIZE");
 			break;
 		case -55:
-			snprintf(msg,len_msg, "%s", "INVALID_WORK_ITEM_SIZE");
+			snprintf(msg, len_msg, "%s", "INVALID_WORK_ITEM_SIZE");
 			break;
 		case -56:
-			snprintf(msg,len_msg, "%s", "INVALID_GLOBAL_OFFSET");
+			snprintf(msg, len_msg, "%s", "INVALID_GLOBAL_OFFSET");
 			break;
 		case -57:
-			snprintf(msg,len_msg, "%s", "INVALID_EVENT_WAIT_LIST");
+			snprintf(msg, len_msg, "%s", "INVALID_EVENT_WAIT_LIST");
 			break;
 		case -58:
-			snprintf(msg,len_msg, "%s", "INVALID_EVENT");
+			snprintf(msg, len_msg, "%s", "INVALID_EVENT");
 			break;
 		case -59:
-			snprintf(msg,len_msg, "%s", "INVALID_OPERATION");
+			snprintf(msg, len_msg, "%s", "INVALID_OPERATION");
 			break;
 		case -60:
-			snprintf(msg,len_msg, "%s", "INVALID_GL_OBJECT");
+			snprintf(msg, len_msg, "%s", "INVALID_GL_OBJECT");
 			break;
 		case -61:
-			snprintf(msg,len_msg, "%s", "INVALID_BUFFER_SIZE");
+			snprintf(msg, len_msg, "%s", "INVALID_BUFFER_SIZE");
 			break;
 		case -62:
-			snprintf(msg,len_msg, "%s", "INVALID_MIP_LEVEL");
+			snprintf(msg, len_msg, "%s", "INVALID_MIP_LEVEL");
 			break;
 		case -63:
-			snprintf(msg,len_msg, "%s", "INVALID_GLOBAL_WORK_SIZE");
+			snprintf(msg, len_msg, "%s", "INVALID_GLOBAL_WORK_SIZE");
 			break;
 		case -64:
-			snprintf(msg,len_msg, "%s", "INVALID_PROPERTY");
+			snprintf(msg, len_msg, "%s", "INVALID_PROPERTY");
 			break;
 		case -65:
-			snprintf(msg,len_msg, "%s", "INVALID_IMAGE_DESCRIPTOR");
+			snprintf(msg, len_msg, "%s", "INVALID_IMAGE_DESCRIPTOR");
 			break;
 		case -66:
-			snprintf(msg,len_msg, "%s", "INVALID_COMPILER_OPTIONS");
+			snprintf(msg, len_msg, "%s", "INVALID_COMPILER_OPTIONS");
 			break;
 		case -67:
-			snprintf(msg,len_msg, "%s", "INVALID_LINKER_OPTIONS");
+			snprintf(msg, len_msg, "%s", "INVALID_LINKER_OPTIONS");
 			break;
 		case -68:
-			snprintf(msg,len_msg, "%s", "INVALID_DEVICE_PARTITION_COUNT");
+			snprintf(msg, len_msg, "%s", "INVALID_DEVICE_PARTITION_COUNT");
 			break;
 		default:
 			break;
@@ -271,7 +281,7 @@ char * getClError(int error, char *msg,int len_msg) {
 
 void showError(int error) {
 	char errormsg[GPU_ERROR_MAX_MSG_SIZE];
-	getClError(error, errormsg,GPU_ERROR_MAX_MSG_SIZE);
+	getClError(error, errormsg, GPU_ERROR_MAX_MSG_SIZE);
 	fprintf(stderr, "%s\n", errormsg);
 }
 
@@ -312,10 +322,10 @@ char *printBytes(cl_ulong bytes, char *buff) {
 		b += sprintf(buff + b, "%uMB ", M);
 	if (K)
 		b += sprintf(buff + b, "%uKB ", K);
-	if (B||!b)
+	if (B || !b)
 		b += sprintf(buff + b, "%uB ", B);
 
-	buff[b-1]=0;
+	buff[b - 1] = 0;
 	return buff;
 }
 

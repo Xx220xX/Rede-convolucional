@@ -55,7 +55,7 @@ int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, GPU_ERROR *error) {
 		snprintf(error->msg, 255, "nao foi possivel criar a queue\n");
 		return error->error;
 	}
-	for (int a = 0; a < numeroFiltros; a++) {
+	for (unsigned int a = 0; a < numeroFiltros; a++) {
 		FOR3D(i, j, z, fx, fy, inz) {
 					data[TensorMap(c->filtros, i, j, z)] = RANDOM_BILATERAL() * maxVal;
 				}

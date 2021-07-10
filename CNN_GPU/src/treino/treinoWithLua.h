@@ -205,7 +205,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	                    cnn->camadas[cnn->size - 1]->saida->z;
 
 	// incia thread ui
-//	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTrain, (void *) &info);
+	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTrain, (void *) &info);
 	int r;
 	int stop = 0;
 	// vetor para treinar com dados aleatorios
@@ -268,8 +268,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	return 0;
 }
 
-int
-fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *names, int samples, size_t imagesSaveOutput,
+int fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *names, int samples, size_t imagesSaveOutput,
         char *name, char *outputMDTable) {
 	int caso = 0;
 	int acertos = 0;
@@ -316,7 +315,7 @@ fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *name
 	js_tabela = fopen("js/fitnes.js", "w");
 	fprintf(js_tabela, "tablePutColum('tabela_fitnes',['Classe','acertos','total','porcentagem']);");
 	for (int i = 0; i < 10; i++) {
-		fprintf(js_tabela, "tablePutColum('tabela_fitnes',['%s' , %d , %d , %.2lf]);\n", names[i].names,
+		fprintf(js_tabela, "tablePutColum(tabela_fitnes,['%s' , %d , %d , '%.2lf%%']);\n", names[i].names,
 		        numeroCasosOcorridos[i], acertosPorClasse[i],
 		        acertosPorClasse[i] / (double) (numeroCasosOcorridos[i] + 1e-14));
 	}

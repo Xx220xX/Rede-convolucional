@@ -6,7 +6,6 @@
 #define GAB_WRAPPERCL_H
 
 
-
 #include<CL/cl.h>
 #include"Kernel.h"
 #include <stdio.h>
@@ -22,7 +21,7 @@ typedef struct {
 	cl_device_type type_device;
 } WrapperCL;
 
-typedef struct{
+typedef struct {
 	cl_ulong global_mem_cache_size;
 	cl_ulong global_mem_cache_line_size;
 	cl_ulong global_mem_size;
@@ -32,7 +31,8 @@ typedef struct{
 	cl_ulong max_mem_alloc_size;
 	size_t max_work_group_size;
 	size_t max_work_item_sizes[3];
-}CLInfo;
+} CLInfo;
+
 void printCLInfo(CLInfo cif);
 
 int WrapperCL_init(WrapperCL *self, const char *src);
@@ -45,11 +45,15 @@ void showError(int error);
 
 cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source);
 
-char * getClError(int error, char *msg,int len_msg);
+char *getClErrorWithContext(int error, char *msg, int len_msg, char *context,...);
+
+char *getClError(int error, char *msg, int len_msg);
+
 CLInfo getClinfo(WrapperCL *cl);
+
 char *printBytes(cl_ulong bytes, char buff[250]);
 
 #define PERRW(e, x, contextName)if(e){fprintf(stderr,"%s: %s  error code : %d\n\t",contextName,x,e);showError(e);}
-#define PERR(e,format,...)if(e){fprintf(stderr,format,## __VA_ARGS__);fprintf(stderr," error code:%d\n",e);showError(e);return e;}
+#define PERR(e, format, ...)if(e){fprintf(stderr,format,## __VA_ARGS__);fprintf(stderr," error code:%d\n",e);showError(e);return e;}
 #define PER(e, x, contextName)if(e){fprintf(stderr,"%s: %s error code: %d\n\t",contextName,x,e);showError(e);exit(e);}
 #endif //GAB_WRAPPERCL_H

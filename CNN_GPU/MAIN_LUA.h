@@ -11,7 +11,7 @@ int main(int nargs, char **args) {
 	// incializa a biblioteca random
 	LCG_setSeed(time(NULL));
 	if (nargs != 2) {
-		fprintf(stderr, "Um script lua de configuracao e esperado");
+		fprintf(stderr, "Um script lua de configuração é esperado");
 		return -1;
 	}
 
@@ -73,8 +73,7 @@ int main(int nargs, char **args) {
 	// cria diretorios uteis
 	printf("Criando diretorios\n");
 
-	createDir("imgs");
-	createDir("redes");
+
 	createDir("js");
 	// salva tabela da arquitetura
 	FILE *js_arquitetura = fopen("js/camada.js", "w");
@@ -86,15 +85,15 @@ int main(int nargs, char **args) {
 	// salvando index
 	FILE *js_index = fopen("index.html", "w");
 	fprintf(js_index, "%s", INDEX_HTML);
-	printf("carregando imagens");
 	fclose(js_index);
+	printf("carregando imagens:");
 	// carrega aas imagens e as respostas
 	erro = loadSamples(cnn, &input, &target, &targeti, p.arquivoContendoImagens, p.arquivoContendoRespostas,
 	                   p.Numero_Classes, p.Numero_Imagens,
 	                   p.bytes_remanessentes_imagem, p.bytes_remanessentes_classes);
-	printf(" ok\n");
 	// caso ocorra alguma falha, vai para o final do programa
 	if (erro)goto end;
+	printf(" ok\n");
 	// inicia o processo de treinamento
 	printf("iniciando treino\n");
 	train(cnn, input, target, targeti, p.Numero_epocas, p.SalvarBackupACada, p.Numero_ImagensTreino,
