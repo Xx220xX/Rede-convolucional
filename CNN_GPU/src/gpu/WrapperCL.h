@@ -45,10 +45,10 @@ void showError(int error);
 
 cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source);
 
-void getClError(int error, char *msg);
+char * getClError(int error, char *msg);
 CLInfo getClinfo(WrapperCL *cl);
 char *printBytes(cl_ulong bytes, char buff[250]);
 #define PERRW(e, x, contextName)if(e){fprintf(stderr,"%s: %s  error code : %d\n\t",contextName,x,e);showError(e);}
-#define PERR(e, x, contextName)if(e){fprintf(stderr,"%s: %s error code : %d\n\t",contextName,x,e);showError(e);return e;}
+#define PERR(e,format,...)if(e){fprintf(stderr,format,## __VA_ARGS__);fprintf(stderr," error code:%d\n",e);showError(e);return e;}
 #define PER(e, x, contextName)if(e){fprintf(stderr,"%s: %s error code: %d\n\t",contextName,x,e);showError(e);exit(e);}
 #endif //GAB_WRAPPERCL_H

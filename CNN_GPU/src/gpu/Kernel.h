@@ -8,7 +8,7 @@
 
 #include<CL/cl.h>
 
-#define K_VOID_P sizeof(void *)
+#define K_VOID_P sizeof(cl_mem)
 #define K_INT sizeof(cl_int)
 #define K_DOUBLE sizeof(cl_double)
 
@@ -22,7 +22,7 @@ typedef struct {
 typedef struct {
 	cl_int error;
 	char msg[255];
-	char *context;
+	char context[500];
 } GPU_ERROR;
 
 Kernel new_Kernel(cl_program pg,GPU_ERROR *error, const char *f_name, int n_args, ...);

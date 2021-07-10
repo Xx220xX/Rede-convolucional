@@ -84,7 +84,7 @@ void WrapperCL_release(WrapperCL *self) {
 	clReleaseContext(self->context);
 }
 
-void getClError(int error, char *msg) {
+char * getClError(int error, char *msg) {
 	switch (error) {
 		case 0:
 			sprintf(msg, "%s", "SUCCESS");
@@ -266,6 +266,7 @@ void getClError(int error, char *msg) {
 		default:
 			break;
 	}
+	return msg;
 }
 
 void showError(int error) {

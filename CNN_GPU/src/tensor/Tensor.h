@@ -72,16 +72,16 @@ void releaseTensorChar(TensorChar *t);
 
 TensorC newTensorC(int x, int y, int z);
 
-void dividirVetor(double *v, cl_mem m, size_t len, double value, Kernel funcNorm,
+int dividirVetor(double *v, cl_mem m, size_t len, double value, Kernel funcNorm,
                   size_t max_works,
                   QUEUE queue);
 
-void dividirVetorInt(unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len, double value,
+int dividirVetorInt(unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len, double value,
                      Kernel funcNorm,
                      size_t max_works,
                      QUEUE queue);
 
-void int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len,
+int int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len,
                       int nop,
                       Kernel func, QUEUE queue);
 

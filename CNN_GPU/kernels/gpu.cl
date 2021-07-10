@@ -94,7 +94,6 @@ kV findExtremes(Vector input, Vector output, int len) {
 
 kV sub(Vector grad, Vector saida, Vector target, int k0) {
 	int k = get_global_id(0) + k0;
-
 	grad[k] = saida[k] - target[k];
 }
 
@@ -264,14 +263,15 @@ kV convSum(Vector filtro, Vector entrada, Vector saida,
 	TensorRemap(k, x, y, filtrok, saidatx, saidaty)
 	Ponto3d mapeado = {x * passo, y * passo, 0};
 	double sum = 0, f, v;
-	for (int i = 0; i < lenFilter; i++)
-		for (int j = 0; j < lenFilter; j++)
+	for (int m = 0; m < lenFilter; m++)
+		for (int n = 0; n < lenFilter; n++)
 			for (int z = 0; z < entradatz; z++) {
-				f = filtro[TensorMap4D(i, j, z, filtrok, lenFilter, lenFilter, entradatz)];
-				v = entrada[TensorMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
+				f = filtro[TensorMap4D(m, n, z, filtrok, lenFilter, lenFilter, entradatz)];
+				v = entrada[TensorMap(mapeado.x + m, mapeado.y + n, z, entradatx, entradaty)];
 				sum += f * v;
 			}
 	saida[k] = sum;
+
 }
 
 kV convFixWeight(Vector filtro, Vector grad, Vector gradOld, double hitlearn,

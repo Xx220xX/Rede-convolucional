@@ -9,14 +9,21 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-char CNN_KERNEL_CONTEXT[] = "new kernel";
+
 Kernel new_Kernel(cl_program pg, GPU_ERROR *error, const char *f_name, int n_args, ...) {
 	Kernel self = {0};
 	if (error->error)return self;
-	error->context = CNN_KERNEL_CONTEXT;
+	int len = sprintf(error->context + strlen(error->context), "/%s", "new_kernel");
 	self.kernel = clCreateKernel(pg, f_name, &error->error);
-	if(error->error)
-		getClError(error->error, error->msg + sprintf(error->msg, "erro ao criar o kernel : %s\n\t", f_name));
+	if (error->error) {
+		getClError(error->error, error->msg);
+		return self;
+	}
+	if (!self.kernel) {
+		error->error = -81;
+		sprintf(error->msg, "erro ao criar o kernel : %s\n\t", f_name);
+		return self;
+	}
 	self.l_args = calloc(n_args, sizeof(size_t));
 	size_t len_name = strlen(f_name);
 	self.nArgs = n_args;
@@ -26,9 +33,10 @@ Kernel new_Kernel(cl_program pg, GPU_ERROR *error, const char *f_name, int n_arg
 	va_list vaList;
 	va_start(vaList, n_args);
 	for (int i = 0; i < n_args; ++i) {
-		self.l_args[i] = va_arg(vaList, int);
+		self.l_args[i] = va_arg(vaList, size_t);
 	}
 	va_end(vaList);
+	*(error->context - len) = 0;
 	return self;
 }
 
@@ -82,13 +90,13 @@ int kernel_run_recursive(Kernel *self, cl_command_queue queue, size_t globals, s
 	int id = 0;
 
 	va_start(vaList, max_works);
-	for (i = 0; i < self->nArgs - 1; ++i) {
+	for (i = 0; i < self->nArgs - 1; i++) {
 		error = clSetKernelArg(self->kernel, i, self->l_args[i], va_arg(vaList, void *));
-		PERR(error, "erro ao colocar argumentos no kernel ", self->kernel_name);
+		PERR(error, "%s: %zu For i = %d arg kernel", self->kernel_name, self->l_args[i], i);
 	}
 	va_end(vaList);
 	error = clSetKernelArg(self->kernel, i, self->l_args[i], &id);
-	PERR(error, "erro ao colocar argumentos no kernel", self->kernel_name);
+	PERR(error, "%s %d: %zu erro ao colocar argumento extra no kernel", self->kernel_name, i, self->l_args[i]);
 
 	if (globals < max_works) {
 		locals = globals;
@@ -98,7 +106,6 @@ int kernel_run_recursive(Kernel *self, cl_command_queue queue, size_t globals, s
 		globals = (globals / max_works) * max_works;
 		locals = max_works;
 		error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
-
 		PERR(error, "erro ao rodar kernel", self->kernel_name);
 		if (resto) {
 			id = globals;

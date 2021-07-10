@@ -93,7 +93,6 @@ kV findExtremes(Vector input, Vector output, int len) {
 
 kV sub(Vector grad, Vector saida, Vector target, int k0) {
 	int k = get_global_id(0) + k0;
-
 	grad[k] = saida[k] - target[k];
 }
 

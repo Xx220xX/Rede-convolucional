@@ -29,21 +29,22 @@ int main(int nargs, char **args) {
 		goto end;
 	}
 	printf("create cnn\n");
-	int nfiltro =1000;
+	int nfiltro =10;
+	char usehost = 1;
 	cnn = createCnnWithWrapperProgram(default_kernel, (Params) {0.1, 0.3, 0}, 32, 32, 3, CL_DEVICE_TYPE_GPU);
-	printf("%d\n",CnnAddConvLayer(cnn,0, 1, 3, nfiltro));
-	printf("%d\n",CnnAddPoolLayer(cnn,0, 1, 2));
-	printf("%d\n",CnnAddConvLayer(cnn,0, 1, 3, nfiltro));
-	printf("%d\n",CnnAddFullConnectLayer(cnn,0, nfiltro,FTANH));
-	printf("%d\n",CnnAddFullConnectLayer(cnn,0, nfiltro,FTANH));
-	printf("%d\n",CnnAddFullConnectLayer(cnn,0, 10,FTANH));
+	printf("%d\n",CnnAddConvLayer(cnn,usehost, 1, 3, nfiltro));
+	printf("%d\n",CnnAddPoolLayer(cnn,usehost, 1, 2));
+	printf("%d\n",CnnAddConvLayer(cnn,usehost, 1, 3, nfiltro));
+	printf("%d\n",CnnAddFullConnectLayer(cnn,usehost, nfiltro,FTANH));
+	printf("%d\n",CnnAddFullConnectLayer(cnn,usehost, nfiltro,FTANH));
+	printf("%d\n",CnnAddFullConnectLayer(cnn,usehost, 10,FTANH));
 	printCnn(cnn);
 	if (cnn->error.error) {
 		fprintf(stderr, "%s\n", cnn->error.context);
 		fprintf(stderr, "%d: %s\n", cnn->error.error, cnn->error.msg);
 		goto end;
 	}
-	system("pause");
+
 	printf("lendo imagens:");
 	int nImagens = 100;
 	erro = loadSamples(cnn, &input, &target, &targeti, "imagesCifar10.ubyte", "labelsCifar10.ubyte",
@@ -59,7 +60,7 @@ int main(int nargs, char **args) {
 		labeli = targeti + i;
 		CnnCall(cnn, img);
 		CnnLearn(cnn, label);
-//		CnnCalculeError(cnn);
+		CnnCalculeError(cnn);
 		printf("%lf\n",cnn->normaErro);
 		if (cnn->error.error) {
 			fprintf(stderr, "%s\n", cnn->error.context);
