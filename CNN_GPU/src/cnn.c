@@ -364,8 +364,7 @@ int CnnLearn(Cnn c, double *target) {
 		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 		return c->error.error;
 	}
-	printf("init ");
-	printKernel(&c->kernelsub);
+
 	c->error.error = kernel_run_recursive(&c->kernelsub, c->queue, targ->x * targ->y * targ->z,
 									   c->cl->maxworks,
 	                                      &lastGrad->data, &c->camadas[c->size - 1]->saida->data,
@@ -375,8 +374,7 @@ int CnnLearn(Cnn c, double *target) {
 		return c->error.error;
 	}
 	gradNext = lastGrad;
-	printf("before for ");
-	printKernel(&c->kernelsub);
+
 	for (int l = c->size - 1 && !c->error.error; l >= 0; l--) {
 		
 		c->error.error = c->camadas[l]->calc_grads(c->camadas[l], gradNext);
@@ -386,8 +384,7 @@ int CnnLearn(Cnn c, double *target) {
 		}
 		gradNext = c->camadas[l]->gradsEntrada;
 	}
-	printf("end ");
-	printKernel(&c->kernelsub);
+
 	return c->error.error;
 }
 
@@ -396,17 +393,14 @@ int CnnCalculeError(Cnn c) {
 	//int lenContext = sprintf(c->error.context, "%s", "CnnCalculeError");
 	Tensor lastGrad = c->lastGrad;
 	typetensor norma = *c->target;
-	norma.x = 1;
-	norma.y = 1;
-	norma.z = 1;
-	norma.l = 1;
-
+	norma.bytes = sizeof(double);
 	size_t len = lastGrad->x * lastGrad->y * lastGrad->z;
 	c->error.error = kernel_run(&c->kernelNorm, c->queue, len, 1, &lastGrad->data, &norma.data, &len);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);
 		return c->error.error;
 	}
+
 	c->error.error = TensorGetValues(c->queue, &norma, &c->normaErro);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg,GPU_ERROR_MAX_MSG_SIZE);

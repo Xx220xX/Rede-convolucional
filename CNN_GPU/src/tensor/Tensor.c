@@ -73,7 +73,9 @@ int TensorGetValues(QUEUE queue, Tensor t, void *data) {
 }
 
 int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data, int offset) {
-	if (!t->flag) return clEnqueueReadBuffer(queue, t->data, CL_TRUE, offset, t->bytes, data, 0, NULL, NULL);
+	if (!t->flag) {
+		return clEnqueueReadBuffer(queue, t->data, CL_TRUE, offset, t->bytes, data, 0, NULL, NULL);
+	}
 	int erro = 0;
 	void *mem = clEnqueueMapBuffer(queue, t->data, CL_TRUE, CL_MAP_READ, offset, t->bytes, 0, 0, 0, &erro);
 	printf("0x%p 0x%p 0x%p\n", mem, t->host, t->data);

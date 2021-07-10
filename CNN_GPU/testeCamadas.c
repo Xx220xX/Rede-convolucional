@@ -29,8 +29,8 @@ int main(int nargs, char **args) {
 		goto end;
 	}
 	printf("create cnn\n");
-	int nfiltro =10;
-	char usehost = 1;
+	int nfiltro =64;
+	char usehost = 0;
 	cnn = createCnnWithWrapperProgram(default_kernel, (Params) {0.1, 0.3, 0}, 32, 32, 3, CL_DEVICE_TYPE_GPU);
 	printf("%d\n",CnnAddConvLayer(cnn,usehost, 1, 3, nfiltro));
 	printf("%d\n",CnnAddPoolLayer(cnn,usehost, 1, 2));
@@ -65,11 +65,6 @@ int main(int nargs, char **args) {
 			fprintf(stderr, "%d: %s\n", cnn->error.error, cnn->error.msg);
 			goto end;
 		}
-		if (isnan(cnn->normaErro) || isinf(cnn->normaErro)) {
-			fprintf(stderr, "Numero invalido detectado\n");
-			goto end;
-		}
-
 	}
 	printf("for terminado\n");
 	clFinish(cnn->queue);
