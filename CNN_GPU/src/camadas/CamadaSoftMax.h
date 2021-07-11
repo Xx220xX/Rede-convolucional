@@ -23,7 +23,7 @@ typedef struct {
 
 Camada createSoftMax(WrapperCL *cl, QUEUE queue, unsigned int inx, unsigned int iny,
                      unsigned int inz, Tensor entrada,
-                     char usehost, GPU_ERROR *error);
+                     char usehost, Exception *error);
 
 
 #endif //CNN_GPU_CAMADASOFTMAX_H

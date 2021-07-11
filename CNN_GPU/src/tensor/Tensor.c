@@ -1,94 +1,12 @@
 //
-// Created by petel on 22/05/2021.
+// Created by Henrique on 22/05/2021.
 //
 
 #include "Tensor.h"
 
+void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error);
 
-size_t allmem = 0;
-
-void fillTensor(Tensor t, cl_context context, QUEUE queue, size_t bytes, GPU_ERROR *error) {
-	if (error->error)return;
-	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "fillTensor");
-	int flag = 0;
-	if (t->flag) {
-		flag = CL_MEM_USE_HOST_PTR;
-		t->host = calloc(bytes, 1);
-		((double *) t->host)[0] = 10;
-	}
-	t->data = clCreateBuffer(context, flag | CL_MEM_READ_WRITE, bytes, t->host, &error->error);
-	if (!t->data) {
-		error->error = -79;
-		snprintf(error->msg, 255, "A memoria retornada foi NULL\n");
-	}
-	if (error->error) {
-		snprintf(error->msg, 255, "nao foi possivel allocar memoria vram\n");
-	}
-
-	if (!error->error && !t->flag) {
-		flag = 0;
-		error->error = clEnqueueFillBuffer(queue, t->data, &flag, sizeof(char), 0, bytes, 0, NULL, NULL);
-		if (error->error) {
-			getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
-		}
-	}
-	if (error->error) return;
-//	char buf[250];
-	allmem += bytes;
-//	printf("%d ",t->flag);
-//	printf("buffer alocado de %s\n\t", printBytes(bytes, buf));
-//	printf("total usado %s\n", printBytes(allmem, buf));
-}
-
-
-int TensorPutValues(QUEUE queue, Tensor t, void *data) {
-	return TensorPutValuesOffSet(queue, t, data, 0);
-}
-
-int TensorPutValuesOffSet(QUEUE queue, Tensor t, void *data, UINT ofset) {
-	int erro = 0;
-	if (!t->flag) {
-		erro =  clEnqueueWriteBuffer(queue, t->data, CL_TRUE, ofset, t->bytes, data, 0, NULL, NULL);
-		if (erro){
-			fprintf(stderr,"clEnqueueWriteBuffer %d\n",erro);
-		}
-		return erro;
-	}
-	void *mem = clEnqueueMapBuffer(queue, t->data, CL_TRUE, CL_MAP_WRITE, ofset, t->bytes, 0, 0, 0, &erro);
-	if (erro){
-		fprintf(stderr,"clEnqueueMapBuffer %d\n",erro);
-	}
-	memcpy(mem, data, t->bytes);
-	erro = clEnqueueUnmapMemObject(queue, t->data, mem, 0, 0, 0);
-	if (erro){
-		fprintf(stderr,"clEnqueueMapBuffer %d\n",erro);
-	}
-	return erro;
-
-}
-
-
-int TensorGetValues(QUEUE queue, Tensor t, void *data) {
-	return TensorGetValuesOffset(queue, t, data, 0);
-}
-
-int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data,unsigned int offset) {
-	if (!t->flag) {
-		int error = clEnqueueReadBuffer(queue, t->data, CL_TRUE, offset, t->bytes, data, 0, NULL, NULL);
-		PERR(error, "TensorGetValuesOffset/clEnqueueReadBuffer  %u %d 0x%llX 0x%llX ",  t->bytes,offset,(long long int)t->data,(long long int)data);
-		return error;
-	}
-	int erro = 0;
-	void *mem = clEnqueueMapBuffer(queue, t->data, CL_TRUE, CL_MAP_READ, offset, t->bytes, 0, 0, 0, &erro);
-	printf("%d 0x%p 0x%p 0x%p\n",(int)t->flag, mem, t->host, t->data);
-	if (erro)return erro;
-	memcpy(data, mem, t->bytes);
-	erro = clEnqueueUnmapMemObject(queue, t->data, mem, 0, 0, 0);
-	return erro;
-}
-
-
-Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, GPU_ERROR *error) {
+Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, Exception *error) {
 	if (error->error)return NULL;
 	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensor");
 	if (x <= 0 | y <= 0 | z <= 0) {
@@ -99,15 +17,15 @@ Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char u
 	t->x = x;
 	t->y = y;
 	t->z = z;
-	t->l = 1;
+	t->w = 1;
 	t->flag = usehost;
-	fillTensor(t, context, queue, t->bytes, error);
+	__fillTensor__(t, context, queue, t->bytes, error);
 
 	return t;
 }
 
 
-Tensor newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT l, char usehost, GPU_ERROR *error) {
+Tensor newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT l, char usehost, Exception *error) {
 	if (error->error)return NULL;
 	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensor4D");
 	Tensor t = (Tensor) calloc(1, sizeof(typetensor));
@@ -115,14 +33,14 @@ Tensor newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT
 	t->x = x;
 	t->y = y;
 	t->z = z;
-	t->l = l;
-	fillTensor(t, context, queue, t->bytes * l, error);
+	t->w = l;
+	__fillTensor__(t, context, queue, t->bytes * l, error);
 
 	return t;
 }
 
 
-TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, GPU_ERROR *error) {
+TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, Exception *error) {
 	if (error->error)return NULL;
 	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensorChar");
 	TensorChar t = (Tensor) calloc(1, sizeof(typetensor));
@@ -130,8 +48,8 @@ TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z
 	t->x = x;
 	t->y = y;
 	t->z = z;
-	t->l = 1;
-	fillTensor(t, context, queue, t->bytes, error);
+	t->w = 1;
+	__fillTensor__(t, context, queue, t->bytes, error);
 
 	return t;
 }
@@ -152,6 +70,147 @@ void releaseTensor(Tensor *t) {
 
 void releaseTensorChar(TensorChar *t) {
 	releaseTensor(t);
+}
+
+size_t allmem = 0;
+
+
+void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error) {
+	if (error->error)return;
+	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "__fillTensor__");
+	switch (t->flag) {
+		case TENSOR_HOST:
+			t->host = calloc(bytes, 1);
+			t->data = clCreateBuffer(context, CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE, bytes, t->host, &error->error);
+			break;
+		case TENSOR_HSTA:
+			t->data = clCreateBuffer(context, CL_MEM_ALLOC_HOST_PTR | CL_MEM_READ_WRITE, bytes, &t->host,
+			                         &error->error);
+			break;
+		case TENSOR_NCPY:
+			t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, bytes, NULL, &error->error);
+			break;
+		case TENSOR_SVM:
+			t->host = clSVMAlloc(context, CL_MEM_READ_WRITE, bytes, 0);
+			t->data = t->host;
+			break;
+	}
+
+	if (!t->data) {
+		error->error = -79;
+		snprintf(error->msg, 255, "A memoria retornada foi NULL\n");
+	}
+	if (error->error) {
+		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
+	}
+	if (error->error) return;
+//	char buf[250];
+	allmem += bytes;
+//	printf("%d ",t->flag);
+//	printf("buffer alocado de %s\n\t", printBytes(bytes, buf));
+//	printf("total usado %s\n", printBytes(allmem, buf));
+}
+
+int TensorFill(QUEUE queue, Tensor t,  char pattern) {
+	return TensorFillOffSet(queue, t, pattern, 0);
+}
+
+int TensorFillOffSet(QUEUE queue, Tensor t, char pattern, UINT offset) {
+	int erro = 0;
+	void *mem;
+	switch (t->flag) {
+		case TENSOR_HOST:
+		case TENSOR_HSTA:
+			mem = clEnqueueMapBuffer(queue, t->data, CL_TRUE, CL_MAP_WRITE, offset, t->bytes, 0, 0, 0, &erro);
+			PERR(erro, "TensorFillOffSet/clEnqueueMapBuffer ");
+			memset(mem, pattern, t->bytes);
+			erro = clEnqueueUnmapMemObject(queue, t->data, mem, 0, 0, 0);
+			PERR(erro, "TensorFillOffSet/clEnqueueUnmapMemObject ");
+			return erro;
+
+		case TENSOR_NCPY:
+			erro = clEnqueueFillBuffer(queue, t->data, &pattern,sizeof(char), offset, t->bytes, 0, NULL, NULL);
+			PERR(erro, "TensorFillOffSet/clEnqueueWriteBuffer ");
+			return erro;
+		case TENSOR_SVM:
+			erro = clFinish(queue);
+			PERR(erro, "TensorFillOffSet/clFinish ");
+			memset(t->host, pattern, t->bytes);
+			return erro;
+		default:
+			erro = -90;
+			PERR(erro, "TensorFillOffSet: INVALID TENSOR FLAG %d ", t->flag);
+
+	}
+}
+
+int TensorPutValues(QUEUE queue, Tensor t, void *data) {
+	return TensorPutValuesOffSet(queue, t, data, 0);
+}
+
+
+int TensorPutValuesOffSet(QUEUE queue, Tensor t, void *data, UINT ofset) {
+	int erro = 0;
+	void *mem;
+	switch (t->flag) {
+		case TENSOR_HOST:
+		case TENSOR_HSTA:
+			mem = clEnqueueMapBuffer(queue, t->data, CL_TRUE, CL_MAP_WRITE, ofset, t->bytes, 0, 0, 0, &erro);
+			PERR(erro, "TensorPutValuesOffSet/clEnqueueMapBuffer ");
+			memcpy(mem, data, t->bytes);
+			erro = clEnqueueUnmapMemObject(queue, t->data, mem, 0, 0, 0);
+			PERR(erro, "TensorPutValuesOffSet/clEnqueueUnmapMemObject ");
+			return erro;
+
+		case TENSOR_NCPY:
+			erro = clEnqueueWriteBuffer(queue, t->data, CL_TRUE, ofset, t->bytes, data, 0, NULL, NULL);
+			PERR(erro, "TensorPutValuesOffSet/clEnqueueWriteBuffer ");
+
+			return erro;
+		case TENSOR_SVM:
+			erro = clFinish(queue);
+			PERR(erro, "TensorPutValuesOffSet/clFinish ");
+			memcpy(t->host, data, t->bytes);
+			return erro;
+		default:
+			erro = -90;
+			PERR(erro, "TensorPutValuesOffSet: INVALID TENSOR FLAG %d ", t->flag);
+
+	}
+
+}
+
+int TensorGetValues(QUEUE queue, Tensor t, void *data) {
+	return TensorGetValuesOffset(queue, t, data, 0);
+}
+
+
+int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data, unsigned int offset) {
+	int erro;
+	void *mem;
+	switch (t->flag) {
+		case TENSOR_HOST:
+		case TENSOR_HSTA:
+			mem = clEnqueueMapBuffer(queue, t->data, CL_TRUE, CL_MAP_WRITE, offset, t->bytes, 0, 0, 0, &erro);
+			PERR(erro, "TensorGetValuesOffset/clEnqueueMapBuffer");
+			memcpy(data, mem, t->bytes);
+			erro = clEnqueueUnmapMemObject(queue, t->data, mem, 0, 0, 0);
+			PERR(erro, "TensorGetValuesOffset/clEnqueueUnmapMemObject");
+			return erro;
+
+		case TENSOR_NCPY:
+			erro = clEnqueueReadBuffer(queue, t->data, CL_TRUE, offset, t->bytes, data, 0, NULL, NULL);
+			PERR(erro, "TensorGetValuesOffset/clEnqueueReadBuffer");
+			return erro;
+		case TENSOR_SVM:
+			erro = clFinish(queue);
+			PERR(erro, "TensorGetValuesOffset/clFinish ");
+			memcpy(data, t->host, t->bytes);
+			return erro;
+		default:
+			erro = -90;
+			PERR(erro, "TensorGetValuesOffset: INVALID TENSOR FLAG %d ", t->flag);
+	}
 }
 
 
@@ -222,12 +281,12 @@ int int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, cl_mem mi, 
 
 void printTensor(QUEUE q, Tensor t, FILE *f) {
 	double *v = calloc(t->bytes, 1);
-	char buff[GPU_ERROR_MAX_MSG_SIZE];
+	char buff[EXCEPTION_MAX_MSG_SIZE];
 	int error = 0;
-	fprintf(f, "%u %u %u %u (%s)\n", t->x, t->y, t->z, t->l, printBytes(t->bytes * t->l, buff));
-	for (int l = 0; l < t->l; l++) {
+	fprintf(f, "%u %u %u %u (%s)\n", t->x, t->y, t->z, t->w, printBytes(t->bytes * t->w, buff));
+	for (int l = 0; l < t->w; l++) {
 		error = TensorGetValuesOffset(q, t, v, l * t->bytes);
-		if(error)break;
+		if (error)break;
 		for (int z = 0; z < t->z; z++) {
 			fprintf(f, "(:,:,%d,%d)\n", z, l);
 			for (int i = 0; i < t->x; i++) {
@@ -241,8 +300,8 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 	}
 	fprintf(f, "\n");
 	free(v);
-	if(error){
-		fprintf(stderr,"printTensor: %d %s",error,getClError(error,buff,GPU_ERROR_MAX_MSG_SIZE));
+	if (error) {
+		fprintf(stderr, "printTensor: %d %s", error, getClError(error, buff, EXCEPTION_MAX_MSG_SIZE));
 	}
 
 }

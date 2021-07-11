@@ -24,8 +24,8 @@ typedef struct {
 
 
 Camada createDropOut(WrapperCL *cl, QUEUE queue, UINT inx, UINT iny, UINT inz,
-					 double p_ativacao, long long seed,
-                     Tensor entrada,char usehost,GPU_ERROR *error);
+                     double p_ativacao, long long seed,
+                     Tensor entrada, char usehost, Exception *error);
 
 
 

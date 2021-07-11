@@ -5,7 +5,7 @@
 #include "../Camada.h"
 
 Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
-                      Params param, GPU_ERROR *error) {
+                      Params param, Exception *error) {
 	char identify = 0;
 	fread(&identify, sizeof(char), 1, src);
 	if (feof(src))return NULL;
@@ -38,7 +38,7 @@ Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 
 void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE queue,
                    Params params, size_t xi,
-                   size_t yi, size_t zi, size_t xo, size_t yo, size_t zo,char usehost, GPU_ERROR *error) {
+                   size_t yi, size_t zi, size_t xo, size_t yo, size_t zo, char usehost, Exception *error) {
 	cl_context context = cl->context;
 	if (error->error)return;
 	c->flag_usehost = usehost;

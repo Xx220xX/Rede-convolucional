@@ -4,7 +4,7 @@
 
 #ifndef CNN_GPU_UTEISTREINO_H
 #define CNN_GPU_UTEISTREINO_H
-
+#include <pthread.h>
 void ppmp2(double *data, int x, int y, char *fileName) {
 	FILE *f = fopen(fileName, "w");
 	fprintf(f, "P2\n");
@@ -140,6 +140,29 @@ void createDir(char *dir) {
 	}
 	sprintf(msg, "mkdir  %s", dir);
 	system(msg);
+}
+
+typedef struct {
+	FILE *jsEpoca;
+	FILE *jsErro;
+	FILE *jsAcerto;
+	double *epoca;
+	double *erro;
+	double *acerto;
+	int len;
+	pthread_t tid;
+} SalveJsArgs;
+
+void *salveJS(SalveJsArgs * args) {
+	for(int i=0;i<args->len;i++){
+		fprintf(args->jsEpoca, "%lf,", args->epoca[i]);
+		fprintf(args->jsErro,"%lf,",args->erro[i]);
+		fprintf(args->jsAcerto,"%lf,",args->acerto[i]);
+	}
+	free(args->epoca);
+	free(args->erro);
+	free(args->acerto);
+	return NULL;
 }
 
 /*
@@ -301,7 +324,9 @@ const char INDEX_HTML[] =
 		"}\n"
 		"</script>\n"
 		"<script type=\"text/javascript\" src=\"js/camada.js\"></script>\n"
-		"<script type=\"text/javascript\" src=\"js/grafico.js\"></script>\n"
 		"<script type=\"text/javascript\" src=\"js/fitnes.js\"></script>\n"
+		"<script type=\"text/javascript\" src=\"js/dataEpoca.js\"></script>\n"
+		"<script type=\"text/javascript\" src=\"js/dataErro.js\"></script>\n"
+		"<script type=\"text/javascript\" src=\"js/dataAcerto.js\"></script>\n"
 		"</html>";
 #endif //CNN_GPU_UTEISTREINO_H

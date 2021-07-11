@@ -10,17 +10,17 @@
 #include <string.h>
 #include <stdlib.h>
 
-Kernel new_Kernel(cl_program pg, GPU_ERROR *error, const char *f_name, int n_args, ...) {
+Kernel new_Kernel(cl_program pg, Exception *error, const char *f_name, int n_args, ...) {
 	Kernel self = {0};
 	if (error->error)return self;
 	self.kernel = clCreateKernel(pg, f_name, &error->error);
 	if (error->error) {
-		getClErrorWithContext(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE,"new_kernel/%s:",f_name);
+		getClErrorWithContext(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE, "new_kernel/%s:", f_name);
 		return self;
 	}
 	if (!self.kernel) {
 		error->error = -81;
-		snprintf(error->msg,GPU_ERROR_MAX_MSG_SIZE, "erro ao criar o kernel : %s\n\t", f_name);
+		snprintf(error->msg, EXCEPTION_MAX_MSG_SIZE, "erro ao criar o kernel : %s\n\t", f_name);
 		return self;
 	}
 	self.l_args = calloc(n_args, sizeof(size_t));

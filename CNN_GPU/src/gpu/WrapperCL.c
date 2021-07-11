@@ -280,8 +280,8 @@ char *getClError(int error, char *msg, int len_msg) {
 }
 
 void showError(int error) {
-	char errormsg[GPU_ERROR_MAX_MSG_SIZE];
-	getClError(error, errormsg, GPU_ERROR_MAX_MSG_SIZE);
+	char errormsg[EXCEPTION_MAX_MSG_SIZE];
+	getClError(error, errormsg, EXCEPTION_MAX_MSG_SIZE);
 	fprintf(stderr, "%s\n", errormsg);
 }
 

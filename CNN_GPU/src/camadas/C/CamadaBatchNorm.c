@@ -27,7 +27,7 @@ const char *tostringBatchNorm(CamadaBatchNorm c) {
 	return c->super.__string__;
 }
 
-int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, GPU_ERROR *error);
+int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, Exception *error);
 
 
 int ativaBatchNorm(CamadaBatchNorm c) {
@@ -115,7 +115,7 @@ int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext) {
 	return erro;
 }
 
-void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, GPU_ERROR *error) {
+void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, Exception *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&c->super.flag_usehost, sizeof(char), 1, dst);
@@ -133,7 +133,7 @@ void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, GPU_ERROR *err
 }
 
 Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-                         Params params, GPU_ERROR *error) {
+                         Params params, Exception *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -157,7 +157,7 @@ Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tenso
 	return (Camada) cm;
 }
 
-int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, GPU_ERROR *error) {
+int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, Exception *error) {
 	unsigned int inz = c->super.entrada->z;
 	unsigned int valmax = inz;
 	double max_weight = 1.0 / (valmax);
@@ -170,7 +170,7 @@ int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, GPU_ERROR *error) {
 	error->error = TensorPutValues(c->super.queue, c->Y, data);
 	clFinish(c->super.queue);
 	if (error->error) {
-		getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
+		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
 		free(data);
 		return error->error;
 	}
@@ -180,7 +180,7 @@ int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, GPU_ERROR *error) {
 	error->error = TensorPutValues(c->super.queue, c->B, data);
 	clFinish(c->super.queue);
 	if (error->error) {
-		getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
+		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
 		free(data);
 		return error->error;
 	}
@@ -219,7 +219,7 @@ void realeaseBatchNorm(CamadaBatchNorm *pc) {
 Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
                        unsigned int inx, unsigned int iny,
                        unsigned int inz, Tensor entrada, double epsilon, int randomize,
-                       char usehost, GPU_ERROR *error) {
+                       char usehost, Exception *error) {
 	if (error->error)return NULL;
 
 	CamadaBatchNorm c = (CamadaBatchNorm) calloc(1, sizeof(TypecamadaBatchNorm));

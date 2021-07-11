@@ -56,7 +56,7 @@ int loadImage(Cnn cnn, double **images, size_t remainImage, size_t numberOfSampl
 	// normaliza imagens antes de 0 a 255 para 0 a 1 (utilizando a GPU)
 	normalizeImage(*images, numberOfSamples * pixelsByImage,
 	               cnn->cl, cnn->queue, cnn->kerneldivInt, fimage, &samples);
-// fecha o arquivo
+	// fecha o arquivo
 	fclose(fimage);
 	// verifica se a leitura foi correta
 	if (numberOfSamples * pixelsByImage != samples) {
@@ -180,32 +180,35 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	int caso = 0;
 	int key = 0;
 	int acertos = 0;
-//	printTestImages(images, labels, labelsI, samples, cnn->camadas[0]->entrada->x, cnn->camadas[0]->entrada->y,
-//	                cnn->camadas[0]->entrada->z, cnn->camadas[cnn->size - 1]->saida->x);
-//	system("pause");
+	//	printTestImages(images, labels, labelsI, samples, cnn->camadas[0]->entrada->x, cnn->camadas[0]->entrada->y,
+	//	                cnn->camadas[0]->entrada->z, cnn->camadas[cnn->size - 1]->saida->x);
+	//	system("pause");
 	int epoca = 0;
-	int threadInfoStop = 0;
 	size_t initTime = getms();
 	size_t initTimeAll = getms();
 	double erro = 0.0;
 	double erroMedio = 0.0;
 
 	// inicializa infomações de treino utilizado pela thread ui
-	InfoTrain info = {&samples, &key, &acertos, &epoca, &epocs, &threadInfoStop, &initTime, &initTimeAll, &erroMedio};
-	pthread_t tid;
+	InfoTrain info = {samples, key, acertos, epoca, epocs, initTime, initTimeAll, erroMedio};
+	info.finish = 1;
 	// arquivo da tabela
-	FILE *js_graph;
-	js_graph = fopen("js/grafico.js", "w");
-	fprintf(js_graph, "var erro = [];var epoca=[];var acertos = []\n");
-	fprintf(js_graph, "function appd(x,y,z){epoca.push(x);erro.push(x);acertos.push(x);}\n");
+	SalveJsArgs jsargs = {0};
+	SalveJsArgs aux;
+	jsargs.jsAcerto = fopen("js/dataAcerto.js", "w");
+	jsargs.jsErro = fopen("js/dataErro.js", "w");
+	jsargs.jsEpoca = fopen("js/dataEpoca.js", "w");
+	fprintf(jsargs.jsAcerto, "var acerto = [");
+	fprintf(jsargs.jsErro, "var normaErro = [");
+	fprintf(jsargs.jsEpoca, "var epoca = [");
+	jsargs.len = samples;
 
 	// obtem tamanho de entrada e saída da rede
 	size_t inputSize = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
 	size_t outputSize = cnn->camadas[cnn->size - 1]->saida->x * cnn->camadas[cnn->size - 1]->saida->y *
 	                    cnn->camadas[cnn->size - 1]->saida->z;
 
-	// incia thread ui
-	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTrain, (void *) &info);
+
 	int r;
 	int stop = 0;
 	// vetor para treinar com dados aleatorios
@@ -219,9 +222,11 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 		if (stop == 'q')break;
 		// captura o tempo em millissegundos
 		initTime = getms();
+		jsargs.acerto = calloc(jsargs.len, sizeof(double));
+		jsargs.erro = calloc(jsargs.len, sizeof(double));
+		jsargs.epoca = calloc(jsargs.len, sizeof(double));
 		//mistura vetor de indices
 //		LCG_shuffle(index, samples, sizeof(int));
-
 		erro = 0;
 		erroMedio = 0;
 		acertos = 0;
@@ -246,71 +251,76 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 			if (r == labelsI[caso]) { acertos += 1; }
 
 			// soma o erro
-			erro += cnn->normaErro;
-			erroMedio = erro / (key + 1);
-			fprintf(js_graph, "appd(%lf,%lf,%lf);\n", epoca + key / (double) samples, cnn->normaErro,
-			        acertos / (key + 1.0));
+			if (!(isnan(cnn->normaErro) || isinf(cnn->normaErro))) {
+				erro += cnn->normaErro;
+				erroMedio = erro / (key + 1);
+				jsargs.erro[key] = cnn->normaErro;
+				jsargs.epoca[key] = epoca + key / ((double) samples);
+				jsargs.acerto[key] = acertos *100.0/ ((double) key + 1.0);
+			}
+			if (info.finish) {
+				info.erro = erroMedio;
+				info.acertos = acertos;
+				info.msInitEpoca = initTime;
+				info.imagemAtual = key;
+				info.finish = 0;
+				pthread_create(NULL, NULL, (void *(*)(void *)) showInfoTrain, &info);
+			}
 //			printf("%.4g %.4g %.4g\n",cnn->normaErro,erro,erroMedio);
 		}
+		pthread_join(jsargs.tid, NULL);
+		aux = jsargs;
+		aux.len = key;
+		pthread_create(&jsargs.tid, NULL, (void *(*)(void *)) salveJS, &aux);
 	}
-	fprintf(js_graph, "plot('graficoAcerto',epoca,acertos,'epoca','acertos','Acertos durante treino')\n");
-	fprintf(js_graph, "plot('graficoErro',epoca,erro,'epoca','erro','Erro quadratico durante treino')\n");
-	fclose(js_graph);
-
-	//finaliza a thread ui
-	threadInfoStop = 1;
-	pthread_join(tid, NULL);
+	printf(" salvando dados\n");
+	pthread_join(jsargs.tid, NULL);
+	fprintf(jsargs.jsAcerto, "];\nplot('graficoAcerto',epoca,acertos,'epoca','acertos','Acertos durante treino')\n");
+	fprintf(jsargs.jsErro, "];\nplot('graficoErro',epoca,erro,'epoca','erro','Erro quadratico durante treino')\n");
+	fprintf(jsargs.jsEpoca, "];\n");
+	fclose(jsargs.jsAcerto);
+	fclose(jsargs.jsErro);
+	fclose(jsargs.jsEpoca);
+	// finalizando ui
+	while (!info.finish) { Sleep(1); }
 	if (cnn->error.error) {
-		getClError(cnn->error.error, cnn->error.msg,GPU_ERROR_MAX_MSG_SIZE);
-		fprintf(stderr, "falha ao treinar  %d: %s\n",cnn->error.error, cnn->error.msg);
+		getClError(cnn->error.error, cnn->error.msg, EXCEPTION_MAX_MSG_SIZE);
+		fprintf(stderr, "falha ao treinar  %d: %s\n", cnn->error.error, cnn->error.msg);
 		system("pause");
 	}
 	return 0;
 }
 
-int fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *names, int samples, size_t imagesSaveOutput,
+int
+fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *names, int samples, size_t imagesSaveOutput,
         char *name, char *outputMDTable) {
 	int caso = 0;
 	int acertos = 0;
 	int *acertosPorClasse = calloc(sizeof(int), nClass);
 	int *numeroCasosOcorridos = calloc(sizeof(int), nClass);
-	int threadStop = 0;
 	size_t initTime = getms();
-	InfoTeste info = {nClass, &samples, &caso, &acertos, &threadStop, &initTime, acertosPorClasse, numeroCasosOcorridos,
-	                  names, 20};
-	pthread_t tid;
+	InfoTeste info = {nClass, samples, caso, acertos, initTime, acertosPorClasse, numeroCasosOcorridos,
+	                  names, 20, 1};
 
-
-	pthread_create(&tid, NULL, (void *(*)(void *)) showInfoTest, (void *) &info);
+	pthread_create(NULL, NULL, (void *(*)(void *)) showInfoTest, (void *) &info);
 	int r;
-
-
 	size_t inputSize = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
-	size_t outputSize = cnn->camadas[cnn->size - 1]->saida->x * cnn->camadas[cnn->size - 1]->saida->y *
-	                    cnn->camadas[cnn->size - 1]->saida->z;
-
-	char buff[250];
-	int imPrint = 0;
-
-
 	for (caso = 0; caso < samples; caso++) {
 		if (kbhit() && tolower(getch()) == 'q')break;
 		CnnCall(cnn, images + inputSize * caso);
 		r = CnnGetIndexMax(cnn);
 		numeroCasosOcorridos[labelsI[caso]]++;
-//removido pois estava atrasando o teste
-//		if (imPrint < imagesSaveOutput) {
-//			snprintf(buff, 250, "imgs/%s_%d.ppm", name, caso + 1);
-//			salveCnnOutAsPPM(cnn, buff);
-//			imPrint++;
-//		}
 		if (r == labelsI[caso]) {
 			acertosPorClasse[r]++;
 			acertos++;
 		}
+		if (info.finish) {
+			info.imagemAtual = caso;
+			info.acertos = acertos;
+			info.finish = 0;
+			pthread_create(NULL, NULL, (void *(*)(void *)) showInfoTest, &info);
+		}
 	}
-	threadStop = 1;
-	pthread_join(tid, NULL);
 	FILE *js_tabela;
 	js_tabela = fopen("js/fitnes.js", "w");
 	fprintf(js_tabela, "tablePutColum('tabela_fitnes',['Classe','acertos','total','porcentagem']);");
@@ -320,7 +330,8 @@ int fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *
 		        acertosPorClasse[i] / (double) (numeroCasosOcorridos[i] + 1e-14));
 	}
 	fclose(js_tabela);
-
+	while (!info.finish) { Sleep(1); }
+	return cnn->error.error;
 }
 
 

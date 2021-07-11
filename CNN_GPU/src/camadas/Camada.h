@@ -60,7 +60,7 @@ typedef struct {
 void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE queue,
                    Params params, size_t xi, size_t yi, size_t zi,
                    size_t xo, size_t yo, size_t zo,
-                   char usehost, GPU_ERROR *error);
+                   char usehost, Exception *error);
 
 void __releaseCamada__(Camada c);
 
@@ -69,36 +69,36 @@ void CamadaSetLearn(Camada c, char learn);
 void CamadaSetParams(Camada c, double hitlearn, double momento, double decaimento);
 
 Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue,
-                    Tensor entrada, Params param, GPU_ERROR *error);
+                    Tensor entrada, Params param, Exception *error);
 
 Camada carregarPool(WrapperCL *cl, FILE *src, QUEUE queue,
-                    Tensor entrada, Params param, GPU_ERROR *error);
+                    Tensor entrada, Params param, Exception *error);
 
 Camada carregarRelu(WrapperCL *cl, FILE *src, QUEUE queue,
-                    Tensor entrada, Params param, GPU_ERROR *error);
+                    Tensor entrada, Params param, Exception *error);
 
 Camada carregarDropOut(WrapperCL *cl, FILE *src, QUEUE queue,
-                       Tensor entrada, Params param, GPU_ERROR *error);
+                       Tensor entrada, Params param, Exception *error);
 
 Camada carregarFullConnect(WrapperCL *cl, FILE *src, QUEUE queue,
-                           Tensor entrada, Params param, GPU_ERROR *error);
+                           Tensor entrada, Params param, Exception *error);
 
 Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue,
-                      Tensor entrada, Params param, GPU_ERROR *error);
+                      Tensor entrada, Params param, Exception *error);
 
 Camada carregarBatchNorm(WrapperCL *cl, FILE *src, QUEUE queue,
-                         Tensor entrada, Params param, GPU_ERROR *error);
+                         Tensor entrada, Params param, Exception *error);
 
 Camada carregarSoftMax(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-                       Params params, GPU_ERROR *error);
+                       Params params, Exception *error);
 
 Camada carregarPadding(WrapperCL *cl, FILE *src, QUEUE queue,
-                       Tensor entrada, Params param,  GPU_ERROR *error);
+                       Tensor entrada, Params param, Exception *error);
 
 Camada carregarPoolAv(WrapperCL *cl, FILE *src, QUEUE queue,
-                      Tensor entrada, Params param, GPU_ERROR *error);
+                      Tensor entrada, Params param, Exception *error);
 
 Camada carregarConvNc(WrapperCL *cl, FILE *src, QUEUE queue,
-                      Tensor entrada, Params param, GPU_ERROR *error);
+                      Tensor entrada, Params param, Exception *error);
 
 #endif //CNN_GPU_CAMADA_H

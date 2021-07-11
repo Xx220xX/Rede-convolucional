@@ -25,8 +25,8 @@ typedef struct {
 
 
 Camada createPoolAv(WrapperCL *cl, QUEUE queue, UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz,
-           Tensor entrada, Params params,
-           char usehost,GPU_ERROR *error);
+                    Tensor entrada, Params params,
+                    char usehost, Exception *error);
 
 
 

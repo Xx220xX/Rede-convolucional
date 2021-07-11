@@ -30,7 +30,7 @@ typedef struct {
 
 Camada createConv(WrapperCL *cl, QUEUE queue, UINT passo, UINT lenFilter,
                   UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-                  Tensor entrada, Params params,char usehost, GPU_ERROR *error, int randomize);
+                  Tensor entrada, Params params, char usehost, Exception *error, int randomize);
 
 void releaseConv(CamadaConv *pc);
 

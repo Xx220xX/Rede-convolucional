@@ -42,7 +42,7 @@ typedef struct {
 
 
 Camada createBatchNorm(WrapperCL *cl, QUEUE queue, Params params, unsigned int inx, unsigned int iny,
-                       unsigned int inz, Tensor entrada, double epsilon, int randomize,char usehost, GPU_ERROR *error);
+                       unsigned int inz, Tensor entrada, double epsilon, int randomize, char usehost, Exception *error);
 
 
 #endif //CNN_GPU_CAMADABATCHNORM_H

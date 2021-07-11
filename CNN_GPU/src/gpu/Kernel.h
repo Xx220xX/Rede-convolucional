@@ -18,15 +18,15 @@ typedef struct {
 	int nArgs;
 	size_t *l_args;
 } Kernel;
-#ifndef GPU_ERROR_MAX_MSG_SIZE
-#define GPU_ERROR_MAX_MSG_SIZE 500
+#ifndef EXCEPTION_MAX_MSG_SIZE
+#define EXCEPTION_MAX_MSG_SIZE 500
 #endif
-typedef struct {
+typedef struct Exception{
 	cl_int error;
-	char msg[GPU_ERROR_MAX_MSG_SIZE];
-} GPU_ERROR;
+	char msg[EXCEPTION_MAX_MSG_SIZE];
+} Exception;
 
-Kernel new_Kernel(cl_program pg,GPU_ERROR *error, const char *f_name, int n_args, ...);
+Kernel new_Kernel(cl_program pg, Exception *error, const char *f_name, int n_args, ...);
 
 cl_kernel Kernel_putArgs(Kernel *self, int n_args, ...);
 

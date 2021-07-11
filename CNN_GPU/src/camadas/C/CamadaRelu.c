@@ -57,7 +57,7 @@ int calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
 
 }
 
-void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, GPU_ERROR *error) {
+void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, Exception *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
@@ -68,7 +68,7 @@ void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, GPU_ERROR *error) {
 
 }
 
-Camada carregarRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params params, GPU_ERROR *error) {
+Camada carregarRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params params, Exception *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -84,7 +84,7 @@ Camada carregarRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor ent
 }
 
 Camada createRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsigned int iny,
-                  unsigned int inz, Tensor entrada, char usehost, GPU_ERROR *error) {
+                  unsigned int inz, Tensor entrada, char usehost, Exception *error) {
 	if (error->error)return NULL;
 
 	CamadaRelu c = (CamadaRelu) calloc(1, sizeof(TypecamadaRelu));

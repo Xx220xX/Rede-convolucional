@@ -75,7 +75,7 @@ int calc_gradsPadding(CamadaPadding c, Tensor GradNext) {
 
 }
 
-void salvarPadding(WrapperCL *cl, CamadaPadding c, FILE *dst, GPU_ERROR *error) {
+void salvarPadding(WrapperCL *cl, CamadaPadding c, FILE *dst, Exception *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
@@ -91,7 +91,7 @@ void salvarPadding(WrapperCL *cl, CamadaPadding c, FILE *dst, GPU_ERROR *error) 
 }
 
 Camada carregarPadding(WrapperCL *cl, FILE *src, cl_command_queue queue,
-                       Tensor entrada, Params params, GPU_ERROR *error) {
+                       Tensor entrada, Params params, Exception *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -113,7 +113,7 @@ Camada carregarPadding(WrapperCL *cl, FILE *src, cl_command_queue queue,
 Camada createPadding(WrapperCL *cl, QUEUE queue,
                      UINT inx, UINT iny, UINT inz,
                      UINT top, UINT bottom, UINT left, UINT right, Tensor entrada,
-                     char usehost, GPU_ERROR *error) {
+                     char usehost, Exception *error) {
 	if (error->error)return NULL;
 
 	CamadaPadding c = (CamadaPadding) calloc(1, sizeof(TypecamadaPadding));
@@ -121,6 +121,7 @@ Camada createPadding(WrapperCL *cl, QUEUE queue,
 	__newCamada__((Camada) c, cl, PADDING, entrada, queue,
 	              (Params) {0}, inx, iny, inz, inx + top + bottom, iny + left + right,
 	              inz,usehost, error);
+	error->error = TensorFill(queue,c->super.saida,0);
 	c->super.toString = (fch) tostringPadding;
 	c->super.getCreateParams = (fch) getCreateParamsPadding;
 	c->super.release = (fv) realeasePadding;
@@ -144,5 +145,8 @@ Camada createPadding(WrapperCL *cl, QUEUE queue,
 	                         K_INT, K_INT, K_INT,
 	                         K_INT
 	);
+	if(error->error){
+		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
+	}
 	return (Camada) c;
 }

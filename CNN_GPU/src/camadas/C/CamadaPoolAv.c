@@ -64,7 +64,7 @@ int calc_gradsPoolAv(CamadaPoolAv c, Tensor GradNext) {
 }
 
 
-void salvarPoolAv(WrapperCL *cl, CamadaPoolAv c, FILE *dst, GPU_ERROR *error) {
+void salvarPoolAv(WrapperCL *cl, CamadaPoolAv c, FILE *dst, Exception *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
@@ -77,7 +77,7 @@ void salvarPoolAv(WrapperCL *cl, CamadaPoolAv c, FILE *dst, GPU_ERROR *error) {
 }
 
 Camada carregarPoolAv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-                      Params params, GPU_ERROR *error) {
+                      Params params, Exception *error) {
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')
@@ -95,7 +95,7 @@ Camada carregarPoolAv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor e
 
 Camada createPoolAv(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz,
                     Tensor entrada, Params params,
-                    char usehost,GPU_ERROR *error) {
+                    char usehost, Exception *error) {
 	CamadaPoolAv c = (CamadaPoolAv) calloc(1, sizeof(TypecamadaPoolAv));
 	c->passo = passo;
 	c->tamanhoFiltro = tamanhoFiltro;

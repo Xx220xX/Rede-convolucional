@@ -65,7 +65,7 @@ int calc_gradsDropOut(CamadaDropOut c, Tensor GradNext) {
 	return erro;
 }
 
-void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error) {
+void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, Exception *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&c->super.flag_usehost, sizeof(char), 1, dst);
@@ -78,7 +78,7 @@ void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, GPU_ERROR *error) 
 }
 
 Camada carregarDropOut(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-                       Params params, GPU_ERROR *error) {
+                       Params params, Exception *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -98,8 +98,8 @@ Camada carregarDropOut(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor 
 }
 
 Camada createDropOut(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, UINT inz,
-                     double p_ativacao, long long seed, Tensor entrada,char usehost,
-                     GPU_ERROR *error) {
+                     double p_ativacao, long long seed, Tensor entrada, char usehost,
+                     Exception *error) {
 	if (error->error)return NULL;
 	CamadaDropOut c = (CamadaDropOut) calloc(1, sizeof(Typecamadadropout));
 	__newCamada__((Camada) c, cl, DROPOUT, entrada, queue, (Params) {0}, inx, iny, inz, inx, iny, inz,usehost, error);

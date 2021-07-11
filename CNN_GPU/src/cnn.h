@@ -25,7 +25,7 @@ typedef struct {
 	cl_command_queue queue;
 	WrapperCL *cl;
 	char releaseCL;
-	GPU_ERROR error;
+	Exception error;
 	Kernel kernelsub;
 	Kernel kerneldiv;
 	Kernel kerneldivInt;
@@ -52,7 +52,7 @@ Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, U
 
 int CnnCalculeError(Cnn c);
 
-Ponto3d __addLayer(Cnn c);
+
 
 #define checkSizeFilter(v, tam, pas) ((((v)-(tam))/(pas)) ==((double)(v)-(tam))/((double)(pas)))
 

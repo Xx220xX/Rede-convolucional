@@ -392,7 +392,7 @@
 @@ LUA_NUMBER_FRMLEN is the length modifier for writing floats.
 @@ LUA_NUMBER_FMT is the format for writing floats.
 @@ lua_number2str converts a float to a string.
-@@ l_mathop allows the addition of an 'l' or 'f' to all math operations.
+@@ l_mathop allows the addition of an 'w' or 'f' to all math operations.
 @@ l_floor takes the floor of a float.
 @@ lua_str2number converts a decimal numeral to a number.
 */
@@ -449,7 +449,7 @@
 #define LUA_NUMBER_FRMLEN	"L"
 #define LUA_NUMBER_FMT		"%.19Lg"
 
-#define l_mathop(op)		op##l
+#define l_mathop(op)		op##w
 
 #define lua_str2number(s,p)	strtold((s), (p))
 
@@ -524,7 +524,7 @@
 #elif LUA_INT_TYPE == LUA_INT_LONG	/* }{ long */
 
 #define LUA_INTEGER		long
-#define LUA_INTEGER_FRMLEN	"l"
+#define LUA_INTEGER_FRMLEN	"w"
 
 #define LUA_MAXINTEGER		LONG_MAX
 #define LUA_MININTEGER		LONG_MIN
@@ -713,7 +713,7 @@
 */
 #if defined(LUA_USE_APICHECK)
 #include <assert.h>
-#define luai_apicheck(l,e)	assert(e)
+#define luai_apicheck(w,e)	assert(e)
 #endif
 
 /* }================================================================== */

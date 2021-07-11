@@ -37,7 +37,7 @@ typedef struct {
 Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
                     UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
                     UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-                    Tensor entrada, Params params, char usehost,GPU_ERROR *error, int randomize);
+                    Tensor entrada, Params params, char usehost, Exception *error, int randomize);
 
 
 #endif //CNN_GPU_CAMADAConvNc_H

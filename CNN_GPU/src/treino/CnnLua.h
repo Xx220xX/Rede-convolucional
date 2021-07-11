@@ -69,8 +69,8 @@ static int l_convolution(lua_State *L) {
 	}
 	int erro = CnnAddConvLayer(*globalcnn, usehost, passo, sfiltro, nfiltro);
 	if (erro) {
-		char msg[GPU_ERROR_MAX_MSG_SIZE];
-		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		char msg[EXCEPTION_MAX_MSG_SIZE];
+		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
@@ -93,8 +93,8 @@ static int l_convolution_non_causal(lua_State *L) {
 	}
 	int erro = CnnAddConvNcLayer(*globalcnn, usehost, passox, passoy, largx, largy, filtrox, filtroy, nfiltro);
 	if (erro) {
-		char msg[GPU_ERROR_MAX_MSG_SIZE];
-		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		char msg[EXCEPTION_MAX_MSG_SIZE];
+		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
@@ -113,8 +113,8 @@ static int l_pooling(lua_State *L) {
 	}
 	int erro = CnnAddPoolLayer(*globalcnn, usehost, passo, sfiltro);
 	if (erro) {
-		char msg[GPU_ERROR_MAX_MSG_SIZE];
-		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		char msg[EXCEPTION_MAX_MSG_SIZE];
+		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
@@ -132,8 +132,8 @@ static int l_poolingav(lua_State *L) {
 	}
 	int erro = CnnAddPoolAvLayer(*globalcnn, usehost, passo, sfiltro);
 	if (erro) {
-		char msg[GPU_ERROR_MAX_MSG_SIZE];
-		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		char msg[EXCEPTION_MAX_MSG_SIZE];
+		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
@@ -149,8 +149,8 @@ static int l_relu(lua_State *L) {
 	}
 	int erro = CnnAddReluLayer(*globalcnn, usehost);
 	if (erro) {
-		char msg[GPU_ERROR_MAX_MSG_SIZE];
-		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		char msg[EXCEPTION_MAX_MSG_SIZE];
+		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
@@ -169,8 +169,8 @@ static int l_padding(lua_State *L) {
 	}
 	int erro = CnnAddPaddingLayer(*globalcnn, usehost, top, bottom, left, right);
 	if (erro) {
-		char msg[GPU_ERROR_MAX_MSG_SIZE];
-		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		char msg[EXCEPTION_MAX_MSG_SIZE];
+		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
@@ -190,8 +190,8 @@ static int l_dropout(lua_State *L) {
 	}
 	int erro = CnnAddDropOutLayer(*globalcnn, usehost, ativa, seed);
 	if (erro) {
-		char msg[GPU_ERROR_MAX_MSG_SIZE];
-		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		char msg[EXCEPTION_MAX_MSG_SIZE];
+		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
@@ -209,8 +209,8 @@ static int l_fullConnect(lua_State *L) {
 	}
 	int erro = CnnAddFullConnectLayer(*globalcnn, usehost, neuros, func);
 	if (erro) {
-		char msg[GPU_ERROR_MAX_MSG_SIZE];
-		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		char msg[EXCEPTION_MAX_MSG_SIZE];
+		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
@@ -225,8 +225,8 @@ static int l_batchnorm(lua_State *L) {
 	}
 	int erro = CnnAddBatchNorm(*globalcnn, usehost, 1e-12);
 	if (erro) {
-		char msg[GPU_ERROR_MAX_MSG_SIZE];
-		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		char msg[EXCEPTION_MAX_MSG_SIZE];
+		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;
@@ -241,8 +241,8 @@ static int l_softmax(lua_State *L) {
 	}
 	int erro = CnnAddSoftMax(*globalcnn, usehost);
 	if (erro) {
-		char msg[GPU_ERROR_MAX_MSG_SIZE];
-		getClError(erro, msg, GPU_ERROR_MAX_MSG_SIZE);
+		char msg[EXCEPTION_MAX_MSG_SIZE];
+		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", erro, msg);
 	}
 	return 0;

@@ -25,7 +25,7 @@ typedef struct {
 
 Camada createPool(WrapperCL *cl, QUEUE queue, UINT passo, UINT tamanhoFiltro,
                   UINT inx, UINT iny, UINT inz, Tensor entrada, Params params,
-                 char usehost, GPU_ERROR *error);
+                  char usehost, Exception *error);
 
 
 #endif //CNN_GPU_CAMADAPOOL_H

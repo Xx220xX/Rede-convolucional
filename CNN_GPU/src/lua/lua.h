@@ -474,7 +474,7 @@ struct lua_Debug {
   const char *what;	/* (S) 'Lua', 'C', 'main', 'tail' */
   const char *source;	/* (S) */
   size_t srclen;	/* (S) */
-  int currentline;	/* (l) */
+  int currentline;	/* (w) */
   int linedefined;	/* (S) */
   int lastlinedefined;	/* (S) */
   unsigned char nups;	/* (u) number of upvalues */

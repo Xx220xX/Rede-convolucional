@@ -32,7 +32,7 @@ const char *tostringFullConnect(CamadaFullConnect c) {
 	return c->super.__string__;
 }
 
-int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error) {
+int fullRandomize(CamadaFullConnect c, WrapperCL *cl, Exception *error) {
 	unsigned int inx = c->super.entrada->x;
 	unsigned int iny = c->super.entrada->y;
 	unsigned int inz = c->super.entrada->z;
@@ -49,7 +49,7 @@ int fullRandomize(CamadaFullConnect c, WrapperCL *cl, GPU_ERROR *error) {
 	error->error = TensorPutValues(c->super.queue, c->pesos, data);
 	free(data);
 	if (error->error) {
-		getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
+		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
 		return error->error;
 
 	}
@@ -123,7 +123,7 @@ int calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext) {
 
 }
 
-void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, GPU_ERROR *error) {
+void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, Exception *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
@@ -143,7 +143,7 @@ void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, GPU_ERROR 
 
 Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
                            Params params,
-                           GPU_ERROR *error) {
+                           Exception *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -170,7 +170,7 @@ Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Ten
 
 Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida,
                          Tensor entrada, Params params,
-                         int funcaoDeAtivacao, int randomize, char usehost, GPU_ERROR *error) {
+                         int funcaoDeAtivacao, int randomize, char usehost, Exception *error) {
 	if (error->error)return NULL;
 	CamadaFullConnect c = (CamadaFullConnect) calloc(1, sizeof(Typecamadafullconnect));
 	cl_context context = cl->context;

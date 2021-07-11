@@ -42,7 +42,7 @@ const char *tostringConvNc(CamadaConvNc c) {
 }
 
 
-int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, GPU_ERROR *error) {
+int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, Exception *error) {
 	UINT fx = c->filtros->x, fy = c->filtros->y,
 			inz = c->super.entrada->z,
 			numeroFiltros = c->numeroFiltros;
@@ -61,7 +61,7 @@ int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, GPU_ERROR *error) {
 				}
 		error->error = TensorGetValuesOffset(queue, c->filtros,data, a * c->filtros->bytes);
 		if (error->error) {
-			getClError(error->error, error->msg,GPU_ERROR_MAX_MSG_SIZE);
+			getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
 			break;
 		}
 	}
@@ -147,7 +147,7 @@ int calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
 
 }
 
-void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, GPU_ERROR *error) {
+void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, Exception *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
@@ -173,7 +173,7 @@ void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, GPU_ERROR *error) {
 }
 
 Camada carregarConvNc(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
-                      Params params,  GPU_ERROR *error) {
+                      Params params, Exception *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -222,7 +222,7 @@ void releaseConvNc(CamadaConvNc *pc) {
 Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
                     UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
                     UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-                    Tensor entrada, Params params, char usehost, GPU_ERROR *error, int randomize) {
+                    Tensor entrada, Params params, char usehost, Exception *error, int randomize) {
 	if (error->error)return NULL;
 	CamadaConvNc c = (CamadaConvNc) calloc(1, sizeof(TypecamadaConvNc));
 	__newCamada__(&c->super, cl, CONVNC, entrada, queue, params,
