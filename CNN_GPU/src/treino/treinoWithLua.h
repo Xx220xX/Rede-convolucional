@@ -263,6 +263,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 				info.acertos = acertos;
 				info.msInitEpoca = initTime;
 				info.imagemAtual = key;
+				info.epoca = epoca;
 				info.finish = 0;
 				pthread_create(NULL, NULL, (void *(*)(void *)) showInfoTrain, &info);
 			}

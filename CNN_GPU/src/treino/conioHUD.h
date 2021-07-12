@@ -116,8 +116,8 @@ void *showInfoTrain(InfoTrain *info) {
 	pc = info->epoca / (double) info->totalEpocas * 100.0;
 	perc = (int) pc;
 	pc = (pc - perc) * 100;
-	snprintf(buf, 250, "% 3d de % 3d  % 3d.%02d%%", info->epoca, info->totalEpocas, perc, (int) pc);
-	perc = (int) (info->epoca / (double) info->totalEpocas * 22.0);
+	snprintf(buf, 250, "% 3d de % 3d  % 3d.%02d%%", info->epoca+1, info->totalEpocas, perc, (int) pc);
+	perc = (int) ((info->epoca*info->totalImagensTreino + info->imagemAtual) / ((double) info->totalEpocas*info->totalImagensTreino) * 22.0);
 	printBk(buf, perc, GREEN, BLACK);
 
 	gotoxy(18, y0 + 2);

@@ -48,7 +48,7 @@ kV convCalcFiltro(     Vector ds,
 		for (int j = 0; j < saida_ty; ++j) {
 			aux = entrada[TensorMap(i*passo+m, j*passo+n,z,entrada_tx,entrada_ty)]
 				   *ds[TensorMap(i,j,l,saida_tx,saida_ty)];
-			aux = (!(isnan(aux) || isinf(aux)))*aux;
+			//aux = (!(isnan(aux) || isinf(aux)))*aux;
 			soma +=aux;
 		}
 	}
@@ -82,7 +82,7 @@ kV convCalcGrads(Vector filtro,
 			for (int l = range.min.z; l <= range.max.z; l++) {
 				pesoAplicado = filtro[TensorMap4D(x - minX, y - minY, z, l, lenFilter, lenFilter, filtroz)];
 				aux = pesoAplicado * gradNext[TensorMap(i, j, l, saidatx, saidaty)];
-				aux = (!(isnan(aux) || isinf(aux)))*aux;
+				//aux = (!(isnan(aux) || isinf(aux)))*aux;
 				somaErro +=aux;
 			}
 		}

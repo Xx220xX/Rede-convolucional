@@ -304,7 +304,7 @@ kV convCalcFiltro(     Vector ds,
 		for (int j = 0; j < saida_ty; ++j) {
 			aux = entrada[TensorMap(i*passo+m, j*passo+n,z,entrada_tx,entrada_ty)]
 				   *ds[TensorMap(i,j,l,saida_tx,saida_ty)];
-			aux = (!(isnan(aux) || isinf(aux)))*aux;
+			//aux = (!(isnan(aux) || isinf(aux)))*aux;
 			soma +=aux;
 		}
 	}
@@ -338,7 +338,7 @@ kV convCalcGrads(Vector filtro,
 			for (int l = range.min.z; l <= range.max.z; l++) {
 				pesoAplicado = filtro[TensorMap4D(x - minX, y - minY, z, l, lenFilter, lenFilter, filtroz)];
 				aux = pesoAplicado * gradNext[TensorMap(i, j, l, saidatx, saidaty)];
-				aux = (!(isnan(aux) || isinf(aux)))*aux;
+				//aux = (!(isnan(aux) || isinf(aux)))*aux;
 				somaErro +=aux;
 			}
 		}
@@ -407,7 +407,7 @@ kV convncCalcFiltro(Vector ds,
 		for (int j = 0; j < saida_ty; ++j) {
 			aux = entrada[TensorMap(i * passox + m * largx, j * passoy + n * largy, z, entrada_tx, entrada_ty)]
 			        * ds[TensorMap(i, j, l, saida_tx, saida_ty)];
-			aux = (!(isnan(aux) || isinf(aux)))*aux;
+			//aux = (!(isnan(aux) || isinf(aux)))*aux;
 			soma += aux;
 		}
 	}
@@ -475,7 +475,7 @@ kV convncCalcGrads(Vector filtro,
 			for (int l = 0; l < fz; l++) {
 				pesoAplicado = filtro[TensorMap4D(m, n, z, l, fx, fy, fz)];
 				aux = pesoAplicado * gradNext[TensorMap(sx, sy, l, saidatx, saidaty)];
-				aux = (!(isnan(aux) || isinf(aux)))*aux;
+				//aux = (!(isnan(aux) || isinf(aux)))*aux;
 				somaErro +=aux;
 			}
 		}
@@ -591,7 +591,7 @@ fullfixweight(Vector a,
 kV fullcalcgrads1(Vector dz, Vector ds, Vector z, int dfa, int k0) {
 	int m = get_global_id(0) + k0;
 	double aux = ds[m] * func(dfa, z[m]);
-	aux = (!(isnan(aux) || isinf(aux)))*aux;
+	//aux = (!(isnan(aux) || isinf(aux)))*aux;
 	dz[m] = aux;
 }
 
@@ -601,7 +601,7 @@ kV fullcalcgrads2(Vector dz, Vector da, Vector pesos, int pesosx, int pesosy,
 	double soma = 0,aux;
 	for (int n = 0; n < pesosx; ++n) {
 		aux = dz[n] * pesos[TensorMap(n, m, 0, pesosx, pesosy)];
-		aux = (!(isnan(aux) || isinf(aux)))*aux;
+		//aux = (!(isnan(aux) || isinf(aux)))*aux;
 		soma += aux;
 	}
 	da[m] = soma;
