@@ -58,11 +58,21 @@ TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z
 void releaseTensor(Tensor *t) {
 	if (*t) {
 		LOG_CNN_TENSOR_MEMORY("free (0x%X,0x%X)", *t, (*t)->data)
-		if ((*t)->data)
-			clReleaseMemObject((*t)->data);
-		if ((*t)->host)
-			free((*t)->host);
-		free(*t);
+		switch ((*t)->flag) {
+			case TENSOR_HOST:
+				if ((*t)->host)
+					free((*t)->host);
+			case TENSOR_HSTA:
+			case TENSOR_NCPY:
+				if ((*t)->data)
+					clReleaseMemObject((*t)->data);
+				break;
+			case TENSOR_SVMA:
+			case TENSOR_SVM:
+				if ((*t)->host)
+					clSVMFree((*t)->context, (*t)->host);
+				break;
+		}
 		*t = NULL;
 	}
 }
@@ -77,6 +87,7 @@ size_t allmem = 0;
 
 void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error) {
 	if (error->error)return;
+	t->context = context;
 	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "__fillTensor__");
 	switch (t->flag) {
 		case TENSOR_HOST:
@@ -92,6 +103,10 @@ void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exc
 			break;
 		case TENSOR_SVM:
 			t->host = clSVMAlloc(context, CL_MEM_READ_WRITE, bytes, 0);
+			t->data = t->host;
+			break;
+		case TENSOR_SVMA:
+			t->host = clSVMAlloc(context, CL_MEM_SVM_ATOMICS | CL_MEM_READ_WRITE, bytes, 0);
 			t->data = t->host;
 			break;
 	}
@@ -111,7 +126,7 @@ void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exc
 //	printf("total usado %s\n", printBytes(allmem, buf));
 }
 
-int TensorFill(QUEUE queue, Tensor t,  char pattern) {
+int TensorFill(QUEUE queue, Tensor t, char pattern) {
 	return TensorFillOffSet(queue, t, pattern, 0);
 }
 
@@ -129,10 +144,11 @@ int TensorFillOffSet(QUEUE queue, Tensor t, char pattern, UINT offset) {
 			return erro;
 
 		case TENSOR_NCPY:
-			erro = clEnqueueFillBuffer(queue, t->data, &pattern,sizeof(char), offset, t->bytes, 0, NULL, NULL);
+			erro = clEnqueueFillBuffer(queue, t->data, &pattern, sizeof(char), offset, t->bytes, 0, NULL, NULL);
 			PERR(erro, "TensorFillOffSet/clEnqueueWriteBuffer ");
 			return erro;
 		case TENSOR_SVM:
+		case TENSOR_SVMA:
 			erro = clFinish(queue);
 			PERR(erro, "TensorFillOffSet/clFinish ");
 			memset(t->host, pattern, t->bytes);
@@ -168,6 +184,7 @@ int TensorPutValuesOffSet(QUEUE queue, Tensor t, void *data, UINT ofset) {
 
 			return erro;
 		case TENSOR_SVM:
+		case TENSOR_SVMA:
 			erro = clFinish(queue);
 			PERR(erro, "TensorPutValuesOffSet/clFinish ");
 			memcpy(t->host, data, t->bytes);
@@ -203,6 +220,7 @@ int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data, unsigned int offset
 			PERR(erro, "TensorGetValuesOffset/clEnqueueReadBuffer");
 			return erro;
 		case TENSOR_SVM:
+		case TENSOR_SVMA:
 			erro = clFinish(queue);
 			PERR(erro, "TensorGetValuesOffset/clFinish ");
 			memcpy(data, t->host, t->bytes);

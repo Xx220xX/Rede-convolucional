@@ -10,8 +10,10 @@
 #include"Kernel.h"
 #include <stdio.h>
 
-
-typedef struct {
+/***
+ * Interface para simplificar uso da API openCL
+ */
+typedef struct WrapperCL{
 	cl_platform_id platformId;
 	cl_device_id device;
 	cl_uint compute_units;

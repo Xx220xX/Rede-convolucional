@@ -22,6 +22,8 @@ typedef struct {
 	double erro;
 	atomic_int finish;
 	int init;
+	size_t lastcall;
+
 } InfoTrain;
 typedef struct {
 	char names[MAX_STRING_LEN];

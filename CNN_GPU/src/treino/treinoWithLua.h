@@ -275,8 +275,8 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	}
 	printf(" salvando dados\n");
 	pthread_join(jsargs.tid, NULL);
-	fprintf(jsargs.jsAcerto, "];\nplot('graficoAcerto',epoca,acertos,'epoca','acertos','Acertos durante treino')\n");
-	fprintf(jsargs.jsErro, "];\nplot('graficoErro',epoca,erro,'epoca','erro','Erro quadratico durante treino')\n");
+	fprintf(jsargs.jsAcerto, "];\nplot('graficoAcerto',epoca,acerto,'epoca','acertos','Acertos durante treino')\n");
+	fprintf(jsargs.jsErro, "];\nplot('graficoErro',epoca,normaErro,'epoca','erro','Erro quadratico durante treino')\n");
 	fprintf(jsargs.jsEpoca, "];\n");
 	fclose(jsargs.jsAcerto);
 	fclose(jsargs.jsErro);

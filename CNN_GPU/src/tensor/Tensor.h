@@ -17,6 +17,7 @@
 #else
 #define LOG_CNN_TENSOR_MEMORY(format, ...)
 #endif
+
 /**
  * Armazena as três dimensões de um ponto
  * @Atributtes x dimensão x do Ponto
@@ -30,10 +31,17 @@ typedef struct Ponto3d {
  * Mapeia um ponto 3d no vetor
  */
 #define TensorMap(T, xx, yy, zz) (zz)*((T)->y*(T)->x)+(xx)*(T)->y+(yy)
+
+/// Não faz nenhuma copia, toda memoria é armazenada no driver.
 #define TENSOR_NCPY 0x00
+///Faz a copia com um ponteiro host que pode ser usando enquanto o kernel está executando.
 #define TENSOR_HOST 0x01
+///Faz a copia com um ponteiro host que pode ser usando enquanto o kernel está executando, o driver faz alocação do host.
 #define TENSOR_HSTA 0x02
+///Utiliza a memoria compartilhada host=data
 #define TENSOR_SVM  0x03
+///Utiliza a memoria compartilhada host=data, com flag ATOMIC.
+#define TENSOR_SVMA 0x04
 
 
 typedef unsigned int UINT;
@@ -47,16 +55,18 @@ typedef unsigned int UINT;
  * @Atributtes y dimensão y do tensor
  * @Atributtes z dimensão z do tensor
  * @Atributtes w dimensão w do tensor
- * @flags  TENSOR_NCPY Não faz nenhuma copia, toda memoria é armazenada no driver
+ * @flags TENSOR_NCPY Não faz nenhuma copia, toda memoria é armazenada no driver
  * @flags TENSOR_HOST Faz a copia com um ponteiro host que pode ser usando enquanto o kernel está executando
  * @flags TENSOR_HSTA Faz a copia mas o driver faz alocação dos recursos
  * @flags TENSOR_SVM Utiliza a memoria compartilhada host=data
+ * @flags TENSOR_SVMA Utiliza a memoria compartilhada host=data, com flag ATOMIC
  */
 typedef struct typetensor {
 	cl_mem data;
 	void *host;
 	char flag;
 	UINT bytes, x, y, z, w;
+	cl_context context;
 } *Tensor, typetensor, *TensorChar;
 
 
@@ -76,7 +86,7 @@ void printTensor(QUEUE q, Tensor t, FILE *f);
 
 int TensorFill(QUEUE queue, Tensor t, char patern);
 
-int TensorFillOffSet(QUEUE queue, Tensor t,  char patern, UINT offset);
+int TensorFillOffSet(QUEUE queue, Tensor t, char patern, UINT offset);
 
 int TensorPutValues(QUEUE queue, Tensor t, void *data);
 
