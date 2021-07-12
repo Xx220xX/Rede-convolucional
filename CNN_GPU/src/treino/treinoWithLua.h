@@ -23,7 +23,8 @@ void showDir() {
 		}
 		closedir(dir);
 	}
-	getchar();*/
+	getchar();
+	 */
 }
 
 /**
@@ -55,7 +56,7 @@ int loadImage(Cnn cnn, double **images, size_t remainImage, size_t numberOfSampl
 
 	// normaliza imagens antes de 0 a 255 para 0 a 1 (utilizando a GPU)
 	normalizeImage(*images, numberOfSamples * pixelsByImage,
-	               cnn->cl, cnn->queue, cnn->kerneldivInt, fimage, &samples);
+				   cnn->cl, cnn->queue, cnn->kerneldivInt, fimage, &samples);
 	// fecha o arquivo
 	fclose(fimage);
 	// verifica se a leitura foi correta
@@ -81,7 +82,7 @@ int loadImage(Cnn cnn, double **images, size_t remainImage, size_t numberOfSampl
  * lidas seja diferente do numero de respostas especificado
  */
 int loadLabel(Cnn cnn, double **labels, unsigned char **labelsI, size_t remainLabel, size_t numberOfSamples,
-              size_t numeroSaidas, char *labelFile) {
+			  size_t numeroSaidas, char *labelFile) {
 	// abre o arquivo em modo leitura
 	FILE *flabel = fopen(labelFile, "rb");
 	if (!flabel) {
@@ -100,7 +101,7 @@ int loadLabel(Cnn cnn, double **labels, unsigned char **labelsI, size_t remainLa
 	size_t lidos = 0;
 	// chama função para converter de modo numerico para modo vetor
 	loadTargetData(*labels, *labelsI, numeroSaidas, numberOfSamples, cnn->cl, cnn->queue, cnn->kernelInt2Vector, flabel,
-	               &lidos);
+				   &lidos);
 	// fecha o arquivo
 	fclose(flabel);
 	// verifica se o numero de respostas lidas está correto
@@ -128,7 +129,7 @@ int loadLabel(Cnn cnn, double **labels, unsigned char **labelsI, size_t remainLa
  * @return caso nao contenha erro retorna 0,caso falhe na leitura das imagens retorna -8&erro, caso falhe na leitura das respostas retorna -16&erro
  */
 int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **labelsI, char *imageFile, char *labelFile,
-                size_t numberOfLabels, size_t numberOfSamples, size_t remainImage, size_t remainLabel) {
+				size_t numberOfLabels, size_t numberOfSamples, size_t remainImage, size_t remainLabel) {
 
 	int erro = 0;
 	// le imagens
@@ -176,7 +177,7 @@ void printTestImages(double *images, double *labels, unsigned char *labelsI, int
  * @return retorna 0 caso ocorra tudo certo
  */
 int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int epocs, int saveCNN, int samples,
-          char *outputMDTable) {
+		  char *outputMDTable) {
 	int caso = 0;
 	int key = 0;
 	int acertos = 0;
@@ -206,7 +207,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	// obtem tamanho de entrada e saída da rede
 	size_t inputSize = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
 	size_t outputSize = cnn->camadas[cnn->size - 1]->saida->x * cnn->camadas[cnn->size - 1]->saida->y *
-	                    cnn->camadas[cnn->size - 1]->saida->z;
+						cnn->camadas[cnn->size - 1]->saida->z;
 
 
 	int r;
@@ -220,43 +221,30 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 
 	for (; epoca < epocs && !cnn->error.error; epoca++) {
 		if (stop == 'q')break;
-		// captura o tempo em millissegundos
 		initTime = getms();
 		jsargs.acerto = calloc(jsargs.len, sizeof(double));
 		jsargs.erro = calloc(jsargs.len, sizeof(double));
 		jsargs.epoca = calloc(jsargs.len, sizeof(double));
-		//mistura vetor de indices
 //		LCG_shuffle(index, samples, sizeof(int));
 		erro = 0;
 		erroMedio = 0;
 		acertos = 0;
-//		for (key = 0; key < samples && !failed; key++) {
-//		FILE *cma = fopen("cma.txt","w");
 		for (key = 0; key < samples && !failed; key++) {
-			// pega o proximo exemplo
 			caso = index[key];
-			// verifica se o treino foi interrompido
 			if (kbhit() && (stop = tolower(getch())) == 'q')break;
-			// efetua o predict
 			failed = CnnCall(cnn, images + inputSize * caso);
 //			printTensor(cnn->queue,cnn->camadas[5]->entrada,cma);
 //			printTensor(cnn->queue,cnn->camadas[5]->saida,cma);
-			// efetua o backpropagation
 			failed += CnnLearn(cnn, labels + outputSize * caso);
-			//calcula o erro
 			failed += CnnCalculeError(cnn);
-			// retorna o indice do valor maximo da saida
 			r = CnnGetIndexMax(cnn);
-			//verifica acerto
 			if (r == labelsI[caso]) { acertos += 1; }
-
-			// soma o erro
 			if (!(isnan(cnn->normaErro) || isinf(cnn->normaErro))) {
 				erro += cnn->normaErro;
 				erroMedio = erro / (key + 1);
-				jsargs.erro[key] = cnn->normaErro;
+				jsargs.erro[key] = erroMedio;
 				jsargs.epoca[key] = epoca + key / ((double) samples);
-				jsargs.acerto[key] = acertos *100.0/ ((double) key + 1.0);
+				jsargs.acerto[key] = acertos * 100.0 / ((double) key + 1.0);
 			}
 			if (info.finish) {
 				info.erro = erroMedio;
@@ -267,7 +255,6 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 				info.finish = 0;
 				pthread_create(NULL, NULL, (void *(*)(void *)) showInfoTrain, &info);
 			}
-//			printf("%.4g %.4g %.4g\n",cnn->normaErro,erro,erroMedio);
 		}
 		pthread_join(jsargs.tid, NULL);
 		aux = jsargs;
@@ -294,14 +281,14 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 
 int
 fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *names, int samples, size_t imagesSaveOutput,
-        char *name, char *outputMDTable) {
+		char *name, char *outputMDTable) {
 	int caso = 0;
 	int acertos = 0;
 	int *acertosPorClasse = calloc(sizeof(int), nClass);
 	int *numeroCasosOcorridos = calloc(sizeof(int), nClass);
 	size_t initTime = getms();
 	InfoTeste info = {nClass, samples, caso, acertos, initTime, acertosPorClasse, numeroCasosOcorridos,
-	                  names, 20, 1};
+					  names, 20, 1};
 
 	pthread_create(NULL, NULL, (void *(*)(void *)) showInfoTest, (void *) &info);
 	int r;
@@ -327,8 +314,8 @@ fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *name
 	fprintf(js_tabela, "tablePutColum('tabela_fitnes',['Classe','acertos','total','porcentagem']);");
 	for (int i = 0; i < 10; i++) {
 		fprintf(js_tabela, "tablePutColum(tabela_fitnes,['%s' , %d , %d , '%.2lf%%']);\n", names[i].names,
-		        numeroCasosOcorridos[i], acertosPorClasse[i],
-		        acertosPorClasse[i] / (double) (numeroCasosOcorridos[i] + 1e-14));
+				numeroCasosOcorridos[i], acertosPorClasse[i],
+				acertosPorClasse[i] / (double) (numeroCasosOcorridos[i] + 1e-14));
 	}
 	fclose(js_tabela);
 	while (!info.finish) { Sleep(1); }
@@ -364,41 +351,41 @@ int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
 	char *tmp;
 
 	GETLUAVALUE(p->Numero_epocas, L, "Numero_epocas", integer,
-	            printf("ERRO Numero_epocas não foi atribuído");return -1;);
+				printf("ERRO Numero_epocas não foi atribuído");return -1;);
 	GETLUAVALUE(globalcnn[0]->parametros.hitLearn, L, "taxaAprendizado", number,
-	            printf("warning taxaAprendizado não foi atribuído, será considerado como 0.1\n"););
+				printf("warning taxaAprendizado não foi atribuído, será considerado como 0.1\n"););
 	GETLUAVALUE(globalcnn[0]->parametros.decaimentoDePeso, L, "decaimentoDePeso", number,
-	            printf("warning decaimentoDePeso não foi atribuído, será considerado como 0.0\n"););
+				printf("warning decaimentoDePeso não foi atribuído, será considerado como 0.0\n"););
 	GETLUAVALUE(globalcnn[0]->parametros.momento, L, "momento", number,
-	            printf("warning momento não foi atribuído, será considerado como 0.0\n"););
+				printf("warning momento não foi atribuído, será considerado como 0.0\n"););
 	GETLUAVALUE(p->Numero_Imagens, L, "Numero_Imagens", integer,
-	            printf("ERRO Numero_Imagens não foi atribuído");return -1;);
+				printf("ERRO Numero_Imagens não foi atribuído");return -1;);
 	GETLUAVALUE(p->Numero_ImagensAvaliacao, L, "Numero_ImagensAvaliacao", integer,
-	            printf("ERRO Numero_ImagensAvaliacao nao foi atribuído");return -1;);
+				printf("ERRO Numero_ImagensAvaliacao nao foi atribuído");return -1;);
 	GETLUAVALUE(p->Numero_ImagensTreino, L, "Numero_ImagensTreino", integer,
-	            printf("ERRO Numero_ImagensTreino não foi atribuído");return -1;);
+				printf("ERRO Numero_ImagensTreino não foi atribuído");return -1;);
 	GETLUAVALUE(p->SalvarSaidasComoPPM, L, "SalvarSaidasComoPPM", integer,
-	            printf("ERRO SalvarSaidasComoPPM não foi atribuído");return -1;);
+				printf("ERRO SalvarSaidasComoPPM não foi atribuído");return -1;);
 	GETLUAVALUE(p->SalvarBackupACada, L, "SalvarSaidasComoPPM", integer,
-	            printf("ERRO SalvarSaidasComoPPM não foi atribuído");return -1;);
+				printf("ERRO SalvarSaidasComoPPM não foi atribuído");return -1;);
 	GETLUAVALUE(p->Numero_Classes, L, "Numero_Classes", integer,
-	            printf("ERRO Numero_Classes não foi atribuído");return -1;);
+				printf("ERRO Numero_Classes não foi atribuído");return -1;);
 	GETLUAVALUE(p->bytes_remanessentes_classes, L, "bytes_remanessentes_classes", integer,
-	            printf("ERRO bytes_remanessentes_classes não foi atribuído");return -1;);
+				printf("ERRO bytes_remanessentes_classes não foi atribuído");return -1;);
 	GETLUAVALUE(p->bytes_remanessentes_imagem, L, "bytes_remanessentes_imagem", integer,
-	            printf("ERRO bytes_remanessentes_imagem não foi atribuído");return -1;);
+				printf("ERRO bytes_remanessentes_imagem não foi atribuído");return -1;);
 
 	GETLUASTRING(p->nome, tmp, MAX_STRING_LEN, L, "nome", printf("ERRO nome não foi atribuído");return -1;);
 	GETLUASTRING(p->home, tmp, MAX_STRING_LEN, L, "home", printf("ERRO home não foi atribuído");return -1;);
 
 	GETLUASTRING(p->estatisticasDeTreino, tmp, MAX_STRING_LEN, L, "estatisticasDeTreino",
-	             printf("ERRO estatisticasDeTreino não foi atribuído");return -1;);
+				 printf("ERRO estatisticasDeTreino não foi atribuído");return -1;);
 	GETLUASTRING(p->estatiscasDeAvaliacao, tmp, MAX_STRING_LEN, L, "estatiscasDeAvaliacao",
-	             printf("ERRO estatiscasDeAvaliacao não foi atribuído");return -1;);
+				 printf("ERRO estatiscasDeAvaliacao não foi atribuído");return -1;);
 	GETLUASTRING(p->arquivoContendoImagens, tmp, MAX_STRING_LEN, L, "arquivoContendoImagens",
-	             printf("ERRO arquivoContendoImagens não foi atribuído");return -1;);
+				 printf("ERRO arquivoContendoImagens não foi atribuído");return -1;);
 	GETLUASTRING(p->arquivoContendoRespostas, tmp, MAX_STRING_LEN, L, "arquivoContendoRespostas",
-	             printf("ERRO arquivoContendoRespostas não foi atribuído");return -1;);
+				 printf("ERRO arquivoContendoRespostas não foi atribuído");return -1;);
 
 	p->names = (Nomes *) calloc(sizeof(Nomes), p->Numero_Classes);
 
