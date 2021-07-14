@@ -18,8 +18,8 @@ typedef struct {
 	Typecamada super;
 	Tensor z;
 	Tensor pesos;
+	Tensor grad;
 	Tensor dz;
-	Tensor dz_old;
 	// funcao de ativacao e sua derivada
 	int fa, dfa;
 	Kernel kernelfullfeed;

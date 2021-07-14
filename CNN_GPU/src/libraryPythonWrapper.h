@@ -1,15 +1,9 @@
 #ifndef LIBRARY_LIBRARY_H
 #define LIBRARY_LIBRARY_H
 
-//#define LOG_CNN_SALVE_LAYERS
-//#define LOG_CNN_TENSOR_MEMORY
-//#define LOG_CNN_KERNELCALL
+
 #include "cnn.h"
 
-#define REQUEST_INPUT 0
-#define REQUEST_GRAD_INPUT 1
-#define REQUEST_OUTPUT 2
-#define REQUEST_WEIGTH 3
 
 typedef struct {
 	void *p;

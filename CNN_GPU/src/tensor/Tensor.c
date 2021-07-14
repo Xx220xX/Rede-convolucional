@@ -6,7 +6,7 @@
 
 void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error);
 
-Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, Exception *error) {
+Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char tensor_flag, Exception *error) {
 	if (error->error)return NULL;
 	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensor");
 	if (x <= 0 | y <= 0 | z <= 0) {
@@ -18,14 +18,15 @@ Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char u
 	t->y = y;
 	t->z = z;
 	t->w = 1;
-	t->flag = usehost;
+	t->flag = tensor_flag;
 	__fillTensor__(t, context, queue, t->bytes, error);
 
 	return t;
 }
 
 
-Tensor newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT l, char usehost, Exception *error) {
+Tensor
+newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT l, char tensor_flag, Exception *error) {
 	if (error->error)return NULL;
 	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensor4D");
 	Tensor t = (Tensor) calloc(1, sizeof(typetensor));
@@ -34,13 +35,14 @@ Tensor newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT
 	t->y = y;
 	t->z = z;
 	t->w = l;
+	t->flag = tensor_flag;
 	__fillTensor__(t, context, queue, t->bytes * l, error);
 
 	return t;
 }
 
 
-TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, Exception *error) {
+TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char tensor_flag, Exception *error) {
 	if (error->error)return NULL;
 	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensorChar");
 	TensorChar t = (Tensor) calloc(1, sizeof(typetensor));
@@ -49,6 +51,7 @@ TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z
 	t->y = y;
 	t->z = z;
 	t->w = 1;
+	t->flag = tensor_flag;
 	__fillTensor__(t, context, queue, t->bytes, error);
 
 	return t;
@@ -67,11 +70,7 @@ void releaseTensor(Tensor *t) {
 				if ((*t)->data)
 					clReleaseMemObject((*t)->data);
 				break;
-			case TENSOR_SVMA:
-			case TENSOR_SVM:
-				if ((*t)->host)
-					clSVMFree((*t)->context, (*t)->host);
-				break;
+
 		}
 		*t = NULL;
 	}
@@ -87,7 +86,6 @@ size_t allmem = 0;
 
 void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error) {
 	if (error->error)return;
-	t->context = context;
 	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "__fillTensor__");
 	switch (t->flag) {
 		case TENSOR_HOST:
@@ -96,27 +94,21 @@ void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exc
 			break;
 		case TENSOR_HSTA:
 			t->data = clCreateBuffer(context, CL_MEM_ALLOC_HOST_PTR | CL_MEM_READ_WRITE, bytes, &t->host,
-			                         &error->error);
+									 &error->error);
 			break;
 		case TENSOR_NCPY:
 			t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, bytes, NULL, &error->error);
 			break;
-		case TENSOR_SVM:
-			t->host = clSVMAlloc(context, CL_MEM_READ_WRITE, bytes, 0);
-			t->data = t->host;
-			break;
-		case TENSOR_SVMA:
-			t->host = clSVMAlloc(context, CL_MEM_SVM_ATOMICS | CL_MEM_READ_WRITE, bytes, 0);
-			t->data = t->host;
-			break;
 	}
 
+
+	if (error->error) {
+		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
+		return;
+	}
 	if (!t->data) {
 		error->error = -79;
 		snprintf(error->msg, 255, "A memoria retornada foi NULL\n");
-	}
-	if (error->error) {
-		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
 	}
 	if (error->error) return;
 //	char buf[250];
@@ -147,12 +139,7 @@ int TensorFillOffSet(QUEUE queue, Tensor t, char pattern, UINT offset) {
 			erro = clEnqueueFillBuffer(queue, t->data, &pattern, sizeof(char), offset, t->bytes, 0, NULL, NULL);
 			PERR(erro, "TensorFillOffSet/clEnqueueWriteBuffer ");
 			return erro;
-		case TENSOR_SVM:
-		case TENSOR_SVMA:
-			erro = clFinish(queue);
-			PERR(erro, "TensorFillOffSet/clFinish ");
-			memset(t->host, pattern, t->bytes);
-			return erro;
+
 		default:
 			erro = -90;
 			PERR(erro, "TensorFillOffSet: INVALID TENSOR FLAG %d ", t->flag);
@@ -183,12 +170,7 @@ int TensorPutValuesOffSet(QUEUE queue, Tensor t, void *data, UINT ofset) {
 			PERR(erro, "TensorPutValuesOffSet/clEnqueueWriteBuffer ");
 
 			return erro;
-		case TENSOR_SVM:
-		case TENSOR_SVMA:
-			erro = clFinish(queue);
-			PERR(erro, "TensorPutValuesOffSet/clFinish ");
-			memcpy(t->host, data, t->bytes);
-			return erro;
+
 		default:
 			erro = -90;
 			PERR(erro, "TensorPutValuesOffSet: INVALID TENSOR FLAG %d ", t->flag);
@@ -217,14 +199,9 @@ int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data, unsigned int offset
 
 		case TENSOR_NCPY:
 			erro = clEnqueueReadBuffer(queue, t->data, CL_TRUE, offset, t->bytes, data, 0, NULL, NULL);
-			PERR(erro, "TensorGetValuesOffset/clEnqueueReadBuffer");
+			PERR(erro, "TensorGetValuesOffset/clEnqueueReadBuffer %d 0x%p 0x%p",(int)t->flag,t->data,data);
 			return erro;
-		case TENSOR_SVM:
-		case TENSOR_SVMA:
-			erro = clFinish(queue);
-			PERR(erro, "TensorGetValuesOffset/clFinish ");
-			memcpy(data, t->host, t->bytes);
-			return erro;
+
 		default:
 			erro = -90;
 			PERR(erro, "TensorGetValuesOffset: INVALID TENSOR FLAG %d ", t->flag);
@@ -252,7 +229,7 @@ void releaseTensorC(TensorC c) {
 
 
 int dividirVetor(double *v, cl_mem m, size_t len, double value, Kernel funcNorm, size_t max_works,
-                 QUEUE queue) {
+				 QUEUE queue) {
 	int error = clEnqueueWriteBuffer(queue, m, CL_TRUE, 0, len * sizeof(double), v, 0, NULL, NULL);
 	if (error)return error;
 	error = kernel_run_recursive(&funcNorm, queue, len, max_works, &m, &value);
@@ -263,7 +240,7 @@ int dividirVetor(double *v, cl_mem m, size_t len, double value, Kernel funcNorm,
 
 
 int dividirVetorInt(unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len, double value,
-                    Kernel funcNorm, size_t max_works, QUEUE queue) {
+					Kernel funcNorm, size_t max_works, QUEUE queue) {
 	int error = clEnqueueWriteBuffer(queue, mi, CL_TRUE, 0, len * sizeof(unsigned char), src, 0, NULL, NULL);
 	if (error)return error;
 	error = kernel_run_recursive(&funcNorm, queue, len, max_works, &mi, &mout, &value);
@@ -274,7 +251,7 @@ int dividirVetorInt(unsigned char *src, double *dst, cl_mem mi, cl_mem mout, siz
 
 
 int int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len, int nop,
-                     Kernel func, QUEUE queue) {
+					 Kernel func, QUEUE queue) {
 	/* cl_program pg = compileProgram(cl->context,cl->device,
 									 "__kernel void printI(__global unsigned char *v, int len){"
 									 "for(int i = 0;i<len;i++){"

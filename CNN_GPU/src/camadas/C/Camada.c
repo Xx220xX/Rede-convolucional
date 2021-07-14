@@ -5,7 +5,7 @@
 #include "../Camada.h"
 
 Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
-                      Params param, Exception *error) {
+					  Params param, Exception *error) {
 	char identify = 0;
 	fread(&identify, sizeof(char), 1, src);
 	if (feof(src))return NULL;
@@ -37,8 +37,8 @@ Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 }
 
 void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE queue,
-                   Params params, size_t xi,
-                   size_t yi, size_t zi, size_t xo, size_t yo, size_t zo, char usehost, Exception *error) {
+				   Params params, size_t xi,
+				   size_t yi, size_t zi, size_t xo, size_t yo, size_t zo, char usehost, Exception *error) {
 	cl_context context = cl->context;
 	if (error->error)return;
 	c->flag_usehost = usehost;
@@ -46,27 +46,29 @@ void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE que
 	c->type = type;
 	c->entrada = entrada;
 	if (!entrada) {
-		c->entrada = newTensor(context, c->queue, xi, yi, zi,c->flag_usehost, error);
+		c->entrada = newTensor(context, c->queue, xi, yi, zi, c->flag_usehost, error);
 		c->flag_releaseInput = 1;
 	}
-	c->saida = newTensor(context, queue, xo, yo, zo,c->flag_usehost, error);
-	c->gradsEntrada = newTensor(context, queue, xi, yi, zi,c->flag_usehost, error);;
+	c->saida = newTensor(context, queue, xo, yo, zo, c->flag_usehost, error);
+	c->gradsEntrada = newTensor(context, queue, xi, yi, zi, c->flag_usehost, error);;
 	c->parametros = params;
 	c->max_works = &cl->maxworks;
 	c->context = cl->context;
-
+	c->setLearn = (fvc) CamadaSetLearn;
+	c->setParams = (fv3d) CamadaSetParams;
 }
 
-void __releaseCamada__(Camada c){
-	if(c->entrada!=c->gradsEntrada){
+void __releaseCamada__(Camada c) {
+	if (c->entrada != c->gradsEntrada) {
 		releaseTensor(&c->gradsEntrada);
 	}
-	if (c->flag_releaseInput){
+	if (c->flag_releaseInput) {
 		releaseTensor(&c->entrada);
 	}
 	releaseTensor(&c->saida);
 
 }
+
 void CamadaSetLearn(Camada c, char learn) {
 	c->flag_notlearn = !learn;
 }

@@ -28,17 +28,14 @@ typedef struct Cnn{
 	QUEUE queue;
 	WrapperCL *cl;
 	char releaseCL;
-	Exception error;
 	Kernel kernelsub;
 	Kernel kerneldiv;
 	Kernel kerneldivInt;
-	Kernel kernelNorm;
 	Kernel kernelNormalize;
-	Kernel kernelfindExtreme;
-	Kernel kernelMax;
 	Kernel kernelInt2Vector;
 	Kernel kernelcreateIMG;
 	double normaErro;
+	Exception error;
 } *Cnn, TypeCnn;
 /***
  * Cria uma Cnn
@@ -87,7 +84,6 @@ Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, U
  * @return
  */
 int CnnCalculeError(Cnn c);
-
 
 
 #define checkSizeFilter(v, tam, pas) ((((v)-(tam))/(pas)) ==((double)(v)-(tam))/((double)(pas)))

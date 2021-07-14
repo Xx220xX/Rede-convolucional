@@ -178,6 +178,7 @@ void printTestImages(double *images, double *labels, unsigned char *labelsI, int
  */
 int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int epocs, int saveCNN, int samples,
 		  char *outputMDTable) {
+
 	int caso = 0;
 	int key = 0;
 	int acertos = 0;
@@ -218,7 +219,6 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	for (int i = 0; i < samples; i++)index[i] = i;
 	int failed = 0;
 	// inicia treinamento
-
 	for (; epoca < epocs && !cnn->error.error; epoca++) {
 		if (stop == 'q')break;
 		initTime = getms();
@@ -269,6 +269,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	fclose(jsargs.jsAcerto);
 	fclose(jsargs.jsErro);
 	fclose(jsargs.jsEpoca);
+	info.finish = 1;
 	// finalizando ui
 	while (!info.finish) { Sleep(1); }
 	if (cnn->error.error) {

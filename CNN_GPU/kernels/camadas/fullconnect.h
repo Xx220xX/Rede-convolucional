@@ -36,7 +36,7 @@ double func(int id, double x) {
 }
 
 kV fullfeed(Vector entrada, Vector pesos, Vector z, Vector saida,
-            int funcaoativacao, int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
+			int funcaoativacao, int inx, int iny, int inz, int pesosx, int pesosy, int k0) {
 	int m = get_global_id(0) + k0;
 	double valorEntrada = 0;
 	int n;
@@ -47,49 +47,34 @@ kV fullfeed(Vector entrada, Vector pesos, Vector z, Vector saida,
 	saida[m] = func(funcaoativacao, valorEntrada);
 }
 
-kV
-fullfixweight(Vector a,
-              Vector pesos,
-              Vector dz,
-              Vector dz_old,
-              double hitlearn,
-              double decaimentoDePeso,
-              double momento,
-              int inx,
-              int iny,
-              int inz,
-              int pesosx,
-              int pesosy,
-              int k0) {
-	int n = get_global_id(0) + k0;
-	int m;
-	double w;
-	double tmp = dz[n] + dz_old[n] * momento;
-	dz_old[n] = tmp;
-	int k;
-	for (m = inx * iny * inz - 1; m >= 0; m--) {
-		k = TensorMap(n, m, 0, pesosx, pesosy);
-		w = pesos[k];
-		w -= hitlearn * (tmp * a[m] + w * decaimentoDePeso);
-		pesos[k] = w;
-	}
+kV fullfixweight(Vector a,
+			  Vector pesos,
+			  Vector dw,
+			  Vector dz,
+			  double hitlearn,
+			  double decaimentoDePeso,
+			  double momento,
+			  int pesosy,
+			  int k0) {
+	int k = get_global_id(0) + k0;
+	int m, n;
+	m = k / pesosy;
+	n = k % pesosy;
+	dw[k] = dz[m] * a[n] + dw[k] * momento;
+	pesos[k] = pesos[k] - hitlearn * (dw[k] + pesos[k] * decaimentoDePeso);
 }
 
 kV fullcalcgrads1(Vector dz, Vector ds, Vector z, int dfa, int k0) {
 	int m = get_global_id(0) + k0;
-	double aux = ds[m] * func(dfa, z[m]);
-	//aux = (!(isnan(aux) || isinf(aux)))*aux;
-	dz[m] = aux;
+	dz[m] = ds[m] * func(dfa, z[m]);
 }
 
 kV fullcalcgrads2(Vector dz, Vector da, Vector pesos, int pesosx, int pesosy,
-                  int k0) {
+				  int k0) {
 	int m = get_global_id(0) + k0;
-	double soma = 0,aux;
+	double soma = 0;
 	for (int n = 0; n < pesosx; ++n) {
-		aux = dz[n] * pesos[TensorMap(n, m, 0, pesosx, pesosy)];
-		//aux = (!(isnan(aux) || isinf(aux)))*aux;
-		soma += aux;
+		soma += dz[n] * pesos[TensorMap(n, m, 0, pesosx, pesosy)];
 	}
 	da[m] = soma;
 }

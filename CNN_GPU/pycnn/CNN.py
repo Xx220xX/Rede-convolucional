@@ -18,19 +18,22 @@ clib.releaseCnnWrapper.argtypes = [c.c_void_p]
 clib.camadaToString.argtypes = [c.c_void_p]
 clib.camadaToString.restype = c.c_char_p
 
-clib.CnnAddConvLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint, c.c_uint]
-clib.CnnAddConvNcLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint, c.c_uint, c.c_uint, c.c_uint, c.c_uint, c.c_uint]
-clib.CnnAddPoolLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint]
-clib.CnnAddPoolAvLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint]
-clib.CnnAddReluLayer.argtypes = [c.c_void_p]
-clib.CnnAddPaddingLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint, c.c_uint, c.c_uint]
-clib.CnnAddBatchNorm.argtypes = [c.c_void_p, c.c_double]
-clib.CnnAddDropOutLayer.argtypes = [c.c_void_p, c.c_double, c.c_ulonglong]
-clib.CnnAddFullConnectLayer.argtypes = [c.c_void_p, c.c_uint, c.c_uint]
+clib.CnnAddConvLayer.argtypes = [c.c_void_p, c.c_uint8, c.c_uint, c.c_uint, c.c_uint]
+clib.CnnAddConvNcLayer.argtypes = [c.c_void_p, c.c_uint8, c.c_uint, c.c_uint, c.c_uint, c.c_uint, c.c_uint, c.c_uint,
+                                   c.c_uint]
+clib.CnnAddPoolLayer.argtypes = [c.c_void_p, c.c_uint8, c.c_uint, c.c_uint]
+clib.CnnAddPoolAvLayer.argtypes = [c.c_void_p, c.c_uint8, c.c_uint, c.c_uint]
+clib.CnnAddReluLayer.argtypes = [c.c_void_p, c.c_uint8]
+clib.CnnAddPaddingLayer.argtypes = [c.c_void_p, c.c_uint8, c.c_uint, c.c_uint, c.c_uint, c.c_uint]
+clib.CnnAddBatchNorm.argtypes = [c.c_void_p, c.c_uint8, c.c_double]
+clib.CnnAddDropOutLayer.argtypes = [c.c_void_p, c.c_uint8, c.c_double, c.c_ulonglong]
+clib.CnnAddFullConnectLayer.argtypes = [c.c_void_p, c.c_uint8, c.c_uint, c.c_uint]
 clib.CnnCall.argtypes = [c.c_void_p, c.c_void_p]
 clib.CnnLearn.argtypes = [c.c_void_p, c.c_void_p]
+clib.CnnCalculeError.argtypes = [c.c_void_p, ]
+
 clib.TensorGetValues.argtypes = [c.c_void_p, c.c_void_p, c.c_void_p]
-clib.TensorGetValuesOffset.argtypes = [c.c_void_p, c.c_void_p, c.c_int, c.c_void_p]
+clib.TensorGetValuesOffset.argtypes = [c.c_void_p, c.c_void_p, c.c_void_p, c.c_uint]
 clib.TensorPutValues.argtypes = [c.c_void_p, c.c_void_p, c.c_void_p]
 
 clib.CamadaSetParams.argtypes = [c.c_void_p, c.c_double, c.c_double, c.c_double]
@@ -45,6 +48,10 @@ clib.freeP.argtypes = [c.c_void_p]
 FSIGMOID = 0
 FTANH = 2
 FRELU = 4
+
+TENSOR_NCPY = 0
+TENSOR_HOST = 1
+TENSOR_HSTA = 2
 
 CONV = 1
 POOL = 2
@@ -83,13 +90,17 @@ def LCG_SEED(v):
 
 class Tensor(c.Structure):
     _fields_ = [('mem', c.c_void_p),
+                ('host', c.c_void_p),
+                ('flag', c.c_uint8),
                 ('bytes', c.c_uint),
                 ('x', c.c_uint),
                 ('y', c.c_uint),
-                ('z', c.c_uint)]
+                ('z', c.c_uint),
+                ('w', c.c_uint),
+                ]
 
     def __repr__(self):
-        s = "Tensor(%d %d %d)" % (self.x, self.y, self.z)
+        s = "Tensor[%s](%d %d %d %d)" % (["NCPY","HOST", "HSTA",  ][self.flag], self.x, self.y, self.z, self.w)
         return s
 
     def put(self, values: list):
@@ -100,7 +111,7 @@ class Tensor(c.Structure):
         temp = self.x * self.y * self.z
         temp = c.c_double * temp
         temp = temp(0)
-        clib.TensorGetValuesOffset(queue, c.addressof(self), offset*self.bytes, temp)
+        clib.TensorGetValuesOffset(queue, c.addressof(self), temp, offset * self.bytes)
         return list(temp)
 
     def value_np(self, offset=0):
@@ -125,12 +136,11 @@ class TensorChar(Tensor):
         tmp = c.c_ubyte * (self.x * self.y * self.z)
         return clib.TensorPutValues(queue, c.addressof(self), tmp(*values))
 
-
-    def value(self,offset=0):
+    def value(self, offset=0):
         temp = self.x * self.y * self.z
         temp = c.c_uint8 * temp
         temp = temp(0)
-        clib.TensorGetValuesOffset(queue, c.addressof(self), offset*self.bytes, temp)
+        clib.TensorGetValuesOffset(queue, c.addressof(self), offset * self.bytes, temp)
         return list(temp)
 
 
@@ -149,7 +159,7 @@ class Ponto3d(c.Structure):
 
 class GPU_ERROR(c.Structure):
     _fields_ = [('error', c.c_int),
-                ('msg', c.c_char * 255)]
+                ('msg', c.c_char * 500)]
 
 
 class Kernel(c.Structure):
@@ -157,27 +167,32 @@ class Kernel(c.Structure):
                 ('kernelName', c.c_char_p),
                 ('nArgs', c.c_int),
                 ('largs', c.c_void_p),
-                ('error', c.c_int)]
+                ]
 
 
 class Camada(c.Structure):
-    _fields_ = [('type', c.c_ubyte),
+    _fields_ = [('type', c.c_uint8),
+                ('flag_releaseInput', c.c_uint8),
+                ('flag_notlearn', c.c_uint8),
+                ('flag_usehost', c.c_uint8),
                 ('parametros', Params),
                 ('gradsEntrada', TOPOINTER(Tensor)),
                 ('entrada', TOPOINTER(Tensor)),
                 ('saida', TOPOINTER(Tensor)),
-                ('flag_releaseInput', c.c_char),
-                ('flag_notlearn', c.c_char),
                 ('queue', c.c_void_p),
                 ('context', c.c_void_p),
-                ('max_works', TOPOINTER(c.c_uint)),
+                ('max_works', TOPOINTER(c.c_uint64)),
                 ('calc_grads', c.c_void_p),
                 ('corrige_pesos', c.c_void_p),
                 ('ativa', c.c_void_p),
+                ('release', c.c_void_p),
                 ('salvar', c.c_void_p),
                 ('toString', c.c_void_p),
-                ('__string', c.c_char_p),
-                ('release', c.c_void_p)]
+                ('getCreateParams', c.c_void_p),
+                ('setLearn', c.CFUNCTYPE(None, c.c_void_p, c.c_uint8)),
+                ('setParams', c.CFUNCTYPE(None, c.c_void_p, c.c_double, c.c_double, c.c_double, )),
+                ('__string__', c.c_char_p),
+                ]
 
     def __repr__(self):
         cstr = clib.camadaToString(c.addressof(self))
@@ -185,6 +200,9 @@ class Camada(c.Structure):
 
     def setParams(self, hitlearn, momento, decaimento):
         clib.CamadaSetParams(c.addressof(self), hitlearn, momento, decaimento)
+
+    def setLearnable(self, canLearn: bool):
+        self.setLearn(c.addressof(self), canLearn)
 
 
 class CamadaConv(c.Structure):
@@ -269,8 +287,8 @@ class CamadaFullConnect(c.Structure):
     _fields_ = [('super', Camada),
                 ('z', TOPOINTER(Tensor)),
                 ('pesos', TOPOINTER(Tensor)),
+                ('grad', TOPOINTER(Tensor)),
                 ('dz', TOPOINTER(Tensor)),
-                ('dz_old', TOPOINTER(Tensor)),
                 ('fa', c.c_int),
                 ('dfa', c.c_int),
                 ('kernelfullfeed', Kernel),
@@ -434,26 +452,22 @@ class typeCnn(c.Structure):
                 ('target', TOPOINTER(Tensor)),
                 ('size', c.c_int),
                 ('sizeIn', Ponto3d),
-                ('err', c.c_char),
                 ('queue', c.c_void_p),
                 ('cl', c.c_void_p),
                 ('releaseCL', c.c_char),
-                ('error', GPU_ERROR),
                 ('kernelsub', Kernel),
                 ('kerneldiv', Kernel),
                 ('kerneldivInt', Kernel),
-                ('kernelNorm', Kernel),
                 ('kernelNormalize', Kernel),
-                ('kernelfindExtreme', Kernel),
-                ('kernelMax', Kernel),
                 ('kernelInt2Vector', Kernel),
                 ('kernelcreateIMG', Kernel),
-                ('flags', c.c_char),
-                ('normaErro', c.c_double)]
+                ('normaErro', c.c_double),
+                ('error', GPU_ERROR),
+                ]
 
 
 class Cnn:
-    def __init__(self, x, y, z, hitlearn=0.1, momento=0.01, decaimentoDePeso=0):
+    def __init__(self, x, y, z, hitlearn=0.1, momento=0.0, decaimentoDePeso=0.0):
         self.p = Pointer()
         clib.createCnnPy(c.addressof(self.p), hitlearn, momento, decaimentoDePeso, x, y, z)
         self.cnn = c.cast(self.p.p, TOPOINTER(typeCnn))
@@ -472,32 +486,33 @@ class Cnn:
     def __del__(self):
         clib.releaseCnnWrapper(c.addressof(self.p))
 
-    def addConv(self, passo, tamanhoFiltro, numeroFiltros):
-        return clib.CnnAddConvLayer(self.cnn, passo, tamanhoFiltro, numeroFiltros)
+    def addConv(self, passo, tamanhoFiltro, numeroFiltros, flagTensor=TENSOR_NCPY):
+        return clib.CnnAddConvLayer(self.cnn, flagTensor, passo, tamanhoFiltro, numeroFiltros)
 
-    def addConvNc(self, passox, passoy, largx, largy, filtrox, filtroy, numeroFiltros):
-        return clib.CnnAddConvNcLayer(self.cnn, passox,passoy,largx,largy,filtrox,filtroy,numeroFiltros)
+    def addConvNc(self, passox, passoy, largx, largy, filtrox, filtroy, numeroFiltros, flagTensor=TENSOR_NCPY):
+        return clib.CnnAddConvNcLayer(self.cnn, flagTensor, passox, passoy, largx, largy, filtrox, filtroy,
+                                      numeroFiltros)
 
-    def addPool(self, passo, tamanhoFiltro):
-        return clib.CnnAddPoolLayer(self.cnn, passo, tamanhoFiltro)
+    def addPool(self, passo, tamanhoFiltro, flagTensor=TENSOR_NCPY):
+        return clib.CnnAddPoolLayer(self.cnn, flagTensor, passo, tamanhoFiltro)
 
-    def addPoolAv(self, passo, tamanhoFiltro):
-        return clib.CnnAddPoolAvLayer(self.cnn, passo, tamanhoFiltro)
+    def addPoolAv(self, passo, tamanhoFiltro, flagTensor=TENSOR_NCPY):
+        return clib.CnnAddPoolAvLayer(self.cnn, flagTensor, passo, tamanhoFiltro)
 
-    def addRelu(self):
-        return clib.CnnAddReluLayer(self.cnn)
+    def addRelu(self, flagTensor=TENSOR_NCPY):
+        return clib.CnnAddReluLayer(self.cnn, flagTensor)
 
-    def addPadding(self, top, bottom, left, right):
-        return clib.CnnAddPaddingLayer(self.cnn, top, bottom, left, right)
+    def addPadding(self, top, bottom, left, right, flagTensor=TENSOR_NCPY):
+        return clib.CnnAddPaddingLayer(self.cnn, flagTensor, top, bottom, left, right)
 
-    def addBatchNorm(self, episolon=1e-12):
-        return clib.CnnAddBatchNorm(self.cnn, episolon)
+    def addBatchNorm(self, episolon=1e-12, flagTensor=TENSOR_NCPY):
+        return clib.CnnAddBatchNorm(self.cnn, flagTensor, episolon)
 
-    def addDropOut(self, ativacao, seed=time.time()):
-        return clib.CnnAddDropOutLayer(self.cnn, ativacao, int(seed))
+    def addDropOut(self, ativacao, seed=time.time(), flagTensor=TENSOR_NCPY):
+        return clib.CnnAddDropOutLayer(self.cnn, flagTensor, ativacao, int(seed))
 
-    def addFullConnect(self, saida, FuncaoAtivacao=FTANH):
-        return clib.CnnAddFullConnectLayer(self.cnn, saida, FuncaoAtivacao)
+    def addFullConnect(self, saida, funcaoAtivacao=FTANH, flagTensor=TENSOR_NCPY):
+        return clib.CnnAddFullConnectLayer(self.cnn, flagTensor, saida, funcaoAtivacao)
 
     @property
     def out(self):
@@ -514,7 +529,7 @@ class Cnn:
             return clib.CnnCall(self.cnn, cinput)
 
         self.predict = __predict
-        __predict(input_values)
+        return __predict(input_values)
 
     def learn(self, target: list):
         # saida da rede
@@ -558,8 +573,13 @@ class Cnn:
         clib.CnnLoadByFile(tmpCnn.cnn, fileName.encode('utf-8'))
         return tmpCnn
 
+    def getMSE(self):
+        clib.CnnCalculeError(self.cnn)
 
-if __name__ == '__main__':
+        return self.normaErro
+
+
+def testIMAGE():
     LCG_SEED(time.time())
     from random import random
 
@@ -575,12 +595,13 @@ if __name__ == '__main__':
     a.salveOutsAsPPM('a.jpg')
 
 
-def testXOR():
+def testXOR(iters=10):
     LCG_SEED(time.time())
     a = Cnn(2, 1, 1, hitlearn=0.1, momento=0)
     a.addFullConnect(6, FTANH)
     a.addFullConnect(5, FTANH)
-    a.addFullConnect(3, FTANH)
+    a.addFullConnect(5, FTANH)
+    a.addFullConnect(5, FTANH)
     a.addFullConnect(1, FTANH)
     # a.addBatchNorm()
     entrada = [[1, 1], [1, 0], [0, 1], [0, 0]]
@@ -589,13 +610,13 @@ def testXOR():
     j = [0, 1, 2, 3]
     import random
 
-    for i in range(1000):
+    for i in range(iters):
         err = 0
-        random.shuffle(j)
+        # random.shuffle(j)
         for caso in j:
             a.predict(entrada[caso])
             a.learn(saida[caso])
-            err += a.normaErro
+            err += a.getMSE()
             # print(entrada[caso],saida[caso],a.out)
             # print(a.normaErro)
         erro.append(err)
@@ -607,3 +628,7 @@ def testXOR():
     plt.text(0, 1, str(a).replace('\t', '   '))
     plt.ylim([-0.5, 5])
     plt.show()
+
+
+if __name__ == '__main__':
+    testXOR(3)

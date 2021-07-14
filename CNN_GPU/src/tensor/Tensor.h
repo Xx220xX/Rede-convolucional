@@ -38,10 +38,6 @@ typedef struct Ponto3d {
 #define TENSOR_HOST 0x01
 ///Faz a copia com um ponteiro host que pode ser usando enquanto o kernel está executando, o driver faz alocação do host.
 #define TENSOR_HSTA 0x02
-///Utiliza a memoria compartilhada host=data
-#define TENSOR_SVM  0x03
-///Utiliza a memoria compartilhada host=data, com flag ATOMIC.
-#define TENSOR_SVMA 0x04
 
 
 typedef unsigned int UINT;
@@ -58,15 +54,16 @@ typedef unsigned int UINT;
  * @flags TENSOR_NCPY Não faz nenhuma copia, toda memoria é armazenada no driver
  * @flags TENSOR_HOST Faz a copia com um ponteiro host que pode ser usando enquanto o kernel está executando
  * @flags TENSOR_HSTA Faz a copia mas o driver faz alocação dos recursos
- * @flags TENSOR_SVM Utiliza a memoria compartilhada host=data
- * @flags TENSOR_SVMA Utiliza a memoria compartilhada host=data, com flag ATOMIC
  */
 typedef struct typetensor {
 	cl_mem data;
 	void *host;
 	char flag;
-	UINT bytes, x, y, z, w;
-	cl_context context;
+	UINT bytes;
+	UINT x;
+	UINT y;
+	UINT z;
+	UINT w;
 } *Tensor, typetensor, *TensorChar;
 
 
@@ -76,11 +73,11 @@ typedef struct {
 } *TensorC, typeTensorC;
 
 
-Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, Exception *error);
+Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char tensor_flag, Exception *error);
 
-TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char usehost, Exception *error);
+TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char tensor_flag, Exception *error);
 
-Tensor newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT l, char usehost, Exception *error);
+Tensor newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT l, char tensor_flag, Exception *error);
 
 void printTensor(QUEUE q, Tensor t, FILE *f);
 
@@ -104,16 +101,16 @@ void releaseTensorChar(TensorChar *t);
 TensorC newTensorC(int x, int y, int z);
 
 int dividirVetor(double *v, cl_mem m, size_t len, double value, Kernel funcNorm,
-                 size_t max_works,
-                 QUEUE queue);
+				 size_t max_works,
+				 QUEUE queue);
 
 int dividirVetorInt(unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len, double value,
-                    Kernel funcNorm,
-                    size_t max_works,
-                    QUEUE queue);
+					Kernel funcNorm,
+					size_t max_works,
+					QUEUE queue);
 
 int int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len,
-                     int nop,
-                     Kernel func, QUEUE queue);
+					 int nop,
+					 Kernel func, QUEUE queue);
 
 #endif //CNN_GPU_TENSOR_H

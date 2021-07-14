@@ -54,25 +54,9 @@ kV printTensor(Vector t, int mx, int my, int mz, int ofset) {
 	}
 }
 
-kV norm(Vector v, Vector out, int len) {
-	double s = 0,aux;
-	for (int i = 0; i < len; ++i) {
-		aux = v[i] * v[i];
-		aux = (!(isnan(aux) || isinf(aux)))*aux;
-		s += aux;
-	}
-	out[0] = pow(s, 0.5);
-}
 
-kV maxID(Vector v, Vector out, int len) {
-	int s = 0;
-	for (int i = 1; i < len; ++i) {
-		if (v[s] < v[i]) {
-			s = i;
-		}
-	}
-	out[0] = (double) s;
-}
+
+
 
 kV
 normalizeVector(Vector input, Vector saida, double multiplicador, double somador, double subtrator,
@@ -81,15 +65,6 @@ normalizeVector(Vector input, Vector saida, double multiplicador, double somador
 	saida[k] = (input[k] + somador) * multiplicador - subtrator;
 }
 
-kV findExtremes(Vector input, Vector output, int len) {
-	double mn = input[0], mx = input[0];
-	for (int i = 1; i < len; ++i) {
-		if (input[i] > mx) mx = input[i];
-		if (input[i] < mn) mn = input[i];
-	}
-	output[0] = mn;
-	output[1] = mx;
-}
 
 kV sub(Vector grad, Vector saida, Vector target, int k0) {
 	int k = get_global_id(0) + k0;
@@ -112,7 +87,6 @@ kV int2vector(__global unsigned char *ints, Vector v, int noptiobs, int k0) {
 		v[k * noptiobs + j] = (double) (j == ints[k]);
 	}
 }
-
 
 int normaliza_range(double f, int max, int lim_min) {
 	if (f <= 0)return 0;
