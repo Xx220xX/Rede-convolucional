@@ -48,7 +48,6 @@ kV convCalcFiltro(     Vector ds,
 		for (int j = 0; j < saida_ty; ++j) {
 			aux = entrada[TensorMap(i*passo+m, j*passo+n,z,entrada_tx,entrada_ty)]
 				   *ds[TensorMap(i,j,l,saida_tx,saida_ty)];
-			//aux = (!(isnan(aux) || isinf(aux)))*aux;
 			soma +=aux;
 		}
 	}

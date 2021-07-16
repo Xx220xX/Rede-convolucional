@@ -13,15 +13,15 @@ typedef struct {
 } Params;
 // funcao com dois parametros do tipo ponteiro com retorno inteiro
 
-typedef int (*fvv)(void *, void *);
+typedef int (*f2v)(void *, void *);
 
 typedef int (*fv)(void *);
 typedef int (*fvc)(void *,char );
 typedef int (*fv3d)(void *,double ,double ,double );
 
-typedef int  (*fsl)(void *, void *, void *, void *);
+typedef int  (*f4v)(void *, void *, void *, void *);
 
-typedef const char *(*fch)(void *);
+typedef const char *(*cfv)(void *);
 
 typedef struct {
 	char type;
@@ -35,13 +35,13 @@ typedef struct {
 	QUEUE queue;
 	cl_context context;
 	size_t *max_works;
-	fvv calc_grads;
+	f2v calc_grads;
 	fv corrige_pesos;
 	fv ativa;
 	fv release;
-	fsl salvar;
-	fch toString;
-	fch getCreateParams;
+	f4v salvar;
+	cfv toString;
+	cfv getCreateParams;
 	fvc setLearn;
 	fv3d setParams;
 	char *__string__;

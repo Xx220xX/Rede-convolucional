@@ -217,7 +217,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	int *index = (int *) calloc(samples, sizeof(int));
 	// inicializa vetor index
 	for (int i = 0; i < samples; i++)index[i] = i;
-	int failed = 0;
+//	printf("queue 0x%p\n",cnn->queue);
 	// inicia treinamento
 	for (; epoca < epocs && !cnn->error.error; epoca++) {
 		if (stop == 'q')break;
@@ -229,24 +229,25 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 		erro = 0;
 		erroMedio = 0;
 		acertos = 0;
-		for (key = 0; key < samples && !failed; key++) {
+		for (key = 0; key < samples && !cnn->error.error; key++) {
 			caso = index[key];
 			if (kbhit() && (stop = tolower(getch())) == 'q')break;
-			failed = CnnCall(cnn, images + inputSize * caso);
-//			printTensor(cnn->queue,cnn->camadas[5]->entrada,cma);
-//			printTensor(cnn->queue,cnn->camadas[5]->saida,cma);
-			failed += CnnLearn(cnn, labels + outputSize * caso);
-			failed += CnnCalculeError(cnn);
+			CnnCall(cnn, images + inputSize * caso);
+//			printf("call %d\n",cnn->error.error);
+			CnnLearn(cnn, labels + outputSize * caso);
+//			printf("learn %d\n",cnn->error.error);
+			CnnCalculeError(cnn);
 			r = CnnGetIndexMax(cnn);
+//			printf("index %d\n",r);
 			if (r == labelsI[caso]) { acertos += 1; }
-			if (!(isnan(cnn->normaErro) || isinf(cnn->normaErro))) {
-				erro += cnn->normaErro;
-				erroMedio = erro / (key + 1);
-				jsargs.erro[key] = erroMedio;
-				jsargs.epoca[key] = epoca + key / ((double) samples);
-				jsargs.acerto[key] = acertos * 100.0 / ((double) key + 1.0);
-			}
-			if (info.finish) {
+
+			erro += cnn->normaErro;
+			erroMedio = erro / (key + 1);
+			jsargs.erro[key] = erroMedio;
+			jsargs.epoca[key] = epoca + key / ((double) samples);
+			jsargs.acerto[key] = acertos * 100.0 / ((double) key + 1.0);
+
+			if (info.finish && !cnn->error.error) {
 				info.erro = erroMedio;
 				info.acertos = acertos;
 				info.msInitEpoca = initTime;
@@ -257,6 +258,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 			}
 		}
 		pthread_join(jsargs.tid, NULL);
+
 		aux = jsargs;
 		aux.len = key;
 		pthread_create(&jsargs.tid, NULL, (void *(*)(void *)) salveJS, &aux);
@@ -272,12 +274,8 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 	info.finish = 1;
 	// finalizando ui
 	while (!info.finish) { Sleep(1); }
-	if (cnn->error.error) {
-		getClError(cnn->error.error, cnn->error.msg, EXCEPTION_MAX_MSG_SIZE);
-		fprintf(stderr, "falha ao treinar  %d: %s\n", cnn->error.error, cnn->error.msg);
-		system("pause");
-	}
-	return 0;
+
+	return cnn->error.error;
 }
 
 int

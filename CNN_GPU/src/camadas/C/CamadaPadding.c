@@ -122,13 +122,13 @@ Camada createPadding(WrapperCL *cl, QUEUE queue,
 	              (Params) {0}, inx, iny, inz, inx + top + bottom, iny + left + right,
 	              inz,usehost, error);
 	error->error = TensorFill(queue,c->super.saida,0);
-	c->super.toString = (fch) tostringPadding;
-	c->super.getCreateParams = (fch) getCreateParamsPadding;
+	c->super.toString = (cfv) tostringPadding;
+	c->super.getCreateParams = (cfv) getCreateParamsPadding;
 	c->super.release = (fv) realeasePadding;
 	c->super.ativa = (fv) ativaPadding;
-	c->super.calc_grads = (fvv) calc_gradsPadding;
+	c->super.calc_grads = (f2v) calc_gradsPadding;
 	c->super.corrige_pesos = (fv) corrige_pesosPadding;
-	c->super.salvar = (fsl) salvarPadding;
+	c->super.salvar = (f4v) salvarPadding;
 	c->top = top;
 	c->bottom = bottom;
 	c->left = left;

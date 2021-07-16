@@ -52,8 +52,7 @@ int convRandomize(CamadaConv c, WrapperCL *cl, Exception *error) {
 				}
 		error->error = TensorPutValuesOffSet(queue, c->filtros, data, a * c->filtros->bytes);
 		if (error->error) {
-			printf("here %d \n",a);
-			getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
+			getClErrorWithContext(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE,"convRandomize/TensorPutValuesOffSet ");
 			free(data);
 			return error->error;
 		}
@@ -205,14 +204,14 @@ Camada createConv(WrapperCL *cl, QUEUE queue, UINT passo, UINT lenFilter,
 	              (inx - lenFilter) / passo + 1, (iny - lenFilter) / passo + 1,
 	              numeroFiltros, usehost, error);
 
-	c->super.toString = (fch) tostringConv;
-	c->super.getCreateParams = (fch) getCreateParamsConv;
+	c->super.toString = (cfv) tostringConv;
+	c->super.getCreateParams = (cfv) getCreateParamsConv;
 
 	c->super.release = (fv) releaseConv;
 	c->super.ativa = (fv) ativaConv;
-	c->super.calc_grads = (fvv) calc_gradsConv;
+	c->super.calc_grads = (f2v) calc_gradsConv;
 	c->super.corrige_pesos = (fv) corrige_pesosConv;
-	c->super.salvar = (fsl) salvarConv;
+	c->super.salvar = (f4v) salvarConv;
 	c->passo = passo;
 	c->tamanhoFiltro = lenFilter;
 	c->numeroFiltros = numeroFiltros;

@@ -231,13 +231,13 @@ Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
 	              (iny - (filtroy - 1) * largy) / passoy,
 	              numeroFiltros,usehost, error);
 
-	c->super.toString = (fch) tostringConvNc;
-	c->super.getCreateParams = (fch) getCreateParamsConvNc;
+	c->super.toString = (cfv) tostringConvNc;
+	c->super.getCreateParams = (cfv) getCreateParamsConvNc;
 	c->super.release = (fv) releaseConvNc;
 	c->super.ativa = (fv) ativaConvNc;
-	c->super.calc_grads = (fvv) calc_gradsConvNc;
+	c->super.calc_grads = (f2v) calc_gradsConvNc;
 	c->super.corrige_pesos = (fv) corrige_pesosConvNc;
-	c->super.salvar = (fsl) salvarConvNc;
+	c->super.salvar = (f4v) salvarConvNc;
 	c->passox = passox;
 	c->passoy = passoy;
 	c->largx = largx;

@@ -102,14 +102,14 @@ Camada createPoolAv(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tama
 	__newCamada__((Camada) c, cl, POOLAV, entrada, queue, params, inx, iny, inz, (inx - tamanhoFiltro) / passo + 1,
 	              (iny - tamanhoFiltro) / passo + 1, inz,
 	              usehost,error);
-	c->super.toString = (fch) tostringPoolAv;
-	c->super.getCreateParams = (fch) getCreateParamsPoolAv;
+	c->super.toString = (cfv) tostringPoolAv;
+	c->super.getCreateParams = (cfv) getCreateParamsPoolAv;
 	c->super.release = (fv) releasePoolAv;
 	c->super.ativa = (fv) ativaPoolAv;
 	c->super.corrige_pesos = (fv) corrige_pesosPoolAv;
-	c->super.calc_grads = (fvv) calc_gradsPoolAv;
+	c->super.calc_grads = (f2v) calc_gradsPoolAv;
 	c->super.parametros = params;
-	c->super.salvar = (fsl) salvarPoolAv;
+	c->super.salvar = (f4v) salvarPoolAv;
 
 	c->kernelPoolAvAtiva = new_Kernel(cl->program, error, "PoolAvativa", 9, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT,
 	                                  K_INT, K_INT,

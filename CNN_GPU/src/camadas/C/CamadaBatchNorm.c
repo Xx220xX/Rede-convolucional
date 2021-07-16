@@ -225,13 +225,13 @@ Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
 	CamadaBatchNorm c = (CamadaBatchNorm) calloc(1, sizeof(TypecamadaBatchNorm));
 
 	__newCamada__((Camada) c, cl, BATCHNORM, entrada, queue, params, inx, iny, inz, inx, iny, inz, usehost, error);
-	c->super.toString = (fch) tostringBatchNorm;
-	c->super.getCreateParams = (fch) getCreateParamsBatchNorm;
+	c->super.toString = (cfv) tostringBatchNorm;
+	c->super.getCreateParams = (cfv) getCreateParamsBatchNorm;
 	c->super.release = (fv) realeaseBatchNorm;
 	c->super.ativa = (fv) ativaBatchNorm;
-	c->super.calc_grads = (fvv) calc_gradsBatchNorm;
+	c->super.calc_grads = (f2v) calc_gradsBatchNorm;
 	c->super.corrige_pesos = (fv) corrige_pesosBatchNorm;
-	c->super.salvar = (fsl) salvarBatchNorm;
+	c->super.salvar = (f4v) salvarBatchNorm;
 
 	c->media = newTensor(cl->context, queue, 1, 1, inz, usehost, error);
 	c->somaDiferenca = newTensor(cl->context, queue, 1, 1, inz, usehost, error);

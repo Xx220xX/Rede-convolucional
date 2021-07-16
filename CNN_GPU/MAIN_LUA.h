@@ -96,8 +96,9 @@ int main(int nargs, char **args) {
 	printf(" ok\n");
 	// inicia o processo de treinamento
 	printf("iniciando treino\n");
-	train(cnn, input, target, targeti, p.Numero_epocas, p.SalvarBackupACada, p.Numero_ImagensTreino,
+	erro = train(cnn, input, target, targeti, p.Numero_epocas, p.SalvarBackupACada, p.Numero_ImagensTreino,
 	      p.estatisticasDeTreino);
+	if (erro)goto end;
 	printf("salvando rede\n");
 
 	// salva a rede treinada
@@ -110,13 +111,22 @@ int main(int nargs, char **args) {
 	size_t inputSize = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
 	size_t outputSize = cnn->camadas[cnn->size - 1]->entrada->x * cnn->camadas[cnn->size - 1]->entrada->y *
 	                    cnn->camadas[cnn->size - 1]->entrada->z;
-	fitness(cnn, input + p.Numero_ImagensTreino * inputSize, targeti + p.Numero_ImagensTreino,
+	erro = fitness(cnn, input + p.Numero_ImagensTreino * inputSize, targeti + p.Numero_ImagensTreino,
 	        p.Numero_Classes, p.names, p.Numero_ImagensAvaliacao, p.SalvarSaidasComoPPM, p.nome,
 	        p.estatiscasDeAvaliacao);
 
 	printf("\ntreino terminado\n");
 	// final do programa, libera todos os recursos utilizados
 	end:
+	if(erro){
+		if(cnn){
+			if(cnn->error.error){
+				fprintf(stderr,"%s\n",cnn->error.msg);
+			}
+		}else{
+			fprintf(stderr,"Erro %d\n",erro);
+		}
+	}
 	if (input)free(input);
 	if (target)free(target);
 	if (targeti)free(targeti);
@@ -125,7 +135,6 @@ int main(int nargs, char **args) {
 	}
 	if (p.names)free(p.names);
 	printf("\n");
-//    system("pause");
 
 	return erro;
 }

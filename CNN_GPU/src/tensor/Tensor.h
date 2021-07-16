@@ -18,15 +18,7 @@
 #define LOG_CNN_TENSOR_MEMORY(format, ...)
 #endif
 
-/**
- * Armazena as três dimensões de um ponto
- * @Atributtes x dimensão x do Ponto
- * @Atributtes y dimensão y do Ponto
- * @Atributtes z dimensão z do Ponto
- */
-typedef struct Ponto3d {
-	unsigned int x, y, z;
-} Ponto3d;
+
 /**
  * Mapeia um ponto 3d no vetor
  */
@@ -41,6 +33,15 @@ typedef struct Ponto3d {
 
 
 typedef unsigned int UINT;
+/**
+ * Armazena as três dimensões de um ponto
+ * @Atributtes x dimensão x do Ponto
+ * @Atributtes y dimensão y do Ponto
+ * @Atributtes z dimensão z do Ponto
+ */
+typedef struct Ponto3d {
+	UINT x, y, z;
+} Ponto3d;
 /***
  * Tensor armazena uma matriz 4D juntamente com os parametros dela
  * @Atributtes data memoria no driver

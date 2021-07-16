@@ -90,13 +90,13 @@ Camada createRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsig
 	CamadaRelu c = (CamadaRelu) calloc(1, sizeof(TypecamadaRelu));
 
 	__newCamada__((Camada) c, cl, RELU, entrada, queue, (Params) {0}, inx, iny, inz, inx, iny, inz, usehost, error);
-	c->super.toString = (fch) tostringRelu;
-	c->super.getCreateParams = (fch) getCreateParamsRelu;
+	c->super.toString = (cfv) tostringRelu;
+	c->super.getCreateParams = (cfv) getCreateParamsRelu;
 	c->super.release = (fv) realeaseRelu;
 	c->super.ativa = (fv) ativaRelu;
-	c->super.calc_grads = (fvv) calc_gradsRelu;
+	c->super.calc_grads = (f2v) calc_gradsRelu;
 	c->super.corrige_pesos = (fv) corrige_pesosRelu;
-	c->super.salvar = (fsl) salvarRelu;
+	c->super.salvar = (f4v) salvarRelu;
 
 	c->kernelReluAtiva = new_Kernel(cl->program, error, "reluativa", 3, K_VOID_P, K_VOID_P, K_INT);
 	c->kernelReluCalcGrads = new_Kernel(cl->program, error, "relucalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);

@@ -103,16 +103,16 @@ Camada createDropOut(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, 
 	if (error->error)return NULL;
 	CamadaDropOut c = (CamadaDropOut) calloc(1, sizeof(Typecamadadropout));
 	__newCamada__((Camada) c, cl, DROPOUT, entrada, queue, (Params) {0}, inx, iny, inz, inx, iny, inz,usehost, error);
-	c->super.toString = (fch) tostringDropOut;
-	c->super.getCreateParams = (fch) getCreateParamsDropOut;
+	c->super.toString = (cfv) tostringDropOut;
+	c->super.getCreateParams = (cfv) getCreateParamsDropOut;
 	c->hitmap = newTensorChar(cl->context, queue, inx, iny, inz,usehost, error);
 	c->p_ativacao = p_ativacao;
 	c->super.release = (fv) releaseDropOut;
 	c->super.ativa = (fv) ativaDropOut;
-	c->super.calc_grads = (fvv) calc_gradsDropOut;
+	c->super.calc_grads = (f2v) calc_gradsDropOut;
 	c->super.corrige_pesos = (fv) corrigePesosDropOut;
 	c->seed = seed;
-	c->super.salvar = (fsl) salvarDropOut;
+	c->super.salvar = (f4v) salvarDropOut;
 	c->kerneldropativa = new_Kernel(cl->program, error, "dropativa", 6, K_VOID_P, K_VOID_P, K_VOID_P, sizeof(cl_long),
 	                                K_DOUBLE, K_INT);
 	c->kerneldropcalcgrad = new_Kernel(cl->program, error, "dropcalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);

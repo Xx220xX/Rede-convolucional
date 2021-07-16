@@ -341,11 +341,15 @@ int CnnCall(Cnn c, double *input) {
 	//int len = sprintf(c->error.context, "%s", "CnnCall");
 	c->error.error = TensorPutValues(c->queue, c->camadas[0]->entrada, input);
 	if (c->error.error)getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
-	for (int i = 0; i < c->size && !c->error.error; ++i) {
-
+	int i;
+	for ( i = 0; i < c->size && !c->error.error; ++i) {
 		c->error.error = c->camadas[i]->ativa(c->camadas[i]);
 	}
-
+	if(c->error.error) {
+		i--;
+		int len = strlen(c->error.msg);
+		snprintf(c->error.msg+len,EXCEPTION_MAX_MSG_SIZE - len-1,"\nCall/camada[%d]%d/ativa",i,c->camadas[i]->type);
+	}
 	return c->error.error;
 }
 
@@ -374,20 +378,41 @@ int CnnLearn(Cnn c, double *target) {
 							  "CnnLearn/kernel_run_recursive/kernelsub:");
 		return c->error.error;
 	}
+	c->error.error = clFinish(c->queue);
+	if (c->error.error) {
+		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,
+							  "CnnLearn/kernel_run_recursive/kernelsub:");
+		return c->error.error;
+	}
 	gradNext = lastGrad;
 	int l;
 	for (l = c->size - 1; l >= 0  && !c->error.error; l--) {
 		c->error.error = c->camadas[l]->calc_grads(c->camadas[l], gradNext);
+		if (c->error.error) {
+			getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d/calc_grads:", l);
+		}
+		if(!c->error.error){
+			c->error.error = clFinish(c->queue);
+			if (c->error.error) {
+				getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d of %d, type %d/calc_grads/clFinish:", l,c->size-1,(int)c->camadas[l]->type);
+			}
+		}
 		if (!c->camadas[l]->flag_notlearn && !c->error.error) {
-			c->camadas[l]->corrige_pesos(c->camadas[l]);
+			c->error.error =  c->camadas[l]->corrige_pesos(c->camadas[l]);
+			if (c->error.error) {
+				getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d/corrige_pesos:", l);
+			}
+			if(!c->error.error){
+				c->error.error = clFinish(c->queue);
+				if (c->error.error) {
+					getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d/corrige_pesos/clFinish:", l);
+				}
+			}
 		}
 		gradNext = c->camadas[l]->gradsEntrada;
 	}
-	if (c->error.error) {
-		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d:", l);
-		fprintf(stderr,"%s\n",c->error.msg);
-		system("pause");
-	}
+
+
 	return c->error.error;
 }
 
@@ -503,8 +528,10 @@ int CnnGetIndexMax(Cnn c) {
 	int indice = 0;
 	double *values = calloc(saida->bytes, 1);
 	c->error.error = TensorGetValues(c->queue, saida, values);
+
 	if (c->error.error) {
-		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
+		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,"CnnGetIndexMax/TensorGetValues ");
+		printf("here %s\n", c->error.msg);
 		free(values);
 		return 0;
 	}

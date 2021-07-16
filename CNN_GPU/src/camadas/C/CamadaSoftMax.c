@@ -97,13 +97,13 @@ Camada createSoftMax(WrapperCL *cl, cl_command_queue queue, unsigned int inx, un
 	CamadaSoftMax c = (CamadaSoftMax) calloc(1, sizeof(TypecamadaSoftMax));
 
 	__newCamada__((Camada) c, cl, SOFTMAX, entrada, queue, (Params) {0}, inx, iny, inz, inx, iny, inz, usehost, error);
-	c->super.toString = (fch) tostringSoftMax;
-	c->super.getCreateParams = (fch) getCreateParamsSoftMax;
+	c->super.toString = (cfv) tostringSoftMax;
+	c->super.getCreateParams = (cfv) getCreateParamsSoftMax;
 	c->super.release = (fv) realeaseSoftMax;
 	c->super.ativa = (fv) ativaSoftMax;
-	c->super.calc_grads = (fvv) calc_gradsSoftMax;
+	c->super.calc_grads = (f2v) calc_gradsSoftMax;
 	c->super.corrige_pesos = (fv) corrige_pesosSoftMax;
-	c->super.salvar = (fsl) salvarSoftMax;
+	c->super.salvar = (f4v) salvarSoftMax;
 
 	c->soma = newTensor(cl->context, queue, 1, 1, inz, 0, error);
 	c->exponent = newTensor(cl->context, queue, inx, iny, inz, 1, error);

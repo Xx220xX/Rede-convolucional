@@ -188,15 +188,15 @@ Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT i
 	if (randomize) {
 		fullRandomize(c, cl, error);
 	}
-	c->super.toString = (fch) tostringFullConnect;
-	c->super.getCreateParams = (fch) getCreateParamsFullConnect;
+	c->super.toString = (cfv) tostringFullConnect;
+	c->super.getCreateParams = (cfv) getCreateParamsFullConnect;
 	c->super.release = (fv) releaseFullConnect;
 	c->super.ativa = (fv) ativaFullConnect;
-	c->super.calc_grads = (fvv) calc_gradsFullConnect;
+	c->super.calc_grads = (f2v) calc_gradsFullConnect;
 	c->super.corrige_pesos = (fv) corrigePesosFullConnect;
 	c->fa = funcaoDeAtivacao;
 	c->dfa = funcaoDeAtivacao | FLAGDIF;
-	c->super.salvar = (fsl) salvarFullConnect;
+	c->super.salvar = (f4v) salvarFullConnect;
 	c->kernelfullfeed = new_Kernel(cl->program, error, "fullfeed", 11, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                               K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
 	c->kernelfullfixWeight = new_Kernel(cl->program, error, "fullfixweight", 9,
