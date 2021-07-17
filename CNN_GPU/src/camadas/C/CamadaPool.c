@@ -53,6 +53,7 @@ int ativaPool(CamadaPool c) {
 int corrige_pesosPool(CamadaPool c) { return 0; }
 
 int calc_gradsPool(CamadaPool c, Tensor GradNext) {
+	if (!c->super.gradsEntrada)return 0;
 	int erro = kernel_run_recursive(&c->kernelPoolCalcGrads, c->super.queue,
 	                                c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 	                                *c->super.max_works,

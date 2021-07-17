@@ -42,37 +42,36 @@ kV createImg(__global unsigned char *out, Vector v, int vx, int vy, int imi, int
 	out[imi * imy + imj] = ((int) v[k]) & 0xff;
 }
 
-kV printTensor(Vector t, int mx, int my, int mz, int ofset) {
-	for (int z = 0; z < mz; z++) {
-		printf("[Dim%d]\n", z);
-		for (int x = 0; x < mx; x++) {
-			for (int y = 0; y < my; y++) {
-
-				printf("%.4lf \t", t[TensorMap(x, y, z, mx, my) + ofset]);
+kV printTensor(Vector t, int mx, int my, int mz, int mw) {
+	for (int w = 0; w < mw; w++) {
+		for (int z = 0; z < mz; z++) {
+			printf("[Dim(%d,%d)]\n",w, z);
+			for (int x = 0; x < mx; x++) {
+				for (int y = 0; y < my; y++) {
+					printf("%.4lf \t", t[TensorMap4D(x, y, z,w, mx, my,mz) ]);
+				}
+				printf("\n");
 			}
-			printf("\n");
 		}
+		printf("\n");
 	}
 }
 
 
-
-
-
 kV
 normalizeVector(Vector input, Vector saida, double multiplicador, double somador, double subtrator,
-                int k0) {
+				int k0) {
 	int k = get_global_id(0) + k0;
 	saida[k] = (input[k] + somador) * multiplicador - subtrator;
 }
 
 
-kV sub(Vector grad, Vector saida, Vector target, int k0) {
+kV subKernel(Vector grad, Vector saida, Vector target, int k0) {
 	int k = get_global_id(0) + k0;
 	grad[k] = saida[k] - target[k];
 }
 
-kV div(Vector v, double value, int k0) {
+kV divKernel(Vector v, double value, int k0) {
 	int k = get_global_id(0) + k0;
 	v[k] = v[k] / value;
 }
@@ -89,25 +88,7 @@ kV int2vector(__global unsigned char *ints, Vector v, int noptiobs, int k0) {
 	}
 }
 
-int normaliza_range(double f, int max, int lim_min) {
-	if (f <= 0)return 0;
-	if (f >= max - 1)return max - 1;
-	if (lim_min) return ceil(f);
-	else return floor(f);
-}
 
-Range mapeia_entrada_saida(int x, int y, int passo, int tamanhoFiltro, int saidatx, int saidaty, int numeroFiltros) {
-	double a = x, b = y;
-	Range r;
-	r.min.x = normaliza_range((a - tamanhoFiltro + 1) / passo, saidatx, 1);
-	r.min.y = normaliza_range((b - tamanhoFiltro + 1) / passo, saidaty, 1);
-	r.min.z = 0;
-
-	r.max.x = normaliza_range(a / passo, saidatx, 0);
-	r.max.y = normaliza_range(b / passo, saidaty, 0);
-	r.max.z = numeroFiltros - 1;
-	return r;
-}
 
 //bathnorm.h
 
@@ -228,92 +209,88 @@ kV batchNormCorrigePeso(Vector gradY,
 	Y[z] = Y[z] - gradY[z] * hitlearn;
 }
 //conv.h
-//#include"utils.h"
 kV convSum(Vector filtro, Vector entrada, Vector saida,
-           int passo, int saidatx, int saidaty, int entradatx, int entradaty,
-           int lenFilter, int entradatz, int k0) {
+		   int passox,int passoy,
+		   int saidatx, int saidaty,
+		   int entradatx, int entradaty,
+		   int fx,int fy, int fz, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, filtrok;
 	TensorRemap(k, x, y, filtrok, saidatx, saidaty)
-	Ponto3d mapeado = {x * passo, y * passo, 0};
 	double sum = 0, f, v;
-	for (int m = 0; m < lenFilter; m++)
-		for (int n = 0; n < lenFilter; n++)
-			for (int z = 0; z < entradatz; z++) {
-				f = filtro[TensorMap4D(m, n, z, filtrok, lenFilter, lenFilter, entradatz)];
-				v = entrada[TensorMap(mapeado.x + m, mapeado.y + n, z, entradatx, entradaty)];
+	for (int m = 0; m < fx; m++)
+		for (int n = 0; n < fy; n++)
+			for (int z = 0; z < fz; z++) {
+				f = filtro[TensorMap4D(m, n, z, filtrok, fx, fy, fz)];
+				v = entrada[TensorMap(x * passox + m, y * passoy + n, z, entradatx, entradaty)];
 				sum += f * v;
 			}
 	saida[k] = sum;
-
 }
 
-kV convFixWeight(Vector filtro, Vector grad, Vector gradOld, double hitlearn,
-                 double momento, double weightDecay, int k0) {
-	int k = get_global_id(0) + k0;
-	double m = grad[k] + gradOld[k] * momento;
-	double w = filtro[k];
-	filtro[k] = w - hitlearn * (m + w * weightDecay);
-	gradOld[k] = m;
-}
 
-kV convCalcFiltro(     Vector ds,
-					   Vector entrada,
-					   Vector gradFiltro,
-                       int gradFiltro_tx,
-                       int gradFiltro_ty,
-                       int gradFiltro_tz,
-                       int entrada_tx,
-                       int entrada_ty,
-                       int saida_tx,
-                       int saida_ty,
-                       int passo,
-                       int k0) {
+kV convCalcGradAndFixWeight(Vector filtros, Vector ds,
+							Vector entrada, Vector gradFiltro,
+							int fx, int fy, int fz,
+							int entrada_tx, int entrada_ty,
+							int saida_tx, int saida_ty,
+							int passox, int passoy,
+							double hitLearn, double momento, double weightDecay,
+							int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
-//	printf("kernel %d\n",k);
-	TensorRemap4D(k, m, n, z, l, gradFiltro_tx, gradFiltro_ty, gradFiltro_tz)
-	double soma = 0,aux;
+	TensorRemap4D(k, m, n, z, l, fx, fy, fz)
+	double soma = 0;
 	for (int i = 0; i < saida_tx; ++i) {
 		for (int j = 0; j < saida_ty; ++j) {
-			aux = entrada[TensorMap(i*passo+m, j*passo+n,z,entrada_tx,entrada_ty)]
-				   *ds[TensorMap(i,j,l,saida_tx,saida_ty)];
-			//aux = (!(isnan(aux) || isinf(aux)))*aux;
-			soma +=aux;
+			soma += entrada[TensorMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty)]
+					* ds[TensorMap(i, j, l, saida_tx, saida_ty)];
 		}
 	}
-	gradFiltro[k] = soma;
+	double dw = soma + gradFiltro[k] * momento;
+	double w = filtros[k];
+	filtros[k] = w - hitLearn * (dw + w * weightDecay);
+	gradFiltro[k] = dw;
 }
 
-kV convCalcGrads(Vector filtro,
-				 Vector entrada,
-                 Vector gradEntrada,
-                 Vector gradNext,
-                 int lenFilter,
-                 int filtroz,
-                 int passo,
-                 int entradatx,
-                 int entradaty,
-                 int saidatx,
-                 int saidaty,
-                 int numFilters,
-                 int k0) {
+kV convCalcGradIn(Vector filtro,Vector gradEntrada,Vector gradNext,
+				  int fx,int fy,int fz,
+				  int passox,int passoy,
+				  int entradatx,int entradaty,
+				  int saidatx,int saidaty,int saidatz,
+				  int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	TensorRemap(k, x, y, z, entradatx, entradaty)
-	Range range = mapeia_entrada_saida(x, y, passo, lenFilter, saidatx, saidaty, numFilters);
-	int minX, minY;
+
+	Range range_filtro;
+	range_filtro.min.x = 0;
+	if (x + fx <= entradatx) {
+		range_filtro.min.x = x + fx - entradatx;
+	}
+	range_filtro.max.x = fx - 1;
+	if (x - fx + 1 < 0) {
+		range_filtro.max.x = x;
+	}
+	range_filtro.min.y = 0;
+	if (y + fy <= entradaty) {
+		range_filtro.min.y = y + fy - entradaty;
+	}
+	range_filtro.max.y = fy - 1;
+	if (y - fy + 1 < 0) {
+		range_filtro.max.y = y;
+	}
 	double somaErro = 0, pesoAplicado = 0;
-	double aux;
-	for (int i = range.min.x; i <= range.max.x; i++) {
-		minX = i * passo;
-		for (int j = range.min.y; j <= range.max.y; j++) {
-			minY = j * passo;
-			for (int l = range.min.z; l <= range.max.z; l++) {
-				pesoAplicado = filtro[TensorMap4D(x - minX, y - minY, z, l, lenFilter, lenFilter, filtroz)];
-				aux = pesoAplicado * gradNext[TensorMap(i, j, l, saidatx, saidaty)];
-				//aux = (!(isnan(aux) || isinf(aux)))*aux;
-				somaErro +=aux;
+	int i, j;
+	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
+		i = (x - m) / passox;
+		if (i * passox + m != x) continue;
+		for (int n = range_filtro.min.y; n <= range_filtro.max.y; n++) {
+			j = (y - n) / passoy;
+			if (j * passoy + n != y) continue;
+			for (int w = 0; w < saidatz; w++) {
+				pesoAplicado = filtro[TensorMap4D(m, n, z, w, fx, fy, fz)];
+				somaErro += pesoAplicado * gradNext[TensorMap(i, j, w, saidatx, saidaty)];
 			}
 		}
 	}
@@ -609,9 +586,11 @@ kV poolativa(Vector entrada, Vector saida, int lenFilter,
 }
 
 
-kV poolCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector saida,
+kV poolCalcGrads(Vector entrada, Vector gradEntrada,
+				 Vector gradNext, Vector saida,
 				 int fx, int fy, int px, int py,
-				 int entradatx, int entradaty,int saidatx, int saidaty,
+				 int entradatx, int entradaty,
+				 int saidatx, int saidaty,
 				 int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
@@ -655,7 +634,7 @@ kV poolCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector sai
 
 //poolav.h
 kV PoolAvativa(Vector entrada, Vector saida, int lenFilter,
-               int passo, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
+			   int passo, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	TensorRemap(k, x, y, z, saidatx, saidaty)
@@ -666,7 +645,6 @@ kV PoolAvativa(Vector entrada, Vector saida, int lenFilter,
 	for (int i = 0; i < lenFilter; ++i) {
 		for (int j = 0; j < lenFilter; ++j) {
 			soma += entrada[TensorMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
-
 		}
 	}
 	saida[k] = soma / (lenFilter * lenFilter);
@@ -674,23 +652,42 @@ kV PoolAvativa(Vector entrada, Vector saida, int lenFilter,
 
 
 kV PoolAvCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector saida,
-                   int lenFilter, int passo, int entradatx, int entradaty, int entradatz, int saidatx, int saidaty,
-                   int k0) {
+				   int fx, int fy, int px, int py,
+				   int entradatx, int entradaty, int saidatx, int saidaty,
+				   int k0) {
 	int k = get_global_id(0) + k0;
-	int x, y;
-	TensorRemap2D(k, x, y, entradaty)
-	double somaErro = 0;
-	Range range;
-	range = mapeia_entrada_saida(x, y, passo, lenFilter, saidatx, saidaty, 1);
-	for (int z = 0; z < entradatz; ++z) {
-		somaErro = 0;
-		for (int i = range.min.x; i <= range.max.x; i++) {
-			for (int j = range.min.y; j <= range.max.y; j++) {
-				somaErro += gradNext[TensorMap(i, j, z, saidatx, saidaty)];
-			}
-		}
-		gradEntrada[TensorMap(x, y, z, entradatx, entradaty)] = somaErro/ (lenFilter * lenFilter);
+	int x, y, z;
+	TensorRemap(k, x, y, z, entradatx, entradaty)
+	Range range_filtro;
+	range_filtro.min.x = 0;
+	if (x + fx <= entradatx) {
+		range_filtro.min.x = x + fx - entradatx;
 	}
+	range_filtro.max.x = fx - 1;
+	if (x - fx + 1 < 0) {
+		range_filtro.max.x = x;
+	}
+	range_filtro.min.y = 0;
+	if (y + fy <= entradaty) {
+		range_filtro.min.y = y + fy - entradaty;
+	}
+	range_filtro.max.y = fy - 1;
+	if (y - fy + 1 < 0) {
+		range_filtro.max.y = y;
+	}
+	int i, j;//saida
+	double soma = 0;
+	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
+		i = (x - m) / px;
+		if (i * px + m != x)continue;
+		for (int n = range_filtro.min.y; n <= range_filtro.max.y; n++) {
+			j = (y - n) / py;
+			if (j * py + n != y)continue;
+			soma += gradNext[TensorMap(i, j, z, saidatx, saidaty)];
+		}
+	}
+	gradEntrada[TensorMap(x, y, z, entradatx, entradaty)] = soma / (fx * fy);
+
 }
 
 

@@ -16,9 +16,9 @@
 
 typedef struct {
 	Typecamada super;
-	Tensor z;
 	Tensor pesos;
 	Tensor grad;
+	Tensor z;
 	Tensor dz;
 	// funcao de ativacao e sua derivada
 	int fa, dfa;

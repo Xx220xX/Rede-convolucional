@@ -199,7 +199,7 @@ int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data, unsigned int offset
 
 		case TENSOR_NCPY:
 			erro = clEnqueueReadBuffer(queue, t->data, CL_TRUE, offset, t->bytes, data, 0, NULL, NULL);
-			PERR(erro, "TensorGetValuesOffset/clEnqueueReadBuffer %d 0x%p 0x%p",(int)t->flag,t->data,data);
+			PERR(erro, "TensorGetValuesOffset/clEnqueueReadBuffer %d 0x%p 0x%p", (int) t->flag, t->data, data);
 			return erro;
 
 		default:
@@ -299,5 +299,31 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 		fprintf(stderr, "printTensor: %d %s", error, getClError(error, buff, EXCEPTION_MAX_MSG_SIZE));
 	}
 
+}
+
+int TensorGetNorm(QUEUE queue, Tensor t, double *norm) {
+	int error = 0;
+	if (!norm)return -92;
+	if (!t) {
+		return -93;
+	}
+	double *v = calloc(t->bytes, t->w);
+	int a;
+	for (a = 0; a < t->w && !error; ++a) {
+		error = TensorGetValuesOffset(queue, t, v + a, a * t->bytes);
+	}
+	if (error) {
+		fprintf(stderr, "TensorGetNorm/TensorGetValuesOffset(%d of %d):", a, t->w);
+		showError(error);
+		free(v);
+		return error;
+	}
+	double sum = 0;
+	for (int i = t->x * t->y * t->z * t->w - 1; i >= 0; i--) {
+		sum += v[i] * v[i];
+	}
+	*norm = sqrt(sum);
+	free(v);
+	return error;
 }
 

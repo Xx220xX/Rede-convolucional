@@ -164,7 +164,7 @@ void *showInfoTrain(InfoTrain *info) {
 
 void *showInfoTest(InfoTeste *info) {
 	int y0 = 4;
-	int dx = info->dx;
+	int dx = info->dx+10;
 	int perc;
 	double pc;
 	char buf[250] = {0};
@@ -183,15 +183,15 @@ void *showInfoTest(InfoTeste *info) {
 
 		gotoxy(44, y0 + 1);
 		printf("Tempo restante ");
-		gotoxy(10, y0 + 4);
+		gotoxy(10, y0 + 5);
 		printf("classes");
-		gotoxy(10 + dx, y0 + 4);
+		gotoxy(10 + dx, y0 + 5);
 		printf("acertos");
-		gotoxy(10 + 2 * dx, y0 + 4);
+		gotoxy(10 + 2 * dx, y0 + 5);
 		printf("Casos");
 
 		for (int c = 0; c < info->nClasses; c++) {
-			gotoxy(10, y0 + 5 + c);
+			gotoxy(10, y0 + 6 + c);
 			if (info->classesName != NULL)
 				printf("%s", info->classesName[c].names);
 			else
@@ -224,9 +224,9 @@ void *showInfoTest(InfoTeste *info) {
 	printBk(buf, info->imagemAtual / (double) info->totalImagensTeste , GREEN, BLACK);
 
 	for (int c = 0; c < info->nClasses; c++) {
-		gotoxy(10 + dx, y0 + 5 + c);
+		gotoxy(10 + dx, y0 + 7 + c);
 		printf("% 4d", info->estatisticasAcerto[c]);
-		gotoxy(10 + 2 * dx, y0 + 5 + c);
+		gotoxy(10 + 2 * dx, y0 + 7 + c);
 		printf("% 4d", info->ncasos[c]);
 	}
 

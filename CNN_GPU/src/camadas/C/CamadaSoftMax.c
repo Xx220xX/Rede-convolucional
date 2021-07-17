@@ -54,6 +54,7 @@ int ativaSoftMax(CamadaSoftMax c) {
 int corrige_pesosSoftMax(CamadaSoftMax c) { return 0; }
 
 int calc_gradsSoftMax(CamadaSoftMax c, Tensor GradNext) {
+	if (!c->super.gradsEntrada)return 0;
 	int erro = kernel_run_recursive(&c->kernelSoftMaxCalcGrads, c->super.queue,
 	                                c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 	                                *c->super.max_works,

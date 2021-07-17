@@ -41,37 +41,36 @@ kV createImg(__global unsigned char *out, Vector v, int vx, int vy, int imi, int
 	out[imi * imy + imj] = ((int) v[k]) & 0xff;
 }
 
-kV printTensor(Vector t, int mx, int my, int mz, int ofset) {
-	for (int z = 0; z < mz; z++) {
-		printf("[Dim%d]\n", z);
-		for (int x = 0; x < mx; x++) {
-			for (int y = 0; y < my; y++) {
-
-				printf("%.4lf \t", t[TensorMap(x, y, z, mx, my) + ofset]);
+kV printTensor(Vector t, int mx, int my, int mz, int mw) {
+	for (int w = 0; w < mw; w++) {
+		for (int z = 0; z < mz; z++) {
+			printf("[Dim(%d,%d)]\n",w, z);
+			for (int x = 0; x < mx; x++) {
+				for (int y = 0; y < my; y++) {
+					printf("%.4lf \t", t[TensorMap4D(x, y, z,w, mx, my,mz) ]);
+				}
+				printf("\n");
 			}
-			printf("\n");
 		}
+		printf("\n");
 	}
 }
 
 
-
-
-
 kV
 normalizeVector(Vector input, Vector saida, double multiplicador, double somador, double subtrator,
-                int k0) {
+				int k0) {
 	int k = get_global_id(0) + k0;
 	saida[k] = (input[k] + somador) * multiplicador - subtrator;
 }
 
 
-kV sub(Vector grad, Vector saida, Vector target, int k0) {
+kV subKernel(Vector grad, Vector saida, Vector target, int k0) {
 	int k = get_global_id(0) + k0;
 	grad[k] = saida[k] - target[k];
 }
 
-kV div(Vector v, double value, int k0) {
+kV divKernel(Vector v, double value, int k0) {
 	int k = get_global_id(0) + k0;
 	v[k] = v[k] / value;
 }
@@ -88,22 +87,4 @@ kV int2vector(__global unsigned char *ints, Vector v, int noptiobs, int k0) {
 	}
 }
 
-int normaliza_range(double f, int max, int lim_min) {
-	if (f <= 0)return 0;
-	if (f >= max - 1)return max - 1;
-	if (lim_min) return ceil(f);
-	else return floor(f);
-}
 
-Range mapeia_entrada_saida(int x, int y, int passo, int tamanhoFiltro, int saidatx, int saidaty, int numeroFiltros) {
-	double a = x, b = y;
-	Range r;
-	r.min.x = normaliza_range((a - tamanhoFiltro + 1) / passo, saidatx, 1);
-	r.min.y = normaliza_range((b - tamanhoFiltro + 1) / passo, saidaty, 1);
-	r.min.z = 0;
-
-	r.max.x = normaliza_range(a / passo, saidatx, 0);
-	r.max.y = normaliza_range(b / passo, saidaty, 0);
-	r.max.z = numeroFiltros - 1;
-	return r;
-}

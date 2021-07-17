@@ -94,7 +94,7 @@ int TensorGetValues(QUEUE queue, Tensor t, void *data);
 
 int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data, unsigned int offset);
 
-
+int TensorGetNorm(QUEUE queue,Tensor t, double *norm);
 void releaseTensor(Tensor *t);
 
 void releaseTensorChar(TensorChar *t);

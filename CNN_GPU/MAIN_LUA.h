@@ -10,6 +10,7 @@ int main(int nargs, char **args) {
 	printf("##############################\n");
 	// incializa a biblioteca random
 	LCG_setSeed(time(NULL));
+//	LCG_setSeed(10);
 	if (nargs != 2) {
 		fprintf(stderr, "Um script lua de configuração é esperado");
 		return -1;
@@ -79,7 +80,7 @@ int main(int nargs, char **args) {
 	FILE *js_arquitetura = fopen("js/camada.js", "w");
 	for (int i = 0; i < cnn->size; i++) {
 		fprintf(js_arquitetura, "tablePutColum(tabela_arquitetura,%s);\n",
-		        cnn->camadas[i]->getCreateParams(cnn->camadas[i]));
+				cnn->camadas[i]->getCreateParams(cnn->camadas[i]));
 	}
 	fclose(js_arquitetura);
 	// salvando index
@@ -89,18 +90,17 @@ int main(int nargs, char **args) {
 	printf("carregando imagens:");
 	// carrega aas imagens e as respostas
 	erro = loadSamples(cnn, &input, &target, &targeti, p.arquivoContendoImagens, p.arquivoContendoRespostas,
-	                   p.Numero_Classes, p.Numero_Imagens,
-	                   p.bytes_remanessentes_imagem, p.bytes_remanessentes_classes);
+					   p.Numero_Classes, p.Numero_Imagens,
+					   p.bytes_remanessentes_imagem, p.bytes_remanessentes_classes);
 	// caso ocorra alguma falha, vai para o final do programa
 	if (erro)goto end;
 	printf(" ok\n");
 	// inicia o processo de treinamento
 	printf("iniciando treino\n");
 	erro = train(cnn, input, target, targeti, p.Numero_epocas, p.SalvarBackupACada, p.Numero_ImagensTreino,
-	      p.estatisticasDeTreino);
+				 p.estatisticasDeTreino);
 	if (erro)goto end;
 	printf("salvando rede\n");
-
 	// salva a rede treinada
 	snprintf(aux, 300, "%s.cnn", p.nome);
 	FILE *fileCnn = fopen(aux, "wb");
@@ -110,21 +110,21 @@ int main(int nargs, char **args) {
 //     avalia a rede
 	size_t inputSize = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
 	size_t outputSize = cnn->camadas[cnn->size - 1]->entrada->x * cnn->camadas[cnn->size - 1]->entrada->y *
-	                    cnn->camadas[cnn->size - 1]->entrada->z;
+						cnn->camadas[cnn->size - 1]->entrada->z;
 	erro = fitness(cnn, input + p.Numero_ImagensTreino * inputSize, targeti + p.Numero_ImagensTreino,
-	        p.Numero_Classes, p.names, p.Numero_ImagensAvaliacao, p.SalvarSaidasComoPPM, p.nome,
-	        p.estatiscasDeAvaliacao);
+				   p.Numero_Classes, p.names, p.Numero_ImagensAvaliacao, p.SalvarSaidasComoPPM, p.nome,
+				   p.estatiscasDeAvaliacao);
 
 	printf("\ntreino terminado\n");
 	// final do programa, libera todos os recursos utilizados
 	end:
-	if(erro){
-		if(cnn){
-			if(cnn->error.error){
-				fprintf(stderr,"%s\n",cnn->error.msg);
+	if (erro) {
+		if (cnn) {
+			if (cnn->error.error) {
+				fprintf(stderr, "%s\n", cnn->error.msg);
 			}
-		}else{
-			fprintf(stderr,"Erro %d\n",erro);
+		} else {
+			fprintf(stderr, "Erro %d\n", erro);
 		}
 	}
 	if (input)free(input);

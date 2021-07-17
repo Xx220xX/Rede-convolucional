@@ -18,9 +18,11 @@ kV poolativa(Vector entrada, Vector saida, int lenFilter,
 }
 
 
-kV poolCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector saida,
+kV poolCalcGrads(Vector entrada, Vector gradEntrada,
+				 Vector gradNext, Vector saida,
 				 int fx, int fy, int px, int py,
-				 int entradatx, int entradaty,int saidatx, int saidaty,
+				 int entradatx, int entradaty,
+				 int saidatx, int saidaty,
 				 int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;

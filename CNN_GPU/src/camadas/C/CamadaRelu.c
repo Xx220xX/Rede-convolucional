@@ -48,6 +48,7 @@ int ativaRelu(CamadaRelu c) {
 int corrige_pesosRelu(CamadaRelu c) { return 0; }
 
 int calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
+	if (!c->super.gradsEntrada)return 0;
 	int erro = kernel_run_recursive(&c->kernelReluCalcGrads, c->super.queue,
 	                                c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 	                                *c->super.max_works,

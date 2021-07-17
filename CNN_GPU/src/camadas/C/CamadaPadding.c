@@ -59,6 +59,7 @@ int ativaPadding(CamadaPadding c) {
 int corrige_pesosPadding(CamadaPadding c) { return 0; }
 
 int calc_gradsPadding(CamadaPadding c, Tensor GradNext) {
+	if (!c->super.gradsEntrada)return 0;
 	int erro = kernel_run_recursive(&c->calcGrad, c->super.queue,
 	                                c->super.entrada->x * c->super.entrada->x * c->super.entrada->z,
 	                                *c->super.max_works,

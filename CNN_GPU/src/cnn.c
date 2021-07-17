@@ -41,8 +41,8 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 		c->error.error = error;
 		snprintf(c->error.msg, 255, "nao foi possivel criar queue\n");
 	}
-	c->kernelsub = new_Kernel(cl->program, &c->error, "sub", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
-	c->kerneldiv = new_Kernel(cl->program, &c->error, "div", 3, K_VOID_P, K_DOUBLE, K_INT);
+	c->kernelsub = new_Kernel(cl->program, &c->error, "subKernel", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
+	c->kerneldiv = new_Kernel(cl->program, &c->error, "divKernel", 3, K_VOID_P, K_DOUBLE, K_INT);
 	c->kerneldivInt = new_Kernel(cl->program, &c->error, "divIntDo", 4, K_VOID_P, K_VOID_P, K_DOUBLE, K_INT);
 	c->kernelInt2Vector = new_Kernel(cl->program, &c->error, "int2vector", 4, K_VOID_P, K_VOID_P, K_INT, K_INT);
 	c->kernelNormalize = new_Kernel(cl->program, &c->error, "normalizeVector", 6, K_VOID_P, K_VOID_P, K_DOUBLE,
@@ -410,6 +410,7 @@ int CnnLearn(Cnn c, double *target) {
 			}
 		}
 		gradNext = c->camadas[l]->gradsEntrada;
+
 	}
 
 
@@ -418,20 +419,11 @@ int CnnLearn(Cnn c, double *target) {
 
 int CnnCalculeError(Cnn c) {
 	if (c->error.error)return c->error.error;
-	double *grad = calloc(c->lastGrad->bytes, 1);
-	double norma = 0.0;
-	c->error.error = TensorGetValues(c->queue, c->lastGrad, grad);
-	if (c->error.error) {
-		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,
-							  "CnnCalculeError/TensorGetValues:");
-		return c->error.error;
+	c->error.error = TensorGetNorm(c->queue,c->lastGrad,&c->normaErro);
+	if(c->error.error){
+		getClErrorWithContext(c->error.error,c->error.msg,EXCEPTION_MAX_MSG_SIZE,"falha ao calcular energia do erro:");
 	}
-	for (int i = c->lastGrad->x * c->lastGrad->y * c->lastGrad->z - 1; i >= 0; i--) {
-		norma += grad[i] * grad[i];
-	}
-	c->normaErro = sqrt(norma);
-	free(grad);
-	return 0;
+	return c->error.error;
 }
 
 

@@ -13,6 +13,25 @@
 #define ULL unsigned long long int
 typedef struct {
 	Typecamada super;
+	Tensor Y;
+	Tensor gradY;
+	Tensor B;
+	Tensor gradB;
+
+	double epsilon;
+
+
+	Tensor media;
+
+	Tensor somaDiferenca;
+	Tensor variancia;
+	Tensor gradVariancia;
+	Tensor diferenca;
+
+
+	Tensor diferencaquad;
+	Tensor norma;
+
 	Kernel kernelBatchNormAtiva1;// calcula a media
 	Kernel kernelBatchNormAtiva2;// calcula a diferenca
 	Kernel kernelBatchNormAtiva3;// calcula a variancia
@@ -20,23 +39,6 @@ typedef struct {
 	Kernel kernelBatchNormCalcGrads1;// calcula gradientes de entrada
 	Kernel kernelBatchNormCalcGrads2;//calcula gradiente Y B
 	Kernel kernelBatchNormCorrige;//arruma os coeficientes
-
-
-	double epsilon;
-
-	Tensor media;
-	Tensor somaDiferenca;
-	Tensor variancia;
-	Tensor gradVariancia;
-
-	Tensor Y;
-	Tensor B;
-	Tensor gradY;
-	Tensor gradB;
-	Tensor diferenca;
-	Tensor diferencaquad;
-
-	Tensor norma;
 
 } *CamadaBatchNorm, TypecamadaBatchNorm;
 

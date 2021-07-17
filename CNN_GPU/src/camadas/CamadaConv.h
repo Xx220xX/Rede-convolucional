@@ -20,11 +20,10 @@ typedef struct {
 	Typecamada super;
 	Tensor filtros;
 	Tensor grad_filtros;
-	Tensor grad_filtros_old;
-	UINT passo, tamanhoFiltro, numeroFiltros;
+	Tensor gradnext;
+	UINT passo;
 	Kernel kernelConvSum;
 	Kernel kernelConvFixWeight;
-	Kernel kernelConvCalcGradsFiltro;
 	Kernel kernelConvCalcGrads;
 } *CamadaConv, Typecamadaconv;
 

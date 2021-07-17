@@ -1,4 +1,5 @@
 //#define LOG_CNN_KERNELCALL
+
 #include <conio.h>
 #include <ctype.h>
 #include <windows.h>
@@ -10,159 +11,7 @@
 #include "../lua/lauxlib.h"
 #include "CnnLua.h"
 #include<dirent.h>
-
-void showDir() {
-	DIR *dir;
-	struct dirent *ent;
-	char currentDir[250] = {0};
-	GetCurrentDirectory(250, currentDir);
-	printf("Current dir%s\n", currentDir);
-	/*if ((dir = opendir(currentDir)) != NULL) {
-		while ((ent = readdir(dir)) != NULL) {
-			printf("%s\n", ent->d_name);
-		}
-		closedir(dir);
-	}
-	getchar();
-	 */
-}
-
-/**
- *  Carrega as imagens do arquivo
- * @param cnn  instancia valida de uma cnn (para utilizar a gpu)
- * @param images  ponteiro para vetor double onde as imagens serão salvas
- * @param remainImage  bits de cabeçalho
- * @param numberOfSamples  numero de imagens a ser lida
- * @param imageFile  string contendo o nome do arquivo que contem as imagens
- * @return  0 caso sucesso. -1 caso não seja possivel abrir o arquivo. -2 caso o numero de imagens
- * lidas seja diferente do numero de imagens especificado
- */
-int loadImage(Cnn cnn, double **images, size_t remainImage, size_t numberOfSamples, char *imageFile) {
-	// obtem o tamanho de cada imagem
-	size_t pixelsByImage = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
-	size_t samples;
-	// abre o arquivo em modo leitura
-	FILE *fimage = fopen(imageFile, "rb");
-	if (!fimage) {
-		fprintf(stderr, "Imagens nao foram encontradas em %s\n", imageFile);
-		*images = NULL;
-		return -1;
-	}
-
-	// aloca memoria para instanciar imagens
-	*images = (double *) calloc(sizeof(double), pixelsByImage * numberOfSamples);
-	// faz a leitura dos bytes remanecentes
-	fread(*images, 1, remainImage, fimage);// bytes remanessentes de cabeçalho
-
-	// normaliza imagens antes de 0 a 255 para 0 a 1 (utilizando a GPU)
-	normalizeImage(*images, numberOfSamples * pixelsByImage,
-				   cnn->cl, cnn->queue, cnn->kerneldivInt, fimage, &samples);
-	// fecha o arquivo
-	fclose(fimage);
-	// verifica se a leitura foi correta
-	if (numberOfSamples * pixelsByImage != samples) {
-		fprintf(stderr, "As imagens nao foram lidas corretamente\n");
-		free(*images);
-		*images = NULL;
-		return -2;
-	}
-	return 0;
-
-}
-
-/**
- *  Carrega as respostas do arquivo
- * @param cnn  instancia valida de uma cnn (para utilizar a gpu)
- * @param labels  ponteiro para vetor double onde as respostas serão salvas
- * @param remainLabel  bits de cabeçalho
- * @param numberOfSamples  numero de respostas a ser lida
- * @param numeroSaidas  numero de classes total
- * @param labelFile  string contendo o nome do arquivo que contem as respostas
- * @return  0 caso sucesso. -1 caso não seja possivel abrir o arquivo. -2 caso o numero de respostas
- * lidas seja diferente do numero de respostas especificado
- */
-int loadLabel(Cnn cnn, double **labels, unsigned char **labelsI, size_t remainLabel, size_t numberOfSamples,
-			  size_t numeroSaidas, char *labelFile) {
-	// abre o arquivo em modo leitura
-	FILE *flabel = fopen(labelFile, "rb");
-	if (!flabel) {
-		fprintf(stderr, "Labels nao foram encontradas em %s\n", labelFile);
-		*labels = NULL;
-		*labelsI = NULL;
-		return -1;
-	}
-	// aloca memoria para os vetores de resposta
-	*labels = (double *) calloc(sizeof(double), numeroSaidas * numberOfSamples);
-	// aloca memoria para as respostas (modo numerico)
-	*labelsI = (unsigned char *) calloc(sizeof(unsigned char), numberOfSamples);
-	// faz a leitura dos bytes remanecentes
-	fread(*labels, 1, remainLabel, flabel);
-
-	size_t lidos = 0;
-	// chama função para converter de modo numerico para modo vetor
-	loadTargetData(*labels, *labelsI, numeroSaidas, numberOfSamples, cnn->cl, cnn->queue, cnn->kernelInt2Vector, flabel,
-				   &lidos);
-	// fecha o arquivo
-	fclose(flabel);
-	// verifica se o numero de respostas lidas está correto
-	if (numberOfSamples != lidos) {
-		fprintf(stderr, "Esperado %lld, lidos %lld\n", numberOfSamples, lidos);
-		*labels = NULL;
-		*labelsI = NULL;
-		return -2;
-	}
-	return 0;
-}
-
-/**
- * Carrega as imagens e as respostas
- * @param cnn   instancia valida de uma cnn (para utilizar a gpu)
- * @param images ponteiro para vetor double onde as imagens serão salvas
- * @param labels ponteiro para vetor double onde as respostas serão salvas
- * @param labelsI ponteiro para vetor char onde as respostas serão salvas
- * @param imageFile string contendo o nome do arquivo que contem as imagens
- * @param labelFile string contendo o nome do arquivo que contem as respostas
- * @param numberOfLabels numero de classes possiveis
- * @param numberOfSamples numero de exemplos a ser carregado
- * @param remainImage  bytes de cabeçalho para imagens
- * @param remainLabel bytes de cabeçalho para respostas
- * @return caso nao contenha erro retorna 0,caso falhe na leitura das imagens retorna -8&erro, caso falhe na leitura das respostas retorna -16&erro
- */
-int loadSamples(Cnn cnn, double **images, double **labels, unsigned char **labelsI, char *imageFile, char *labelFile,
-				size_t numberOfLabels, size_t numberOfSamples, size_t remainImage, size_t remainLabel) {
-
-	int erro = 0;
-	// le imagens
-	if ((erro = loadImage(cnn, images, remainImage, numberOfSamples, imageFile)))return 8 & erro;
-	// le respostas
-	if ((erro = loadLabel(cnn, labels, labelsI, remainLabel, numberOfSamples, numberOfLabels, labelFile)))
-		return 16 & erro;
-	return 0;
-}
-
-/**
- * Salva imagem no formato ppm. Seu nome é sua resposta e contém tmb o vetor correspondente
- * @param images vetor de imagens
- * @param labels vetor de respostas em modo vetor
- * @param labelsI vetor de respostas em modo inteiro
- * @param n numero de imagens a ser salvas
- * @param x dimensao x da imagem (largura)
- * @param y dimensao y da imagem (altura)
- * @param z dimensao z da imagem
- * @param m numero de classes
- */
-void printTestImages(double *images, double *labels, unsigned char *labelsI, int n, int x, int y, int z, int m) {
-	char buff[500];
-	system("mkdir \"imgTeste\"");
-	for (int i = 0; i < n; i++) {
-		snprintf(buff, 500, "imgTeste/[%d][%d] ", (int) labelsI[i], m);
-		for (int j = 0; j < m; j++) {
-			snprintf(buff, 500, "%s%.1lf,", buff, labels[i * m + j]);
-		}
-		snprintf(buff, 500, "%s.ppm", buff);
-		ppmp2(images + i * x * y * z, x, y, buff);
-	}
-}
+#include "preparaImagens.h"
 
 /**
  * Efetua o treino das imagens
@@ -213,11 +62,10 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 
 	int r;
 	int stop = 0;
-	// vetor para treinar com dados aleatorios
 	int *index = (int *) calloc(samples, sizeof(int));
-	// inicializa vetor index
+//	cnn->camadas[cnn->size-1]->setLearn(cnn->camadas[0],0);
+//	cnn->camadas[cnn->size-1]->setLearn(cnn->camadas[cnn->size-1],0);
 	for (int i = 0; i < samples; i++)index[i] = i;
-//	printf("queue 0x%p\n",cnn->queue);
 	// inicia treinamento
 	for (; epoca < epocs && !cnn->error.error; epoca++) {
 		if (stop == 'q')break;
@@ -230,6 +78,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 		erroMedio = 0;
 		acertos = 0;
 		for (key = 0; key < samples && !cnn->error.error; key++) {
+
 			caso = index[key];
 			if (kbhit() && (stop = tolower(getch())) == 'q')break;
 			CnnCall(cnn, images + inputSize * caso);
@@ -238,7 +87,25 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 //			printf("learn %d\n",cnn->error.error);
 			CnnCalculeError(cnn);
 			r = CnnGetIndexMax(cnn);
-//			printf("index %d\n",r);
+//			printf("erro[%d] %lf",cnn->size,cnn->normaErro);
+//			double er;
+//			for(int l=0;l<cnn->size;l++){
+//				printf("%d ",l);
+//				printf(" 0x%llX\n",(long long int)((CamadaLearnable)cnn->camadas[l])->dw);
+//				TensorGetNorm(cnn->queue,((CamadaLearnable)cnn->camadas[l])->dw,&er);
+//				printf("\n%lf",er);
+//
+//				printf("\n0x%llX ",(long long int)cnn->camadas[l]->gradsEntrada);
+//				TensorGetNorm(cnn->queue,cnn->camadas[l]->gradsEntrada,&er);
+//				printf("\n%lf",er);
+//
+//				printf("\n0x%llX ",((CamadaLearnable)cnn->camadas[l])->w);
+//				TensorGetNorm(cnn->queue,((CamadaLearnable)cnn->camadas[l])->w,&er);
+//				printf("\n%lf)",er);
+//				printf("\n\n\n");
+//
+//			}
+//			printf("\n");
 			if (r == labelsI[caso]) { acertos += 1; }
 
 			erro += cnn->normaErro;
@@ -248,7 +115,7 @@ int train(Cnn cnn, double *images, double *labels, unsigned char *labelsI, int e
 			jsargs.acerto[key] = acertos * 100.0 / ((double) key + 1.0);
 
 			if (info.finish && !cnn->error.error) {
-				info.erro = erroMedio;
+				info.erro = erroMedio;;
 				info.acertos = acertos;
 				info.msInitEpoca = initTime;
 				info.imagemAtual = key;
@@ -314,7 +181,7 @@ fitness(Cnn cnn, double *images, unsigned char *labelsI, int nClass, Nomes *name
 	for (int i = 0; i < 10; i++) {
 		fprintf(js_tabela, "tablePutColum(tabela_fitnes,['%s' , %d , %d , '%.2lf%%']);\n", names[i].names,
 				numeroCasosOcorridos[i], acertosPorClasse[i],
-				acertosPorClasse[i] / (double) (numeroCasosOcorridos[i] + 1e-14));
+				acertosPorClasse[i] * 100.0 / (double) (numeroCasosOcorridos[i] + 1e-14));
 	}
 	fclose(js_tabela);
 	while (!info.finish) { Sleep(1); }

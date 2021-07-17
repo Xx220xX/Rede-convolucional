@@ -46,7 +46,11 @@ typedef struct {
 	fv3d setParams;
 	char *__string__;
 } *Camada, Typecamada;
-
+typedef struct {
+	Typecamada super;
+	Tensor w;
+	Tensor dw;
+}*CamadaLearnable;
 #define CONV        1
 #define POOL        2
 #define RELU        3
