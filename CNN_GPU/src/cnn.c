@@ -388,32 +388,14 @@ int CnnLearn(Cnn c, double *target) {
 	int l;
 	for (l = c->size - 1; l >= 0  && !c->error.error; l--) {
 		c->error.error = c->camadas[l]->calc_grads(c->camadas[l], gradNext);
-		if (c->error.error) {
-			getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d/calc_grads:", l);
-		}
-		if(!c->error.error){
-			c->error.error = clFinish(c->queue);
-			if (c->error.error) {
-				getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d of %d, type %d/calc_grads/clFinish:", l,c->size-1,(int)c->camadas[l]->type);
-			}
-		}
 		if (!c->camadas[l]->flag_notlearn && !c->error.error) {
 			c->error.error =  c->camadas[l]->corrige_pesos(c->camadas[l]);
-			if (c->error.error) {
-				getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d/corrige_pesos:", l);
-			}
-			if(!c->error.error){
-				c->error.error = clFinish(c->queue);
-				if (c->error.error) {
-					getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d/corrige_pesos/clFinish:", l);
-				}
-			}
 		}
 		gradNext = c->camadas[l]->gradsEntrada;
-
 	}
-
-
+	if (c->error.error) {
+		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d/calc_grads:", l);
+	}
 	return c->error.error;
 }
 
