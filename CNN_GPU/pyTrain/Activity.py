@@ -1,8 +1,8 @@
 from threading import Thread, Event
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 import time
-
 
 
 class Activity(Thread):
@@ -66,8 +66,9 @@ class Activity(Thread):
 
     def text(self, text: str, x=0, y=0, width=None, height=None, frame=None, **kwargs):
         if frame is None: frame = self.frame
-        tk.Label(frame, text=text, **kwargs). \
+        label = tk.Label(frame, text=text, **kwargs). \
             place(x=x, y=y, width=width, height=height)
+        return label
 
     def label(self, id, value, gtipo=str, x=0, y=0, width=None, height=None, frame=None, **kwargs):
         if id in self.ids:
@@ -79,6 +80,7 @@ class Activity(Thread):
         self.vars[id] = tk.Variable(frame, value=value)
         self.labels[id] = tk.Label(frame, textvariable=self.vars[id], **kwargs)
         self.labels[id].place(x=x, y=y, width=width, height=height)
+        return self.labels[id]
 
     def entry(self, id, value, gtipo=str, x=0, y=0, width=None, height=None, frame=None, **kwargs):
         if id in self.ids:
@@ -90,6 +92,7 @@ class Activity(Thread):
         self.vars[id] = tk.Variable(frame, value=value)
         self.entrys[id] = tk.Entry(frame, textvariable=self.vars[id], **kwargs)
         self.entrys[id].place(x=x, y=y, width=width, height=height)
+        return self.entrys[id]
 
     def button(self, id, text, x=0, y=0, width=None, height=None, frame=None, **kwargs):
         if id in self.ids:
@@ -99,6 +102,7 @@ class Activity(Thread):
         self.ids.append(id)
         self.buttons[id] = tk.Button(frame, text=text, **kwargs)
         self.buttons[id].place(x=x, y=y, width=width, height=height)
+        return self.buttons[id]
 
     def ProgressBar(self, id, x=0, y=0, width=None, height=None, frame=None, max=1.0, **kwargs):
         if frame is None: frame = self.frame
@@ -107,6 +111,7 @@ class Activity(Thread):
         self.progress[id] = ttk.Progressbar(frame, variable=self.vars[id], maximum=max, **kwargs).place(x=x, y=y,
                                                                                                         width=width,
                                                                                                         height=height)
+        return self.progress[id]
 
     def ScroolbarY(self, listbox: tk.Listbox, x=0, y=0, width=None, height=None, frame=None):
         if frame is None: frame = self.frame
@@ -124,35 +129,44 @@ class Activity(Thread):
         scroll.place(x=x, y=y, width=width, height=height)
         return scroll
 
-    def Listbox(self, x=0, y=0, width=None, height=None, frame=None,Lheight = None,*args,**kw):
+    def Listbox(self, x=0, y=0, width=None, height=None, frame=None, Lheight=None, *args, **kw):
         if frame is None: frame = self.frame
-        listb = tk.Listbox(frame,*args,height=Lheight,**kw)
+        listb = tk.Listbox(frame, *args, height=Lheight, **kw)
         listb.place(x=x, y=y, width=width, height=height)
         return listb
-    def Frame(self,frameParente=None,width = None,height = None,*args,**kwargs):
+
+    def Frame(self, frameParente=None, width=None, height=None, *args, **kwargs):
         if frameParente is None: frameParente = self.frame
         if width is None: width = self.w
         if height is None: height = self.h
-        frame = tk.Frame(frameParente,*args,**kwargs)
+        frame = tk.Frame(frameParente, *args, **kwargs)
         frame.__dict__['w'] = width
         frame.__dict__['h'] = height
-        def put(*args,width=None,height=None,**kwargs):
+
+        def put(*args, width=None, height=None, **kwargs):
             if width is None: width = frame.w
             if height is None: height = frame.h
-            frame.place(*args,width=width,height=height,**kwargs)
-        def px(*args,**kw):
-            return Activity.px(frame,*args,**kw)
-        def py(*args,**kw):
-            return Activity.py(frame,*args,**kw)
+            frame.place(*args, width=width, height=height, **kwargs)
+
+        def px(*args, **kw):
+            return Activity.px(frame, *args, **kw)
+
+        def py(*args, **kw):
+            return Activity.py(frame, *args, **kw)
+
         frame.__dict__['actplace'] = put
         frame.__dict__['px'] = px
         frame.__dict__['py'] = py
         return frame
-
+    def askSaveAs(self, types=None):
+        if types is None:
+            types = [('lua', '*.lua'),('all files','*.*')]
+        return filedialog.asksaveasfilename(title='arquitetura',defaultextension=types,filetypes=types)
     def getButton(self, id) -> tk.Button:
         return self.buttons[id]
 
     def getValue(self, id):
+        self.vars[id].get()
         return self.tips[id](self.vars[id].get())
 
     def getEntry(self, id) -> tk.Entry:

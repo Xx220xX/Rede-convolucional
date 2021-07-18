@@ -1,12 +1,10 @@
 import tkinter as tk
 
-from pyTrain import Activity
+from Activity import *
 
 
-def screen(act: Activity):
-    act.text("texto")
-
+from createCNN import ui
 root = tk.Tk()
 root.geometry('%dx%d'%(root.winfo_screenwidth(), root.winfo_screenheight()))
-Activity(root, 'Inicializar Valores', screen, width=root.winfo_screenwidth(), height = root.winfo_screenheight()).start()
+Activity(root, 'Inicializar Valores', ui, width=root.winfo_screenwidth(), height = root.winfo_screenheight()).start()
 root.mainloop()
