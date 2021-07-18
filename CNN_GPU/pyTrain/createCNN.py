@@ -37,8 +37,8 @@ def ui(act: Activity):
     act.entry('z', 1, int, x=act.px(15), width=act.px(5), height=act.py(5), justify=tk.CENTER)
     fArch = act.Frame(act.frame, width=act.px(30), height=act.py(84), bg="#ff0")
     fEdit = act.Frame(act.frame, width=act.px(68), height=act.py(90), bg="#ff0")
-    fSet = act.Frame(fEdit, width=act.px(68), height=act.py(90), bg="#f0f")
-    fAdd = act.Frame(act.frame, width=act.px(68), height=act.py(89), bg="#ff0")
+    fSet = act.Frame(fEdit, width=fEdit.px(50), height=act.py(90), bg="#f0f")
+    fAdd = act.Frame(act.frame, width=fEdit.w, height=act.py(89), bg="#ff0")
 
     lista = act.Listbox(frame=fArch, width=fArch.w, height=fArch.h,font=Font.Font(size=14))
     act.ScroolbarY(lista, frame=fArch, width=20, height=fArch.h)
@@ -97,8 +97,25 @@ def ui(act: Activity):
     fEdit.actplace(x=act.px(32))
     fSet.actplace(x=fEdit.px(50)+20)
     #### continuar
+    makeOptions(act,fSet)
     # fAdd.actplace(x=act.px(32))
 
+def makeOptions(act:Activity,frame:tk.Frame):
+    #2dim
+    f2dim = act.Frame(frame,width=frame.w,height=frame.py(50),bg='#0f0')
+    f2dim.actplace(y=frame.py(25))
+    act.label('2dim_name','null',frame=f2dim,x=f2dim.px(25),width=f2dim.px(50))
+    act.entry('2dim_x',1,int, frame=f2dim, y =30,x=f2dim.px(25),width=f2dim.px(50),justify=tk.CENTER)
+    act.entry('2dim_y',1,int, frame=f2dim, y =60,x=f2dim.px(25),width=f2dim.px(50),justify=tk.CENTER)
+    def update2dim(*args,**kw):
+        try:
+            x = act.getValue('2dim_x')
+            y = act.getValue('2dim_y')
+        except Exception:
+            return
+        act.extras['2dim_var'][2] = [x,y]
+    act.getEntry('2dim_x').bind('<Key>', update2dim)
+    act.getEntry('2dim_y').bind('<key>',update2dim)
 
 import numpy as np
 
