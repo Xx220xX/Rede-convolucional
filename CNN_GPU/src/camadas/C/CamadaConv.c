@@ -46,7 +46,7 @@ int convRandomize(CamadaConv c, WrapperCL *cl, Exception *error) {
 	double *data = (double *) calloc(c->filtros->x * c->filtros->y * c->filtros->z, sizeof(double));
 	for (int a = 0; a < c->filtros->w; a++) {
 		FOR3D(i, j, z, c->filtros->x, c->filtros->y, inz) {
-					data[TensorMap(c->filtros, i, j, z)] = RANDOM_BILATERAL() * maxVal;
+					data[Tensor_Map(c->filtros, i, j, z)] = RANDOM_BILATERAL() * maxVal;
 				}
 		error->error = TensorPutValuesOffSet(c->super.queue, c->filtros, data, a * c->filtros->bytes);
 		if (error->error) {

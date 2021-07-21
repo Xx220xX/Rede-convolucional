@@ -42,7 +42,7 @@ int fullRandomize(CamadaFullConnect c, WrapperCL *cl, Exception *error) {
 	double *data = callocdouble(inx * iny * inz * tamanhoSaida);
 	for (int i = 0; i < tamanhoSaida; ++i) {
 		for (int j = 0; j < valmax; ++j) {
-			data[TensorMap(c->pesos, i, j, 0)] =
+			data[Tensor_Map(c->pesos, i, j, 0)] =
 					RANDOM_BILATERAL() * max_weight; //2.19722  (valmax) * RANDOM_BILATERAL();
 		}
 	}

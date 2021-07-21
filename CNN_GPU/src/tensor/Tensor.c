@@ -286,7 +286,7 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 			fprintf(f, "(:,:,%d,%d)\n", z, l);
 			for (int i = 0; i < t->x; i++) {
 				for (int j = 0; j < t->y; j++)
-					fprintf(f, "%.2g ", v[TensorMap(t, i, j, z)]);
+					fprintf(f, "%.2g ", v[Tensor_Map(t, i, j, z)]);
 				fprintf(f, "\n");
 			}
 			fprintf(f, "\n");

@@ -1,14 +1,14 @@
 //
 // Created by Henrique on 5/8/2021.
 //
-#include ../CamadaDropOut.h
+#include "../CamadaDropOut.h"
 #include <time.h>
 
 const char *getCreateParamsDropOut(CamadaDropOut c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
 	int len = snprintf(c->super.__string__, 1000,
-	                   ['Dropout',%g,%zu]\n,
+	                   "['Dropout',%g,%zu]\n",
 	                   c->p_ativacao, c->seed
 
 	);
@@ -21,8 +21,8 @@ const char *tostringDropOut(CamadaDropOut c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
 	int len = snprintf(c->super.__string__, 1000,
-	                   Drop Out Layer: (%u,%u,%u) -> (%u,%u,%u)\n
-	                   \tactivation point  %lf\n,
+	                   "Drop Out Layer: (%u,%u,%u) -> (%u,%u,%u)\n"
+	                   "\tactivation point  %lf\n",
 
 	                   c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
 	                   c->super.saida->x, c->super.saida->y, c->super.saida->z,

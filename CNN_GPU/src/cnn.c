@@ -27,6 +27,7 @@ const char *getVersion() {
 const char *getInfo() {
 	return __notas__;
 }
+
 #define CHECKDIN(input, filtro, abertura, passo) \
     (((((input-1) - (filtro - 1) * abertura) / passo +1)>0) && \
     (((((input-1) - (filtro - 1) * abertura) / passo)*passo + (filtro-1)*abertura) == (input-1)))
@@ -38,7 +39,7 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 	c->cl = cl;
 	int error = 0;
 	c->queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error);
-	c->sizeIn = (Ponto3d) {inx, iny, inz};
+	c->sizeIn = (Ponto) {inx, iny, inz};
 	if (error) {
 		c->error.error = error;
 		snprintf(c->error.msg, 255, "nao foi possivel criar queue\n");
@@ -100,10 +101,10 @@ Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, U
 }
 
 
-Ponto3d __CnnaddLayer__(Cnn c) {
+Ponto __CnnaddLayer__(Cnn c) {
 	c->size += 1;
 	c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
-	Ponto3d in = c->sizeIn;
+	Ponto in = c->sizeIn;
 	if (c->size > 1) {
 		in.x = (int) c->camadas[c->size - 2]->saida->x;
 		in.y = (int) c->camadas[c->size - 2]->saida->y;
@@ -142,7 +143,7 @@ int CnnAddConvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro, UINT 
 	if (c->error.error)return c->error.error;
 
 //	//int len = sprintf(c->error.context, "%s", "CnnAddConvLayer");
-	Ponto3d sizeIn = __CnnaddLayer__(c);
+	Ponto sizeIn = __CnnaddLayer__(c);
 	if (!CHECKDIN(sizeIn.x, tamanhoDoFiltro, 1, passo)) {
 		c->error.error = INVALID_FILTER_SIZE;
 		snprintf(c->error.msg, 255, "conv: tamanho do filtro invalido\n");
@@ -166,12 +167,9 @@ int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx,
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "CnnAddConvNcLayer");
 
-	Ponto3d sizeIn = __CnnaddLayer__(c);
-	if (
-			((sizeIn.x - 1 - (filtrox - 1) * largx) / passox !=
-			 (sizeIn.x - 1 - (filtrox - 1) * largx) / (double) passox) ||
-			((sizeIn.y - 1 - (filtroy - 1) * largy) / passoy !=
-			 (sizeIn.y - 1 - (filtroy - 1) * largy) / (double) passoy)
+	Ponto sizeIn = __CnnaddLayer__(c);
+	if (!CHECKDIN(sizeIn.x, filtrox, largx, passox) ||
+	    !CHECKDIN(sizeIn.y, filtroy, largy, passoy)
 			) {
 		c->error.error = INVALID_FILTER_SIZE;
 		snprintf(c->error.msg, 255, "conv non-causal: tamanho do filtro invalido\n");
@@ -193,30 +191,16 @@ int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx,
 }
 
 int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT fx) {
-	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
-	* em que:
-	* 			S = tamanho da saida
-	* 			E = tamanho da entrada
-	* 			F = tamanho do filtro
-	* 			Pd = preenchimento com zeros
-	* 			P = passo
-	**/
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "CnnAddPoolLayer");
-
-	Ponto3d sizeIn = __CnnaddLayer__(c);
-	int invalid = 1;
-    (sizeIn.x - 1)*passo + (fx-1) - ()
-
-
-	if (invalid) {
+	Ponto sizeIn = __CnnaddLayer__(c);
+	if (!CHECKDIN(sizeIn.x, fx, 1, passo) ||
+	    !CHECKDIN(sizeIn.y, fx, 1, passo)) {
 		c->error.error = INVALID_FILTER_SIZE;
 		snprintf(c->error.msg, 255, "pooling(%u %u): tamanho do filtro invalido\n", passo, fx);
 		c->size--;
 		c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
 		return c->error.error;
 	}
-
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passo, fx, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
@@ -225,28 +209,16 @@ int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT fx) {
 }
 
 int CnnAddPoolAvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
-	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
-	* em que:
-	* 			S = tamanho da saida
-	* 			E = tamanho da entrada
-	* 			F = tamanho do filtro
-	* 			Pd = preenchimento com zeros
-	* 			P = passo
-	**/
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "CnnAddPoolAvLayer");
-
-	Ponto3d sizeIn = __CnnaddLayer__(c);
+	Ponto sizeIn = __CnnaddLayer__(c);
 	if (!CHECKDIN(sizeIn.x, tamanhoDoFiltro, 1, passo) ||
 	    !CHECKDIN(sizeIn.y, tamanhoDoFiltro, 1, passo)) {
 		c->error.error = INVALID_FILTER_SIZE;
 		snprintf(c->error.msg, 255, "average pooling(%u,%u) : tamanho do filtro invalido\n", passo, tamanhoDoFiltro);
 		c->size--;
 		c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
-
 		return c->error.error;
 	}
-
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z,
@@ -257,21 +229,19 @@ int CnnAddPoolAvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 
 int CnnAddBatchNorm(Cnn c, char usehost, double epsilon) {
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "CnnAddBatchNorm");
-	Ponto3d sizeIn = __CnnaddLayer__(c);
+	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
 	                                          epsilon, 1,
 	                                          usehost, &c->error);
 	return __CnnCheckNewLayer__(c);
-
 }
 
 int CnnAddReluLayer(Cnn c, char usehost) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "CnnAddReluLayer");
-	Ponto3d sizeIn = __CnnaddLayer__(c);
+	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada, usehost, &c->error);
@@ -282,7 +252,7 @@ int CnnAddReluLayer(Cnn c, char usehost) {
 int CnnAddPaddingLayer(Cnn c, char usehost, UINT top, UINT bottom, UINT left, UINT right) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "CnnAddPaddingLayer");
-	Ponto3d sizeIn = __CnnaddLayer__(c);
+	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] =
@@ -296,7 +266,7 @@ int CnnAddPaddingLayer(Cnn c, char usehost, UINT top, UINT bottom, UINT left, UI
 int CnnAddSoftMax(Cnn c, char usehost) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "CnnAddSoftMax");
-	Ponto3d sizeIn = __CnnaddLayer__(c);
+	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createSoftMax(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
@@ -307,7 +277,7 @@ int CnnAddSoftMax(Cnn c, char usehost) {
 int CnnAddDropOutLayer(Cnn c, char usehost, double pontoAtivacao, long long int seed) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "CnnAddDropOutLayer");
-	Ponto3d sizeIn = __CnnaddLayer__(c);
+	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createDropOut(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, pontoAtivacao, seed, entrada,
@@ -318,7 +288,7 @@ int CnnAddDropOutLayer(Cnn c, char usehost, double pontoAtivacao, long long int 
 int CnnAddFullConnectLayer(Cnn c, char usehost, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "CnnAddFullConnectLayer");
-	Ponto3d sizeIn = __CnnaddLayer__(c);
+	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
@@ -543,7 +513,7 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 	int imi = 0;
 	int x, y;
 	double *values = calloc(max_bytes, 1);
-
+	int erro;
 	for (int cm = -1; cm < c->size; cm++) {
 		if (cm == -1)
 			t = c->camadas[0]->entrada;
@@ -567,17 +537,25 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 		if (mx - mn != 0.0) {
 			somador = -mn;
 			multiplicador = 255 / (mx - mn);
-			kernel_run_recursive(&c->kernelNormalize, c->queue, len, c->cl->maxworks, &t->data, &tout->data,
-			                     &multiplicador,
-			                     &somador, &minimo);
+			kernel_run_recursive(erro, c->kernelNormalize, c->queue, len, c->cl->maxworks,
+			                     K_ARG t,
+			                     K_ARG tout,
+			                     K_ARG multiplicador,
+			                     K_ARG somador,
+			                     K_ARG minimo);
 			x = t->x;
 			y = t->y;
 			if (t->y < t->x) {
 				x = t->y;
 				y = t->x;
 			}
-			kernel_run_recursive(&c->kernelcreateIMG, c->queue, len, c->cl->maxworks, &img->data, &tout->data, &x, &y,
-			                     &imi, &maxW);
+			kernel_run_recursive(erro, c->kernelcreateIMG, c->queue, len, c->cl->maxworks,
+			                     K_ARG img,
+			                     K_ARG tout,
+			                     K_ARG x,
+			                     K_ARG y,
+			                     K_ARG imi,
+			                     K_ARG maxW);
 		}
 		if (t->y > t->x) {
 			imi += t->x;

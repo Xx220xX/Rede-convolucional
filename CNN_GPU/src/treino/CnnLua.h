@@ -11,6 +11,9 @@
 #include "../lua/lauxlib.h"
 #include "../defaultkernel.h"
 
+#ifdef DISABLE_KERNELS_INSIDE_DRIVE
+#include "../gpuKernels.h"
+#endif
 Cnn *globalcnn;
 
 int globalLuaError = 0;

@@ -13,7 +13,6 @@
 #include "camadas/CamadaSoftMax.h"
 #include "camadas/CamadaBatchNorm.h"
 
-
 #define INVALID_FILTER_SIZE (-71)
 /***
  * Armazena os dados de uma rede neural convolucional
@@ -24,7 +23,7 @@ typedef struct Cnn{
 	Tensor lastGrad;
 	Tensor target;
 	int size;
-	Ponto3d sizeIn;
+	Ponto sizeIn;
 	QUEUE queue;
 	WrapperCL *cl;
 	char releaseCL;
@@ -86,7 +85,6 @@ Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, U
 int CnnCalculeError(Cnn c);
 
 
-#define checkSizeFilter(v, tam, pas) ((((v)-(tam))/(pas)) ==((double)(v)-(tam))/((double)(pas)))
 /***
  *  Adiciona camada conv
  * @param c 

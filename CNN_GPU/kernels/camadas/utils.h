@@ -41,20 +41,6 @@ kV createImg(__global unsigned char *out, Vector v, int vx, int vy, int imi, int
 	out[imi * imy + imj] = ((int) v[k]) & 0xff;
 }
 
-kV printTensor(Vector t, int mx, int my, int mz, int mw) {
-	for (int w = 0; w < mw; w++) {
-		for (int z = 0; z < mz; z++) {
-			printf("[Dim(%d,%d)]\n",w, z);
-			for (int x = 0; x < mx; x++) {
-				for (int y = 0; y < my; y++) {
-					printf("%.4lf \t", t[TensorMap4D(x, y, z,w, mx, my,mz) ]);
-				}
-				printf("\n");
-			}
-		}
-		printf("\n");
-	}
-}
 
 
 kV

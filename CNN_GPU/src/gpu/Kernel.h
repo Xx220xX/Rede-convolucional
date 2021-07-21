@@ -2,10 +2,9 @@
 // Created by Xx220xX on 12/05/2020.
 //
 
-#ifndef GABKernel _H
-#define GABKernel _H
+#ifndef GABKernel_H
+#define GABKernel_H
 
-//#define DISABLE_KERNELS_INSIDE_DRIVE
 
 #include<CL/cl.h>
 
@@ -15,6 +14,7 @@
 
 typedef struct _Kernel *Kernel;
 
+#define QUEUE cl_command_queue
 
 #ifndef EXCEPTION_MAX_MSG_SIZE
 #define EXCEPTION_MAX_MSG_SIZE 500
@@ -24,47 +24,69 @@ typedef struct Exception {
 	char msg[EXCEPTION_MAX_MSG_SIZE];
 } Exception;
 
-Kernel __newKernel(void *, Exception *error, void *f_name, int n_args, ...);
-
-
-void releaseKernel(Kernel *self);
-
-
-void printKernel(Kernel self);
 
 #ifndef DISABLE_KERNELS_INSIDE_DRIVE
-/// Usado nos argumentos passados para rodar um kernel
 #define K_ARG &
 #define new_Kernel(porgram, P_error, kernel_function, n_args, ...) \
-        __newKernel(porgram, P_error,#kernel_function,n_args,## __VA_ARGS__)
-
-#define kernel_run(erro, Kernel, queue, globals, locals, ...)\
-        erro= __kernel_run(Kernel,queue,globals,locals,## __VA_ARGS__)
-
-#define kernel_run_recursive(erro, Kernel, queue, globals, locals, ...)\
-        erro = __kernel_run_recursive(Kernel,queue,globals,locals,## __VA_ARGS__)
-#define KernelSincronise clFinish
-int __kernel_run(Kernel self, cl_command_queue queue, size_t globals, size_t locals, ...);
-
-int __kernel_run_recursive(Kernel self, cl_command_queue queue, size_t globals, size_t max_works, ...);
-
-#else
-'	#define K_ARG
-#define newKernel(porgram, P_error, kernel_function, n_args, ...) \
 		__newKernel(porgram, P_error,#kernel_function,n_args,## __VA_ARGS__)
 
-#define kernel_run(Kernel, queue, globals, locals, ...) { \
-		for (int id=0;id<globals;id++){                       \
-				set_global_id(id);                                              \
-			(kernel)->,queue,globals,locals,## __VA_ARGS__) ;
-	}\
-	}
-#define kernel_run_recursive(Kernel, queue, globals,maxwords, ...) \
-		kernel_run(Kernel,queue,globals,1,## __VA_ARGS__);
+#define kernel_run(erro, Kernel, queue, globals, locals, ...)\
+		erro= __kernel_run(Kernel,queue,globals,locals,## __VA_ARGS__)
 
-	int get_global_id(int flag);
-'int set_global_id(int value);
+#define kernel_run_recursive(erro, Kernel, queue, globals, locals, ...)\
+		erro = __kernel_run_recursive(Kernel,queue,globals,locals,## __VA_ARGS__)
+#define releaseKernel __releaseKernel
+#define printKernel __printKernel
+#else
+#define __global
+#define __kernel
+
+typedef void (*kernel_function_type)(void *, ...);
+
+#define K_ARG
+#define new_Kernel(porgram, P_error, kernel_function, n_args, ...) \
+        __newKernelHost(kernel_function, P_error,#kernel_function,n_args,## __VA_ARGS__)
+
+#define kernel_run(erro, Kernel, queue, globals, locals, arg0, ...) { \
+        {                                                            \
+        for (int id=0;id<globals;id++){                       \
+                set_global_id(id);                                              \
+            ((kernel_function_type)Kernel)(arg0,## __VA_ARGS__) ;\
+        }                                                       \
+        erro  = 0;                                                         \
+        }\
+    }
+#define kernel_run_recursive(erro, Kernel, queue, globals, maxwords, arg0, ...) \
+        kernel_run(erro,Kernel,queue,globals,1,arg0,## __VA_ARGS__);
+
+#define releaseKernel __releaseKernelHost
+#define printKernel __printKernelHost
+
 #endif  // DISABLE_KERNELS_INSIDE_DRIVE
 
 
-#endif //GABKernel _H
+Kernel __newKernel(void *pointer_clprogram, Exception *error, void *pointer_char_name_function, int n_args, ...);
+
+
+void __releaseKernel(Kernel *selfp);
+
+int __kernel_run(Kernel, QUEUE, size_t, size_t, ...);
+
+int __kernel_run_recursive(Kernel, QUEUE, size_t, size_t, ...);
+
+void __printKernel(Kernel self);
+
+Kernel
+__newKernelHost(void *, Exception *, void *, int, ...);
+
+
+void __releaseKernelHost(Kernel *);
+
+
+void __printKernelHost(Kernel);
+
+int get_global_id(int);
+
+int set_global_id(int);
+
+#endif //GABKernel_H

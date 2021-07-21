@@ -22,7 +22,7 @@
 /**
  * Mapeia um ponto 3d no vetor
  */
-#define TensorMap(T, xx, yy, zz) (zz)*((T)->y*(T)->x)+(xx)*(T)->y+(yy)
+#define Tensor_Map(T, xx, yy, zz) (zz)*((T)->y*(T)->x)+(xx)*(T)->y+(yy)
 
 /// Não faz nenhuma copia, toda memoria é armazenada no driver.
 #define TENSOR_NCPY 0x00
@@ -41,7 +41,7 @@ typedef unsigned int UINT;
  */
 typedef struct Ponto3d {
 	UINT x, y, z;
-} Ponto3d;
+} Ponto;
 /***
  * Tensor armazena uma matriz 4D juntamente com os parametros dela
  * @Atributtes data memoria no driver
