@@ -1,7 +1,5 @@
 #include "locale.h"
-#define DISABLE_KERNELS_INSIDE_DRIVE
 #include"src/treino/treinoWithLua.h"
-
 int main(int nargs, char **args) {
 	system("chcp 65001");
 	printf("##############################\n");

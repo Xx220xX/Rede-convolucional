@@ -5,12 +5,11 @@
 #ifndef CNN_GPU_TESTECNN_H
 #define CNN_GPU_TESTECNN_H
 #include "locale.h"
-
 #include"src/cnn.h"
 #include"src/defaultkernel.h"
-#define XY 10
-#define Z 10
-#define L 10
+#define XY 3
+#define Z 3
+#define L 2
 int main(int nargs, char **args) {
 	system("chcp 65001");
 	printf("##############################\n");
@@ -28,37 +27,13 @@ int main(int nargs, char **args) {
 			, XY, XY, Z, CL_DEVICE_TYPE_GPU);
 
 	CnnAddConvLayer(cnn, 0, 1, XY, L);
-	if (cnn->error.error) {
-		fprintf(stderr, "%s\n", cnn->error.context);
-		fprintf(stderr, "%d: %s\n", cnn->error.error, cnn->error.msg);
-		goto end;
-	}
 	CamadaConv conv = (CamadaConv) cnn->camadas[0];
 
-	FILE *f = fopen("../debug.txt", "w");
 	double entrada[XY*XY*Z];
 	for(int i=0;i<XY*XY*Z;i++){
 		entrada[i]=1.0/(i+1);
 	}
 	CnnCall(cnn,entrada);
-	fprintf(f,"entrada\n");
-//	printTensor(cnn->queue, conv->super.entrada, f);
-//	fprintf(f,"saida\n");
-//	printTensor(cnn->queue, conv->super.saida, f);
-//	fprintf(f,"filtro\n");
-//	printTensor(cnn->queue, conv->filtros, f);
-//	fclose(f);
-
-	end:
-
-	if (cnn) {
-		if (cnn->error.error) {
-			fprintf(stderr, "%s\n", cnn->error.context);
-			fprintf(stderr, "%d: %s\n", cnn->error.error, cnn->error.msg);
-			erro = cnn->error.error;
-		}
-
-	}
 	return erro;
 }
 #endif //CNN_GPU_TESTECNN_H
