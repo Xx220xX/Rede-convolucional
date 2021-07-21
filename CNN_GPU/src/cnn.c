@@ -27,6 +27,9 @@ const char *getVersion() {
 const char *getInfo() {
 	return __notas__;
 }
+#define CHECKDIN(input, filtro, abertura, passo) \
+    (((((input-1) - (filtro - 1) * abertura) / passo +1)>0) && \
+    (((((input-1) - (filtro - 1) * abertura) / passo)*passo + (filtro-1)*abertura) == (input-1)))
 
 Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 	Cnn c = (Cnn) calloc(1, sizeof(TypeCnn));
@@ -40,14 +43,14 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 		c->error.error = error;
 		snprintf(c->error.msg, 255, "nao foi possivel criar queue\n");
 	}
-	c->kernelsub = new_Kernel(cl->program, &c->error, "subKernel", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
-	c->kerneldiv = new_Kernel(cl->program, &c->error, "divKernel", 3, K_VOID_P, K_DOUBLE, K_INT);
-	c->kerneldivInt = new_Kernel(cl->program, &c->error, "divIntDo", 4, K_VOID_P, K_VOID_P, K_DOUBLE, K_INT);
-	c->kernelInt2Vector = new_Kernel(cl->program, &c->error, "int2vector", 4, K_VOID_P, K_VOID_P, K_INT, K_INT);
-	c->kernelNormalize = new_Kernel(cl->program, &c->error, "normalizeVector", 6, K_VOID_P, K_VOID_P, K_DOUBLE,
+	c->kernelsub = new_Kernel(cl->program, &c->error, subKernel, 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
+	c->kerneldiv = new_Kernel(cl->program, &c->error, divKernel, 3, K_VOID_P, K_DOUBLE, K_INT);
+	c->kerneldivInt = new_Kernel(cl->program, &c->error, divIntDo, 4, K_VOID_P, K_VOID_P, K_DOUBLE, K_INT);
+	c->kernelInt2Vector = new_Kernel(cl->program, &c->error, int2vector, 4, K_VOID_P, K_VOID_P, K_INT, K_INT);
+	c->kernelNormalize = new_Kernel(cl->program, &c->error, normalizeVector, 6, K_VOID_P, K_VOID_P, K_DOUBLE,
 	                                K_DOUBLE, K_DOUBLE,
 	                                K_INT);
-	c->kernelcreateIMG = new_Kernel(cl->program, &c->error, "createImg", 7, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT,
+	c->kernelcreateIMG = new_Kernel(cl->program, &c->error, createImg, 7, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT,
 	                                K_INT, K_INT);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
@@ -136,20 +139,11 @@ int __CnnCheckNewLayer__(Cnn c) {
 }
 
 int CnnAddConvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros) {
-	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
-	* em que:
-	* 			S = tamanho da saida
-	* 			E = tamanho da entrada
-	* 			F = tamanho do filtro
-	* 			Pd = preenchimento com zeros
-	* 			P = passo
-	**/
-
 	if (c->error.error)return c->error.error;
 
 //	//int len = sprintf(c->error.context, "%s", "CnnAddConvLayer");
 	Ponto3d sizeIn = __CnnaddLayer__(c);
-	if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
+	if (!CHECKDIN(sizeIn.x, tamanhoDoFiltro, 1, passo)) {
 		c->error.error = INVALID_FILTER_SIZE;
 		snprintf(c->error.msg, 255, "conv: tamanho do filtro invalido\n");
 		c->size--;
@@ -168,14 +162,7 @@ int CnnAddConvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro, UINT 
 
 int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
                       UINT numeroDeFiltros) {
-	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
-	* em que:
-	* 			S = tamanho da saida
-	* 			E = tamanho da entrada
-	* 			F = tamanho do filtro
-	* 			Pd = preenchimento com zeros
-	* 			P = passo
-	**/
+
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "CnnAddConvNcLayer");
 
@@ -205,7 +192,7 @@ int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx,
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
+int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT fx) {
 	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
 	* em que:
 	* 			S = tamanho da saida
@@ -218,9 +205,13 @@ int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 	//int len = sprintf(c->error.context, "%s", "CnnAddPoolLayer");
 
 	Ponto3d sizeIn = __CnnaddLayer__(c);
-	if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
+	int invalid = 1;
+    (sizeIn.x - 1)*passo + (fx-1) - ()
+
+
+	if (invalid) {
 		c->error.error = INVALID_FILTER_SIZE;
-		snprintf(c->error.msg, 255, "pooling(%u %u): tamanho do filtro invalido\n", passo, tamanhoDoFiltro);
+		snprintf(c->error.msg, 255, "pooling(%u %u): tamanho do filtro invalido\n", passo, fx);
 		c->size--;
 		c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
 		return c->error.error;
@@ -228,7 +219,7 @@ int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
+	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passo, fx, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
 	                                     c->parametros, usehost, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
@@ -246,7 +237,8 @@ int CnnAddPoolAvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 	//int len = sprintf(c->error.context, "%s", "CnnAddPoolAvLayer");
 
 	Ponto3d sizeIn = __CnnaddLayer__(c);
-	if (!checkSizeFilter(sizeIn.x, tamanhoDoFiltro, passo) || !checkSizeFilter(sizeIn.y, tamanhoDoFiltro, passo)) {
+	if (!CHECKDIN(sizeIn.x, tamanhoDoFiltro, 1, passo) ||
+	    !CHECKDIN(sizeIn.y, tamanhoDoFiltro, 1, passo)) {
 		c->error.error = INVALID_FILTER_SIZE;
 		snprintf(c->error.msg, 255, "average pooling(%u,%u) : tamanho do filtro invalido\n", passo, tamanhoDoFiltro);
 		c->size--;

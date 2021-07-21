@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['C:\\Users\\Henrique\\Desktop\\Rede-convolucional\\CNN_GPU\\pyTrain'],
+             pathex=['C:\Users\gf154\OneDrive\Documentos\CNN\Rede-convolucional\CNN_GPU\pyTrain'],
              binaries=[],
              datas=[],
              hiddenimports=[],
