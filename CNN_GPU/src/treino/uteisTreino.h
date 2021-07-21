@@ -4,7 +4,9 @@
 
 #ifndef CNN_GPU_UTEISTREINO_H
 #define CNN_GPU_UTEISTREINO_H
+
 #include <pthread.h>
+
 void ppmp2(double *data, int x, int y, char *fileName) {
 	FILE *f = fopen(fileName, "w");
 	fprintf(f, "P2\n");
@@ -59,14 +61,25 @@ int normalizeImage(double *imagem, size_t bytes, WrapperCL *cl, cl_command_queue
 	if (readBytes(f, (unsigned char *) imagem, bytes, bytesReadd)) {
 		return 1;
 	}
-	cl_mem mInt, mDou;
-	int error = 0;
-	mInt = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes, NULL, &error);
-	mDou = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes * sizeof(double), NULL, &error);
-	dividirVetorInt((unsigned char *) imagem, imagem, mInt, mDou, bytes, 255, divInt, cl->maxworks, queue);
-	clReleaseMemObject(mInt);
-	clReleaseMemObject(mDou);
-	return 0;
+	Tensor mInt, mDou;
+	Exception e = {0};
+	mInt = newTensorChar(cl->context, queue, bytes, 1, 1, TENSOR_NCPY, &e);
+	mDou = newTensor(cl->context, queue, bytes, 1, 1, TENSOR_NCPY, &e);
+	if (e.error) {
+		fprintf(stderr, "normalizeRange: ");
+		showError(e.error);
+		releaseTensor(&mInt);
+		releaseTensor(&mDou);
+		return e.error;
+	}
+	e.error = dividirVetorInt((unsigned char *) imagem, imagem, mInt, mDou, bytes, 255, divInt, cl->maxworks, queue);
+	releaseTensor(&mInt);
+	releaseTensor(&mDou);
+	if (e.error) {
+		fprintf(stderr, "normalizeRange: ");
+		showError(e.error);
+	}
+	return e.error;
 }
 
 int loadTargetData(double *target, unsigned char *labelchar, int numeroDeClasses, size_t bytes, WrapperCL *cl,
@@ -75,18 +88,25 @@ int loadTargetData(double *target, unsigned char *labelchar, int numeroDeClasses
 	if (labelchar == NULL)labelchar = (unsigned char *) target;
 	if (readBytes(f, labelchar, bytes, bytesReadd) || !*bytesReadd)
 		return 1;
-	cl_mem mInt, mDou;
-	int error = 0;
-	mInt = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes, NULL, &error);
-	mDou = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, bytes * numeroDeClasses * sizeof(double), NULL, &error);
-	int2doubleVector(cl, labelchar, target, mInt, mDou, *bytesReadd, numeroDeClasses, int2vector, queue);
-	clReleaseMemObject(mInt);
-	clReleaseMemObject(mDou);
-	return 0;
+	Tensor mInt, mDou;
+	Exception e = {0};
+	mInt = newTensorChar(cl->context, queue, bytes, 1, 1, TENSOR_NCPY, &e);
+	mDou = newTensor(cl->context, queue, bytes, numeroDeClasses, 1, TENSOR_NCPY, &e);
+	if (e.error) {
+		fprintf(stderr, "loadTargetData: ");
+		showError(e.error);
+		releaseTensor(&mInt);
+		releaseTensor(&mDou);
+		return e.error;
+	}
+	e.error = int2doubleVector(cl, labelchar, target, mInt, mDou, *bytesReadd, numeroDeClasses, int2vector, queue);
+	releaseTensor(&mInt);
+	releaseTensor(&mDou);
+	return e.error;
 }
 
 
-void salveTernsorAsPPM(const char *name, Tensor t, Cnn c) {
+void salveTensorAsPPM(const char *name, Tensor t, Cnn c) {
 	double *dt = calloc(t->bytes, 1);
 	FILE *f = fopen(name, "w");
 	TensorGetValues(c->queue, t, dt);
@@ -109,6 +129,44 @@ void salveTernsorAsPPM(const char *name, Tensor t, Cnn c) {
 
 	free(dt);
 	fclose(f);
+}
+int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c,UINT w) {
+	if (w>=t->w) return -2;
+
+	double *dt = calloc(t->bytes, 1);
+	c->error.error  = TensorGetValues(c->queue, t, dt);
+	if(c->error.error){
+		free(dt);
+		return c->error.error;
+	}
+	normalizeGPU(c, dt, dt, t->bytes / sizeof(double), 255, 0);
+	if(c->error.error){
+		free(dt);
+		return c->error.error;
+	}
+
+	FILE *f = fopen(name, "w");
+	if(!f)return -1;
+
+	fprintf(f, "P2\n");
+	fprintf(f, "%d %d\n", t->y * t->z + t->z - 1, t->x);
+	fprintf(f, "255\n");
+	int px;
+	for (int i = 0; i < t->x; i++) {
+		for (int z = 0; z < t->z; ++z) {
+			for (int j = 0; j < t->y; ++j) {
+				px = (int) (dt[z * t->x * t->y + i * t->y + j]);
+				fprintf(f, "%d", px & 0xff);
+				if (j < t->y - 1)fprintf(f, " ");
+			}
+			if (z < t->z - 1)fprintf(f, " 0 ");
+		}
+		if (i < t->x - 1)fprintf(f, "\n");
+	}
+
+	free(dt);
+	fclose(f);
+	return 0;
 }
 
 
@@ -153,11 +211,11 @@ typedef struct {
 	pthread_t tid;
 } SalveJsArgs;
 
-void *salveJS(SalveJsArgs * args) {
-	for(int i=0;i<args->len;i++){
+void *salveJS(SalveJsArgs *args) {
+	for (int i = 0; i < args->len; i++) {
 		fprintf(args->jsEpoca, "%lf,", args->epoca[i]);
-		fprintf(args->jsErro,"%lf,",args->erro[i]);
-		fprintf(args->jsAcerto,"%lf,",args->acerto[i]);
+		fprintf(args->jsErro, "%lf,", args->erro[i]);
+		fprintf(args->jsAcerto, "%lf,", args->acerto[i]);
 	}
 	free(args->epoca);
 	free(args->erro);

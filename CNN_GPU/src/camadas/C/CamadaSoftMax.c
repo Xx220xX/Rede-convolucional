@@ -40,14 +40,21 @@ void realeaseSoftMax(CamadaSoftMax *pc) {
 }
 
 int ativaSoftMax(CamadaSoftMax c) {
-	int erro= kernel_run_recursive(&c->kernelSoftMaxAtiva1, c->super.queue,
-	                            c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
-	                            &c->super.entrada->data, &c->super.saida->data);
+	int erro = 0;
+	kernel_run_recursive(erro, c->kernelSoftMaxAtiva1, c->super.queue,
+	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
+	                     *c->super.max_works,
+	                     K_ARG c->super.entrada,
+	                     K_ARG c->super.saida);
 	if (erro)return erro;
-	erro = kernel_run_recursive(&c->kernelSoftMaxAtiva2, c->super.queue,
-	                            c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
-	                            &c->exponent->data, &c->soma->data, &c->super.saida->data, &c->super.entrada->x,
-	                            &c->super.entrada->y);
+	kernel_run_recursive(erro, c->kernelSoftMaxAtiva2, c->super.queue,
+	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
+	                     *c->super.max_works,
+	                     K_ARG c->exponent,
+	                     K_ARG c->soma,
+	                     K_ARG c->super.saida,
+	                     K_ARG c->super.entrada->x,
+	                     K_ARG c->super.entrada->y);
 	return erro;
 }
 
@@ -55,11 +62,13 @@ int corrige_pesosSoftMax(CamadaSoftMax c) { return 0; }
 
 int calc_gradsSoftMax(CamadaSoftMax c, Tensor GradNext) {
 	if (!c->super.gradsEntrada)return 0;
-	int erro = kernel_run_recursive(&c->kernelSoftMaxCalcGrads, c->super.queue,
-	                                c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
-	                                *c->super.max_works,
-	                                &c->super.gradsEntrada->data, &c->super.entrada->data,
-	                                &GradNext->data);
+	int erro = 0;
+	kernel_run_recursive(erro, c->kernelSoftMaxCalcGrads, c->super.queue,
+	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
+	                     *c->super.max_works,
+	                     K_ARG c->super.gradsEntrada,
+	                     K_ARG c->super.entrada,
+	                     K_ARG GradNext);
 	return erro;
 
 }
@@ -109,11 +118,11 @@ Camada createSoftMax(WrapperCL *cl, cl_command_queue queue, unsigned int inx, un
 	c->soma = newTensor(cl->context, queue, 1, 1, inz, 0, error);
 	c->exponent = newTensor(cl->context, queue, inx, iny, inz, 1, error);
 
-	c->kernelSoftMaxAtiva1 = new_Kernel(cl->program, error, "SoftMaxativa1", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
+	c->kernelSoftMaxAtiva1 = new_Kernel(cl->program, error, SoftMaxativa1, 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
 	                                    K_INT, K_INT);
-	c->kernelSoftMaxAtiva2 = new_Kernel(cl->program, error, "SoftMaxativa2", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
+	c->kernelSoftMaxAtiva2 = new_Kernel(cl->program, error, SoftMaxativa2, 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
 	                                    K_INT, K_INT);
-	c->kernelSoftMaxCalcGrads = new_Kernel(cl->program, error, "softMaxcalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P,
+	c->kernelSoftMaxCalcGrads = new_Kernel(cl->program, error, softMaxcalcgrad, 4, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                       K_INT);
 	return (Camada) c;
 }

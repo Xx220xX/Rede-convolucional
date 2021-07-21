@@ -29,7 +29,7 @@
 ///Faz a copia com um ponteiro host que pode ser usando enquanto o kernel está executando.
 #define TENSOR_HOST 0x01
 ///Faz a copia com um ponteiro host que pode ser usando enquanto o kernel está executando, o driver faz alocação do host.
-#define TENSOR_HSTA 0x02
+#define TENSOR_SMEM 0x02
 
 
 typedef unsigned int UINT;
@@ -58,20 +58,16 @@ typedef struct Ponto3d {
  */
 typedef struct typetensor {
 	cl_mem data;
-	void *host;
-	char flag;
 	UINT bytes;
 	UINT x;
 	UINT y;
 	UINT z;
 	UINT w;
+	void *host;
+	char flag;
+	cl_context context;
+
 } *Tensor, typetensor, *TensorChar;
-
-
-typedef struct {
-	int x, y, z, l;
-	double *data;
-} *TensorC, typeTensorC;
 
 
 Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char tensor_flag, Exception *error);
@@ -84,34 +80,38 @@ void printTensor(QUEUE q, Tensor t, FILE *f);
 
 int TensorFill(QUEUE queue, Tensor t, char patern);
 
-int TensorFillOffSet(QUEUE queue, Tensor t, char patern, UINT offset);
+int TensorFillOffSet(QUEUE queue, Tensor t, char patern, size_t offset);
 
 int TensorPutValues(QUEUE queue, Tensor t, void *data);
 
-int TensorPutValuesOffSet(QUEUE queue, Tensor t, void *data, UINT ofset);
+int TensorPutValuesOffSet(QUEUE queue, Tensor t, void *data, size_t ofset);
 
 int TensorGetValues(QUEUE queue, Tensor t, void *data);
 
-int TensorGetValuesOffset(QUEUE queue, Tensor t, void *data, unsigned int offset);
+int TensorGetValuesOffSet(QUEUE queue, Tensor t, void *data, size_t offset);
 
-int TensorGetNorm(QUEUE queue,Tensor t, double *norm);
+int TensorGetValuesMem(QUEUE queue, Tensor t, void *data, size_t bytes);
+
+int TensorGetValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, size_t offset);
+
+int TensorPutValuesMem(QUEUE queue, Tensor t, void *data, size_t bytes);
+
+int TensorPutValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, size_t ofset);
+
+int TensorGetNorm(QUEUE queue, Tensor t, double *norm);
+
 void releaseTensor(Tensor *t);
 
 void releaseTensorChar(TensorChar *t);
 
-TensorC newTensorC(int x, int y, int z);
 
-int dividirVetor(double *v, cl_mem m, size_t len, double value, Kernel funcNorm,
-				 size_t max_works,
-				 QUEUE queue);
+int dividirVetor(double *v, Tensor m, size_t len, double value, Kernel funcNorm, size_t max_works,
+                 QUEUE queue);
 
-int dividirVetorInt(unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len, double value,
-					Kernel funcNorm,
-					size_t max_works,
-					QUEUE queue);
+int dividirVetorInt(unsigned char *src, double *dst, Tensor mi, Tensor mout, size_t len, double value,
+                    Kernel funcNorm, size_t max_works, QUEUE queue);
 
-int int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, cl_mem mi, cl_mem mout, size_t len,
-					 int nop,
-					 Kernel func, QUEUE queue);
+int int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, Tensor mi, Tensor mout, size_t len, int nop,
+                     Kernel func, QUEUE queue);
 
 #endif //CNN_GPU_TENSOR_H

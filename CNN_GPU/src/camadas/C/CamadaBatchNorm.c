@@ -7,7 +7,7 @@ const char *getCreateParamsBatchNorm(CamadaBatchNorm c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
 	int len = snprintf(c->super.__string__, 1000,
-					   "['BatchNorm',%.3g]", c->epsilon
+	                   "['BatchNorm',%.3g]", c->epsilon
 	);
 	len += 1;
 	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
@@ -18,9 +18,9 @@ const char *tostringBatchNorm(CamadaBatchNorm c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
 	int len = snprintf(c->super.__string__, 1000,
-					   "BatchNorm Layer: (%u,%u,%u) -> (%u,%u,%u)\n",
-					   c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
-					   c->super.saida->x, c->super.saida->y, c->super.saida->z
+	                   "BatchNorm Layer: (%u,%u,%u) -> (%u,%u,%u)\n",
+	                   c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
+	                   c->super.saida->x, c->super.saida->y, c->super.saida->z
 	);
 	len += 1;
 	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
@@ -35,56 +35,56 @@ int ativaBatchNorm(CamadaBatchNorm c) {
 	/// aplicar a normalização
 
 	// calcula a media
-	int erro = kernel_run_recursive(&c->kernelBatchNormAtiva1, c->super.queue,
-									c->super.entrada->z,
-									*c->super.max_works,
-									&c->super.entrada->data, &c->media->data, &c->super.entrada->x,
-									&c->super.entrada->y);
+	int kernel_run_recursive(erro, c->kernelBatchNormAtiva1, c->super.queue,
+	                         c->super.entrada->z,
+	                         *c->super.max_works,
+	                         K_ARG c->super.entrada, K_ARG c->media,
+	                         K_ARG c->super.entrada->x, K_ARG c->super.entrada->y);
 	if (erro)return erro;
 	// calcular diferencae diferenca quadrada
-	erro = kernel_run_recursive(&c->kernelBatchNormAtiva2, c->super.queue,
-								c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
-								&c->super.entrada->data, &c->media->data, &c->diferenca->data, &c->diferencaquad->data,
-								&c->super.entrada->x, &c->super.entrada->y);
+	kernel_run_recursive(erro, c->kernelBatchNormAtiva2, c->super.queue,
+	                     c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
+	                     K_ARG c->super.entrada, K_ARG c->media,
+	                     K_ARG c->diferenca, K_ARG c->diferencaquad,
+	                     K_ARG c->super.entrada->x, K_ARG c->super.entrada->y);
 
 	if (erro)return erro;
 
 	// calcula a variancia
-	erro = kernel_run_recursive(&c->kernelBatchNormAtiva3, c->super.queue,
-								c->diferenca->z, *c->super.max_works,
-								&c->diferenca->data, &c->diferencaquad->data,
-								&c->somaDiferenca->data, &c->variancia->data, &c->epsilon,
-								&c->diferencaquad->x, &c->diferencaquad->y);
+	kernel_run_recursive(erro, c->kernelBatchNormAtiva3, c->super.queue,
+	                     c->diferenca->z, *c->super.max_works,
+	                     K_ARG c->diferenca, K_ARG c->diferencaquad,
+	                     K_ARG c->somaDiferenca, K_ARG c->variancia, K_ARG c->epsilon,
+	                     K_ARG c->diferencaquad->x, K_ARG c->diferencaquad->y);
 
 	if (erro)return erro;
 	// efetua a normalização
-	erro = kernel_run_recursive(&c->kernelBatchNormAtiva4, c->super.queue,
-								c->super.saida->x * c->super.saida->y * c->super.saida->z,
-								*c->super.max_works,
-								&c->super.saida->data,
-								&c->norma->data,
-								&c->diferenca->data,
-								&c->variancia->data,
-								&c->Y->data,
-								&c->B->data,
-								&c->diferencaquad->x,
-								&c->diferencaquad->y);
+	kernel_run_recursive(erro, c->kernelBatchNormAtiva4, c->super.queue,
+	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
+	                     *c->super.max_works,
+	                     K_ARG c->super.saida,
+	                     K_ARG c->norma,
+	                     K_ARG c->diferenca,
+	                     K_ARG c->variancia,
+	                     K_ARG c->Y,
+	                     K_ARG c->B,
+	                     K_ARG c->diferencaquad->x,
+	                     K_ARG c->diferencaquad->y);
 	return erro;
 
 }
 
 int corrige_pesosBatchNorm(CamadaBatchNorm c) {
 
-	double hit = c->super.parametros.hitLearn;
-	int erro = kernel_run_recursive(&c->kernelBatchNormCorrige,
-									c->super.queue,
-									c->super.entrada->z,
-									*c->super.max_works,
-									&c->gradY->data,
-									&c->gradB->data,
-									&c->Y->data,
-									&c->B->data,
-									&hit);
+	int kernel_run_recursive(erro, c->kernelBatchNormCorrige,
+	                         c->super.queue,
+	                         c->super.entrada->z,
+	                         *c->super.max_works,
+	                         K_ARG c->gradY,
+	                         K_ARG c->gradB,
+	                         K_ARG c->Y,
+	                         K_ARG c->B,
+	                         K_ARG c->super.parametros.hitLearn);
 	return erro;
 
 }
@@ -93,40 +93,40 @@ int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext) {
 
 	int erro;
 	if (c->super.gradsEntrada) {
-		erro = kernel_run_recursive(&c->kernelBatchNormCalcGrads1, c->super.queue,
-									c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
-									*c->super.max_works,
-									&c->super.gradsEntrada->data,
-									&GradNext->data,
-									&c->variancia->data,
-									&c->media->data,
-									&c->Y->data,
-									&c->somaDiferenca->data,
-									&c->super.entrada->data,
-									&c->super.entrada->x,
-									&c->super.entrada->y);
+		kernel_run_recursive(erro, c->kernelBatchNormCalcGrads1, c->super.queue,
+		                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
+		                     *c->super.max_works,
+		                     K_ARG c->super.gradsEntrada,
+		                     K_ARG GradNext,
+		                     K_ARG c->variancia,
+		                     K_ARG c->media,
+		                     K_ARG c->Y,
+		                     K_ARG c->somaDiferenca,
+		                     K_ARG c->super.entrada,
+		                     K_ARG c->super.entrada->x,
+		                     K_ARG c->super.entrada->y);
 		if (erro)return erro;
 	}
-	erro = kernel_run_recursive(&c->kernelBatchNormCalcGrads2, c->super.queue,
-								c->super.entrada->z,
-								*c->super.max_works,
-								&GradNext->data,
-								&c->norma->data,
-								&c->gradY->data,
-								&c->gradB->data,
-								&c->super.entrada->x,
-								&c->super.entrada->y);
+	kernel_run_recursive(erro, c->kernelBatchNormCalcGrads2, c->super.queue,
+	                     c->super.entrada->z,
+	                     *c->super.max_works,
+	                     K_ARG GradNext,
+	                     K_ARG c->norma,
+	                     K_ARG c->gradY,
+	                     K_ARG c->gradB,
+	                     K_ARG c->super.entrada->x,
+	                     K_ARG c->super.entrada->y);
 	return erro;
 }
 
 void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, Exception *error) {
 	char flag = '#';
-	fwrite(&c->super.type, sizeof(char), 1, dst);
-	fwrite(&c->super.flag_usehost, sizeof(char), 1, dst);
-	fwrite(&flag, sizeof(char), 1, dst);
-	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
-	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
-	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+	fwrite(K_ARG c->super.type, sizeof(char), 1, dst);
+	fwrite(K_ARG c->super.flag_usehost, sizeof(char), 1, dst);
+	fwrite(K_ARG flag, sizeof(char), 1, dst);
+	fwrite(K_ARG c->super.entrada->x, sizeof(UINT), 1, dst);
+	fwrite(K_ARG c->super.entrada->y, sizeof(UINT), 1, dst);
+	fwrite(K_ARG c->super.entrada->z, sizeof(UINT), 1, dst);
 	double *data = callocdouble(c->Y->z);
 	TensorGetValues(c->super.queue, c->Y, data);
 	fwrite(data, c->Y->bytes, 1, dst);
@@ -137,21 +137,21 @@ void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, Exception *err
 }
 
 Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-						 Params params, Exception *error) {
+                         Params params, Exception *error) {
 	if (error->error)return NULL;
 	char flag = 0;
-	fread(&flag, sizeof(char), 1, src);
+	fread(K_ARG flag, sizeof(char), 1, src);
 	if (flag != '#')
-		fread(&flag, sizeof(char), 1, src);
+		fread(K_ARG flag, sizeof(char), 1, src);
 	UINT inx, iny, inz;
 	char usehost = 0;
-	fread(&usehost, sizeof(char), 1, src);
-	fread(&inx, sizeof(UINT), 1, src);
-	fread(&iny, sizeof(UINT), 1, src);
-	fread(&inz, sizeof(UINT), 1, src);
+	fread(K_ARG usehost, sizeof(char), 1, src);
+	fread(K_ARG inx, sizeof(UINT), 1, src);
+	fread(K_ARG iny, sizeof(UINT), 1, src);
+	fread(K_ARG inz, sizeof(UINT), 1, src);
 	double epsilon = 1e-10;
 	CamadaBatchNorm cm = (CamadaBatchNorm) createBatchNorm(cl, queue, params, inx, iny, inz, entrada,
-														   epsilon, 0, usehost, error);
+	                                                       epsilon, 0, usehost, error);
 	double *data = callocdouble(cm->Y->z);
 	fread(data, cm->Y->bytes, 1, src);
 	TensorPutValues(cm->super.queue, cm->Y, data);
@@ -162,17 +162,14 @@ Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tenso
 }
 
 int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, Exception *error) {
-	unsigned int inz = c->super.entrada->z;
-	unsigned int valmax = inz;
+	UINT inz = c->super.entrada->z;
+	UINT valmax = inz;
 	double max_weight = 1.0 / (valmax);
-	//unsigned int valmax = (int) sqrt(inx * iny * inz) + 1;
-
 	double *data = callocdouble(inz);
 	for (int i = 0; i < inz; ++i) {
 		data[i] = LCG_randD() * max_weight; //2.19722  (valmax) * RANDOM_BILATERAL();
 	}
 	error->error = TensorPutValues(c->super.queue, c->Y, data);
-	clFinish(c->super.queue);
 	if (error->error) {
 		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
 		free(data);
@@ -182,7 +179,6 @@ int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, Exception *error) {
 		data[i] = RANDOM_BILATERAL() * max_weight; //2.19722  (valmax) * RANDOM_BILATERAL();
 	}
 	error->error = TensorPutValues(c->super.queue, c->B, data);
-	clFinish(c->super.queue);
 	if (error->error) {
 		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
 		free(data);
@@ -221,9 +217,9 @@ void realeaseBatchNorm(CamadaBatchNorm *pc) {
 }
 
 Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
-					   unsigned int inx, unsigned int iny,
-					   unsigned int inz, Tensor entrada, double epsilon, int randomize,
-					   char usehost, Exception *error) {
+                       UINT inx, UINT iny,
+                       UINT inz, Tensor entrada, double epsilon, int randomize,
+                       char usehost, Exception *error) {
 	if (error->error)return NULL;
 
 	CamadaBatchNorm c = (CamadaBatchNorm) calloc(1, sizeof(TypecamadaBatchNorm));
@@ -252,31 +248,31 @@ Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
 	c->norma = newTensor(cl->context, queue, inx, iny, inz, usehost, error);
 
 	c->epsilon = epsilon;
-	c->kernelBatchNormAtiva1 = new_Kernel(cl->program, error, "BatchNormMedia", 5,
-										  K_VOID_P, K_VOID_P,
-										  K_INT, K_INT, K_INT);
+	c->kernelBatchNormAtiva1 = new_Kernel(cl->program, error, BatchNormMedia, 5,
+	                                      K_VOID_P, K_VOID_P,
+	                                      K_INT, K_INT, K_INT);
 
-	c->kernelBatchNormAtiva2 = new_Kernel(cl->program, error, "BatchNormDiferenca", 7,
-										  K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-										  K_INT, K_INT, K_INT);
-	c->kernelBatchNormAtiva3 = new_Kernel(cl->program, error, "BatchNormVariance", 8,
-										  K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-										  K_DOUBLE, K_INT, K_INT, K_INT);
-	c->kernelBatchNormAtiva4 = new_Kernel(cl->program, error, "BatchNormNormaliza", 9,
-										  K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-										  K_VOID_P, K_VOID_P,
-										  K_INT, K_INT, K_INT);
+	c->kernelBatchNormAtiva2 = new_Kernel(cl->program, error, BatchNormDiferenca, 7,
+	                                      K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                      K_INT, K_INT, K_INT);
+	c->kernelBatchNormAtiva3 = new_Kernel(cl->program, error, BatchNormVariance, 8,
+	                                      K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                      K_DOUBLE, K_INT, K_INT, K_INT);
+	c->kernelBatchNormAtiva4 = new_Kernel(cl->program, error, BatchNormNormaliza, 9,
+	                                      K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                      K_VOID_P, K_VOID_P,
+	                                      K_INT, K_INT, K_INT);
 
-	c->kernelBatchNormCalcGrads1 = new_Kernel(cl->program, error, "BatchNormaCalcGrad1", 10,
-											  K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-											  K_VOID_P, K_VOID_P, K_VOID_P,
-											  K_INT, K_INT, K_INT);
-	c->kernelBatchNormCalcGrads2 = new_Kernel(cl->program, error, "BatchNormaCalcGrad2", 7,
-											  K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-											  K_INT, K_INT, K_INT);
-	c->kernelBatchNormCorrige = new_Kernel(cl->program, error, "batchNormCorrigePeso", 6,
-										   K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-										   K_DOUBLE, K_INT);
+	c->kernelBatchNormCalcGrads1 = new_Kernel(cl->program, error, BatchNormaCalcGrad1, 10,
+	                                          K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                          K_VOID_P, K_VOID_P, K_VOID_P,
+	                                          K_INT, K_INT, K_INT);
+	c->kernelBatchNormCalcGrads2 = new_Kernel(cl->program, error, BatchNormaCalcGrad2, 7,
+	                                          K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                          K_INT, K_INT, K_INT);
+	c->kernelBatchNormCorrige = new_Kernel(cl->program, error, batchNormCorrigePeso, 6,
+	                                       K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	                                       K_DOUBLE, K_INT);
 	if (randomize)
 		batchNormRandomize(c, cl, error);
 	return (Camada) c;

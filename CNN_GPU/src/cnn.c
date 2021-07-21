@@ -17,8 +17,7 @@ char __notas__[] =
 		"Revisado todas camadas, corrigido erros internos 2.1.000\n"
 		"Suporte a SVM removido 2.1.001\n"
 		"Bugs concertados em getValues 2.1.002\n"
-		"Removidos trabalhos sequencias das funções Kernel 2.1.003\n"
-		;
+		"Removidos trabalhos sequencias das funções Kernel 2.1.003\n";
 
 
 const char *getVersion() {
@@ -46,10 +45,10 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 	c->kerneldivInt = new_Kernel(cl->program, &c->error, "divIntDo", 4, K_VOID_P, K_VOID_P, K_DOUBLE, K_INT);
 	c->kernelInt2Vector = new_Kernel(cl->program, &c->error, "int2vector", 4, K_VOID_P, K_VOID_P, K_INT, K_INT);
 	c->kernelNormalize = new_Kernel(cl->program, &c->error, "normalizeVector", 6, K_VOID_P, K_VOID_P, K_DOUBLE,
-									K_DOUBLE, K_DOUBLE,
-									K_INT);
+	                                K_DOUBLE, K_DOUBLE,
+	                                K_INT);
 	c->kernelcreateIMG = new_Kernel(cl->program, &c->error, "createImg", 7, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT,
-									K_INT, K_INT);
+	                                K_INT, K_INT);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	}
@@ -124,11 +123,11 @@ int __CnnCheckNewLayer__(Cnn c) {
 		return c->error.error;
 	}
 	c->lastGrad = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-							c->camadas[c->size - 1]->saida->y,
-							c->camadas[c->size - 1]->saida->z, 0, &c->error);
+	                        c->camadas[c->size - 1]->saida->y,
+	                        c->camadas[c->size - 1]->saida->z, 0, &c->error);
 	c->target = newTensor(c->cl->context, c->queue, c->camadas[c->size - 1]->saida->x,
-						  c->camadas[c->size - 1]->saida->y,
-						  c->camadas[c->size - 1]->saida->z, 0, &c->error);
+	                      c->camadas[c->size - 1]->saida->y,
+	                      c->camadas[c->size - 1]->saida->z, 0, &c->error);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 		return c->error.error;
@@ -161,14 +160,14 @@ int CnnAddConvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro, UINT 
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passo, tamanhoDoFiltro, numeroDeFiltros, sizeIn.x, sizeIn.y,
-										 sizeIn.z,
-										 entrada,
-										 c->parametros, usehost, &c->error, 1);
+	                                     sizeIn.z,
+	                                     entrada,
+	                                     c->parametros, usehost, &c->error, 1);
 	return __CnnCheckNewLayer__(c);
 }
 
 int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
-					  UINT numeroDeFiltros) {
+                      UINT numeroDeFiltros) {
 	/** o tamanho da saida eh dado por S = (E - F + 2Pd)/P + 1
 	* em que:
 	* 			S = tamanho da saida
@@ -199,10 +198,10 @@ int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx,
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createConvNc(c->cl, c->queue, passox, passoy, largx, largy, filtrox, filtroy,
-										   numeroDeFiltros, sizeIn.x, sizeIn.y,
-										   sizeIn.z,
-										   entrada,
-										   c->parametros, usehost, &c->error, 1);
+	                                       numeroDeFiltros, sizeIn.x, sizeIn.y,
+	                                       sizeIn.z,
+	                                       entrada,
+	                                       c->parametros, usehost, &c->error, 1);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -230,7 +229,7 @@ int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-										 c->parametros, usehost, &c->error);
+	                                     c->parametros, usehost, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -259,8 +258,8 @@ int CnnAddPoolAvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z,
-										   entrada,
-										   c->parametros, usehost, &c->error);
+	                                       entrada,
+	                                       c->parametros, usehost, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -271,8 +270,8 @@ int CnnAddBatchNorm(Cnn c, char usehost, double epsilon) {
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-											  epsilon, 1,
-											  usehost, &c->error);
+	                                          epsilon, 1,
+	                                          usehost, &c->error);
 	return __CnnCheckNewLayer__(c);
 
 }
@@ -296,7 +295,7 @@ int CnnAddPaddingLayer(Cnn c, char usehost, UINT top, UINT bottom, UINT left, UI
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] =
 			createPadding(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, top, bottom, left, right, entrada,
-						  usehost, &c->error);
+			              usehost, &c->error);
 
 
 	return __CnnCheckNewLayer__(c);
@@ -309,7 +308,7 @@ int CnnAddSoftMax(Cnn c, char usehost) {
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createSoftMax(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-											usehost, &c->error);
+	                                        usehost, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -320,7 +319,7 @@ int CnnAddDropOutLayer(Cnn c, char usehost, double pontoAtivacao, long long int 
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createDropOut(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, pontoAtivacao, seed, entrada,
-											usehost, &c->error);
+	                                        usehost, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -332,7 +331,7 @@ int CnnAddFullConnectLayer(Cnn c, char usehost, UINT tamanhoDaSaida, int funcaoD
 
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createFullConnect(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada,
-												c->parametros, funcaoDeAtivacao, 1, usehost, &c->error);
+	                                            c->parametros, funcaoDeAtivacao, 1, usehost, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -342,13 +341,14 @@ int CnnCall(Cnn c, double *input) {
 	c->error.error = TensorPutValues(c->queue, c->camadas[0]->entrada, input);
 	if (c->error.error)getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	int i;
-	for ( i = 0; i < c->size && !c->error.error; ++i) {
+	for (i = 0; i < c->size && !c->error.error; ++i) {
 		c->error.error = c->camadas[i]->ativa(c->camadas[i]);
 	}
-	if(c->error.error) {
+	if (c->error.error) {
 		i--;
 		int len = strlen(c->error.msg);
-		snprintf(c->error.msg+len,EXCEPTION_MAX_MSG_SIZE - len-1,"\nCall/camada[%d]%d/ativa",i,c->camadas[i]->type);
+		snprintf(c->error.msg + len, EXCEPTION_MAX_MSG_SIZE - len - 1, "\nCall/camada[%d]%d/ativa", i,
+		         c->camadas[i]->type);
 	}
 	return c->error.error;
 }
@@ -369,27 +369,22 @@ int CnnLearn(Cnn c, double *target) {
 		return c->error.error;
 	}
 
-	c->error.error = kernel_run_recursive(&c->kernelsub, c->queue, targ->x * targ->y * targ->z,
-										  c->cl->maxworks,
-										  &lastGrad->data, &c->camadas[c->size - 1]->saida->data,
-										  &targ->data);
+	kernel_run_recursive(c->error.error, c->kernelsub, c->queue, targ->x * targ->y * targ->z,
+	                     c->cl->maxworks,
+	                     K_ARG lastGrad->data,
+	                     K_ARG c->camadas[c->size - 1]->saida,
+	                     K_ARG targ);
 	if (c->error.error) {
 		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,
-							  "CnnLearn/kernel_run_recursive/kernelsub:");
-		return c->error.error;
-	}
-	c->error.error = clFinish(c->queue);
-	if (c->error.error) {
-		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,
-							  "CnnLearn/kernel_run_recursive/kernelsub:");
+		                      "CnnLearn/kernel_run_recursive/kernelsub:");
 		return c->error.error;
 	}
 	gradNext = lastGrad;
 	int l;
-	for (l = c->size - 1; l >= 0  && !c->error.error; l--) {
+	for (l = c->size - 1; l >= 0 && !c->error.error; l--) {
 		c->error.error = c->camadas[l]->calc_grads(c->camadas[l], gradNext);
 		if (!c->camadas[l]->flag_notlearn && !c->error.error) {
-			c->error.error =  c->camadas[l]->corrige_pesos(c->camadas[l]);
+			c->error.error = c->camadas[l]->corrige_pesos(c->camadas[l]);
 		}
 		gradNext = c->camadas[l]->gradsEntrada;
 	}
@@ -401,9 +396,10 @@ int CnnLearn(Cnn c, double *target) {
 
 int CnnCalculeError(Cnn c) {
 	if (c->error.error)return c->error.error;
-	c->error.error = TensorGetNorm(c->queue,c->lastGrad,&c->normaErro);
-	if(c->error.error){
-		getClErrorWithContext(c->error.error,c->error.msg,EXCEPTION_MAX_MSG_SIZE,"falha ao calcular energia do erro:");
+	c->error.error = TensorGetNorm(c->queue, c->lastGrad, &c->normaErro);
+	if (c->error.error) {
+		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,
+		                      "falha ao calcular energia do erro:");
 	}
 	return c->error.error;
 }
@@ -464,13 +460,13 @@ void normalizeGPU(Cnn c, double *input, double *output, int len, double maximo, 
 }
 
 void normalizeGPUSpaceKnow(Cnn c, double *input, double *output, int len, double input_maximo, double input_minimo,
-						   double maximo, double minimo) {
+                           double maximo, double minimo) {
 
 	Tensor tinp, tout;
 	double mx, mn;
 	//int lenContext = sprintf(c->error.context, "%s", "normalizeGPUSpaceKnow");
 	tinp = newTensor(c->cl->context, c->queue, len, 1, 1, 0, &c->error);
-	tout = newTensor(c->cl->context, c->queue, len, 1, 1, 0, &c->error);
+	tout = tinp;//newTensor(c->cl->context, c->queue, len, 1, 1, 0, &c->error);
 	if ((c->error.error = TensorPutValues(c->queue, tinp, input)))goto finish;
 	// achar o maximo e minimo
 	mn = input_minimo;
@@ -480,11 +476,14 @@ void normalizeGPUSpaceKnow(Cnn c, double *input, double *output, int len, double
 	double somador = -mn;
 	double multiplicador = (maximo - minimo) / (mx - mn);
 	minimo = -minimo;
-	if ((c->error.error = kernel_run_recursive(&c->kernelNormalize, c->queue, len, c->cl->maxworks, &tinp->data,
-											   &tout->data, &multiplicador,
-											   &somador, &minimo)))
+	kernel_run_recursive(c->error.error, c->kernelNormalize, c->queue, len, c->cl->maxworks,
+	                     K_ARG tinp,
+	                     K_ARG tout,
+	                     K_ARG multiplicador,
+	                     K_ARG somador,
+	                     K_ARG minimo);
+	if (c->error.error)
 		goto finish;
-	clFinish(c->queue);
 	if ((c->error.error = TensorGetValues(c->queue, tout, output)))goto finish;
 	finish:
 	if (c->error.error)
@@ -504,7 +503,7 @@ int CnnGetIndexMax(Cnn c) {
 	c->error.error = TensorGetValues(c->queue, saida, values);
 
 	if (c->error.error) {
-		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,"CnnGetIndexMax/TensorGetValues ");
+		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnGetIndexMax/TensorGetValues ");
 		printf("here %s\n", c->error.msg);
 		free(values);
 		return 0;
@@ -577,8 +576,8 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 			somador = -mn;
 			multiplicador = 255 / (mx - mn);
 			kernel_run_recursive(&c->kernelNormalize, c->queue, len, c->cl->maxworks, &t->data, &tout->data,
-								 &multiplicador,
-								 &somador, &minimo);
+			                     &multiplicador,
+			                     &somador, &minimo);
 			x = t->x;
 			y = t->y;
 			if (t->y < t->x) {
@@ -586,7 +585,7 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 				y = t->x;
 			}
 			kernel_run_recursive(&c->kernelcreateIMG, c->queue, len, c->cl->maxworks, &img->data, &tout->data, &x, &y,
-								 &imi, &maxW);
+			                     &imi, &maxW);
 		}
 		if (t->y > t->x) {
 			imi += t->x;

@@ -72,53 +72,59 @@ void releaseFullConnect(CamadaFullConnect *pc) {
 
 
 int ativaFullConnect(CamadaFullConnect c) {
-	int erro = kernel_run_recursive(&c->kernelfullfeed, c->super.queue, c->super.saida->x,
-	                                *c->super.max_works,
+	int erro = 0;
+	kernel_run_recursive(erro, c->kernelfullfeed, c->super.queue, c->super.saida->x,
+	                     *c->super.max_works,
 
-	                                &c->super.entrada->data,
-	                                &c->pesos->data,
-	                                &c->z->data,
-	                                &c->super.saida->data,
-	                                &c->fa,
-	                                &c->super.entrada->x,
-	                                &c->super.entrada->y,
-	                                &c->super.entrada->z,
-	                                &c->pesos->x,
-	                                &c->pesos->y);
+	                     K_ARG c->super.entrada,
+	                     K_ARG c->pesos,
+	                     K_ARG c->z,
+	                     K_ARG c->super.saida,
+	                     K_ARG c->fa,
+	                     K_ARG c->super.entrada->x,
+	                     K_ARG c->super.entrada->y,
+	                     K_ARG c->super.entrada->z,
+	                     K_ARG c->pesos->x,
+	                     K_ARG c->pesos->y);
 	return erro;
 
 }
 
 int corrigePesosFullConnect(CamadaFullConnect c) {
-	int erro = kernel_run_recursive(&c->kernelfullfixWeight, c->super.queue,
-									c->pesos->x*c->pesos->y, *c->super.max_works,
-	                                &c->super.entrada->data,
-	                                &c->pesos->data,
-	                                &c->grad->data,
-	                                &c->dz->data,
-	                                &c->super.parametros.hitLearn,
-	                                &c->super.parametros.decaimentoDePeso,
-	                                &c->super.parametros.momento,
-	                                &c->pesos->y);
+	int erro = 0;
+	kernel_run_recursive(erro, c->kernelfullfixWeight, c->super.queue,
+	                     c->pesos->x * c->pesos->y, *c->super.max_works,
+	                     K_ARG c->super.entrada,
+	                     K_ARG c->pesos,
+	                     K_ARG c->grad,
+	                     K_ARG c->dz,
+	                     K_ARG c->super.parametros.hitLearn,
+	                     K_ARG c->super.parametros.decaimentoDePeso,
+	                     K_ARG c->super.parametros.momento,
+	                     K_ARG c->pesos->y);
 
 	return erro;
 }
 
 int calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext) {
-	int erro = kernel_run_recursive(&c->kernelfullcalcgrad1, c->super.queue,
-									c->super.saida->x*c->super.saida->y*c->super.saida->z,
-									*c->super.max_works,
-	                                &c->dz->data, &GradNext->data, &c->z->data, &c->dfa);
-	if (erro)return erro;
-	if (!c->super.gradsEntrada)return 0;
-	erro = kernel_run_recursive(&c->kernelfullcalcgrad2, c->super.queue,
-	                            c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
-	                            *c->super.max_works,
-	                            &c->dz->data,
-	                            &c->super.gradsEntrada->data,
-	                            &c->pesos->data,
-	                            &c->pesos->x,
-	                            &c->pesos->y);
+	int erro = 0;
+	kernel_run_recursive(erro, c->kernelfullcalcgrad1, c->super.queue,
+	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
+	                     *c->super.max_works,
+	                     K_ARG c->dz,
+	                     K_ARG GradNext,
+	                     K_ARG c->z,
+	                     K_ARG c->dfa);
+
+	if (erro || !c->super.gradsEntrada)return erro;
+	kernel_run_recursive(erro, c->kernelfullcalcgrad2, c->super.queue,
+	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
+	                     *c->super.max_works,
+	                     K_ARG c->dz,
+	                     K_ARG c->super.gradsEntrada,
+	                     K_ARG c->pesos,
+	                     K_ARG c->pesos->x,
+	                     K_ARG c->pesos->y);
 	return erro;
 
 }
@@ -159,7 +165,7 @@ Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Ten
 	fread(&inz, sizeof(UINT), 1, src);
 	fread(&tamanhoSaida, sizeof(UINT), 1, src);
 	CamadaFullConnect c = (CamadaFullConnect) createFullConnect(cl, queue, inx, iny, inz, tamanhoSaida,
-															 entrada, params,
+	                                                            entrada, params,
 	                                                            fa, 0, flag_usehost, error);
 	double *data = callocdouble(c->pesos->x * c->pesos->y * c->pesos->z);
 	fread(data, 1, c->pesos->bytes, src);
@@ -181,9 +187,9 @@ Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT i
 	c->dz = newTensor(context, queue, tamanhoSaida, 1, 1, usehost, error);
 	c->pesos = newTensor(context, queue, tamanhoSaida, inx * iny * inz, 1, usehost, error);
 	c->grad = newTensor(context, queue, tamanhoSaida, inx * iny * inz, 1, usehost, error);
-	error->error = TensorFill(queue,c->grad,0);
-	if(error->error){
-		getClErrorWithContext(error->error,error->msg,EXCEPTION_MAX_MSG_SIZE,"CreateFullConnect/TensorFill ");
+	error->error = TensorFill(queue, c->grad, 0);
+	if (error->error) {
+		getClErrorWithContext(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE, "CreateFullConnect/TensorFill ");
 	}
 
 	if (randomize) {
@@ -198,15 +204,15 @@ Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT i
 	c->fa = funcaoDeAtivacao;
 	c->dfa = funcaoDeAtivacao | FLAGDIF;
 	c->super.salvar = (f4v) salvarFullConnect;
-	c->kernelfullfeed = new_Kernel(cl->program, error, "fullfeed", 11, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	c->kernelfullfeed = new_Kernel(cl->program, error, fullfeed, 11, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                               K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
-	c->kernelfullfixWeight = new_Kernel(cl->program, error, "fullfixweight", 9,
-										K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	c->kernelfullfixWeight = new_Kernel(cl->program, error, fullfixweight, 9,
+	                                    K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                    K_DOUBLE, K_DOUBLE, K_DOUBLE,
-	                                    K_INT,  K_INT);
-	c->kernelfullcalcgrad1 = new_Kernel(cl->program, error, "fullcalcgrads1", 5, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
+	                                    K_INT, K_INT);
+	c->kernelfullcalcgrad1 = new_Kernel(cl->program, error, fullcalcgrads1, 5, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
 	                                    K_INT);
-	c->kernelfullcalcgrad2 = new_Kernel(cl->program, error, "fullcalcgrads2", 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
+	c->kernelfullcalcgrad2 = new_Kernel(cl->program, error, fullcalcgrads2, 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
 	                                    K_INT,
 	                                    K_INT);
 	return (Camada) c;

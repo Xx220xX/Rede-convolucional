@@ -42,11 +42,19 @@ void releasePool(CamadaPool *pc) {
 }
 
 int ativaPool(CamadaPool c) {
-	int erro = kernel_run_recursive(&c->kernelPoolAtiva, c->super.queue,
-	                                c->super.saida->x * c->super.saida->y * c->super.saida->z,
-	                                *c->super.max_works,
-	                                &c->super.entrada->data, &c->super.saida->data, &c->tamanhoFiltro, &c->passo,
-	                                &c->super.saida->x, &c->super.saida->y, &c->super.entrada->x, &c->super.entrada->y);
+	int erro = 0;
+	kernel_run_recursive(erro, c->kernelPoolAtiva, c->super.queue,
+	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
+	                     *c->super.max_works,
+	                     K_ARG c->super.entrada,
+	                     K_ARG c->super.saida,
+	                     K_ARG c->tamanhoFiltro,
+	                     K_ARG c->passo,
+
+	                     K_ARG c->super.saida->x,
+	                     K_ARG c->super.saida->y,
+	                     K_ARG c->super.entrada->x,
+	                     K_ARG c->super.entrada->y);
 	return erro;
 }
 
@@ -54,17 +62,22 @@ int corrige_pesosPool(CamadaPool c) { return 0; }
 
 int calc_gradsPool(CamadaPool c, Tensor GradNext) {
 	if (!c->super.gradsEntrada)return 0;
-	int erro = kernel_run_recursive(&c->kernelPoolCalcGrads, c->super.queue,
-	                                c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
-	                                *c->super.max_works,
-	                                &c->super.entrada->data,
-	                                &c->super.gradsEntrada->data,
-									&GradNext->data,
-	                                &c->super.saida->data,
-									&c->tamanhoFiltro,&c->tamanhoFiltro,
-									&c->passo,&c->passo,
-	                                &c->super.entrada->x,&c->super.entrada->y,
-	                                &c->super.saida->x, &c->super.saida->y);
+	int erro = 0;
+	kernel_run_recursive(erro, c->kernelPoolCalcGrads, c->super.queue,
+	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
+	                     *c->super.max_works,
+	                     K_ARG c->super.entrada,
+	                     K_ARG c->super.gradsEntrada,
+	                     K_ARG GradNext,
+	                     K_ARG c->super.saida,
+	                     K_ARG c->tamanhoFiltro,
+	                     K_ARG c->tamanhoFiltro,
+	                     K_ARG c->passo,
+	                     K_ARG c->passo,
+	                     K_ARG c->super.entrada->x,
+	                     K_ARG c->super.entrada->y,
+	                     K_ARG c->super.saida->x,
+	                     K_ARG c->super.saida->y);
 
 	return erro;
 }
@@ -88,14 +101,14 @@ Camada carregarPool(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor ent
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
 	UINT passo, tamanhoFiltro, inx, iny, inz;
-	char flag_usehost ;
+	char flag_usehost;
 	fread(&flag_usehost, sizeof(char), 1, src);
 	fread(&passo, sizeof(UINT), 1, src);
 	fread(&tamanhoFiltro, sizeof(UINT), 1, src);
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createPool(cl, queue, passo, tamanhoFiltro, inx, iny, inz, entrada, params,flag_usehost, error);
+	return createPool(cl, queue, passo, tamanhoFiltro, inx, iny, inz, entrada, params, flag_usehost, error);
 }
 
 Camada createPool(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanhoFiltro,
@@ -117,11 +130,11 @@ Camada createPool(WrapperCL *cl, cl_command_queue queue, UINT passo, UINT tamanh
 	c->super.parametros = params;
 	c->super.salvar = (f4v) salvarPool;
 
-	c->kernelPoolAtiva = new_Kernel(cl->program, error, "poolativa", 9, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT, K_INT,
+	c->kernelPoolAtiva = new_Kernel(cl->program, error, poolativa, 9, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT, K_INT,
 	                                K_INT,
 	                                K_INT, K_INT);
-	c->kernelPoolCalcGrads = new_Kernel(cl->program, error, "poolCalcGrads", 13,
-										K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
+	c->kernelPoolCalcGrads = new_Kernel(cl->program, error, poolCalcGrads, 13,
+	                                    K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                    K_INT, K_INT, K_INT, K_INT,
 	                                    K_INT, K_INT, K_INT, K_INT,
 	                                    K_INT);

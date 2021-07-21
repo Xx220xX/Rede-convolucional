@@ -38,9 +38,12 @@ void realeaseRelu(CamadaRelu *pc) {
 }
 
 int ativaRelu(CamadaRelu c) {
-	int erro = kernel_run_recursive(&c->kernelReluAtiva, c->super.queue,
-	                                c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
-	                                &c->super.entrada->data, &c->super.saida->data);
+	int erro = 0;
+	kernel_run_recursive(erro, c->kernelReluAtiva, c->super.queue,
+	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
+	                     *c->super.max_works,
+	                     K_ARG c->super.entrada,
+	                     K_ARG c->super.saida);
 
 	return erro;
 }
@@ -49,11 +52,13 @@ int corrige_pesosRelu(CamadaRelu c) { return 0; }
 
 int calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
 	if (!c->super.gradsEntrada)return 0;
-	int erro = kernel_run_recursive(&c->kernelReluCalcGrads, c->super.queue,
-	                                c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
-	                                *c->super.max_works,
-	                                &c->super.gradsEntrada->data, &c->super.entrada->data,
-	                                &GradNext->data);
+	int erro = 0;
+	kernel_run_recursive(erro, c->kernelReluCalcGrads, c->super.queue,
+	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
+	                     *c->super.max_works,
+	                     K_ARG c->super.gradsEntrada,
+	                     K_ARG c->super.entrada,
+	                     K_ARG GradNext);
 	return erro;
 
 }
@@ -81,7 +86,7 @@ Camada carregarRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor ent
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createRelu(cl, queue, inx, iny, inz, entrada, flag_usehost,error);
+	return createRelu(cl, queue, inx, iny, inz, entrada, flag_usehost, error);
 }
 
 Camada createRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsigned int iny,
@@ -99,7 +104,7 @@ Camada createRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsig
 	c->super.corrige_pesos = (fv) corrige_pesosRelu;
 	c->super.salvar = (f4v) salvarRelu;
 
-	c->kernelReluAtiva = new_Kernel(cl->program, error, "reluativa", 3, K_VOID_P, K_VOID_P, K_INT);
-	c->kernelReluCalcGrads = new_Kernel(cl->program, error, "relucalcgrad", 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelReluAtiva = new_Kernel(cl->program, error, reluativa, 3, K_VOID_P, K_VOID_P, K_INT);
+	c->kernelReluCalcGrads = new_Kernel(cl->program, error, relucalcgrad, 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
 	return (Camada) c;
 }
