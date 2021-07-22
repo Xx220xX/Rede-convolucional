@@ -6,10 +6,6 @@
 #define CNN_GPU_CAMADA_H
 
 #include"../tensor/Tensor.h"
-#ifdef DISABLE_KERNELS_INSIDE_DRIVE
-#include"../gpuKernels.h"
-
-#endif
 
 typedef struct {
 	double hitLearn, momento, decaimentoDePeso;

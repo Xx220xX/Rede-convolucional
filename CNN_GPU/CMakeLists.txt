@@ -36,13 +36,13 @@ set(CNNpython src/libraryPythonWrapper.c src/libraryPythonWrapper.h )
 set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/conv.h
         kernels/camadas/dropout.h kernels/camadas/fullconnect.h kernels/camadas/pool.h
         kernels/camadas/relu.h kernels/camadas/softmax.h
-        )
-set (KERNELDEBUG src/gpuKernels.h src/gpuKernels.c)
+        kernels/camadas/cnnutils.h)
+
 #add_library(CNNGPU SHARED ${CNNpython}
 add_executable(CNN_GPU main.c ${lua}
         src/defaultkernel.h
         src/icon/icon.o
-        ${KENERLDEBUG}
+        ${kernels}
         ${gpu}
         ${camadasCNN}
         ${LCG_RANDOM}

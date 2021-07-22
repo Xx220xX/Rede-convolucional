@@ -3,7 +3,10 @@
 //
 #include "../CamadaDropOut.h"
 #include <time.h>
-
+#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#include "../../../kernels/camadas/utils.h"
+#include "../../../kernels/camadas/dropout.h"
+#endif
 const char *getCreateParamsDropOut(CamadaDropOut c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -49,9 +52,9 @@ int ativaDropOut(CamadaDropOut c) {
 	kernel_run_recursive(erro, c->kerneldropativa, c->super.queue,
 	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
 	                     *c->super.max_works,
-	                     K_ARG c->super.entrada,
-	                     K_ARG c->super.saida,
-	                     K_ARG c->hitmap,
+	                     K_ARG c->super.entrada->data,
+	                     K_ARG c->super.saida->data,
+	                     K_ARG c->hitmap->data,
 	                     K_ARG c->seed,
 	                     K_ARG c->p_ativacao
 	);
@@ -68,9 +71,9 @@ int calc_gradsDropOut(CamadaDropOut c, Tensor GradNext) {
 	kernel_run_recursive(erro, c->kerneldropcalcgrad, c->super.queue,
 	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
 	                     *c->super.max_works,
-	                     K_ARG c->super.gradsEntrada,
-	                     K_ARG c->hitmap,
-	                     K_ARG GradNext);
+	                     K_ARG c->super.gradsEntrada->data,
+	                     K_ARG c->hitmap->data,
+	                     K_ARG GradNext->data);
 	return erro;
 }
 

@@ -50,7 +50,6 @@ void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE que
 		c->entrada = newTensor(context, c->queue, xi, yi, zi, c->flag_usehost, error);
 		c->flag_releaseInput = 1;
 	} else {
-		printf("here\n");
 		c->gradsEntrada = newTensor(context, queue, xi, yi, zi, c->flag_usehost, error);
 	}
 	c->saida = newTensor(context, queue, xo, yo, zo, c->flag_usehost, error);

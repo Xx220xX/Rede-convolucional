@@ -82,6 +82,10 @@ int TensorFill(QUEUE queue, Tensor t, char patern);
 
 int TensorFillOffSet(QUEUE queue, Tensor t, char patern, size_t offset);
 
+int TensorFillDouble(QUEUE queue, Tensor t, double pattern);
+
+int TensorFillDoubleOffSet(QUEUE queue, Tensor t, double pattern, size_t offset);
+
 int TensorPutValues(QUEUE queue, Tensor t, void *data);
 
 int TensorPutValuesOffSet(QUEUE queue, Tensor t, void *data, size_t ofset);

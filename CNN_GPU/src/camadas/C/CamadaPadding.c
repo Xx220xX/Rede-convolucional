@@ -2,7 +2,10 @@
 // Created by Henrique on 03/08/2021.
 //
 #include "../CamadaPadding.h"
-
+#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#include "../../../kernels/camadas/utils.h"
+#include "../../../kernels/camadas/padding.h"
+#endif
 const char *getCreateParamsPadding(CamadaPadding c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -45,8 +48,8 @@ int ativaPadding(CamadaPadding c) {
 	kernel_run_recursive(erro, c->ativa, c->super.queue,
 	                     c->super.entrada->x * c->super.entrada->x * c->super.entrada->z,
 	                     *c->super.max_works,
-	                     K_ARG c->super.entrada,
-	                     K_ARG c->super.saida,
+	                     K_ARG c->super.entrada->data,
+	                     K_ARG c->super.saida->data,
 	                     K_ARG c->super.entrada->x,
 	                     K_ARG c->super.entrada->y,
 	                     K_ARG c->super.saida->x,
@@ -65,8 +68,8 @@ int calc_gradsPadding(CamadaPadding c, Tensor GradNext) {
 	kernel_run_recursive(erro, c->calcGrad, c->super.queue,
 	                     c->super.entrada->x * c->super.entrada->x * c->super.entrada->z,
 	                     *c->super.max_works,
-	                     K_ARG GradNext,
-	                     K_ARG c->super.gradsEntrada,
+	                     K_ARG GradNext->data,
+	                     K_ARG c->super.gradsEntrada->data,
 	                     K_ARG c->super.entrada->x,
 	                     K_ARG c->super.entrada->y,
 	                     K_ARG c->super.saida->x,

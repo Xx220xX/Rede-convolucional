@@ -2,7 +2,10 @@
 // Created by Henrique on 5/8/2021.
 //
 #include "../CamadaFullConnect.h"
-
+#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#include "../../../kernels/camadas/utils.h"
+#include "../../../kernels/camadas/fullconnect.h"
+#endif
 const char *getCreateParamsFullConnect(CamadaFullConnect c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -76,10 +79,10 @@ int ativaFullConnect(CamadaFullConnect c) {
 	kernel_run_recursive(erro, c->kernelfullfeed, c->super.queue, c->super.saida->x,
 	                     *c->super.max_works,
 
-	                     K_ARG c->super.entrada,
-	                     K_ARG c->pesos,
-	                     K_ARG c->z,
-	                     K_ARG c->super.saida,
+	                     K_ARG c->super.entrada->data,
+	                     K_ARG c->pesos->data,
+	                     K_ARG c->z->data,
+	                     K_ARG c->super.saida->data,
 	                     K_ARG c->fa,
 	                     K_ARG c->super.entrada->x,
 	                     K_ARG c->super.entrada->y,
@@ -94,10 +97,10 @@ int corrigePesosFullConnect(CamadaFullConnect c) {
 	int erro = 0;
 	kernel_run_recursive(erro, c->kernelfullfixWeight, c->super.queue,
 	                     c->pesos->x * c->pesos->y, *c->super.max_works,
-	                     K_ARG c->super.entrada,
-	                     K_ARG c->pesos,
-	                     K_ARG c->grad,
-	                     K_ARG c->dz,
+	                     K_ARG c->super.entrada->data,
+	                     K_ARG c->pesos->data,
+	                     K_ARG c->grad->data,
+	                     K_ARG c->dz->data,
 	                     K_ARG c->super.parametros.hitLearn,
 	                     K_ARG c->super.parametros.decaimentoDePeso,
 	                     K_ARG c->super.parametros.momento,
@@ -111,9 +114,9 @@ int calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext) {
 	kernel_run_recursive(erro, c->kernelfullcalcgrad1, c->super.queue,
 	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
 	                     *c->super.max_works,
-	                     K_ARG c->dz,
-	                     K_ARG GradNext,
-	                     K_ARG c->z,
+	                     K_ARG c->dz->data,
+	                     K_ARG GradNext->data,
+	                     K_ARG c->z->data,
 	                     K_ARG c->dfa);
 
 	if (erro || !c->super.gradsEntrada)return erro;

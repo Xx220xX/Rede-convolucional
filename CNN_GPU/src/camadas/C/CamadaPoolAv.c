@@ -2,7 +2,10 @@
 // Created by Henrique on 5/8/2021.
 //
 #include "../CamadaPoolAv.h"
-
+#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#include "../../../kernels/camadas/utils.h"
+#include "../../../kernels/camadas/poolav.h"
+#endif
 const char *getCreateParamsPoolAv(CamadaPoolAv c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -45,8 +48,8 @@ int ativaPoolAv(CamadaPoolAv c) {
 	kernel_run_recursive(erro, c->kernelPoolAvAtiva, c->super.queue,
 	                                c->super.saida->x * c->super.saida->y * c->super.saida->z,
 	                                *c->super.max_works,
-	                                K_ARG c->super.entrada, 
-	                                K_ARG c->super.saida,
+	                                K_ARG c->super.entrada->data,
+	                                K_ARG c->super.saida->data,
 	                                K_ARG c->tamanhoFiltro,
 	                                K_ARG c->passo,
 	                                K_ARG c->super.saida->x, 
@@ -64,10 +67,10 @@ int calc_gradsPoolAv(CamadaPoolAv c, Tensor GradNext) {
 	kernel_run_recursive(erro, c->kernelPoolAvCalcGrads, c->super.queue,
 	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 	                     *c->super.max_works,
-	                     K_ARG c->super.entrada,
-	                     K_ARG c->super.gradsEntrada,
-	                     K_ARG GradNext,
-	                     K_ARG c->super.saida,
+	                     K_ARG c->super.entrada->data,
+	                     K_ARG c->super.gradsEntrada->data,
+	                     K_ARG GradNext->data,
+	                     K_ARG c->super.saida->data,
 	                     K_ARG c->tamanhoFiltro,
 	                     K_ARG c->passo,
 	                     K_ARG c->super.entrada->x,

@@ -25,7 +25,7 @@ kV PoolAvCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector s
 	TensorRemap(k, x, y, z, entradatx, entradaty)
 	Range range_filtro;
 	range_filtro.min.x = 0;
-	if (x + fx <= entradatx) {
+	if (x + fx > entradatx) {
 		range_filtro.min.x = x + fx - entradatx;
 	}
 	range_filtro.max.x = fx - 1;
@@ -33,7 +33,7 @@ kV PoolAvCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector s
 		range_filtro.max.x = x;
 	}
 	range_filtro.min.y = 0;
-	if (y + fy <= entradaty) {
+	if (y + fy > entradaty) {
 		range_filtro.min.y = y + fy - entradaty;
 	}
 	range_filtro.max.y = fy - 1;

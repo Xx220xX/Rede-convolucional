@@ -1,51 +1,39 @@
+#ifndef GAB_KERNELS_OPENCL_H
+#define GAB_KERNELS_OPENCL_H
 //utils.h
 // Created by Xx220xX on 10/05/2020.
 
+#define Vector __global double *
+
+#define kV __kernel void
+
+#define TensorMap(x, y, z, tx, ty)((z)*(ty*tx)+(x)*ty+(y))
+
+#define TensorMap4D(x, y, z, l, tx, ty, tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(x)*ty+(y))
+
+#define TensorRemap4D(total, _x_, _y_, _z_, _l_, tx, ty, tz)\
+_y_ = total%ty      ;                                        \
+_x_ = (total - _y_)%(ty*tx)/ty ;                             \
+_z_ = (total- _x_*ty - _y_)%(tx*ty*tz)/(ty*tx)  ;            \
+_l_ = (total -_z_*tx*ty -_x_*ty - _y_)/(tx*ty*tz);
 
 
+#define TensorRemap(total, _x_, _y_, _z_, tx, ty)\
+_y_ = total % ty;\
+_x_ = ((total - _y_) % (ty * tx)) / ty;\
+_z_ = (k - _x_ * ty - _y_) / (tx * ty);
 
-kV createImg(__global unsigned char *out, Vector v, int vx, int vy, int imi, int imy, int k0) {
-	int k = get_global_id(0) + k0;
-	int i, j, z;
-	TensorRemap(k, i, j, z, vx, vy)
-	imi = imi + i;
-	int imj = j + z * vy + z;
-	out[imi * imy + imj] = ((int) v[k]) & 0xff;
-}
+#define TensorRemap2D(total, x, y, ty)\
+y = total % ty;\
+x = total/ ty;
 
+typedef struct {
+	int x, y, z;
+} Ponto3d;
 
-
-kV
-normalizeVector(Vector input, Vector saida, double multiplicador, double somador, double subtrator,
-				int k0) {
-	int k = get_global_id(0) + k0;
-	saida[k] = (input[k] + somador) * multiplicador - subtrator;
-}
-
-
-kV subKernel(Vector grad, Vector saida, Vector target, int k0) {
-	int k = get_global_id(0) + k0;
-	grad[k] = saida[k] - target[k];
-}
-
-kV divKernel(Vector v, double value, int k0) {
-	int k = get_global_id(0) + k0;
-	v[k] = v[k] / value;
-}
-
-kV divIntDo(__global unsigned char *src, Vector v, double value, int k0) {
-	int k = get_global_id(0) + k0;
-	v[k] = ((double) src[k]) / value;
-}
-
-kV int2vector(__global unsigned char *ints, Vector v, int noptiobs, int k0) {
-	int k = get_global_id(0) + k0;
-	for (int j = 0; j < noptiobs; j++) {
-		v[k * noptiobs + j] = (double) (j == ints[k]);
-	}
-}
-
-
+typedef struct {
+	Ponto3d min, max;
+} Range;
 
 //bathnorm.h
 
@@ -165,43 +153,101 @@ kV batchNormCorrigePeso(Vector gradY,
 	B[z] = B[z] - gradB[z] * hitlearn;
 	Y[z] = Y[z] - gradY[z] * hitlearn;
 }
+//cnnutils.h
+//
+// Created by Henrique on 22-Jul-21.
+//
+
+
+kV createImg(__global unsigned char *out, Vector v, int vx, int vy, int imi, int imy, int k0) {
+	int k = get_global_id(0) + k0;
+	int i, j, z;
+	TensorRemap(k, i, j, z, vx, vy)
+	imi = imi + i;
+	int imj = j + z * vy + z;
+	out[imi * imy + imj] = ((int) v[k]) & 0xff;
+}
+
+
+
+kV
+normalizeVector(Vector input, Vector saida, double multiplicador, double somador, double subtrator,
+				int k0) {
+	int k = get_global_id(0) + k0;
+	saida[k] = (input[k] + somador) * multiplicador - subtrator;
+}
+
+
+kV subKernel(Vector grad, Vector saida, Vector target, int k0) {
+	int k = get_global_id(0) + k0;
+	grad[k] = saida[k] - target[k];
+}
+
+kV divKernel(Vector v, double value, int k0) {
+	int k = get_global_id(0) + k0;
+	v[k] = v[k] / value;
+}
+
+kV divIntDo(__global unsigned char *src, Vector v, double value, int k0) {
+	int k = get_global_id(0) + k0;
+	v[k] = ((double) src[k]) / value;
+}
+
+kV int2vector(__global unsigned char *ints, Vector v, int noptiobs, int k0) {
+	int k = get_global_id(0) + k0;
+	for (int j = 0; j < noptiobs; j++) {
+		v[k * noptiobs + j] = (double) (j == ints[k]);
+	}
+}
+
+
+
+
 //conv.h
 kV convSum(Vector filtro, Vector entrada, Vector saida,
-		   int passox,int passoy,
-		   int saidatx, int saidaty,
-		   int entradatx, int entradaty,
-		   int fx,int fy, int fz, int k0) {
+           int passox, int passoy,
+           int saidatx, int saidaty,
+           int entradatx, int entradaty,
+           int fx, int fy, int fz, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, filtrok;
 	TensorRemap(k, x, y, filtrok, saidatx, saidaty)
-	double sum = 0, f, v;
-	for (int m = 0; m < fx; m++)
-		for (int n = 0; n < fy; n++)
+	double sum = 0, f = 0, v = 0;
+	int lf = 0, le = 0;
+	for (int m = 0; m < fx; m++) {
+		for (int n = 0; n < fy; n++) {
 			for (int z = 0; z < fz; z++) {
-				f = filtro[TensorMap4D(m, n, z, filtrok, fx, fy, fz)];
-				v = entrada[TensorMap(x * passox + m, y * passoy + n, z, entradatx, entradaty)];
+				lf = TensorMap4D(m, n, z, filtrok, fx, fy, fz);
+				le = TensorMap(x * passox + m, y * passoy + n, z, entradatx, entradaty);
+				f = filtro[lf];
+				v = entrada[le];
 				sum += f * v;
 			}
+		}
+	}
 	saida[k] = sum;
 }
 
 
 kV convCalcGradAndFixWeight(Vector filtros, Vector ds,
-							Vector entrada, Vector gradFiltro,
-							int fx, int fy, int fz,
-							int entrada_tx, int entrada_ty,
-							int saida_tx, int saida_ty,
-							int passox, int passoy,
-							double hitLearn, double momento, double weightDecay,
-							int k0) {
+                            Vector entrada, Vector gradFiltro,
+                            int fx, int fy, int fz,
+                            int entrada_tx, int entrada_ty,
+                            int saida_tx, int saida_ty,
+                            int passox, int passoy,
+                            double hitLearn, double momento, double weightDecay,
+                            int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
 	TensorRemap4D(k, m, n, z, l, fx, fy, fz)
 	double soma = 0;
+	int le, ls;
 	for (int i = 0; i < saida_tx; ++i) {
 		for (int j = 0; j < saida_ty; ++j) {
-			soma += entrada[TensorMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty)]
-					* ds[TensorMap(i, j, l, saida_tx, saida_ty)];
+			le = TensorMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty);
+			ls = TensorMap(i, j, l, saida_tx, saida_ty);
+			soma += entrada[le]
+			        * ds[ls];
 		}
 	}
 	double dw = soma + gradFiltro[k] * momento;
@@ -210,19 +256,19 @@ kV convCalcGradAndFixWeight(Vector filtros, Vector ds,
 	gradFiltro[k] = dw;
 }
 
-kV convCalcGradIn(Vector filtro,Vector gradEntrada,Vector gradNext,
-				  int fx,int fy,int fz,
-				  int passox,int passoy,
-				  int entradatx,int entradaty,
-				  int saidatx,int saidaty,int saidatz,
-				  int k0) {
+kV convCalcGradIn(Vector filtro, Vector gradEntrada, Vector gradNext,
+                  int fx, int fy, int fz,
+                  int passox, int passoy,
+                  int entradatx, int entradaty,
+                  int saidatx, int saidaty, int saidatz,
+                  int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	TensorRemap(k, x, y, z, entradatx, entradaty)
 
 	Range range_filtro;
 	range_filtro.min.x = 0;
-	if (x + fx <= entradatx) {
+	if (x + fx > entradatx) {
 		range_filtro.min.x = x + fx - entradatx;
 	}
 	range_filtro.max.x = fx - 1;
@@ -230,7 +276,7 @@ kV convCalcGradIn(Vector filtro,Vector gradEntrada,Vector gradNext,
 		range_filtro.max.x = x;
 	}
 	range_filtro.min.y = 0;
-	if (y + fy <= entradaty) {
+	if (y + fy > entradaty) {
 		range_filtro.min.y = y + fy - entradaty;
 	}
 	range_filtro.max.y = fy - 1;
@@ -239,6 +285,7 @@ kV convCalcGradIn(Vector filtro,Vector gradEntrada,Vector gradNext,
 	}
 	double somaErro = 0, pesoAplicado = 0;
 	int i, j;
+	int lf, ls;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		i = (x - m) / passox;
 		if (i * passox + m != x) continue;
@@ -246,8 +293,10 @@ kV convCalcGradIn(Vector filtro,Vector gradEntrada,Vector gradNext,
 			j = (y - n) / passoy;
 			if (j * passoy + n != y) continue;
 			for (int w = 0; w < saidatz; w++) {
-				pesoAplicado = filtro[TensorMap4D(m, n, z, w, fx, fy, fz)];
-				somaErro += pesoAplicado * gradNext[TensorMap(i, j, w, saidatx, saidaty)];
+				lf = TensorMap4D(m, n, z, w, fx, fy, fz);
+				ls = TensorMap(i, j, w, saidatx, saidaty);
+				pesoAplicado = filtro[lf];
+				somaErro += pesoAplicado * gradNext[ls];
 			}
 		}
 	}
@@ -553,8 +602,7 @@ kV poolCalcGrads(Vector entrada, Vector gradEntrada,
 	int x, y, z;
 	TensorRemap(k, x, y, z, entradatx, entradaty)
 	Range range_filtro;
-	range_filtro.min.x = 0;
-	if (x + fx <= entradatx) {
+	if (x + fx > entradatx) {
 		range_filtro.min.x = x + fx - entradatx;
 	}
 	range_filtro.max.x = fx - 1;
@@ -562,7 +610,7 @@ kV poolCalcGrads(Vector entrada, Vector gradEntrada,
 		range_filtro.max.x = x;
 	}
 	range_filtro.min.y = 0;
-	if (y + fy <= entradaty) {
+	if (y + fy > entradaty) {
 		range_filtro.min.y = y + fy - entradaty;
 	}
 	range_filtro.max.y = fy - 1;
@@ -617,7 +665,7 @@ kV PoolAvCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector s
 	TensorRemap(k, x, y, z, entradatx, entradaty)
 	Range range_filtro;
 	range_filtro.min.x = 0;
-	if (x + fx <= entradatx) {
+	if (x + fx > entradatx) {
 		range_filtro.min.x = x + fx - entradatx;
 	}
 	range_filtro.max.x = fx - 1;
@@ -625,7 +673,7 @@ kV PoolAvCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector s
 		range_filtro.max.x = x;
 	}
 	range_filtro.min.y = 0;
-	if (y + fy <= entradaty) {
+	if (y + fy > entradaty) {
 		range_filtro.min.y = y + fy - entradaty;
 	}
 	range_filtro.max.y = fy - 1;
@@ -688,3 +736,4 @@ kV softMaxcalcgrad(Vector gradentrada, Vector entrada, Vector gradnext, int k0) 
 }
 
 
+#endif //GAB_KERNELS_OPENCL_H

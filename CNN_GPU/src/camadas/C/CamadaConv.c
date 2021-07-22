@@ -3,7 +3,10 @@
 //
 
 #include "../CamadaConv.h"
-
+#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#include "../../../kernels/camadas/utils.h"
+#include "../../../kernels/camadas/conv.h"
+#endif
 const char *getCreateParamsConv(CamadaConv c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -64,10 +67,13 @@ int convRandomize(CamadaConv c, WrapperCL *cl, Exception *error) {
 int ativaConv(CamadaConv c) {
 	//iteraçao nos filtros
 	int erro = 0;
+
+
 	kernel_run_recursive(erro, c->kernelConvSum, c->super.queue,
-	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
+	                   c->super.saida->x * c->super.saida->y * c->super.saida->z,
 	                     *c->super.max_works,
-	                     K_ARG c->filtros, K_ARG c->super.entrada, K_ARG c->super.saida,
+	                     K_ARG c->filtros->data, K_ARG c->super.entrada->data,
+	                     K_ARG c->super.saida->data,
 	                     K_ARG c->passo, K_ARG c->passo,
 	                     K_ARG c->super.saida->x, K_ARG c->super.saida->y,
 	                     K_ARG c->super.entrada->x, K_ARG c->super.entrada->y,
@@ -80,10 +86,10 @@ int corrige_pesosConv(CamadaConv c) {
 	kernel_run_recursive(erro, c->kernelConvFixWeight, c->super.queue,
 	                     c->filtros->x * c->filtros->y * c->filtros->z * c->filtros->w,
 	                     *c->super.max_works,
-	                     K_ARG c->filtros,
-	                     K_ARG c->gradnext,
-	                     K_ARG c->super.entrada,
-	                     K_ARG c->grad_filtros,
+	                     K_ARG c->filtros->data,
+	                     K_ARG c->gradnext->data,
+	                     K_ARG c->super.entrada->data,
+	                     K_ARG c->grad_filtros->data,
 	                     K_ARG c->filtros->x, K_ARG c->filtros->y, K_ARG c->filtros->z,
 	                     K_ARG c->super.entrada->x, K_ARG c->super.entrada->y,
 	                     K_ARG c->super.saida->x, K_ARG c->super.saida->y,
@@ -98,12 +104,13 @@ int calc_gradsConv(CamadaConv c, Tensor Gradnext) {
 	c->gradnext = Gradnext;
 	if (!c->super.gradsEntrada)return 0;
 	int erro = 0;
+
 	kernel_run_recursive(erro, c->kernelConvCalcGrads, c->super.queue,
 	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 	                     *c->super.max_works,
-	                     K_ARG c->filtros,
-	                     K_ARG c->super.gradsEntrada,
-	                     K_ARG Gradnext,
+	                     K_ARG c->filtros->data,
+	                     K_ARG c->super.gradsEntrada->data,
+	                     K_ARG Gradnext->data,
 	                     K_ARG c->filtros->x, K_ARG c->filtros->y, K_ARG c->filtros->z,
 	                     K_ARG c->passo, K_ARG c->passo,
 	                     K_ARG c->super.entrada->x, K_ARG c->super.entrada->y,

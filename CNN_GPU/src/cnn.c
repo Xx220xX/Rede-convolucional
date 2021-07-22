@@ -2,8 +2,11 @@
 // Created by Henrique on 29-May-21.
 //
 #include "cnn.h"
-
-char __version__[] = "2.1.003";
+#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#include "../kernels/camadas/utils.h"
+#include "../kernels/camadas/cnnutils.h"
+#endif
+char __version__[] = "2.1.010";
 char __notas__[] =
 		"camada conv corrigida 2.0.007\n"
 		"camada padding adicionada 2.0.009\n"
@@ -15,9 +18,18 @@ char __notas__[] =
 		"verificação interna de erros adicionada 2.0.016\n"
 		"verificação de camadas 2.0.017\n"
 		"Revisado todas camadas, corrigido erros internos 2.1.000\n"
+        "\n"
 		"Suporte a SVM removido 2.1.001\n"
 		"Bugs concertados em getValues 2.1.002\n"
-		"Removidos trabalhos sequencias das funções Kernel 2.1.003\n";
+		"Removidos trabalhos sequencias das funções Kernel 2.1.003\n"
+		"Suporte adicionado para SVM 2.1.004\n"
+		"O Tensor agora pode ser Alocado somente no HOST 2.1.005\n"
+		"Agora os kernels podem ser compilados e executador somente pelo host 2.1.006\n"
+		"Otimização de calculo de gradiente dos pesos camada convolucional 2.1.007\n"
+		"Mudança no algoritmo de calculo de gradiente de entrada camada convolucional 2.1.008\n"
+		"Mudança no algoritmo de calculo de gradiente de entrada camada pooling 2.1.009\n"
+		"Bugs corrigidos camada conv, pool e poolAv 2.1.010\n"
+		;
 
 
 const char *getVersion() {
@@ -154,10 +166,7 @@ int CnnAddConvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro, UINT 
 
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passo, tamanhoDoFiltro, numeroDeFiltros, sizeIn.x, sizeIn.y,
-	                                     sizeIn.z,
-	                                     entrada,
-	                                     c->parametros, usehost, &c->error, 1);
+	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passo, tamanhoDoFiltro, numeroDeFiltros, sizeIn.x, sizeIn.y,sizeIn.z,	 entrada,c->parametros, usehost, &c->error, 1);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -300,6 +309,7 @@ int CnnAddFullConnectLayer(Cnn c, char usehost, UINT tamanhoDaSaida, int funcaoD
 int CnnCall(Cnn c, double *input) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "CnnCall");
+	if(input)
 	c->error.error = TensorPutValues(c->queue, c->camadas[0]->entrada, input);
 	if (c->error.error)getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	int i;
@@ -325,6 +335,7 @@ int CnnLearn(Cnn c, double *target) {
 	Tensor lastGrad = c->lastGrad;
 	Tensor targ = c->target;
 	Tensor gradNext;
+	if(target)
 	c->error.error = TensorPutValues(c->queue, targ, target);
 	if (c->error.error) {
 		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/TensorPutValues:");
@@ -334,8 +345,8 @@ int CnnLearn(Cnn c, double *target) {
 	kernel_run_recursive(c->error.error, c->kernelsub, c->queue, targ->x * targ->y * targ->z,
 	                     c->cl->maxworks,
 	                     K_ARG lastGrad->data,
-	                     K_ARG c->camadas[c->size - 1]->saida,
-	                     K_ARG targ);
+	                     K_ARG c->camadas[c->size - 1]->saida->data,
+	                     K_ARG targ->data);
 	if (c->error.error) {
 		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,
 		                      "CnnLearn/kernel_run_recursive/kernelsub:");
@@ -466,7 +477,6 @@ int CnnGetIndexMax(Cnn c) {
 
 	if (c->error.error) {
 		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnGetIndexMax/TensorGetValues ");
-		printf("here %s\n", c->error.msg);
 		free(values);
 		return 0;
 	}

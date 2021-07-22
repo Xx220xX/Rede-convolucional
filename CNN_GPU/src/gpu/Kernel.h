@@ -5,7 +5,7 @@
 #ifndef GABKernel_H
 #define GABKernel_H
 
-#define DISABLE_KERNELS_INSIDE_DRIVE
+//#define DISABLE_KERNELS_INSIDE_DRIVE
 
 #include<CL/cl.h>
 
@@ -13,7 +13,12 @@
 #define K_INT sizeof(cl_int)
 #define K_DOUBLE sizeof(cl_double)
 
-typedef struct _Kernel *Kernel;
+typedef struct _Kernel {
+	void *kernel;
+	char *kernel_name;
+	int nArgs;
+	size_t *l_args;
+}*Kernel;
 
 #define QUEUE cl_command_queue
 
@@ -24,8 +29,6 @@ typedef struct Exception {
 	cl_int error;
 	char msg[EXCEPTION_MAX_MSG_SIZE];
 } Exception;
-
-
 
 
 Kernel __newKernel(void *pointer_clprogram, Exception *error, void *pointer_char_name_function, int n_args, ...);
@@ -51,6 +54,7 @@ void __printKernelHost(Kernel);
 int get_global_id(int);
 
 int set_global_id(int);
+
 #if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
 #define __global
 #define __kernel
@@ -62,20 +66,23 @@ typedef void (*kernel_function_type)(void *, ...);
         __newKernelHost(kernel_function, P_error,#kernel_function,n_args,## __VA_ARGS__)
 
 #define kernel_run(erro, Kernel, queue, globals, locals, arg0, ...)  \
-	   { for (int id=0;id<globals;id++){                       \
-                set_global_id(id);                                              \
-            ((kernel_function_type)Kernel)(arg0,## __VA_ARGS__) ;\
+       {                                                             \
+       kernel_function_type fc = (kernel_function_type)  Kernel->kernel;         \
+       for (int id=0;id<globals;id++){                       \
+                set_global_id(id);                                   \
+            fc(arg0,## __VA_ARGS__) ;\
         }                                                       \
         erro  = 0;}
 
 
 #define kernel_run_recursive(erro, Kernel, queue, globals, maxwords, arg0, ...) \
-        kernel_run(erro,Kernel,queue,globals,1,arg0,## __VA_ARGS__);
+        kernel_run(erro,Kernel,queue,globals,1,arg0,## __VA_ARGS__,0);
 
 #define releaseKernel __releaseKernelHost
 #define printKernel __printKernelHost
+
 #include "float.h"
-#include "../gpuKernels.h"
+
 
 #else
 #define K_ARG &

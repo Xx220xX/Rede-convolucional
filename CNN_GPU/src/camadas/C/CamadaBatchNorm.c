@@ -2,7 +2,10 @@
 // Created by Henrique on 5/8/2021.
 //
 #include "../CamadaBatchNorm.h"
-
+#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#include "../../../kernels/camadas/utils.h"
+#include "../../../kernels/camadas/bathnorm.h"
+#endif
 const char *getCreateParamsBatchNorm(CamadaBatchNorm c) {
 	if (c->super.__string__ != NULL)free(c->super.__string__);
 	c->super.__string__ = (char *) calloc(1000, sizeof(char));
@@ -39,14 +42,14 @@ int ativaBatchNorm(CamadaBatchNorm c) {
 	kernel_run_recursive(erro, c->kernelBatchNormAtiva1, c->super.queue,
 	                         c->super.entrada->z,
 	                         *c->super.max_works,
-	                         K_ARG c->super.entrada, K_ARG c->media,
+	                         K_ARG c->super.entrada->data, K_ARG c->media->data,
 	                         K_ARG c->super.entrada->x, K_ARG c->super.entrada->y);
 	if (erro)return erro;
 	// calcular diferencae diferenca quadrada
 	kernel_run_recursive(erro, c->kernelBatchNormAtiva2, c->super.queue,
 	                     c->super.saida->x * c->super.saida->y * c->super.saida->z, *c->super.max_works,
-	                     K_ARG c->super.entrada, K_ARG c->media,
-	                     K_ARG c->diferenca, K_ARG c->diferencaquad,
+	                     K_ARG c->super.entrada->data, K_ARG c->media->data,
+	                     K_ARG c->diferenca->data, K_ARG c->diferencaquad->data,
 	                     K_ARG c->super.entrada->x, K_ARG c->super.entrada->y);
 
 	if (erro)return erro;
@@ -54,8 +57,8 @@ int ativaBatchNorm(CamadaBatchNorm c) {
 	// calcula a variancia
 	kernel_run_recursive(erro, c->kernelBatchNormAtiva3, c->super.queue,
 	                     c->diferenca->z, *c->super.max_works,
-	                     K_ARG c->diferenca, K_ARG c->diferencaquad,
-	                     K_ARG c->somaDiferenca, K_ARG c->variancia, K_ARG c->epsilon,
+	                     K_ARG c->diferenca->data, K_ARG c->diferencaquad->data,
+	                     K_ARG c->somaDiferenca->data, K_ARG c->variancia->data, K_ARG c->epsilon,
 	                     K_ARG c->diferencaquad->x, K_ARG c->diferencaquad->y);
 
 	if (erro)return erro;
@@ -63,12 +66,12 @@ int ativaBatchNorm(CamadaBatchNorm c) {
 	kernel_run_recursive(erro, c->kernelBatchNormAtiva4, c->super.queue,
 	                     c->super.saida->x * c->super.saida->y * c->super.saida->z,
 	                     *c->super.max_works,
-	                     K_ARG c->super.saida,
-	                     K_ARG c->norma,
-	                     K_ARG c->diferenca,
-	                     K_ARG c->variancia,
-	                     K_ARG c->Y,
-	                     K_ARG c->B,
+	                     K_ARG c->super.saida->data,
+	                     K_ARG c->norma->data,
+	                     K_ARG c->diferenca->data,
+	                     K_ARG c->variancia->data,
+	                     K_ARG c->Y->data,
+	                     K_ARG c->B->data,
 	                     K_ARG c->diferencaquad->x,
 	                     K_ARG c->diferencaquad->y);
 	return erro;
@@ -81,10 +84,10 @@ int corrige_pesosBatchNorm(CamadaBatchNorm c) {
 	                         c->super.queue,
 	                         c->super.entrada->z,
 	                         *c->super.max_works,
-	                         K_ARG c->gradY,
-	                         K_ARG c->gradB,
-	                         K_ARG c->Y,
-	                         K_ARG c->B,
+	                         K_ARG c->gradY->data,
+	                         K_ARG c->gradB->data,
+	                         K_ARG c->Y->data,
+	                         K_ARG c->B->data,
 	                         K_ARG c->super.parametros.hitLearn);
 	return erro;
 
@@ -96,12 +99,12 @@ int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext) {
 		kernel_run_recursive(erro, c->kernelBatchNormCalcGrads1, c->super.queue,
 		                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 		                     *c->super.max_works,
-		                     K_ARG c->super.gradsEntrada,
-		                     K_ARG GradNext,
-		                     K_ARG c->variancia,
-		                     K_ARG c->media,
-		                     K_ARG c->Y,
-		                     K_ARG c->somaDiferenca,
+		                     K_ARG c->super.gradsEntrada->data,
+		                     K_ARG GradNext->data,
+		                     K_ARG c->variancia->data,
+		                     K_ARG c->media->data,
+		                     K_ARG c->Y->data,
+		                     K_ARG c->somaDiferenca->data,
 		                     K_ARG c->super.entrada,
 		                     K_ARG c->super.entrada->x,
 		                     K_ARG c->super.entrada->y);
@@ -110,10 +113,10 @@ int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext) {
 	kernel_run_recursive(erro, c->kernelBatchNormCalcGrads2, c->super.queue,
 	                     c->super.entrada->z,
 	                     *c->super.max_works,
-	                     K_ARG GradNext,
-	                     K_ARG c->norma,
-	                     K_ARG c->gradY,
-	                     K_ARG c->gradB,
+	                     K_ARG GradNext->data,
+	                     K_ARG c->norma->data,
+	                     K_ARG c->gradY->data,
+	                     K_ARG c->gradB->data,
 	                     K_ARG c->super.entrada->x,
 	                     K_ARG c->super.entrada->y);
 	return erro;

@@ -9,12 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-struct _Kernel {
-	void *kernel;
-	char *kernel_name;
-	int nArgs;
-	size_t *l_args;
-};
+
 int __id_global__kernel = 0;
 
 Kernel __newKernel(void *pointer_clprogram, Exception *error, void *pointer_char_name_function, int n_args, ...) {
