@@ -6,7 +6,11 @@
 #include "../kernels/camadas/utils.h"
 #include "../kernels/camadas/cnnutils.h"
 #endif
-char __version__[] = "2.1.010";
+char __version__[] = "2.1.010"
+#ifdef DISABLE_KERNELS_INSIDE_DRIVE
+		"host mode"
+#endif // DISABLE_KERNELS_INSIDE_DRIVE
+		;
 char __notas__[] =
 		"camada conv corrigida 2.0.007\n"
 		"camada padding adicionada 2.0.009\n"
