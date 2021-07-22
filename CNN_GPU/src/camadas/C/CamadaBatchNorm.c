@@ -35,7 +35,8 @@ int ativaBatchNorm(CamadaBatchNorm c) {
 	/// aplicar a normalização
 
 	// calcula a media
-	int kernel_run_recursive(erro, c->kernelBatchNormAtiva1, c->super.queue,
+	int erro;
+	kernel_run_recursive(erro, c->kernelBatchNormAtiva1, c->super.queue,
 	                         c->super.entrada->z,
 	                         *c->super.max_works,
 	                         K_ARG c->super.entrada, K_ARG c->media,
@@ -75,8 +76,8 @@ int ativaBatchNorm(CamadaBatchNorm c) {
 }
 
 int corrige_pesosBatchNorm(CamadaBatchNorm c) {
-
-	int kernel_run_recursive(erro, c->kernelBatchNormCorrige,
+	int erro ;
+	kernel_run_recursive(erro, c->kernelBatchNormCorrige,
 	                         c->super.queue,
 	                         c->super.entrada->z,
 	                         *c->super.max_works,
@@ -90,7 +91,6 @@ int corrige_pesosBatchNorm(CamadaBatchNorm c) {
 }
 
 int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext) {
-
 	int erro;
 	if (c->super.gradsEntrada) {
 		kernel_run_recursive(erro, c->kernelBatchNormCalcGrads1, c->super.queue,
@@ -121,12 +121,12 @@ int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext) {
 
 void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, Exception *error) {
 	char flag = '#';
-	fwrite(K_ARG c->super.type, sizeof(char), 1, dst);
-	fwrite(K_ARG c->super.flag_usehost, sizeof(char), 1, dst);
-	fwrite(K_ARG flag, sizeof(char), 1, dst);
-	fwrite(K_ARG c->super.entrada->x, sizeof(UINT), 1, dst);
-	fwrite(K_ARG c->super.entrada->y, sizeof(UINT), 1, dst);
-	fwrite(K_ARG c->super.entrada->z, sizeof(UINT), 1, dst);
+	fwrite(& c->super.type, sizeof(char), 1, dst);
+	fwrite(& c->super.flag_usehost, sizeof(char), 1, dst);
+	fwrite(& flag, sizeof(char), 1, dst);
+	fwrite(&  c->super.entrada->x, sizeof(UINT), 1, dst);
+	fwrite(& c->super.entrada->y, sizeof(UINT), 1, dst);
+	fwrite(& c->super.entrada->z, sizeof(UINT), 1, dst);
 	double *data = callocdouble(c->Y->z);
 	TensorGetValues(c->super.queue, c->Y, data);
 	fwrite(data, c->Y->bytes, 1, dst);
@@ -140,15 +140,15 @@ Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tenso
                          Params params, Exception *error) {
 	if (error->error)return NULL;
 	char flag = 0;
-	fread(K_ARG flag, sizeof(char), 1, src);
+	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')
-		fread(K_ARG flag, sizeof(char), 1, src);
+		fread(&flag, sizeof(char), 1, src);
 	UINT inx, iny, inz;
 	char usehost = 0;
-	fread(K_ARG usehost, sizeof(char), 1, src);
-	fread(K_ARG inx, sizeof(UINT), 1, src);
-	fread(K_ARG iny, sizeof(UINT), 1, src);
-	fread(K_ARG inz, sizeof(UINT), 1, src);
+	fread(&usehost, sizeof(char), 1, src);
+	fread(&inx, sizeof(UINT), 1, src);
+	fread(&iny, sizeof(UINT), 1, src);
+	fread(&inz, sizeof(UINT), 1, src);
 	double epsilon = 1e-10;
 	CamadaBatchNorm cm = (CamadaBatchNorm) createBatchNorm(cl, queue, params, inx, iny, inz, entrada,
 	                                                       epsilon, 0, usehost, error);

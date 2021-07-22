@@ -123,7 +123,7 @@ int calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
 	);
 	if (erro)return erro;
 	if (!c->super.gradsEntrada)return 0;
-	erro = kernel_run_recursive(erro, c->kernelConvNcCalcGrads, c->super.queue,
+	kernel_run_recursive(erro, c->kernelConvNcCalcGrads, c->super.queue,
 	                            c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 	                            *c->super.max_works,
 

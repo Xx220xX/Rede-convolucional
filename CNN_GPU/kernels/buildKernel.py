@@ -1,7 +1,7 @@
 import os
 
 path = 'camadas'
-output = '../src/gpuKernels.h'
+output = '../src/gpuKernels.c'
 kernelFiles = ['utils.h'] + [b for b in os.listdir(path) if b != 'utils.h']
 
 with open(output, 'w')as fout:
