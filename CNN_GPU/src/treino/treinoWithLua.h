@@ -205,8 +205,7 @@ int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
 	int error = lua_pcall(L, 0, 0, 0);
 	printf("script carregado\n");
 	// o scrip foi executado
-	lua_close(L);
-	return 0;
+
 	if (error) {
 		fprintf(stderr, "Falha ao carregar scrip\n");
 		fprintf(stderr, "stack%d\n", lua_gettop(L));

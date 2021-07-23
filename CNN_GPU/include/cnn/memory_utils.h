@@ -27,7 +27,7 @@ void releaseMemWatcher();
 
 void printMemStatus();
 
-#define  MEMORY_WATCHER
+
 #ifdef  MEMORY_WATCHER
 #define alloc_cl_svm __alloc_cl_svm__
 #define free_cl_svm __free_cl_svm
@@ -48,7 +48,7 @@ int main(int arg, char **args);
 
 
 #else
-#define alloc_cl_svm clSVMalloc
+#define alloc_cl_svm clSVMAlloc
 #define free_cl_svm clSVMFree
 #define alloc_mem calloc
 #define free_mem free

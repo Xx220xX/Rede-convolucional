@@ -31,7 +31,7 @@ int main(int nargs, char **args) {
 
 	// carrega script lua, e inicia a rede neural
 	erro = loadLuaParameters(luaFile, &p);
-	/*
+
 	//variaveis para imagens de entrada e suas respectivas respostas
 	double *input = NULL, *target = NULL;
 	// semelhante ao target, porem no modo numerico de 0 a NumeroDeClasses
@@ -132,7 +132,7 @@ int main(int nargs, char **args) {
 	if (target)free(target);
 	if (targeti)free(targeti);
 
-	  */
+
 	if (cnn) {
 		releaseCnn(&cnn);
 	}
