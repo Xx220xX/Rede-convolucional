@@ -54,7 +54,7 @@ int loadImage(Cnn cnn, double **images, size_t remainImage, size_t numberOfSampl
 	// verifica se a leitura foi correta
 	if (numberOfSamples * pixelsByImage != samples) {
 		fprintf(stderr, "As imagens nao foram lidas corretamente\n");
-		free(*images);
+		free_mem(*images);
 		*images = NULL;
 		return -2;
 	}

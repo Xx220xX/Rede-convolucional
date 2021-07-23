@@ -1,7 +1,7 @@
 //
 // Created by Henrique on 29-May-21.
 //
-#include "cnn.h"
+#include "../include/cnn/cnn.h"
 #if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
 #include "../kernels/camadas/utils.h"
 #include "../kernels/camadas/cnnutils.h"
@@ -49,7 +49,7 @@ const char *getInfo() {
     (((((input-1) - (filtro - 1) * abertura) / passo)*passo + (filtro-1)*abertura) == (input-1)))
 
 Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
-	Cnn c = (Cnn) calloc(1, sizeof(TypeCnn));
+	Cnn c = (Cnn) alloc_mem(1, sizeof(TypeCnn));
 //	//int len = sprintf(c->error.context, "createCnn");
 	c->parametros = p;
 	c->cl = cl;
@@ -72,34 +72,38 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	}
+
+
 	return c;
 }
 
 void releaseCnn(Cnn *pc) {
+
 	Cnn c = *pc;
 	if (!c)return;
 	for (int i = 0; i < c->size; ++i) {
 		c->camadas[i]->release(c->camadas + i);
 	}
-	free(c->camadas);
+	free_mem(c->camadas);
 	clReleaseCommandQueue(c->queue);
 	releaseKernel(&c->kernelsub);
 	releaseKernel(&c->kerneldiv);
 	releaseKernel(&c->kerneldivInt);
+	releaseKernel(&c->kernelInt2Vector);
 	releaseKernel(&c->kernelNormalize);
 	releaseKernel(&c->kernelcreateIMG);
 	if (c->releaseCL) {
 		WrapperCL_release(c->cl);
-		free(c->cl);
+		free_mem(c->cl);
 	}
 	releaseTensor(&c->lastGrad);
 	releaseTensor(&c->target);
-	free(c);
+	free_mem(c);
 	*pc = NULL;
 }
 
 Cnn createCnnWithWrapperFile(char *kernelFile, Params p, UINT inx, UINT iny, UINT inz, ULL devicetype) {
-	WrapperCL *cl = (WrapperCL *) calloc(sizeof(WrapperCL), 1);
+	WrapperCL *cl = (WrapperCL *) alloc_mem(sizeof(WrapperCL), 1);
 	cl->type_device = devicetype;
 	WrapperCL_initbyFile(cl, kernelFile);
 	Cnn c = createCnn(cl, p, inx, iny, inz);
@@ -108,14 +112,13 @@ Cnn createCnnWithWrapperFile(char *kernelFile, Params p, UINT inx, UINT iny, UIN
 }
 
 Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, UINT iny, UINT inz, ULL devicetype) {
-	WrapperCL *cl = (WrapperCL *) calloc(sizeof(WrapperCL), 1);
+	WrapperCL *cl = (WrapperCL *) alloc_mem(sizeof(WrapperCL), 1);
 	cl->type_device = devicetype;
 	WrapperCL_init(cl, kernelprogram);
 	Cnn c = createCnn(cl, p, inx, iny, inz);
 	c->releaseCL = 1;
 	return c;
 }
-
 
 Ponto __CnnaddLayer__(Cnn c) {
 	c->size += 1;
@@ -476,12 +479,12 @@ int CnnGetIndexMax(Cnn c) {
 
 	int len = (int) (saida->x * saida->y * saida->z);
 	int indice = 0;
-	double *values = calloc(saida->bytes, 1);
+	double *values = alloc_mem(saida->bytes, 1);
 	c->error.error = TensorGetValues(c->queue, saida, values);
 
 	if (c->error.error) {
 		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnGetIndexMax/TensorGetValues ");
-		free(values);
+		free_mem(values);
 		return 0;
 	}
 	for (int i = 1; i < len; i++) {
@@ -489,7 +492,7 @@ int CnnGetIndexMax(Cnn c) {
 			indice = i;
 		}
 	}
-	free(values);
+	free_mem(values);
 	return indice;
 }
 
@@ -526,7 +529,7 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 	img = newTensorChar(c->cl->context, c->queue, maxH, maxW, 1, 0, &c->error);
 	int imi = 0;
 	int x, y;
-	double *values = calloc(max_bytes, 1);
+	double *values = alloc_mem(max_bytes, 1);
 	int erro;
 	for (int cm = -1; cm < c->size; cm++) {
 		if (cm == -1)
@@ -535,7 +538,7 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 			t = c->camadas[cm]->saida;
 		len = t->x * t->y * t->z;
 		// achar o maximo e minimo
-		values = (double *) calloc(len, sizeof(double));
+		values = (double *) alloc_mem(len, sizeof(double));
 		if (TensorGetValues(c->queue, t, values))continue;
 		mx = values[0];
 		mn = values[0];
@@ -579,8 +582,8 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 		imi++;
 	}
 	clFinish(c->queue);
-	free(values);
-	char *ans = calloc(maxH, maxW);
+	free_mem(values);
+	char *ans = alloc_mem(maxH, maxW);
 	*h_r = maxH;
 	*w_r = maxW;
 	TensorGetValues(c->queue, img, ans);

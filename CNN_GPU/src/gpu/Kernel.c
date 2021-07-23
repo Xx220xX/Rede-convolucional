@@ -1,9 +1,8 @@
 //
 // Created by Xx220xX on 12/05/2020.
 //
-#include "Kernel.h"
-#include "WrapperCL.h"
-
+#include "gpu/Kernel.h"
+#include "gpu/WrapperCL.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -14,7 +13,7 @@ int __id_global__kernel = 0;
 
 Kernel __newKernel(void *pointer_clprogram, Exception *error, void *pointer_char_name_function, int n_args, ...) {
 	char *f_name = pointer_char_name_function;
-	Kernel self = (Kernel) calloc(1, sizeof(struct _Kernel));
+	Kernel self = (Kernel) alloc_mem(1, sizeof(struct _Kernel));
 	if (error->error)return self;
 	self->kernel = clCreateKernel(pointer_clprogram, f_name, &error->error);
 	if (error->error) {
@@ -26,10 +25,10 @@ Kernel __newKernel(void *pointer_clprogram, Exception *error, void *pointer_char
 		snprintf(error->msg, EXCEPTION_MAX_MSG_SIZE, "erro ao criar o kernel : %s\n\t", f_name);
 		return self;
 	}
-	self->l_args = calloc(n_args, sizeof(size_t));
+	self->l_args = alloc_mem(n_args, sizeof(size_t));
 	size_t len_name = strlen(f_name);
 	self->nArgs = n_args;
-	self->kernel_name = calloc(len_name + 1, sizeof(char));
+	self->kernel_name = alloc_mem(len_name + 1, sizeof(char));
 	memcpy(self->kernel_name, f_name, len_name + 1);
 
 	va_list vaList;
@@ -49,10 +48,10 @@ void __releaseKernel(Kernel *selfp) {
 	if (self->kernel)
 		clReleaseKernel(self->kernel);
 	if (self->l_args)
-		free(self->l_args);
+		free_mem(self->l_args);
 	if (self->kernel_name)
-		free(self->kernel_name);
-	free(self);
+		free_mem(self->kernel_name);
+	free_mem(self);
 	*selfp = NULL;
 }
 
@@ -127,12 +126,12 @@ void __printKernel(Kernel self) {
 Kernel
 __newKernelHost(void *pointer_function_kernel, Exception *error, void *pointer_char_name_function, int n_args, ...) {
 	char *f_name = pointer_char_name_function;
-	Kernel self = (Kernel) calloc(1, sizeof(struct _Kernel));
+	Kernel self = (Kernel) alloc_mem(1, sizeof(struct _Kernel));
 	if (error->error)return self;
 	self->kernel = pointer_function_kernel;
 	size_t len_name = strlen(f_name);
 	self->nArgs = n_args;
-	self->kernel_name = calloc(len_name + 1, sizeof(char));
+	self->kernel_name = alloc_mem(len_name + 1, sizeof(char));
 	memcpy(self->kernel_name, f_name, len_name);
 	return self;
 }
@@ -143,8 +142,8 @@ void __releaseKernelHost(Kernel *selfp) {
 	Kernel self = *selfp;
 	if (!self)return;
 	if (self->kernel_name)
-		free(self->kernel_name);
-	free(self);
+		free_mem(self->kernel_name);
+	free_mem(self);
 	*selfp = NULL;
 }
 

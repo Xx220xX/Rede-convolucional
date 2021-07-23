@@ -2,7 +2,7 @@
 // Created by Henrique on 18-Jun-21.
 //
 
-#include "../src/LCG_Random/lcg.h"
+#include "../include/LCG_Random/lcg.h"
 #include <time.h>
 #include <stdio.h>
 

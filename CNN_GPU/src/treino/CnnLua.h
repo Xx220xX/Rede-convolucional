@@ -5,7 +5,7 @@
 #ifndef CNN_GPU_CNNLUA_H
 #define CNN_GPU_CNNLUA_H
 
-#include "../cnn.h"
+#include "../../include/cnn/cnn.h"
 #include "../lua/lua.h"
 #include "../lua/lualib.h"
 #include "../lua/lauxlib.h"

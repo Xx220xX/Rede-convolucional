@@ -2,7 +2,7 @@
 // Created by petel on 22/05/2021.
 //
 
-#include "../src/cnn.h"
+#include "../include/cnn/cnn.h"
 
 int main(){
 	Params p = {0.1, 0.0, 0.0, 1};

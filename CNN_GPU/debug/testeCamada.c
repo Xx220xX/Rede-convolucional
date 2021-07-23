@@ -5,7 +5,7 @@
 
 void initPy();
 
-#include "../src/cnn.h"
+#include "../include/cnn/cnn.h"
 #include <python/Python.h>
 
 PyObject *TensorToPython(Tensor t, cl_command_queue queue);

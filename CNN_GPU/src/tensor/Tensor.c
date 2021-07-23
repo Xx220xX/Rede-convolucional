@@ -2,108 +2,113 @@
 // Created by Henrique on 22/05/2021.
 //
 
-#include "Tensor.h"
+#include "tensor/Tensor.h"
 
-void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error);
+void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error, void *p);
 
-Tensor newTensor(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char tensor_flag, Exception *error) {
+Tensor new_Tensor(cl_context context, QUEUE queue, char tensor_flag, UINT x, UINT y, UINT z, UINT w, Exception *error,
+                  void *p) {
 	if (error->error)return NULL;
-	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensor");
-	if (x <= 0 | y <= 0 | z <= 0) {
-		error->error = -1;
+	Tensor t = (Tensor) alloc_mem(1, sizeof(struct typetensor));
+	t->x = x;
+	t->y = y;
+	t->z = z;
+	t->w = w;
+	t->flag = tensor_flag;
+	switch (tensor_flag & TENSOR_MASK_DIM) {
+		case TENSOR3D:
+			t->w = 1;
+			break;
+		case TENSOR4D:
+			break;
+		default:
+			error->error = TENSOR_INVALID_FLAG_DIM;
+			free_mem(t);
+			return NULL;
 	}
-	Tensor t = (Tensor) calloc(1, sizeof(typetensor));
-	t->bytes = x * y * z * sizeof(double);
-	t->x = x;
-	t->y = y;
-	t->z = z;
-	t->w = 1;
-	t->flag = tensor_flag;
 
-	__fillTensor__(t, context, queue, t->bytes, error);
-	return t;
-}
+	switch (tensor_flag & TENSOR_MASK_TYPE) {
+		case TENSOR_DOUBLE:
+			t->bytes = x * y * z * sizeof(double);
+			break;
+		case TENSOR_CHAR:
+			t->bytes = x * y * z * sizeof(char);
+			break;
+		case TENSOR_INT:
+			t->bytes = x * y * z * sizeof(int);
+			break;
+		default:
+			error->error = TENSOR_INVALID_FLAG_TYPE;
+			free_mem(t);
+			return NULL;
 
-
-Tensor
-newTensor4D(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, UINT l, char tensor_flag, Exception *error) {
-	if (error->error)return NULL;
-	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensor4D");
-	Tensor t = (Tensor) calloc(1, sizeof(typetensor));
-	t->bytes = x * y * z * sizeof(double);
-	t->x = x;
-	t->y = y;
-	t->z = z;
-	t->w = l;
-	t->flag = tensor_flag;
-	__fillTensor__(t, context, queue, t->bytes * l, error);
-
-	return t;
-}
-
-
-TensorChar newTensorChar(cl_context context, QUEUE queue, UINT x, UINT y, UINT z, char tensor_flag, Exception *error) {
-	if (error->error)return NULL;
-	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "newTensorChar");
-	TensorChar t = (Tensor) calloc(1, sizeof(typetensor));
-	t->bytes = x * y * z * sizeof(char);
-	t->x = x;
-	t->y = y;
-	t->z = z;
-	t->w = 1;
-	t->flag = tensor_flag;
-	__fillTensor__(t, context, queue, t->bytes, error);
-
+	}
+	__fillTensor__(t, context, queue, t->bytes * t->w, error, p);
+	if (error->error) {
+		releaseTensor(&t);
+	}
 	return t;
 }
 
 
 void releaseTensor(Tensor *t) {
 	if (*t) {
-		switch ((*t)->flag) {
-			case TENSOR_HOST:
+		switch ((*t)->flag & TENSOR_MASK_MEM) {
+			case TENSOR_OHST:
 				if ((*t)->host)
-					free((*t)->host);
+					free_mem((*t)->host);
 				break;
 			case TENSOR_SMEM:
-				clSVMFree((*t)->context, (*t)->host);
+				free_cl_svm((*t)->context, (*t)->host);
+			case TENSOR_UHST:
 			case TENSOR_NCPY:
 				if ((*t)->data)
 					clReleaseMemObject((*t)->data);
 				break;
 
 		}
+		free_mem(*t);
 		*t = NULL;
 	}
 }
 
 
-void releaseTensorChar(TensorChar *t) {
-	releaseTensor(t);
-}
 
 
-void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error) {
+void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error, void *p) {
 	if (error->error)return;
 	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "__fillTensor__");
 #ifdef DISABLE_KERNELS_INSIDE_DRIVE
-	t->flag = TENSOR_HOST;
+	t->flag = TENSOR_OHST;
+#warning DISABLE_KERNELS_INSIDE_DRIVE
 #endif//DISABLE_KERNELS_INSIDE_DRIVE
-	switch (t->flag) {
-		case TENSOR_HOST:
-			t->host = calloc(bytes, 1);
+	switch (t->flag & TENSOR_MASK_MEM) {
+		case TENSOR_OHST:
+			t->host = alloc_mem(bytes, 1);
 			t->data = t->host;
+			break;
+		case TENSOR_UHST:
+			if (!p) {
+				error->error = TENSOR_NULL_PARAM;
+				releaseTensor(&t);
+				break;
+			}
+			t->host = p;
+			t->data = clCreateBuffer(context, CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE, bytes, t->host, &error->error);
 			break;
 		case TENSOR_SMEM:
 			t->context = context;
-			t->host = clSVMAlloc(t->context, CL_MEM_READ_WRITE, bytes, 0);
+			t->host = alloc_cl_svm(t->context, CL_MEM_READ_WRITE, bytes, 0);
 			t->data = clCreateBuffer(context, CL_MEM_USE_HOST_PTR | CL_MEM_READ_WRITE, bytes, t->host, &error->error);
 			break;
 		case TENSOR_NCPY:
 			t->data = clCreateBuffer(context, CL_MEM_READ_WRITE, bytes, NULL, &error->error);
 			break;
+		default:
+			error->error = TENSOR_INVALID_FLAG_MEM;
+			releaseTensor(&t);
+			return;
 	}
-
 
 	if (error->error) {
 		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
@@ -123,10 +128,11 @@ int TensorFill(QUEUE queue, Tensor t, char pattern) {
 int TensorFillOffSet(QUEUE queue, Tensor t, char pattern, size_t offset) {
 	int erro = 0;
 	void *mem;
-	switch (t->flag) {
-		case TENSOR_HOST:
+	switch (t->flag & TENSOR_MASK_MEM) {
+		case TENSOR_OHST:
 			memset(t->host + offset, pattern, t->bytes);
 			return erro;
+		case TENSOR_UHST:
 		case TENSOR_SMEM:
 			mem = clEnqueueMapBuffer(queue, t->data, CL_TRUE, CL_MAP_WRITE, offset, t->bytes, 0, 0, 0, &erro);
 			PERR(erro, "TensorFillOffSet/clEnqueueMapBuffer ");
@@ -141,31 +147,33 @@ int TensorFillOffSet(QUEUE queue, Tensor t, char pattern, size_t offset) {
 			return erro;
 
 		default:
-			erro = -90;
+			erro = TENSOR_INVALID_FLAG_MEM;
 			PERR(erro, "TensorFillOffSet: INVALID TENSOR FLAG %d ", t->flag);
 
 	}
 }
 
-int TensorFillDouble(QUEUE queue, Tensor t, double pattern){
-	return TensorFillDoubleOffSet(queue,t,pattern,0);
+int TensorFillDouble(QUEUE queue, Tensor t, double pattern) {
+	return TensorFillDoubleOffSet(queue, t, pattern, 0);
 }
+
 int TensorFillDoubleOffSet(QUEUE queue, Tensor t, double pattern, size_t offset) {
 	int erro = 0;
 	void *mem;
-	switch (t->flag) {
-		case TENSOR_HOST:
-			mem = t->host+offset;
-			for(int i=t->x*t->y*t->z*t->w-1;i>=0;i--){
-				((double *)mem)[i] = pattern;
+	switch (t->flag & TENSOR_MASK_MEM) {
+		case TENSOR_OHST:
+			mem = t->host + offset;
+			for (int i = t->x * t->y * t->z * t->w - 1; i >= 0; i--) {
+				((double *) mem)[i] = pattern;
 			}
 
 			return erro;
+		case TENSOR_UHST:
 		case TENSOR_SMEM:
 			mem = clEnqueueMapBuffer(queue, t->data, CL_TRUE, CL_MAP_WRITE, offset, t->bytes, 0, 0, 0, &erro);
 			PERR(erro, "TensorFillOffSet/clEnqueueMapBuffer ");
-			for(int i=t->x*t->y*t->z*t->w-1;i>=0;i--){
-				((double *)mem)[i] = pattern;
+			for (int i = t->x * t->y * t->z * t->w - 1; i >= 0; i--) {
+				((double *) mem)[i] = pattern;
 			}
 			erro = clEnqueueUnmapMemObject(queue, t->data, mem, 0, 0, 0);
 			PERR(erro, "TensorFillOffSet/clEnqueueUnmapMemObject ");
@@ -177,11 +185,12 @@ int TensorFillDoubleOffSet(QUEUE queue, Tensor t, double pattern, size_t offset)
 			return erro;
 
 		default:
-			erro = -90;
+			erro = TENSOR_INVALID_FLAG_MEM;
 			PERR(erro, "TensorFillOffSet: INVALID TENSOR FLAG %d ", t->flag);
 
 	}
 }
+
 int TensorGetValues(QUEUE queue, Tensor t, void *data) {
 	return TensorGetValuesMemOffSet(queue, t, data, t->bytes, 0);
 }
@@ -197,10 +206,11 @@ int TensorGetValuesOffSet(QUEUE queue, Tensor t, void *data, size_t offset) {
 int TensorGetValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, size_t offset) {
 	int erro = 0;
 	void *mem;
-	switch (t->flag) {
-		case TENSOR_HOST:
-			memcpy(data, t->host+offset, bytes);
+	switch (t->flag&TENSOR_MASK_MEM) {
+		case TENSOR_OHST:
+			memcpy(data, t->host + offset, bytes);
 			return erro;
+		case TENSOR_UHST:
 		case TENSOR_SMEM:
 			mem = clEnqueueMapBuffer(queue, t->data, CL_TRUE, CL_MAP_WRITE, offset, bytes, 0, 0, 0, &erro);
 			PERR(erro, "TensorGetValuesOffSet/clEnqueueMapBuffer");
@@ -215,7 +225,7 @@ int TensorGetValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, si
 			return erro;
 
 		default:
-			erro = -90;
+			erro = TENSOR_INVALID_FLAG_MEM;
 			PERR(erro, "TensorGetValuesOffSet: INVALID TENSOR FLAG %d ", t->flag);
 	}
 }
@@ -237,10 +247,11 @@ int TensorPutValuesMem(QUEUE queue, Tensor t, void *data, size_t bytes) {
 int TensorPutValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, size_t ofset) {
 	int erro = 0;
 	void *mem;
-	switch (t->flag) {
-		case TENSOR_HOST:
-			memcpy(t->host+ofset, data, bytes);
+	switch (t->flag&TENSOR_MASK_MEM) {
+		case TENSOR_OHST:
+			memcpy(t->host + ofset, data, bytes);
 			return erro;
+		case TENSOR_UHST:
 		case TENSOR_SMEM:
 			mem = clEnqueueMapBuffer(queue, t->data, CL_TRUE, CL_MAP_WRITE, ofset, bytes, 0, 0, 0, &erro);
 			PERR(erro, "TensorPutValuesOffSet/clEnqueueMapBuffer ");
@@ -256,7 +267,7 @@ int TensorPutValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, si
 			return erro;
 
 		default:
-			erro = -90;
+			erro = TENSOR_INVALID_FLAG_MEM;
 			PERR(erro, "TensorPutValuesOffSet: INVALID TENSOR FLAG %d ", t->flag);
 
 	}
@@ -310,7 +321,7 @@ int int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, Tensor mi, 
 }
 
 void printTensor(QUEUE q, Tensor t, FILE *f) {
-	double *v = calloc(t->bytes, 1);
+	double *v = alloc_mem(t->bytes, 1);
 	char buff[EXCEPTION_MAX_MSG_SIZE];
 	int error = 0;
 	fprintf(f, "%u %u %u %u (%s)\n", t->x, t->y, t->z, t->w, printBytes(t->bytes * t->w, buff));
@@ -324,14 +335,14 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 					fprintf(f, "%.2g ", v[Tensor_Map(t, i, j, z)]);
 				fprintf(f, "\n");
 			}
-			if(z+1!=t->z)
-			fprintf(f, "\n");
+			if (z + 1 != t->z)
+				fprintf(f, "\n");
 		}
-		if(l+1!=t->w)
-		fprintf(f, "------------\n");
+		if (l + 1 != t->w)
+			fprintf(f, "------------\n");
 	}
 	fprintf(f, "\n");
-	free(v);
+	free_mem(v);
 	if (error) {
 		fprintf(stderr, "printTensor: %d %s", error, getClError(error, buff, EXCEPTION_MAX_MSG_SIZE));
 	}
@@ -344,7 +355,7 @@ int TensorGetNorm(QUEUE queue, Tensor t, double *norm) {
 	if (!t) {
 		return -93;
 	}
-	double *v = calloc(t->bytes, t->w);
+	double *v = alloc_mem(t->bytes, t->w);
 	int a;
 	for (a = 0; a < t->w && !error; ++a) {
 		error = TensorGetValuesOffSet(queue, t, v + a, a * t->bytes);
@@ -352,7 +363,7 @@ int TensorGetNorm(QUEUE queue, Tensor t, double *norm) {
 	if (error) {
 		fprintf(stderr, "TensorGetNorm/TensorGetValuesOffSet(%d of %d):", a, t->w);
 		showError(error);
-		free(v);
+		free_mem(v);
 		return error;
 	}
 	double sum = 0;
@@ -360,7 +371,7 @@ int TensorGetNorm(QUEUE queue, Tensor t, double *norm) {
 		sum += v[i] * v[i];
 	}
 	*norm = sqrt(sum);
-	free(v);
+	free_mem(v);
 	return error;
 }
 

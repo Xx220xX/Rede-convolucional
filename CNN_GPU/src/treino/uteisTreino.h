@@ -127,7 +127,7 @@ void salveTensorAsPPM(const char *name, Tensor t, Cnn c) {
 		if (i < t->x - 1)fprintf(f, "\n");
 	}
 
-	free(dt);
+	free_mem(dt);
 	fclose(f);
 }
 int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c,UINT w) {
@@ -136,12 +136,12 @@ int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c,UINT w) {
 	double *dt = calloc(t->bytes, 1);
 	c->error.error  = TensorGetValues(c->queue, t, dt);
 	if(c->error.error){
-		free(dt);
+		free_mem(dt);
 		return c->error.error;
 	}
 	normalizeGPU(c, dt, dt, t->bytes / sizeof(double), 255, 0);
 	if(c->error.error){
-		free(dt);
+		free_mem(dt);
 		return c->error.error;
 	}
 
@@ -164,7 +164,7 @@ int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c,UINT w) {
 		if (i < t->x - 1)fprintf(f, "\n");
 	}
 
-	free(dt);
+	free_mem(dt);
 	fclose(f);
 	return 0;
 }
@@ -179,7 +179,7 @@ void salveCnnOutAsPPM(Cnn c, const char *name) {
 	fprintf(f, "%zu %zu ", w, h);
 	fprintf(f, "255 ");
 	fwrite(im, h, w, f);
-	free(im);
+	free_mem(im);
 	fclose(f);
 }
 
@@ -217,9 +217,9 @@ void *salveJS(SalveJsArgs *args) {
 		fprintf(args->jsErro, "%lf,", args->erro[i]);
 		fprintf(args->jsAcerto, "%lf,", args->acerto[i]);
 	}
-	free(args->epoca);
-	free(args->erro);
-	free(args->acerto);
+	free_mem(args->epoca);
+	free_mem(args->erro);
+	free_mem(args->acerto);
 	return NULL;
 }
 
@@ -282,10 +282,10 @@ void salveCnnOutAsPPM(const char *name, Cnn c) {
 
 		//memset(image+imi*maxW,255,maxW);
 		imi++;
-		free(dt);
+		free_mem(dt);
 	}
 	fwrite(image, maxH, maxW, f);
-	free(image);
+	free_mem(image);
 	fclose(f);
 }
 */

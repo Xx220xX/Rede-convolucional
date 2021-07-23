@@ -2,7 +2,7 @@
 // Created by Xx220xX on 12/05/2020.
 //
 
-#include "lcg.h"
+#include "LCG_Random/lcg.h"
 #include <string.h>
 #include <math.h>
 
@@ -56,7 +56,7 @@ Bytes64 LCG_randB() {
 }
 
 void pLCG_shuffle(LCG *self, void *d, size_t n, size_t size_element) {
-	char *tmp = calloc(1, sizeof(char));
+	char *tmp = alloc_mem(1, size_element);
 	char *arr = d;
 	if (n > 1) {
 		size_t i, rnd, j;
@@ -68,6 +68,7 @@ void pLCG_shuffle(LCG *self, void *d, size_t n, size_t size_element) {
 			memcpy(arr + i * size_element, tmp, size_element);
 		}
 	}
+	free_mem(tmp);
 }
 
 void LCG_shuffle(void *d, size_t n, size_t size_element) {

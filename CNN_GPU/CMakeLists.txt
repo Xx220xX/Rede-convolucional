@@ -3,42 +3,49 @@ project(CNN_GPU C)
 
 set(CMAKE_C_FLAGS -m64)
 set(CMAKE_C_STANDARD 11)
-link_directories(src/lua)
-#include_directories(src/SDL2/x64/include)
+link_directories(lib/lua)
+include_directories(include include/cnn)
 
-#link_libraries(SDL2.dll SDL2 SDL2main )
 link_libraries(OpenCL lua543)
-#link_libraries(python3 python3_d python39 python39_d)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../releases/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../releases/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../releases/bin)
 
-set(lua src/lua/lua.h src/lua/lualib.h src/lua/lauxlib.h)
-set(conio2 src/conio2/conio2.c src/conio2/conio2.h)
-set(LCG_RANDOM src/LCG_Random/lcg.h src/LCG_Random/lcg.c)
-set(camadasCNN src/camadas/Camada.h src/camadas/C/Camada.c
-        src/camadas/CamadaConv.h src/camadas/C/CamadaConv.c
-        src/camadas/CamadaConvNc.h src/camadas/C/CamadaConvNC.c
-        src/camadas/CamadaPool.h src/camadas/C/CamadaPool.c
-        src/camadas/CamadaPoolAv.h src/camadas/C/CamadaPoolAv.c
-        src/camadas/CamadaDropOut.h src/camadas/C/CamadaDropOut.c
-        src/camadas/CamadaFullConnect.h src/camadas/C/CamadaFullConnect.c
-        src/camadas/CamadaBatchNorm.h src/camadas/C/CamadaBatchNorm.c
-        src/camadas/CamadaRelu.h src/camadas/C/CamadaRelu.c
-        src/camadas/CamadaPadding.h src/camadas/C/CamadaPadding.c
-        src/camadas/C/CamadaSoftMax.c src/camadas/CamadaSoftMax.h
-        src/camadas/funcoesDeAtivacao.h
-        src/Cnn.h src/cnn.c)
-set(tensor src/tensor/Tensor.h src/tensor/Tensor.c)
-set(gpu src/gpu/Kernel.h src/gpu/Kernel.c src/gpu/WrapperCL.h src/gpu/WrapperCL.c)
-set(CNNpython src/libraryPythonWrapper.c src/libraryPythonWrapper.h )
+set(lua include/lua/lua.h include/lua/lualib.h include/lua/lauxlib.h)
+set(conio2 src/conio2/conio2.c include/conio2/conio2.h)
+set(LCG_RANDOM include/cnn/LCG_Random/lcg.h src/LCG_Random/lcg.c)
+set(camadasCNN include/cnn/camadas/Camada.h src/camadas/Camada.c
+        include/cnn/camadas/CamadaConv.h src/camadas/CamadaConv.c
+        include/cnn/camadas/CamadaConvNC.h src/camadas/CamadaConvNC.c
+        include/cnn/camadas/CamadaPool.h src/camadas/CamadaPool.c
+        include/cnn/camadas/CamadaPoolAv.h src/camadas/CamadaPoolAv.c
+        include/cnn/camadas/CamadaDropOut.h src/camadas/CamadaDropOut.c
+        include/cnn/camadas/CamadaFullConnect.h src/camadas/CamadaFullConnect.c
+        include/cnn/camadas/CamadaBatchNorm.h src/camadas/CamadaBatchNorm.c
+        include/cnn/camadas/CamadaRelu.h src/camadas/CamadaRelu.c
+        include/cnn/camadas/CamadaPadding.h src/camadas/CamadaPadding.c
+        include/cnn/camadas/CamadaSoftMax.h src/camadas/CamadaSoftMax.c
+        include/cnn/camadas/funcoesDeAtivacao.h
+        include/cnn/cnn.h src/cnn.c include/cnn/cnn_errors_list.h src/memory_utils.c include/cnn/memory_utils.h)
+set(tensor include/cnn/tensor/Tensor.h src/tensor/Tensor.c)
+set(gpu include/cnn/gpu/Kernel.h src/gpu/Kernel.c include/cnn/gpu/WrapperCL.h src/gpu/WrapperCL.c)
+set(CNNpython src/libraryPythonWrapper.c include/cnn/libraryPythonWrapper.h)
 set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/conv.h
         kernels/camadas/dropout.h kernels/camadas/fullconnect.h kernels/camadas/pool.h
         kernels/camadas/relu.h kernels/camadas/softmax.h
         kernels/camadas/cnnutils.h)
 
 #add_library(CNNGPU SHARED ${CNNpython}
+#        src/defaultkernel.h
+#        src/icon/icon.o
+#        ${kernels}
+#        ${gpu}
+#        ${camadasCNN}
+#        ${LCG_RANDOM}
+#        ${tensor}
+#        ${conio2})
+
 add_executable(CNN_GPU main.c ${lua}
         src/defaultkernel.h
         src/icon/icon.o

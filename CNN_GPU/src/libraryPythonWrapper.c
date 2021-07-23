@@ -1,9 +1,9 @@
-#include "libraryPythonWrapper.h"
+#include "../include/cnn/libraryPythonWrapper.h"
 #include "defaultkernel.h"
 void createCnnPy(Pointer *p, double hitLearn, double momento, double decaimentoDePeso,
                        UINT inx, UINT iny, UINT inz) {
 	Params pr = {hitLearn, momento, decaimentoDePeso};
-	WrapperCL *cl = (WrapperCL *) calloc(sizeof(WrapperCL), 1);
+	WrapperCL *cl = (WrapperCL *) alloc_mem(sizeof(WrapperCL), 1);
 	cl->type_device = CL_DEVICE_TYPE_GPU;
 	WrapperCL_init(cl,default_kernel);
 	Cnn c = createCnn(cl, pr, inx, iny, inz);
@@ -61,9 +61,9 @@ void putst(char **pdest, char *src) {
 }
 
 
-void freeP(void *p) {
+void free_memP(void *p) {
 	if (p != NULL)
-		free(p);
+		free_mem(p);
 }
 
 void Py_getCnnOutPutAsPPM(Cnn c, Pointer *p, size_t *h, size_t *w) {

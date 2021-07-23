@@ -15,7 +15,7 @@
 //#include <unistd.h>
 #include <windows.h>
 #include <string.h>
-#include "conio2.h"
+#include "../../include/conio2/conio2.h"
 
 #ifdef __cplusplus
 extern "C" {

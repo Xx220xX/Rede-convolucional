@@ -4,7 +4,7 @@
 #define MAX_STRING_LEN 256
 #endif
 
-#include "../conio2/conio2.h"
+#include "../../include/conio2/conio2.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <time.h>

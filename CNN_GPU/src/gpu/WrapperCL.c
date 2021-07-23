@@ -2,7 +2,7 @@
 // Created by Xx220xX on 12/05/2020.
 //
 
-#include "WrapperCL.h"
+#include "gpu/WrapperCL.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<stdarg.h>
@@ -18,12 +18,12 @@ int WrapperCL_initbyFile(WrapperCL *self, const char *filename) {
 	long int size = 0;
 	fseek(f, 0L, SEEK_END);
 	size = ftell(f);
-	src = calloc(size, sizeof(char));
+	src = alloc_mem(size, sizeof(char));
 	fseek(f, 0L, SEEK_SET);
 	fread(src, sizeof(char), size, f);
 	src[size - 1] = 0;
 	WrapperCL_init(self, src);
-	free(src);
+	free_mem(src);
 	fclose(f);
 	return 0;
 }
@@ -306,28 +306,6 @@ cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source) {
 	return program;
 }
 
-char *printBytes(cl_ulong bytes, char *buff) {
-	unsigned int G, M, K, B;
-	int b = 0;
-	G = bytes / (1024 * 1024 * 1024);
-	bytes %= (1024 * 1024 * 1024);
-	M = bytes / (1024 * 1024);
-	bytes %= (1024 * 1024);
-	K = bytes / (1024);
-	bytes %= (1024);
-	B = bytes;
-	if (G)
-		b += sprintf(buff + b, "%uGB ", G);
-	if (M)
-		b += sprintf(buff + b, "%uMB ", M);
-	if (K)
-		b += sprintf(buff + b, "%uKB ", K);
-	if (B || !b)
-		b += sprintf(buff + b, "%uB ", B);
-
-	buff[b - 1] = 0;
-	return buff;
-}
 
 void printCLInfo(CLInfo cif) {
 	char buff[250];

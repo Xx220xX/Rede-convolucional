@@ -3,7 +3,7 @@
 #include <conio.h>
 #include <ctype.h>
 #include <windows.h>
-#include "../cnn.h"
+#include "cnn/cnn.h"
 #include "uteisTreino.h"
 #include"conioHUD.h"
 #include "../lua/lua.h"
@@ -193,6 +193,7 @@ int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
 	lua_State *L = luaL_newstate();
 	luaL_openlibs(L);
 	loadCnnLuaLibrary(L);
+
 //	printf("%s\n", luaFile);
 	printf("carregando script");
 //	printf(" %s", luaFile);
@@ -200,9 +201,12 @@ int loadLuaParameters(char *luaFile, ParametrosCnnALL *p) {
 	//showDir();
 
 	luaL_loadfile(L, luaFile);
+
 	int error = lua_pcall(L, 0, 0, 0);
 	printf("script carregado\n");
 	// o scrip foi executado
+	lua_close(L);
+	return 0;
 	if (error) {
 		fprintf(stderr, "Falha ao carregar scrip\n");
 		fprintf(stderr, "stack%d\n", lua_gettop(L));
