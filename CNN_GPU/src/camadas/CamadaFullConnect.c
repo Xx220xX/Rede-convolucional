@@ -123,9 +123,9 @@ int calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext) {
 	kernel_run_recursive(erro, c->kernelfullcalcgrad2, c->super.queue,
 	                     c->super.entrada->x * c->super.entrada->y * c->super.entrada->z,
 	                     *c->super.max_works,
-	                     K_ARG c->dz,
-	                     K_ARG c->super.gradsEntrada,
-	                     K_ARG c->pesos,
+	                     K_ARG c->dz->data,
+	                     K_ARG c->super.gradsEntrada->data,
+	                     K_ARG c->pesos->data,
 	                     K_ARG c->pesos->x,
 	                     K_ARG c->pesos->y);
 	return erro;

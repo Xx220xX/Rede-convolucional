@@ -9,6 +9,7 @@
 
 #include<CL/cl.h>
 #include "memory_utils.h"
+
 #define K_VOID_P sizeof(cl_mem)
 #define K_INT sizeof(cl_int)
 #define K_DOUBLE sizeof(cl_double)
@@ -18,7 +19,7 @@ typedef struct _Kernel {
 	char *kernel_name;
 	int nArgs;
 	size_t *l_args;
-}*Kernel;
+} *Kernel;
 
 #define QUEUE cl_command_queue
 
@@ -63,20 +64,20 @@ typedef void (*kernel_function_type)(void *, ...);
 
 #define K_ARG
 #define new_Kernel(porgram, P_error, kernel_function, n_args, ...) \
-        __newKernelHost(kernel_function, P_error,#kernel_function,n_args,## __VA_ARGS__)
+		__newKernelHost(kernel_function, P_error,#kernel_function,n_args,## __VA_ARGS__)
 
 #define kernel_run(erro, Kernel, queue, globals, locals, arg0, ...)  \
-       {                                                             \
-       kernel_function_type fc = (kernel_function_type)  Kernel->kernel;         \
-       for (int id=0;id<globals;id++){                       \
-                set_global_id(id);                                   \
-            fc(arg0,## __VA_ARGS__) ;\
-        }                                                       \
-        erro  = 0;}
+	   {                                                             \
+	   kernel_function_type fc = (kernel_function_type)  Kernel->kernel;         \
+	   for (int id=0;id<globals;id++){                       \
+				set_global_id(id);                                   \
+			fc(arg0,## __VA_ARGS__) ;\
+		}                                                       \
+		erro  = 0;}
 
 
 #define kernel_run_recursive(erro, Kernel, queue, globals, maxwords, arg0, ...) \
-        kernel_run(erro,Kernel,queue,globals,1,arg0,## __VA_ARGS__,0);
+		kernel_run(erro,Kernel,queue,globals,1,arg0,## __VA_ARGS__,0);
 
 #define releaseKernel __releaseKernelHost
 #define printKernel __printKernelHost
@@ -87,13 +88,13 @@ typedef void (*kernel_function_type)(void *, ...);
 #else
 #define K_ARG &
 #define new_Kernel(porgram, P_error, kernel_function, n_args, ...) \
-		__newKernel(porgram, P_error,#kernel_function,n_args,## __VA_ARGS__)
+        __newKernel(porgram, P_error,#kernel_function,n_args,## __VA_ARGS__)
 
 #define kernel_run(erro, Kernel, queue, globals, locals, ...)\
-		erro= __kernel_run(Kernel,queue,globals,locals,## __VA_ARGS__)
+        erro= __kernel_run(Kernel,queue,globals,locals,## __VA_ARGS__)
 
-#define kernel_run_recursive(erro, Kernel, queue, globals, locals, ...)\
-		erro = __kernel_run_recursive(Kernel,queue,globals,locals,## __VA_ARGS__)
+#define kernel_run_recursive(erro, Kernel, queue, globals, max_works, ...)\
+        erro = __kernel_run_recursive(Kernel,  queue,  globals,  max_works,## __VA_ARGS__)
 #define releaseKernel __releaseKernel
 #define printKernel __printKernel
 

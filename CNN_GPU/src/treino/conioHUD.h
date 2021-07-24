@@ -226,7 +226,7 @@ void *showInfoTest(InfoTeste *info) {
 	for (int c = 0; c < info->nClasses; c++) {
 		gotoxy(10 + dx, y0 + 7 + c);
 		printf("% 4d", info->estatisticasAcerto[c]);
-		gotoxy(10 + 2 * dx, y0 + 7 + c);
+		gotoxy(10 + 3 * dx, y0 + 7 + c);
 		printf("% 4d", info->ncasos[c]);
 	}
 

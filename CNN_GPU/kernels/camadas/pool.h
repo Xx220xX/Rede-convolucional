@@ -1,14 +1,17 @@
-kV poolativa(Vector entrada, Vector saida, int lenFilter,
-			 int passo, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
+kV poolativa(Vector entrada, Vector saida,
+			 int passox,int passoy,
+			 int filtrox,int filtroy,
+			 int saidatx, int saidaty,
+			 int entradatx, int entradaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	TensorRemap(k, x, y, z, saidatx, saidaty)
 
-	Ponto3d mapeado = {x * passo, y * passo, 0};
+	Ponto3d mapeado = {x * passox, y * passoy, 0};
 	double mval, v;
 	mval = -DBL_MAX;
-	for (int i = 0; i < lenFilter; ++i) {
-		for (int j = 0; j < lenFilter; ++j) {
+	for (int i = 0; i < filtrox; ++i) {
+		for (int j = 0; j < filtroy; ++j) {
 			v = entrada[TensorMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
 			if (v > mval)
 				mval = v;

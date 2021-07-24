@@ -17,7 +17,7 @@
 /***
  * Armazena os dados de uma rede neural convolucional
  */
-typedef struct Cnn{
+typedef struct Cnn {
 	Params parametros;
 	Camada *camadas;
 	Tensor lastGrad;
@@ -36,6 +36,7 @@ typedef struct Cnn{
 	double normaErro;
 	Exception error;
 } *Cnn, TypeCnn;
+
 /***
  * Cria uma Cnn
  * @param cl interface para API openCL
@@ -46,11 +47,13 @@ typedef struct Cnn{
  * @return retorna uma Cnn que deve ser liberada com a funcao releaseCnn
  */
 Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz);
+
 /***
  * Libera os recursos alocados pela Cnn
  * @param pc endereço para a cnn
  */
 void releaseCnn(Cnn *pc);
+
 /***
  * Cria uma Cnn a partir de um kernel em um arquivo
  * @param kernelFile
@@ -63,6 +66,7 @@ void releaseCnn(Cnn *pc);
  */
 Cnn createCnnWithWrapperFile(char *kernelFile, Params p, UINT inx, UINT iny, UINT inz,
                              unsigned long long int devicetype);
+
 /***
  * Cria uma Cnn a partir de um kernel em uma string
  * @param kernelprogram
@@ -75,6 +79,7 @@ Cnn createCnnWithWrapperFile(char *kernelFile, Params p, UINT inx, UINT iny, UIN
  */
 Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, UINT iny,
                                 UINT inz, ULL devicetype);
+
 /***
  * Calcula o erro gerada na saida da rede
  * Deve ser chamado após o CnnLearn
@@ -94,15 +99,16 @@ int CnnCalculeError(Cnn c);
  * @param numeroDeFiltros 
  * @return 
  */
-int CnnAddConvLayer(Cnn c, char tensor_flag, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros);
+int CnnAddConvLayer(Cnn c, char tensor_flag, UINT passox,UINT passoy,UINT filtrox,UINT filtroy, UINT numeroDeFiltros);
 
-int CnnAddConvNcLayer(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT largx, UINT largy,
-                      UINT filtrox, UINT filtroy,
+int CnnAddConvNcLayer(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy,
+                      UINT largx, UINT largy,
                       UINT numeroDeFiltros);
 
-int CnnAddPoolLayer(Cnn c, char tensor_flag, UINT passo, UINT tamanhoDoFiltro);
+int CnnAddPoolLayer(Cnn c, char tensor_flag, UINT passox, UINT passoy,
+                    UINT filtrox, UINT filtroy);
 
-int CnnAddPoolAvLayer(Cnn c, char tensor_flag, UINT passo, UINT tamanhoDoFiltro);
+int CnnAddPoolAvLayer(Cnn c, char tensor_flag, UINT passox,UINT pasoy,UINT fx,UINT fy);
 
 int CnnAddReluLayer(Cnn c, char tensor_flag);
 

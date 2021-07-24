@@ -16,15 +16,17 @@ typedef unsigned int UINT;
 
 typedef struct {
 	Typecamada super;
-	UINT passo;
-	UINT tamanhoFiltro;
+	UINT passox;
+	UINT passoy;
+	UINT fx;
+	UINT fy;
 	Kernel kernelPoolAvAtiva;
 	Kernel kernelPoolAvCalcGrads;
 } *CamadaPoolAv, TypecamadaPoolAv;
 
 
-
-Camada createPoolAv(WrapperCL *cl, QUEUE queue, UINT passo, UINT tamanhoFiltro, UINT inx, UINT iny, UINT inz,
+Camada createPoolAv(WrapperCL *cl, QUEUE queue, UINT px, UINT py, UINT fx, UINT fy,
+                    UINT inx, UINT iny, UINT inz,
                     Tensor entrada, Params params,
                     char usehost, Exception *error);
 

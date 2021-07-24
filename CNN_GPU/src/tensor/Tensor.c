@@ -285,40 +285,6 @@ int dividirVetor(double *v, Tensor m, size_t len, double value, Kernel funcNorm,
 }
 
 
-int dividirVetorInt(unsigned char *src, double *dst, Tensor mi, Tensor mout, size_t len, double value,
-                    Kernel funcNorm, size_t max_works, QUEUE queue) {
-	int error = TensorPutValuesMem(queue, mi, src, len * sizeof(unsigned char));
-	if (error)return error;
-	kernel_run_recursive(error, funcNorm, queue, len, max_works, K_ARG mi, K_ARG mout, K_ARG value);
-	if (error)return error;
-	error = TensorGetValuesMem(queue, mout, dst, len * sizeof(double));
-	return error;
-}
-
-
-int int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, Tensor mi, Tensor mout, size_t len, int nop,
-                     Kernel func, QUEUE queue) {
-	/* cl_program pg = compileProgram(cl->context,cl->device,
-									 "__kernel void printI(__global unsigned char *v, int len){"
-									 "for(int i = 0;i<len;i++){"
-									 "printf(\"%d \",v[i]);}printf(\"\\n\");}\n"
-									 "__kernel void printD(__global double *v, int len,int len2){"
-									 "for(int i = 0;i<len;i++){"
-									 "printf(\"[\");"
-									 "for(int j = 0;j<len2;j++){printf(\"%.4lf \",v[i*len2+j]);}"
-									 "printf(\"]\\n\");}"
-									 "printf(\"\\n\");}\n");
-	  Kernel printI = new_Kernel(pg,"printI",2,VOID_P,INT);
-	  Kernel printD = new_Kernel(pg,"printD",3,VOID_P,INT,INT);
-  */
-
-	int error = TensorPutValuesMem(queue, mi, src, len * sizeof(unsigned char));
-	if (error)return error;
-	kernel_run_recursive(error, func, queue, len, cl->maxworks, K_ARG mi, K_ARG mout, K_ARG nop);
-	if (error)return error;
-	error = TensorGetValuesMem(queue, mout, dst, len * nop * sizeof(double));
-	return error;
-}
 
 void printTensor(QUEUE q, Tensor t, FILE *f) {
 	double *v = alloc_mem(t->bytes, 1);

@@ -11,9 +11,11 @@ const char *getCreateParamsConv(CamadaConv c) {
 	if (c->super.__string__ != NULL)free_mem(c->super.__string__);
 	c->super.__string__ = (char *) alloc_mem(1000, sizeof(char));
 	int len = snprintf(c->super.__string__, 1000,
-	                  "['Convolucao',%d,%d,%d]",
-	                   c->passo,
+	                  "['Convolucao',%d,%d,%d,%d,%d]",
+	                   c->passox,
+	                   c->passoy,
 	                   c->filtros->x,
+	                   c->filtros->y,
 	                   c->filtros->w
 	);
 	len += 1;
@@ -26,13 +28,13 @@ const char *tostringConv(CamadaConv c) {
 	c->super.__string__ = (char *) alloc_mem(1000, sizeof(char));
 	int len = snprintf(c->super.__string__, 1000,
 	                   "Convolutional Layer: (%u,%u,%u) -> (%u,%u,%u)\n"
-	                   "\tstep %u\n"
+	                   "\tstep %u %u\n"
 	                   "\tfilter dim (%u %u)\n"
 	                   "\tnumber of filters %u\n",
 
 	                   c->super.entrada->x, c->super.entrada->y, c->super.entrada->z,
 	                   c->super.saida->x, c->super.saida->y, c->super.saida->z,
-	                   c->passo,
+	                   c->passox, c->passoy,
 	                   c->filtros->x, c->filtros->y,
 	                   c->filtros->w
 	);
@@ -74,7 +76,7 @@ int ativaConv(CamadaConv c) {
 	                     *c->super.max_works,
 	                     K_ARG c->filtros->data, K_ARG c->super.entrada->data,
 	                     K_ARG c->super.saida->data,
-	                     K_ARG c->passo, K_ARG c->passo,
+	                     K_ARG c->passox, K_ARG c->passoy,
 	                     K_ARG c->super.saida->x, K_ARG c->super.saida->y,
 	                     K_ARG c->super.entrada->x, K_ARG c->super.entrada->y,
 	                     K_ARG c->filtros->x, K_ARG c->filtros->y, K_ARG c->filtros->z);
@@ -93,7 +95,7 @@ int corrige_pesosConv(CamadaConv c) {
 	                     K_ARG c->filtros->x, K_ARG c->filtros->y, K_ARG c->filtros->z,
 	                     K_ARG c->super.entrada->x, K_ARG c->super.entrada->y,
 	                     K_ARG c->super.saida->x, K_ARG c->super.saida->y,
-	                     K_ARG c->passo, K_ARG c->passo,
+	                     K_ARG c->passox, K_ARG c->passoy,
 	                     K_ARG c->super.parametros.hitLearn,
 	                     K_ARG c->super.parametros.momento,
 	                     K_ARG c->super.parametros.decaimentoDePeso);
@@ -112,7 +114,7 @@ int calc_gradsConv(CamadaConv c, Tensor Gradnext) {
 	                     K_ARG c->super.gradsEntrada->data,
 	                     K_ARG Gradnext->data,
 	                     K_ARG c->filtros->x, K_ARG c->filtros->y, K_ARG c->filtros->z,
-	                     K_ARG c->passo, K_ARG c->passo,
+	                     K_ARG c->passox, K_ARG c->passoy,
 	                     K_ARG c->super.entrada->x, K_ARG c->super.entrada->y,
 	                     K_ARG c->super.saida->x, K_ARG c->super.saida->y, K_ARG c->super.saida->z);
 	return erro;
@@ -124,8 +126,10 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, Exception *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
-	fwrite(&c->passo, sizeof(UINT), 1, dst);
+	fwrite(&c->passox, sizeof(UINT), 1, dst);
+	fwrite(&c->passoy, sizeof(UINT), 1, dst);
 	fwrite(&c->filtros->x, sizeof(UINT), 1, dst);
+	fwrite(&c->filtros->y, sizeof(UINT), 1, dst);
 	fwrite(&c->filtros->w, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
@@ -149,16 +153,18 @@ Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
-	UINT passo, tamanhoFiltro, numeroFiltros, inx, iny, inz;
+	UINT passox,passoy, tamanhoFiltrox,tamanhoFiltroy, numeroFiltros, inx, iny, inz;
 	char flag_usehost = 0;
 	fread(&flag_usehost, sizeof(char), 1, src);
-	fread(&passo, sizeof(UINT), 1, src);
-	fread(&tamanhoFiltro, sizeof(UINT), 1, src);
+	fread(&passox, sizeof(UINT), 1, src);
+	fread(&passoy, sizeof(UINT), 1, src);
+	fread(&tamanhoFiltrox, sizeof(UINT), 1, src);
+	fread(&tamanhoFiltroy, sizeof(UINT), 1, src);
 	fread(&numeroFiltros, sizeof(UINT), 1, src);
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	CamadaConv c = (CamadaConv) createConv(cl, queue, passo, tamanhoFiltro, numeroFiltros, inx, iny, inz, entrada,
+	CamadaConv c = (CamadaConv) createConv(cl, queue, passox,passoy, tamanhoFiltrox,tamanhoFiltroy, numeroFiltros, inx, iny, inz, entrada,
 	                                       params, flag_usehost, error, 0);
 	double *data = (double *)alloc_mem(c->filtros->x * c->filtros->y * c->super.entrada->z,sizeof(double));
 	for (int a = 0; a < c->filtros->w; a++) {
@@ -185,14 +191,14 @@ void releaseConv(CamadaConv *pc) {
 	*pc = NULL;
 }
 
-Camada createConv(WrapperCL *cl, QUEUE queue, UINT passo, UINT lenFilter,
+Camada createConv(WrapperCL *cl, QUEUE queue, UINT passox, UINT passoy, UINT lenFilterx,UINT lenFiltery,
                   UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
                   Tensor entrada, Params params, char usehost, Exception *error, int randomize) {
 	if (error->error)return NULL;
 	CamadaConv c = (CamadaConv) alloc_mem(1, sizeof(Typecamadaconv));
 	__newCamada__(&c->super, cl, CONV, entrada, queue, params,
 	              inx, iny, inz,
-	              (inx - lenFilter) / passo + 1, (iny - lenFilter) / passo + 1,
+	              (inx - lenFilterx) / passox + 1, (iny - lenFiltery) / passoy + 1,
 	              numeroFiltros, usehost, error);
 
 	c->super.toString = (cfv) tostringConv;
@@ -203,15 +209,16 @@ Camada createConv(WrapperCL *cl, QUEUE queue, UINT passo, UINT lenFilter,
 	c->super.calc_grads = (f2v) calc_gradsConv;
 	c->super.corrige_pesos = (fv) corrige_pesosConv;
 	c->super.salvar = (f4v) salvarConv;
-	c->passo = passo;
+	c->passox = passox;
+	c->passoy = passoy;
 	if (error->error) {
 		c->super.release(&c);
 		return NULL;
 
 	}
-	c->filtros = newTensor4D(cl->context, queue, lenFilter, lenFilter, inz, numeroFiltros, c->super.flag_usehost,
+	c->filtros = newTensor4D(cl->context, queue, lenFilterx, lenFiltery, inz, numeroFiltros, c->super.flag_usehost,
 	                         error);
-	c->grad_filtros = newTensor4D(cl->context, queue, lenFilter, lenFilter, inz, numeroFiltros, c->super.flag_usehost,
+	c->grad_filtros = newTensor4D(cl->context, queue, lenFilterx, lenFiltery, inz, numeroFiltros, c->super.flag_usehost,
 	                              error);
 	if (error->error) {
 		c->super.release(&c);

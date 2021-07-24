@@ -1,23 +1,25 @@
-kV PoolAvativa(Vector entrada, Vector saida, int lenFilter,
-			   int passo, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
+kV PoolAvativa(Vector entrada, Vector saida,
+			   int passox,int passoy,
+			   int fx,int fy,
+			   int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	TensorRemap(k, x, y, z, saidatx, saidaty)
 
-	Ponto3d mapeado = {x * passo, y * passo, 0};
+	Ponto3d mapeado = {x * passox, y * passoy, 0};
 	double soma = 0, v;
 
-	for (int i = 0; i < lenFilter; ++i) {
-		for (int j = 0; j < lenFilter; ++j) {
+	for (int i = 0; i < fx; ++i) {
+		for (int j = 0; j < fy; ++j) {
 			soma += entrada[TensorMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
 		}
 	}
-	saida[k] = soma / (lenFilter * lenFilter);
+	saida[k] = soma / (fx * fy);
 }
 
 
 kV PoolAvCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector saida,
-				   int fx, int fy, int px, int py,
+                   int px, int py,  int fx, int fy,
 				   int entradatx, int entradaty, int saidatx, int saidaty,
 				   int k0) {
 	int k = get_global_id(0) + k0;

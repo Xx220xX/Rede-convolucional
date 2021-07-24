@@ -58,19 +58,49 @@ static int l_loadCnn(lua_State *L) {
 	fclose(f);
 	return 0;
 }
-
+#define L_CONVOLUTION_NAME "Convolucao"
 static int l_convolution(lua_State *L) {
-	//printf("l_convolution\n");
-	int passo, sfiltro, nfiltro;
+	int nArgs = lua_gettop(L);
+	int px, py, fx, fy, flag = 0;
+	int nfiltros;
+	int arg = 1;
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	passo = luaL_checkinteger(L, 1);
-	sfiltro = luaL_checkinteger(L, 2);
-	nfiltro = luaL_checkinteger(L, 3);
-	char usehost = 0;
-	if (!lua_isnoneornil(L, 4)) {
-		usehost = luaL_checkinteger(L, 4);
+	switch (nArgs) {
+		case 3:// px=py, fx=fy,nfilters
+			py = px = luaL_checkinteger(L, arg++);
+			fy = fx = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			break;
+		case 4://px=py, fx=fy,nfilters, flag
+			py = px = luaL_checkinteger(L, arg++);
+			fy = fx = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			flag = luaL_checkinteger(L, arg++);
+			break;
+		case 5:// px,py, fx,fy,nfilters
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			break;
+		case 6:// px,py, fx,fy,,nfilters,flag
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			flag = luaL_checkinteger(L, arg++);
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize,nfilters)\n"
+			              " %s(step,filterSize,nfilters,memory_flag)\n"
+			              " %s(stepx,stepy,filterSizex,filterSizey,nfilters)\n"
+			              " %s(stepx,stepy,filterSizex,filterSizey,nfilters,memory_flag)\n"
+					, L_CONVOLUTION_NAME,L_CONVOLUTION_NAME,L_CONVOLUTION_NAME,L_CONVOLUTION_NAME);
+			return 2;
 	}
-	int erro = CnnAddConvLayer(*globalcnn, usehost, passo, sfiltro, nfiltro);
+	int erro = CnnAddConvLayer(*globalcnn, flag, px,py,fx,fy,nfiltros);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -78,23 +108,56 @@ static int l_convolution(lua_State *L) {
 	}
 	return 0;
 }
-
+#define L_CONVOLUTIONNC_NAME "ConvolucaoNcausal"
 static int l_convolution_non_causal(lua_State *L) {
-	//printf("l_convolution_non_causal\n");
-	int passox, passoy, largx, largy, filtrox, filtroy, nfiltro;
+	int nArgs = lua_gettop(L);
+	int px, py,ax,ay, fx, fy, flag = 0;
+	int nfiltros;
+	int arg = 1;
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	passox = luaL_checkinteger(L, 1);
-	passoy = luaL_checkinteger(L, 2);
-	largx = luaL_checkinteger(L, 3);
-	largy = luaL_checkinteger(L, 4);
-	filtrox = luaL_checkinteger(L, 5);
-	filtroy = luaL_checkinteger(L, 6);
-	nfiltro = luaL_checkinteger(L, 7);
-	char usehost = 0;
-	if (!lua_isnoneornil(L, 8)) {
-		usehost = luaL_checkinteger(L, 8);
+	switch (nArgs) {
+		case 4:// px=py, fx=fy,ax=ay,nfilters
+			py = px = luaL_checkinteger(L, arg++);
+			ay = ax = luaL_checkinteger(L, arg++);
+			fy = fx = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			break;
+		case 5://px=py, fx=fy,ax=ay,nfilters, flag
+			py = px = luaL_checkinteger(L, arg++);
+			ay = ax = luaL_checkinteger(L, arg++);
+			fy = fx = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			flag = luaL_checkinteger(L, arg++);
+			break;
+		case 7:// px,py, fx,fy,ax,ay,nfilters
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			ax = luaL_checkinteger(L, arg++);
+			ay = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			break;
+		case 8:// px,py, fx,fy,ax,ay,nfilters,flag
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			ax = luaL_checkinteger(L, arg++);
+			ay = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			flag = luaL_checkinteger(L, arg++);
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize,aperture,nfilters)\n"
+			              " %s(step,filterSize,aperture,nfilters,memory_flag)\n"
+			              " %s(stepx,stepy,filterSizex,filterSizey,aperturex,aperturey,nfilters)\n"
+			              " %s(stepx,stepy,filterSizex,filterSizey,aperturex,aperturey,nfilters,memory_flag)\n"
+					, L_CONVOLUTIONNC_NAME,L_CONVOLUTIONNC_NAME,L_CONVOLUTIONNC_NAME,L_CONVOLUTIONNC_NAME);
+			return 2;
 	}
-	int erro = CnnAddConvNcLayer(*globalcnn, usehost, passox, passoy, largx, largy, filtrox, filtroy, nfiltro);
+	int erro = CnnAddConvNcLayer(*globalcnn, flag, px, py, fx, fy, ax, ay, nfiltros);
+
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -103,18 +166,44 @@ static int l_convolution_non_causal(lua_State *L) {
 	return 0;
 }
 
-
+#define L_POOLING_NAME "Pooling"
 static int l_pooling(lua_State *L) {
 	//printf("l_pooling\n");
-	int passo, sfiltro;
+	int nArgs = lua_gettop(L);
+	int px, py, fx, fy, flag = 0;
+	int arg = 1;
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	passo = luaL_checkinteger(L, 1);
-	sfiltro = luaL_checkinteger(L, 2);
-	char usehost = 0;
-	if (!lua_isnoneornil(L, 3)) {
-		usehost = luaL_checkinteger(L, 3);
+	switch (nArgs) {
+		case 2:// px=py, fx=fy
+			py = px = luaL_checkinteger(L, arg++);
+			fy = fx = luaL_checkinteger(L, arg++);
+			break;
+		case 3:// px=py, fx=fy, flag
+			py = px = luaL_checkinteger(L, arg++);
+			fy = fx = luaL_checkinteger(L, arg++);
+			flag = luaL_checkinteger(L, arg++);
+			break;
+		case 4:// px,py, fx,fy
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			break;
+		case 5:// px,py, fx,fy,flag
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize)\n"
+			              " %s(step,filterSize,memory_flag)\n"
+			              " %s(stepx,stepy,filterSizex,filterSizey)\n"
+			              " %s(stepx,stepy,filterSizex,filterSizey,memory_flag)\n"
+					, L_POOLING_NAME,L_POOLING_NAME,L_POOLING_NAME,L_POOLING_NAME);
+			return 2;
 	}
-	int erro = CnnAddPoolLayer(*globalcnn, usehost, passo, sfiltro);
+	int erro = CnnAddPoolLayer(*globalcnn, flag,px,py,fx,fy);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -122,18 +211,44 @@ static int l_pooling(lua_State *L) {
 	}
 	return 0;
 }
-
+#define L_POOLINGAV_NAME "PoolingAv"
 static int l_poolingav(lua_State *L) {
 	//printf("l_poolingav\n");
-	int passo, sfiltro;
+	int nArgs = lua_gettop(L);
+	int px, py, fx, fy, flag = 0;
+	int arg = 1;
 	checkLua(*globalcnn, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	passo = luaL_checkinteger(L, 1);
-	sfiltro = luaL_checkinteger(L, 2);
-	char usehost = 0;
-	if (!lua_isnoneornil(L, 3)) {
-		usehost = luaL_checkinteger(L, 3);
+	switch (nArgs) {
+		case 2:// px=py, fx=fy
+			py = px = luaL_checkinteger(L, arg++);
+			fy = fx = luaL_checkinteger(L, arg++);
+			break;
+		case 3:// px=py, fx=fy, flag
+			py = px = luaL_checkinteger(L, arg++);
+			fy = fx = luaL_checkinteger(L, arg++);
+			flag = luaL_checkinteger(L, arg++);
+			break;
+		case 4:// px,py, fx,fy
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			break;
+		case 5:// px,py, fx,fy,flag
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize)\n"
+				 " %s(step,filterSize,memory_flag)\n"
+				 " %s(stepx,stepy,filterSizex,filterSizey)\n"
+				 " %s(stepx,stepy,filterSizex,filterSizey,memory_flag)\n"
+				 , L_POOLINGAV_NAME,L_POOLINGAV_NAME,L_POOLINGAV_NAME,L_POOLINGAV_NAME);
+			return 2;
 	}
-	int erro = CnnAddPoolAvLayer(*globalcnn, usehost, passo, sfiltro);
+	int erro = CnnAddPoolAvLayer(*globalcnn, flag,px,py,fx,fy);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -253,10 +368,10 @@ static int l_softmax(lua_State *L) {
 
 void loadCnnLuaLibrary(lua_State *L) {
 	REGISTERC_L(L, l_createCnn, "Entrada");
-	REGISTERC_L(L, l_convolution, "Convolucao");
-	REGISTERC_L(L, l_convolution_non_causal, "ConvolucaoNcausal");
-	REGISTERC_L(L, l_pooling, "Pooling");
-	REGISTERC_L(L, l_poolingav, "PoolingAv");
+	REGISTERC_L(L, l_convolution, L_CONVOLUTION_NAME);
+	REGISTERC_L(L, l_convolution_non_causal, L_CONVOLUTIONNC_NAME);
+	REGISTERC_L(L, l_pooling, L_POOLING_NAME);
+	REGISTERC_L(L, l_poolingav, L_POOLINGAV_NAME);
 	REGISTERC_L(L, l_relu, "Relu");
 	REGISTERC_L(L, l_padding, "Padding");
 	REGISTERC_L(L, l_dropout, "Dropout");
@@ -270,10 +385,18 @@ void loadCnnLuaLibrary(lua_State *L) {
 	lua_setglobal(L, "TANH");
 	lua_pushinteger(L, FRELU);
 	lua_setglobal(L, "RELU");
+
 	lua_pushinteger(L, 0b10);
 	lua_setglobal(L, "CPU");
 	lua_pushinteger(L, 0b100);
 	lua_setglobal(L, "GPU");
+
+	lua_pushinteger(L, TENSOR_NCPY);
+	lua_setglobal(L, "NO_CPY");
+	lua_pushinteger(L, TENSOR_SMEM);
+	lua_setglobal(L, "SHARED_MEM");
+
+
 }
 
 #define GETLUAVALUE(to, L, key, type, isnil) lua_getglobal(L,key);if(lua_isnoneornil(L,-1)){lua_pop(L,1);isnil}else{to =  luaL_check##type(L,-1);lua_pop(L,1);}

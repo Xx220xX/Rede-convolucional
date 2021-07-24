@@ -136,10 +136,5 @@ void releaseTensor(Tensor *t);
 int dividirVetor(double *v, Tensor m, size_t len, double value, Kernel funcNorm, size_t max_works,
                  QUEUE queue);
 
-int dividirVetorInt(unsigned char *src, double *dst, Tensor mi, Tensor mout, size_t len, double value,
-                    Kernel funcNorm, size_t max_works, QUEUE queue);
-
-int int2doubleVector(WrapperCL *cl, unsigned char *src, double *dst, Tensor mi, Tensor mout, size_t len, int nop,
-                     Kernel func, QUEUE queue);
 
 #endif //CNN_GPU_TENSOR_H

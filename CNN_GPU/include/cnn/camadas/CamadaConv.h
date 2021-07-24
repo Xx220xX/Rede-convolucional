@@ -20,13 +20,14 @@ typedef struct {
 	Tensor filtros;
 	Tensor grad_filtros;
 	Tensor gradnext;
-	UINT passo;
+	UINT passox;
+	UINT passoy;
 	Kernel kernelConvSum;
 	Kernel kernelConvFixWeight;
 	Kernel kernelConvCalcGrads;
 } *CamadaConv, Typecamadaconv;
 
-Camada createConv(WrapperCL *cl, QUEUE queue, UINT passo, UINT lenFilter,
+Camada createConv(WrapperCL *cl, QUEUE queue, UINT passox, UINT passoy, UINT lenFilterx,UINT lenFiltery,
                   UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
                   Tensor entrada, Params params, char usehost, Exception *error, int randomize);
 

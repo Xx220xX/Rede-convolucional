@@ -158,12 +158,12 @@ int __CnnCheckNewLayer__(Cnn c) {
 	return 0;
 }
 
-int CnnAddConvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro, UINT numeroDeFiltros) {
+int CnnAddConvLayer(Cnn c, char usehost, UINT passox,UINT passoy, UINT fx,UINT fy, UINT numeroDeFiltros) {
 	if (c->error.error)return c->error.error;
 
 //	//int len = sprintf(c->error.context, "%s", "CnnAddConvLayer");
 	Ponto sizeIn = __CnnaddLayer__(c);
-	if (!CHECKDIN(sizeIn.x, tamanhoDoFiltro, 1, passo)) {
+	if (!CHECKDIN(sizeIn.x, fx, 1, passox) || !CHECKDIN(sizeIn.x, fy, 1, passoy)) {
 		c->error.error = INVALID_FILTER_SIZE;
 		snprintf(c->error.msg, 255, "conv: tamanho do filtro invalido\n");
 		c->size--;
@@ -173,11 +173,11 @@ int CnnAddConvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro, UINT 
 
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passo, tamanhoDoFiltro, numeroDeFiltros, sizeIn.x, sizeIn.y,sizeIn.z,	 entrada,c->parametros, usehost, &c->error, 1);
+	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passox,passoy, fx,fy, numeroDeFiltros, sizeIn.x, sizeIn.y,sizeIn.z,	 entrada,c->parametros, usehost, &c->error, 1);
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
+int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy,  UINT filtrox, UINT filtroy,UINT largx, UINT largy,
                       UINT numeroDeFiltros) {
 
 	if (c->error.error)return c->error.error;
@@ -206,40 +206,41 @@ int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy, UINT largx,
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddPoolLayer(Cnn c, char usehost, UINT passo, UINT fx) {
+int CnnAddPoolLayer(Cnn c, char tensor_flag, UINT passox,UINT passoy,
+					UINT filtrox,UINT filtroy) {
 	if (c->error.error)return c->error.error;
 	Ponto sizeIn = __CnnaddLayer__(c);
-	if (!CHECKDIN(sizeIn.x, fx, 1, passo) ||
-	    !CHECKDIN(sizeIn.y, fx, 1, passo)) {
+	if (!CHECKDIN(sizeIn.x, filtrox, 1, passox) ||
+	    !CHECKDIN(sizeIn.y, filtroy, 1, passoy)) {
 		c->error.error = INVALID_FILTER_SIZE;
-		snprintf(c->error.msg, 255, "pooling(%u %u): tamanho do filtro invalido\n", passo, fx);
+		snprintf(c->error.msg, 255, "pooling(%u %u %u %u): tamanho do filtro invalido\n", passox,passoy, filtrox,filtroy);
 		c->size--;
 		c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
 		return c->error.error;
 	}
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passo, fx, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-	                                     c->parametros, usehost, &c->error);
+	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passox,passoy, filtrox,filtroy, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
+	                                     c->parametros, tensor_flag, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddPoolAvLayer(Cnn c, char usehost, UINT passo, UINT tamanhoDoFiltro) {
+int CnnAddPoolAvLayer(Cnn c, char tensor_flag, UINT passox,UINT passoy,
+					  UINT fx,UINT fy){
 	if (c->error.error)return c->error.error;
 	Ponto sizeIn = __CnnaddLayer__(c);
-	if (!CHECKDIN(sizeIn.x, tamanhoDoFiltro, 1, passo) ||
-	    !CHECKDIN(sizeIn.y, tamanhoDoFiltro, 1, passo)) {
+	if (!CHECKDIN(sizeIn.x, fx, 1, passox) ||
+	    !CHECKDIN(sizeIn.y, fy, 1, passoy)) {
 		c->error.error = INVALID_FILTER_SIZE;
-		snprintf(c->error.msg, 255, "average pooling(%u,%u) : tamanho do filtro invalido\n", passo, tamanhoDoFiltro);
+		snprintf(c->error.msg, 255, "average pooling(%u,%u,%u,%u) : tamanho do filtro invalido\n", passox,passoy, fx,fy);
 		c->size--;
 		c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
 		return c->error.error;
 	}
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passo, tamanhoDoFiltro, sizeIn.x, sizeIn.y, sizeIn.z,
-	                                       entrada,
-	                                       c->parametros, usehost, &c->error);
+	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passox,passoy,fx,fy, sizeIn.x, sizeIn.y, sizeIn.z,
+	                                       entrada,c->parametros, tensor_flag, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 

@@ -8,9 +8,9 @@ include_directories(include include/cnn)
 
 link_libraries(OpenCL lua543)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../releases/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../releases/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../releases/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
 
 set(lua include/lua/lua.h include/lua/lualib.h include/lua/lauxlib.h)
 set(conio2 src/conio2/conio2.c include/conio2/conio2.h)

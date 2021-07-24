@@ -13,7 +13,6 @@
 #include"utils.h"
 
 
-typedef unsigned int UINT;
 
 
 typedef struct {
