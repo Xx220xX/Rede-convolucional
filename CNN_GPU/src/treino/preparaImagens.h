@@ -29,29 +29,6 @@ void showDir() {
  * @return  0 caso sucesso. -1 caso não seja possivel abrir o arquivo. -2 caso o numero de imagens
  * lidas seja diferente do numero de imagens especificado
  */
-int loadImage(Cnn cnn, double **images, size_t remainImage, size_t numberOfSamples, char *imageFile) {
-	// obtem o tamanho de cada imagem
-	size_t pixelsByImage = cnn->camadas[0]->entrada->x * cnn->camadas[0]->entrada->y * cnn->camadas[0]->entrada->z;
-	size_t samples;
-	FILE *fimage = fopen(imageFile, "rb");
-	if (!fimage) {
-		fprintf(stderr, "Imagens nao foram encontradas em %s\n", imageFile);
-		*images = NULL;
-		return -1;
-	}
-	*images = (double *) calloc(sizeof(double), pixelsByImage * numberOfSamples);
-	fread(*images, 1, remainImage, fimage);// bytes remanessentes de cabeçalho
-	normalizeImage(cnn, *images, numberOfSamples * pixelsByImage, fimage, &samples);
-	fclose(fimage);
-	if (cnn->error.error || numberOfSamples * pixelsByImage != samples) {
-		fprintf(stderr, "As imagens nao foram lidas corretamente\n");
-		free_mem(*images);
-		*images = NULL;
-		return cnn->error.error;
-	}
-	return 0;
-
-}
 
 /**
  *  Carrega as respostas do arquivo

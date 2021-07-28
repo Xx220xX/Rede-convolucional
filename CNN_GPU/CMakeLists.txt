@@ -9,12 +9,17 @@ include_directories(include include/cnn)
 link_libraries(OpenCL lua543)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../bin)
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../lib)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
 
 set(lua include/lua/lua.h include/lua/lualib.h include/lua/lauxlib.h)
+
 set(conio2 src/conio2/conio2.c include/conio2/conio2.h)
+
 set(LCG_RANDOM include/cnn/LCG_Random/lcg.h src/LCG_Random/lcg.c)
+
 set(camadasCNN include/cnn/camadas/Camada.h src/camadas/Camada.c
         include/cnn/camadas/CamadaConv.h src/camadas/CamadaConv.c
         include/cnn/camadas/CamadaConvNC.h src/camadas/CamadaConvNC.c
@@ -27,10 +32,19 @@ set(camadasCNN include/cnn/camadas/Camada.h src/camadas/Camada.c
         include/cnn/camadas/CamadaPadding.h src/camadas/CamadaPadding.c
         include/cnn/camadas/CamadaSoftMax.h src/camadas/CamadaSoftMax.c
         include/cnn/camadas/funcoesDeAtivacao.h
-        include/cnn/cnn.h src/cnn.c include/cnn/cnn_errors_list.h src/memory_utils.c include/cnn/memory_utils.h)
+        )
+set(cnn include/cnn/cnn.h src/cnn.c
+        include/cnn/cnn_errors_list.h
+        include/cnn/utils/memory_utils.h src/memory_utils.c
+        include/cnn/utils/vectorUtils.h src/vectorUtils.c
+        include/cnn/utils/manageTrain.h src/manageTrain.c include/cnn/utils/time_utils.c include/cnn/utils/time_utils.h)
+
 set(tensor include/cnn/tensor/Tensor.h src/tensor/Tensor.c)
+
 set(gpu include/cnn/gpu/Kernel.h src/gpu/Kernel.c include/cnn/gpu/WrapperCL.h src/gpu/WrapperCL.c)
+
 set(CNNpython src/libraryPythonWrapper.c include/cnn/libraryPythonWrapper.h)
+
 set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/conv.h
         kernels/camadas/dropout.h kernels/camadas/fullconnect.h kernels/camadas/pool.h
         kernels/camadas/relu.h kernels/camadas/softmax.h
@@ -49,9 +63,10 @@ set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/c
 add_executable(CNN_GPU main.c ${lua}
         src/defaultkernel.h
         src/icon/icon.o
+        ${cnn}
         ${kernels}
         ${gpu}
         ${camadasCNN}
         ${LCG_RANDOM}
         ${tensor}
-        ${conio2})
+        ${conio2} include/cnn/config.h)

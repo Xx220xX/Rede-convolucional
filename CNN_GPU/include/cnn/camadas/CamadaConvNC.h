@@ -13,8 +13,6 @@
 #include"utils.h"
 
 
-
-
 typedef struct {
 	Typecamada super;
 	Tensor filtros;

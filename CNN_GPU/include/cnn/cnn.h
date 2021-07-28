@@ -13,10 +13,7 @@
 #include "camadas/CamadaSoftMax.h"
 #include "camadas/CamadaBatchNorm.h"
 
-#define INVALID_FILTER_SIZE (-71)
-/***
- * Armazena os dados de uma rede neural convolucional
- */
+///Armazena os dados de uma rede neural convolucional
 typedef struct Cnn {
 	Params parametros;
 	Camada *camadas;
@@ -34,93 +31,53 @@ typedef struct Cnn {
 	Kernel kernelInt2Vector;
 	Kernel kernelcreateIMG;
 	double normaErro;
+	void *L;
+	fv releaseL;
 	Exception error;
+
 } *Cnn, TypeCnn;
 
-/***
- * Cria uma Cnn
- * @param cl interface para API openCL
- * @param p parametros padrao a ser aplicados em todas camadas (somente na inicialização)
- * @param inx entrada da rede dimensão x
- * @param iny entrada da rede dimensão y
- * @param inz entrada da rede dimensão z
- * @return retorna uma Cnn que deve ser liberada com a funcao releaseCnn
- */
+///Cria uma Cnn
 Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz);
 
-/***
- * Libera os recursos alocados pela Cnn
- * @param pc endereço para a cnn
- */
+/// Libera os recursos alocados pela Cnn
 void releaseCnn(Cnn *pc);
 
-/***
- * Cria uma Cnn a partir de um kernel em um arquivo
- * @param kernelFile
- * @param p
- * @param inx
- * @param iny
- * @param inz
- * @param devicetype
- * @return
- */
+/// Cria uma Cnn a partir de um kernel em um arquivo
 Cnn createCnnWithWrapperFile(char *kernelFile, Params p, UINT inx, UINT iny, UINT inz,
                              unsigned long long int devicetype);
 
-/***
- * Cria uma Cnn a partir de um kernel em uma string
- * @param kernelprogram
- * @param p
- * @param inx
- * @param iny
- * @param inz
- * @param devicetype
- * @return
- */
+
+/// Cria uma Cnn a partir de um kernel em uma string
 Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, UINT iny,
                                 UINT inz, ULL devicetype);
 
-/***
- * Calcula o erro gerada na saida da rede
- * Deve ser chamado após o CnnLearn
- * O resultado ficará em c->normaErro
- * @param c 
- * @return
- */
+/// Calcula o erro gerada na saida da rede
 int CnnCalculeError(Cnn c);
 
 
-/***
- *  Adiciona camada conv
- * @param c 
- * @param tensor_flag 
- * @param passo 
- * @param tamanhoDoFiltro 
- * @param numeroDeFiltros 
- * @return 
- */
-int CnnAddConvLayer(Cnn c, char tensor_flag, UINT passox,UINT passoy,UINT filtrox,UINT filtroy, UINT numeroDeFiltros);
+int Convolucao(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros);
 
-int CnnAddConvNcLayer(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy,
+int ConvolucaoNcausal(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy,
                       UINT largx, UINT largy,
                       UINT numeroDeFiltros);
 
-int CnnAddPoolLayer(Cnn c, char tensor_flag, UINT passox, UINT passoy,
-                    UINT filtrox, UINT filtroy);
+int Pooling(Cnn c, char tensor_flag, UINT passox, UINT passoy,
+            UINT filtrox, UINT filtroy);
 
-int CnnAddPoolAvLayer(Cnn c, char tensor_flag, UINT passox,UINT pasoy,UINT fx,UINT fy);
+int PoolingAv(Cnn c, char tensor_flag, UINT passox, UINT pasoy, UINT fx, UINT fy);
 
-int CnnAddReluLayer(Cnn c, char tensor_flag);
+int Relu(Cnn c, char tensor_flag);
 
-int CnnAddPaddingLayer(Cnn c, char tensor_flag, UINT top, UINT bottom, UINT left, UINT right);
+int Padding(Cnn c, char tensor_flag, UINT top, UINT bottom, UINT left, UINT right);
 
-int CnnAddBatchNorm(Cnn c, char tensor_flag, double epsilon);
+int BatchNorm(Cnn c, char tensor_flag, double epsilon);
 
-int CnnAddSoftMax(Cnn c, char tensor_flag);
+int SoftMax(Cnn c, char tensor_flag);
 
-int CnnAddDropOutLayer(Cnn c, char tensor_flag, double pontoAtivacao, long long int seed);
+int Dropout(Cnn c, char tensor_flag, double pontoAtivacao, long long int seed);
 
-int CnnAddFullConnectLayer(Cnn c, char tensor_flag, UINT tamanhoDaSaida, int funcaoDeAtivacao);
+int FullConnect(Cnn c, char tensor_flag, UINT tamanhoDaSaida, int funcaoDeAtivacao);
 
 int CnnCall(Cnn c, double *input);
 
@@ -136,6 +93,7 @@ void normalizeGPU(Cnn c, double *input, double *output, int len, double maximo, 
 void normalizeGPUSpaceKnow(Cnn c, double *input, double *output, int len, double input_maximo,
                            double input_minimo,
                            double maximo, double minimo);
+
 
 int CnnGetIndexMax(Cnn c);
 

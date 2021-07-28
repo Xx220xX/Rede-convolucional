@@ -100,7 +100,7 @@ static int l_convolution(lua_State *L) {
 					, L_CONVOLUTION_NAME,L_CONVOLUTION_NAME,L_CONVOLUTION_NAME,L_CONVOLUTION_NAME);
 			return 2;
 	}
-	int erro = CnnAddConvLayer(*globalcnn, flag, px,py,fx,fy,nfiltros);
+	int erro = Convolucao(*globalcnn, flag, px, py, fx, fy, nfiltros);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -156,7 +156,7 @@ static int l_convolution_non_causal(lua_State *L) {
 					, L_CONVOLUTIONNC_NAME,L_CONVOLUTIONNC_NAME,L_CONVOLUTIONNC_NAME,L_CONVOLUTIONNC_NAME);
 			return 2;
 	}
-	int erro = CnnAddConvNcLayer(*globalcnn, flag, px, py, fx, fy, ax, ay, nfiltros);
+	int erro = ConvolucaoNcausal(*globalcnn, flag, px, py, fx, fy, ax, ay, nfiltros);
 
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
@@ -203,7 +203,7 @@ static int l_pooling(lua_State *L) {
 					, L_POOLING_NAME,L_POOLING_NAME,L_POOLING_NAME,L_POOLING_NAME);
 			return 2;
 	}
-	int erro = CnnAddPoolLayer(*globalcnn, flag,px,py,fx,fy);
+	int erro = Pooling(*globalcnn, flag, px, py, fx, fy);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -248,7 +248,7 @@ static int l_poolingav(lua_State *L) {
 				 , L_POOLINGAV_NAME,L_POOLINGAV_NAME,L_POOLINGAV_NAME,L_POOLINGAV_NAME);
 			return 2;
 	}
-	int erro = CnnAddPoolAvLayer(*globalcnn, flag,px,py,fx,fy);
+	int erro = PoolingAv(*globalcnn, flag, px, py, fx, fy);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -265,7 +265,7 @@ static int l_relu(lua_State *L) {
 	if (!lua_isnoneornil(L, 1)) {
 		usehost = luaL_checkinteger(L, 1);
 	}
-	int erro = CnnAddReluLayer(*globalcnn, usehost);
+	int erro = Relu(*globalcnn, usehost);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -285,7 +285,7 @@ static int l_padding(lua_State *L) {
 	if (!lua_isnoneornil(L, 5)) {
 		usehost = luaL_checkinteger(L, 5);
 	}
-	int erro = CnnAddPaddingLayer(*globalcnn, usehost, top, bottom, left, right);
+	int erro = Padding(*globalcnn, usehost, top, bottom, left, right);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -306,7 +306,7 @@ static int l_dropout(lua_State *L) {
 	if (!lua_isnoneornil(L, 3)) {
 		usehost = luaL_checkinteger(L, 3);
 	}
-	int erro = CnnAddDropOutLayer(*globalcnn, usehost, ativa, seed);
+	int erro = Dropout(*globalcnn, usehost, ativa, seed);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -325,7 +325,7 @@ static int l_fullConnect(lua_State *L) {
 	if (!lua_isnoneornil(L, 3)) {
 		usehost = luaL_checkinteger(L, 3);
 	}
-	int erro = CnnAddFullConnectLayer(*globalcnn, usehost, neuros, func);
+	int erro = FullConnect(*globalcnn, usehost, neuros, func);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -341,7 +341,7 @@ static int l_batchnorm(lua_State *L) {
 	if (!lua_isnoneornil(L, 1)) {
 		usehost = luaL_checkinteger(L, 1);
 	}
-	int erro = CnnAddBatchNorm(*globalcnn, usehost, 1e-12);
+	int erro = BatchNorm(*globalcnn, usehost, 1e-12);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -357,7 +357,7 @@ static int l_softmax(lua_State *L) {
 	if (!lua_isnoneornil(L, 1)) {
 		usehost = luaL_checkinteger(L, 1);
 	}
-	int erro = CnnAddSoftMax(*globalcnn, usehost);
+	int erro = SoftMax(*globalcnn, usehost);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);

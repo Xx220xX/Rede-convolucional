@@ -98,6 +98,9 @@ void releaseCnn(Cnn *pc) {
 	}
 	releaseTensor(&c->lastGrad);
 	releaseTensor(&c->target);
+	if(c->L){
+		c->releaseL(c->L);
+	}
 	free_mem(c);
 	*pc = NULL;
 }
@@ -158,12 +161,12 @@ int __CnnCheckNewLayer__(Cnn c) {
 	return 0;
 }
 
-int CnnAddConvLayer(Cnn c, char usehost, UINT passox,UINT passoy, UINT fx,UINT fy, UINT numeroDeFiltros) {
+int Convolucao(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros) {
 	if (c->error.error)return c->error.error;
 
-//	//int len = sprintf(c->error.context, "%s", "CnnAddConvLayer");
+//	//int len = sprintf(c->error.context, "%s", "Convolucao");
 	Ponto sizeIn = __CnnaddLayer__(c);
-	if (!CHECKDIN(sizeIn.x, fx, 1, passox) || !CHECKDIN(sizeIn.x, fy, 1, passoy)) {
+	if (!CHECKDIN(sizeIn.x, filtrox, 1, passox) || !CHECKDIN(sizeIn.x, filtroy, 1, passoy)) {
 		c->error.error = INVALID_FILTER_SIZE;
 		snprintf(c->error.msg, 255, "conv: tamanho do filtro invalido\n");
 		c->size--;
@@ -173,15 +176,15 @@ int CnnAddConvLayer(Cnn c, char usehost, UINT passox,UINT passoy, UINT fx,UINT f
 
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passox,passoy, fx,fy, numeroDeFiltros, sizeIn.x, sizeIn.y,sizeIn.z,	 entrada,c->parametros, usehost, &c->error, 1);
+	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passox, passoy, filtrox, filtroy, numeroDeFiltros, sizeIn.x, sizeIn.y, sizeIn.z, entrada, c->parametros, tensor_flag, &c->error, 1);
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy,  UINT filtrox, UINT filtroy,UINT largx, UINT largy,
+int ConvolucaoNcausal(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT largx, UINT largy,
                       UINT numeroDeFiltros) {
 
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "CnnAddConvNcLayer");
+	//int len = sprintf(c->error.context, "%s", "ConvolucaoNcausal");
 
 	Ponto sizeIn = __CnnaddLayer__(c);
 	if (!CHECKDIN(sizeIn.x, filtrox, largx, passox) ||
@@ -202,12 +205,12 @@ int CnnAddConvNcLayer(Cnn c, char usehost, UINT passox, UINT passoy,  UINT filtr
 	                                       numeroDeFiltros, sizeIn.x, sizeIn.y,
 	                                       sizeIn.z,
 	                                       entrada,
-	                                       c->parametros, usehost, &c->error, 1);
+	                                       c->parametros, tensor_flag, &c->error, 1);
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddPoolLayer(Cnn c, char tensor_flag, UINT passox,UINT passoy,
-					UINT filtrox,UINT filtroy) {
+int Pooling(Cnn c, char tensor_flag, UINT passox, UINT passoy,
+            UINT filtrox, UINT filtroy) {
 	if (c->error.error)return c->error.error;
 	Ponto sizeIn = __CnnaddLayer__(c);
 	if (!CHECKDIN(sizeIn.x, filtrox, 1, passox) ||
@@ -225,92 +228,92 @@ int CnnAddPoolLayer(Cnn c, char tensor_flag, UINT passox,UINT passoy,
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddPoolAvLayer(Cnn c, char tensor_flag, UINT passox,UINT passoy,
-					  UINT fx,UINT fy){
+int PoolingAv(Cnn c, char tensor_flag, UINT passox, UINT pasoy,
+              UINT fx, UINT fy){
 	if (c->error.error)return c->error.error;
 	Ponto sizeIn = __CnnaddLayer__(c);
 	if (!CHECKDIN(sizeIn.x, fx, 1, passox) ||
-	    !CHECKDIN(sizeIn.y, fy, 1, passoy)) {
+	    !CHECKDIN(sizeIn.y, fy, 1, pasoy)) {
 		c->error.error = INVALID_FILTER_SIZE;
-		snprintf(c->error.msg, 255, "average pooling(%u,%u,%u,%u) : tamanho do filtro invalido\n", passox,passoy, fx,fy);
+		snprintf(c->error.msg, 255, "average pooling(%u,%u,%u,%u) : tamanho do filtro invalido\n", passox, pasoy, fx, fy);
 		c->size--;
 		c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
 		return c->error.error;
 	}
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passox,passoy,fx,fy, sizeIn.x, sizeIn.y, sizeIn.z,
-	                                       entrada,c->parametros, tensor_flag, &c->error);
+	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passox, pasoy, fx, fy, sizeIn.x, sizeIn.y, sizeIn.z,
+	                                       entrada, c->parametros, tensor_flag, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddBatchNorm(Cnn c, char usehost, double epsilon) {
+int BatchNorm(Cnn c, char tensor_flag, double epsilon) {
 	if (c->error.error)return c->error.error;
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
 	                                          epsilon, 1,
-	                                          usehost, &c->error);
+	                                          tensor_flag, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddReluLayer(Cnn c, char usehost) {
+int Relu(Cnn c, char tensor_flag) {
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "CnnAddReluLayer");
+	//int len = sprintf(c->error.context, "%s", "Relu");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada, usehost, &c->error);
+	c->camadas[c->size - 1] = createRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada, tensor_flag, &c->error);
 	return __CnnCheckNewLayer__(c);
 
 }
 
-int CnnAddPaddingLayer(Cnn c, char usehost, UINT top, UINT bottom, UINT left, UINT right) {
+int Padding(Cnn c, char tensor_flag, UINT top, UINT bottom, UINT left, UINT right) {
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "CnnAddPaddingLayer");
+	//int len = sprintf(c->error.context, "%s", "Padding");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] =
 			createPadding(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, top, bottom, left, right, entrada,
-			              usehost, &c->error);
+			              tensor_flag, &c->error);
 
 
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddSoftMax(Cnn c, char usehost) {
+int SoftMax(Cnn c, char tensor_flag) {
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "CnnAddSoftMax");
+	//int len = sprintf(c->error.context, "%s", "SoftMax");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createSoftMax(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-	                                        usehost, &c->error);
+	                                        tensor_flag, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddDropOutLayer(Cnn c, char usehost, double pontoAtivacao, long long int seed) {
+int Dropout(Cnn c, char tensor_flag, double pontoAtivacao, long long int seed) {
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "CnnAddDropOutLayer");
+	//int len = sprintf(c->error.context, "%s", "Dropout");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createDropOut(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, pontoAtivacao, seed, entrada,
-	                                        usehost, &c->error);
+	                                        tensor_flag, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
-int CnnAddFullConnectLayer(Cnn c, char usehost, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
+int FullConnect(Cnn c, char tensor_flag, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "CnnAddFullConnectLayer");
+	//int len = sprintf(c->error.context, "%s", "FullConnect");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createFullConnect(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada,
-	                                            c->parametros, funcaoDeAtivacao, 1, usehost, &c->error);
+	                                            c->parametros, funcaoDeAtivacao, 1, tensor_flag, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -598,4 +601,5 @@ void printCnn(Cnn c) {
 		printf("%s\n", c->camadas[i]->toString(c->camadas[i]));
 	}
 }
+
 

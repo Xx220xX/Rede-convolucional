@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include "config.h"
 #include"../gpu/WrapperCL.h"
 #include "../camadas/utils.h"
 #include"../cnn_errors_list.h"
@@ -17,43 +18,46 @@
 #else
 #define LOG_CNN_TENSOR_MEMORY(format, ...)
 #endif
-/*
- *
- * 0000 0001 // 3d/4d
- * 0000 1110 // memory
- * 0011 0000 // type
- *
- */
+
 
 /**
  * Mapeia um ponto 3d no vetor
  */
 #define Tensor_Map(T, xx, yy, zz) (zz)*((T)->y*(T)->x)+(xx)*(T)->y+(yy)
 
-/// No Copy. Não faz nenhuma copia, toda memoria é armazenada no driver(default).
-#define TENSOR_NCPY ((flag_t)0x00)
-/// Only host. Todos recursos são alocados no host.
-#define TENSOR_OHST ((flag_t)0x01)
-/// Using my host. Utiliza um ponteiro fornecido para ser usado no driver
-#define TENSOR_UHST ((flag_t)0x02)
-/// Utiliza a memoria compartilhada do drive
-#define TENSOR_SMEM ((flag_t)0x04)
+/// USE DRIVE. Alloca recursos no drive (default).
+#define TENSOR_DRIV 0b00000
+/// USE host.  Os recursos serão alocados apenas no host
+#define TENSOR_HOST 0b00010
+
+/// valido somente para quando TENSOR_DRIV estiver ativo
+#define TENSOR_NCPY 0b00000
+
+/// será utilizado um ponteiro para criar a memoria no drive.
+#define TENSOR_UPTR 0b00100
+/// será feito o uso da memoria compartilhada
+#define TENSOR_SMEM 0b01000
+/// será feito o uso da memoria comum
+#define TENSOR_HMEM 0b10000
+
 
 /// Tensor 3D (defautl).
-#define TENSOR3D ((flag_t)0x00)
+#define TENSOR3D 0b0
 /// Tensor 4D.
-#define TENSOR4D ((flag_t)0x01)
+#define TENSOR4D 0b1
 
 /// Tensor tipo double (default).
-#define TENSOR_DOUBLE ((flag_t)0x00)
+#define TENSOR_DOUBLE 0x0
 /// Tensor tipo char.
-#define TENSOR_CHAR ((flag_t)0x10)
+#define TENSOR_CHAR 0x10
 /// Tensor tipo int.
-#define TENSOR_INT ((flag_t)0x20)
+#define TENSOR_INT 0x20
 
-#define TENSOR_MASK_DIM ((flag_t)0x01)
-#define TENSOR_MASK_MEM ((flag_t)0x0E)
-#define TENSOR_MASK_TYPE ((flag_t)0x30)
+#define TENSOR_MASK_DIM         0x00001
+#define TENSOR_MASK_MEM         0b11100
+#define TENSOR_MASK_DRIVEORHOST 0b00010
+
+#define TENSOR_MASK_TYPE 0x30
 
 typedef unsigned int UINT;
 typedef unsigned int flag_t;

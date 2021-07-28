@@ -9,7 +9,7 @@
 #include<CL/cl.h>
 #include"Kernel.h"
 #include <stdio.h>
-#include"memory_utils.h"
+#include"utils/memory_utils.h"
 /***
  * Interface para simplificar uso da API openCL
  */

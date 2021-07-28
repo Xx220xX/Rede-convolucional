@@ -6,7 +6,7 @@
 #define CNN_GPU_CAMADA_H
 
 #include"tensor/Tensor.h"
-#include "memory_utils.h"
+#include "utils/memory_utils.h"
 
 typedef struct {
 	double hitLearn, momento, decaimentoDePeso;

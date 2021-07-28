@@ -5,6 +5,7 @@
 #ifndef CNN_GPU_MEMORY_UTILS_H
 #define CNN_GPU_MEMORY_UTILS_H
 
+#include "config.h"
 #include <CL/opencl.h>
 #include <stdlib.h>
 
@@ -28,7 +29,7 @@ void releaseMemWatcher();
 void printMemStatus();
 
 
-#ifdef  MEMORY_WATCHER
+#if (MEMORY_WATCHER == 1)
 #define alloc_cl_svm __alloc_cl_svm__
 #define free_cl_svm __free_cl_svm
 

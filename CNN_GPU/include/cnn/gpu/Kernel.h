@@ -5,10 +5,9 @@
 #ifndef GABKernel_H
 #define GABKernel_H
 
-//#define DISABLE_KERNELS_INSIDE_DRIVE
-
+#include "config.h"
 #include<CL/cl.h>
-#include "memory_utils.h"
+#include "utils/memory_utils.h"
 
 #define K_VOID_P sizeof(cl_mem)
 #define K_INT sizeof(cl_int)
@@ -56,10 +55,9 @@ int get_global_id(int);
 
 int set_global_id(int);
 
-#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#if  (RUN_KERNEL_USING_GPU == 1)
 #define __global
 #define __kernel
-
 typedef void (*kernel_function_type)(void *, ...);
 
 #define K_ARG
@@ -83,7 +81,7 @@ typedef void (*kernel_function_type)(void *, ...);
 #define printKernel __printKernelHost
 
 #include "float.h"
-
+#define  synchronizeKernel(queue) 0
 
 #else
 #define K_ARG &
@@ -97,7 +95,7 @@ typedef void (*kernel_function_type)(void *, ...);
         erro = __kernel_run_recursive(Kernel,  queue,  globals,  max_works,## __VA_ARGS__)
 #define releaseKernel __releaseKernel
 #define printKernel __printKernel
+#define  synchronizeKernel(queue) clFinish(queue)
+#endif  // RUN_KERNEL_USING_GPU
 
-
-#endif  // DISABLE_KERNELS_INSIDE_DRIVE
 #endif //GABKernel_H

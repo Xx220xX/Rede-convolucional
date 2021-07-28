@@ -2,7 +2,8 @@
 // Created by Henrique on 23-Jul-21.
 //
 
-#include "memory_utils.h"
+#include "config.h"
+#include "utils/memory_utils.h"
 #include "string.h"
 #include "stdio.h"
 

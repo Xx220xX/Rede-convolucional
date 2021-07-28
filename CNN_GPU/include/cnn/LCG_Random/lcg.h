@@ -6,7 +6,7 @@
 #define GAB_LCG_H
 
 #include <stdlib.h>
-#include "memory_utils.h"
+#include "utils/memory_utils.h"
 typedef
 unsigned long long int Bytes64;
 
