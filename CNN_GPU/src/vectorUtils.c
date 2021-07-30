@@ -21,7 +21,7 @@ void ppmp2(double *data, int x, int y, char *fileName) {
 	fclose(f);
 }
 
-void ppmp3(double *data, int x, int y, int z, char *fileName) {
+void ppmp3(double *data, int x, int y, int z, const char *fileName) {
 	FILE *f = fopen(fileName, "w");
 	fprintf(f, "P3\n");
 	fprintf(f, "%d %d\n", y, x);
@@ -29,7 +29,7 @@ void ppmp3(double *data, int x, int y, int z, char *fileName) {
 	for (int i = 0; i < x; i++) {
 		for (int j = 0; j < y; ++j) {
 			for (int k = 0; k < z; ++k) {
-				fprintf(f, "%d", (int) (data[k * y * x + i * y + j] * 255));
+				fprintf(f, "%d", (int) (data[k * y * x + i * y + j]));
 				if (k < z - 1)fprintf(f, " ");
 			}
 			if (j < y - 1)fprintf(f, " ");
@@ -40,95 +40,6 @@ void ppmp3(double *data, int x, int y, int z, char *fileName) {
 	fclose(f);
 }
 
-
-int normalizeImage(Cnn cnn, double *imagem, size_t bytes, FILE *f, size_t *bytesReadd) {
-	if(cnn->error.error)return cnn->error.error;
-	if (readBytes(f, (unsigned char *) imagem, bytes, bytesReadd)) {
-		cnn->error.error = -200;
-		snprintf(cnn->error.msg, EXCEPTION_MAX_MSG_SIZE, "normalizeImage, load %d of %d\n", *bytesReadd, bytes);
-		return cnn->error.error;
-	}
-
-	Tensor mInt, mDou;
-
-	mInt = new_Tensor(cnn->cl->context, cnn->queue, TENSOR_UHST | TENSOR_CHAR, bytes, 1, 1, 1, &cnn->error, imagem);
-	mDou = newTensor(cnn->cl->context, cnn->queue, bytes, 1, 1, TENSOR_NCPY, &cnn->error);
-
-
-	if (cnn->error.error) {
-		releaseTensor(&mInt);
-		releaseTensor(&mDou);
-		fprintf(stderr, "Erro on normalizeImage\n");
-		return cnn->error.error;
-	}
-	double value = 255;
-	kernel_run_recursive(cnn->error.error, cnn->kerneldivInt, cnn->queue, bytes, cnn->cl->maxworks,
-	                     K_ARG mInt->data,
-			K_ARG mDou->data,
-			K_ARG value
-	);
-	if (cnn->error.error) {
-		getClErrorWithContext(cnn->error.error, cnn->error.msg, EXCEPTION_MAX_MSG_SIZE,
-		                      "normalizeImage/cnn->kerneldivInt:");
-		releaseTensor(&mInt);
-		releaseTensor(&mDou);
-		return cnn->error.error;
-	}
-	releaseTensor(&mInt);
-	cnn->error.error = TensorGetValuesMem(cnn->queue, mDou, imagem, bytes);
-	if (cnn->error.error) {
-		getClErrorWithContext(cnn->error.error, cnn->error.msg, EXCEPTION_MAX_MSG_SIZE,
-		                      "normalizeImage/TensorgetValueMem:");
-
-	}
-	releaseTensor(&mDou);
-
-	return cnn->error.error;
-}
-
-int loadTargetData(Cnn cnn, double *target, unsigned char *labelchar, int numeroDeClasses, size_t bytes, FILE *f,
-                   size_t *bytesReadd) {
-	if(cnn->error.error)return cnn->error.error;
-	if (labelchar == NULL)labelchar = (unsigned char *) target;
-	if (readBytes(f, labelchar, bytes, bytesReadd) || !*bytesReadd){
-		cnn->error.error = -200;
-		snprintf(cnn->error.msg, EXCEPTION_MAX_MSG_SIZE, "normalizeImage, load %d of %d\n", *bytesReadd, bytes);
-		return cnn->error.error;
-	}
-	Tensor mInt, mDou;
-	mInt = new_Tensor(cnn->cl->context, cnn->queue, TENSOR_UHST | TENSOR_CHAR, bytes, 1, 1, 1, &cnn->error, labelchar);
-	mDou = newTensor(cnn->cl->context, cnn->queue, bytes, numeroDeClasses, 1, TENSOR_NCPY, &cnn->error);
-	if (cnn->error.error) {
-		fprintf(stderr, "loadTargetData: ");
-		getClErrorWithContext(cnn->error.error, cnn->error.msg, EXCEPTION_MAX_MSG_SIZE,
-		                      "loadTargetData/newTensor:");
-		releaseTensor(&mInt);
-		releaseTensor(&mDou);
-		return cnn->error.error;
-	}
-	kernel_run_recursive(cnn->error.error,cnn->kernelInt2Vector,cnn->queue,
-	                     bytes,cnn->cl->maxworks,
-	                     K_ARG mInt->data,
-			K_ARG mDou->data,
-			K_ARG numeroDeClasses
-	);
-
-	if (cnn->error.error) {
-		getClErrorWithContext(cnn->error.error, cnn->error.msg, EXCEPTION_MAX_MSG_SIZE,
-		                      "loadTargetData/cnn->kernelInt2Vector:");
-		releaseTensor(&mInt);
-		releaseTensor(&mDou);
-		return cnn->error.error;
-	}
-	releaseTensor(&mInt);
-	cnn->error.error = TensorGetValuesMem(cnn->queue, mDou, target, bytes);
-	if (cnn->error.error) {
-		getClErrorWithContext(cnn->error.error, cnn->error.msg, EXCEPTION_MAX_MSG_SIZE,
-		                      "loadTargetData/TensorgetValueMem:");
-	}
-	releaseTensor(&mDou);
-	return cnn->error.error;
-}
 
 void createDir(char *dir) {
 	printf("%s\n", dir);
@@ -156,7 +67,7 @@ void salveCnnOutAsPPM(Cnn c, const char *name) {
 }
 
 void salveTensorAsPPM(const char *name, Tensor t, Cnn c) {
-	double *dt = calloc(t->bytes, 1);
+	double *dt = alloc_mem(t->bytes, 1);
 	FILE *f = fopen(name, "w");
 	TensorGetValues(c->queue, t, dt);
 	normalizeGPU(c, dt, dt, t->bytes / sizeof(double), 255, 0);
@@ -180,16 +91,32 @@ void salveTensorAsPPM(const char *name, Tensor t, Cnn c) {
 	fclose(f);
 }
 
+int salveTensorAsPPM3(const char *name, Tensor t, Cnn c) {
+	return salveTensor4DAsPPM3(name, t, c, 0);
+
+}
+
+int salveTensor4DAsPPM3(const char *name, Tensor t, Cnn c, UINT w) {
+	if (t->z != 3)return -1;
+	double *dt = alloc_mem(t->bytes, 1);
+	TensorGetValuesOffSet(c->queue, t, dt, t->bytes * w);
+	normalizeGPU(c, dt, dt, t->bytes / sizeof(double), 255, 0);
+	ppmp3(dt, t->x, t->y, t->z, name);
+	free_mem(dt);
+	return 0;
+}
+
 int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c, UINT w) {
 	if (w >= t->w) return -2;
 
-	double *dt = calloc(t->bytes, 1);
-	c->error.error = TensorGetValues(c->queue, t, dt);
+	double *dt = alloc_mem(t->bytes, 1);
+	c->error.error = TensorGetValuesOffSet(c->queue, t, dt, t->bytes * w);
 	if (c->error.error) {
 		free_mem(dt);
 		return c->error.error;
 	}
 	normalizeGPU(c, dt, dt, t->bytes / sizeof(double), 255, 0);
+	printf("salveTensor4DAsPPM\n");
 	if (c->error.error) {
 		free_mem(dt);
 		return c->error.error;

@@ -14,8 +14,13 @@ typedef void (*ManageEvent)(void *);
 typedef struct {
 	double *erros;
 	double *acertos;
-	int n;
-	int max_size;
+	Tensor fitness_hit_rate;
+	UINT image_fitnes;
+	UINT max_size;
+	UINT image;
+	UINT epic;
+	double mean_error;
+	double hit_rate;
 } Estatistica;
 
 typedef struct {
@@ -38,6 +43,7 @@ typedef struct {
 	int epic;
 	int n_images;
 	int n_images2train;
+	int n_images2fitness;
 	int image;
 	int n_classes;
 	char *class_names;
@@ -46,8 +52,7 @@ typedef struct {
 	// estatisticas de treino
 	double sum_erro;
 	int sum_acerto;
-	double mean_error;
-	int mean_hit;
+
 	Estatistica et;
 
 	double current_time;
@@ -57,13 +62,17 @@ typedef struct {
 	ManageEvent OnfinishEpic;
 	ManageEvent OnInitTrain;
 	ManageEvent OnfinishTrain;
-	ManageEvent finishFitnes;
+	ManageEvent OnInitFitnes;
+	ManageEvent OnfinishFitnes;
 
 	// controle do processo
 	atomic_int can_run;
 
 	// id para thread
 	pid_t process;
+	// controle de memoria
+	char self_release;
+	char releaseStrings;
 } ManageTrain;
 
 void loadImages(ManageTrain *t);
@@ -71,5 +80,7 @@ void loadImages(ManageTrain *t);
 void train(ManageTrain *t);
 
 void fitnes(ManageTrain *t);
+
+void releaseManageTrain(ManageTrain *t);
 
 #endif //CNN_GPU_MANAGETRAIN_H

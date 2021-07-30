@@ -7,7 +7,7 @@
 
 // precisa recompilar para efetivar mudança :
 #define MEMORY_WATCHER  1
-#define RUN_KERNEL_USING_GPU  0
+#define RUN_KERNEL_USING_GPU  1
 
 #define EXCEPTION_MAX_MSG_SIZE 500
 

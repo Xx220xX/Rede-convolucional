@@ -9,7 +9,7 @@
 #include"../tensor/Tensor.h"
 #include <stdlib.h>
 
-#define UINT unsigned int
+typedef unsigned int UINT;
 typedef struct {
 	Typecamada super;
 	Kernel kernelSoftMaxAtiva1;

@@ -5,9 +5,10 @@
 #ifndef CNN_GPU_CAMADA_H
 #define CNN_GPU_CAMADA_H
 
+#include "config.h"
 #include"tensor/Tensor.h"
 #include "utils/memory_utils.h"
-
+#include "cnn_errors_list.h"
 typedef struct {
 	double hitLearn, momento, decaimentoDePeso;
 } Params;

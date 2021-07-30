@@ -18,26 +18,16 @@ void loadLabels(ManageTrain *t);
 void loadImages(ManageTrain *t) {
 	if (!t->cnn || t->cnn->error.error)return;
 	Tensor entrada = t->cnn->camadas[0]->entrada;
-	t->imagens = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-	                        TENSOR_HOST | TENSOR_SMEM | TENSOR4D,
-	                        entrada->x, entrada->y, entrada->z, t->n_images,
-	                        &t->cnn->error, NULL);
-	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-	                       TENSOR_HOST | TENSOR_SMEM | TENSOR_CHAR,
-	                       t->n_images, 1, 1, 1,
-	                       &t->cnn->error, NULL);
-	t->targets = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-	                        TENSOR_HOST | TENSOR_SMEM,
-	                        t->n_images, t->n_classes, 1, 1,
-	                        &t->cnn->error, NULL);
+	t->imagens = new_Tensor(t->cnn->cl->context, t->cnn->queue,TENSOR_HOST | TENSOR_SMEM | TENSOR4D,entrada->x, entrada->y, entrada->z, t->n_images,&t->cnn->error, NULL);
+	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue,TENSOR_HOST | TENSOR_SMEM | TENSOR_CHAR,t->n_images, 1, 1, 1,&t->cnn->error, NULL);
+	t->targets = new_Tensor(t->cnn->cl->context, t->cnn->queue,TENSOR_HOST | TENSOR_SMEM,t->n_images, t->n_classes, 1, 1,&t->cnn->error, NULL);
 	loadImage(t);
 	loadLabels(t);
 	EVENT(t->OnloadedImages, t);
 }
 
 void train(ManageTrain *t) {
-	EVENT(t->OnInitTrain,t);
-
+	EVENT(t->OnInitTrain, t);
 	double time_init_train;
 	double internal_time = t->current_time;
 	double *input;
@@ -53,7 +43,7 @@ void train(ManageTrain *t) {
 	for (; t->can_run && !t->cnn->error.error && t->epic < t->n_epics; t->epic++) {
 		if (t->image >= t->n_images) {
 			t->image = 0;
-			t->et.n = 0;
+			t->et.image = 0;
 			t->et.max_size = t->n_images;
 		}
 		for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2train; t->image++) {
@@ -72,13 +62,50 @@ void train(ManageTrain *t) {
 			t->sum_erro += t->cnn->normaErro;
 			t->et.acertos[t->image] = t->sum_acerto / (t->image + 1.0);
 			t->et.erros[t->image] = t->sum_erro / (t->image + 1.0);
-			t->et.n = t->image;
+			t->et.image = t->image;
 			internal_time += getms() - time_init_train;
 			t->current_time = internal_time;
 		}
 		EVENT(t->OnfinishEpic, t);
 	}
 	EVENT(t->OnfinishTrain, t);
+}
+
+#define HIT_RATE 0
+#define MSE 1
+#define CASOS 2
+
+void fitnes(ManageTrain *t) {
+	EVENT(t->OnInitFitnes, t);
+	double *input;
+	double *output;
+	char label;
+	char cnnLabel;
+	int img_atual;
+	double *hit_rate;
+	if (!t->et.fitness_hit_rate) {
+		t->et.fitness_hit_rate = new_Tensor(t->cnn->cl->context,
+		                                    t->cnn->queue,
+		                                    TENSOR_HOST, t->n_classes, 3, 1, 1,
+		                                    &t->cnn->error, NULL);
+	}
+	hit_rate = t->et.fitness_hit_rate->host;
+	for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2fitness; t->image++) {
+		img_atual = t->image + t->n_images2train;
+		input = t->imagens->host + (t->imagens->bytes * img_atual);
+		output = t->targets->host + (t->targets->bytes * img_atual);
+		label = ((char *) t->labels->host)[img_atual];
+		CnnCall(t->cnn, input);
+		cnnLabel = CnnGetIndexMax(t->cnn);
+		hit_rate[Tensor_Map(t->et.fitness_hit_rate, label, CASOS, 0)]++;
+		if (cnnLabel == label) {
+			hit_rate[Tensor_Map(t->et.fitness_hit_rate, label, HIT_RATE, 0)]++;
+		}
+		CnnCalculeErrorWithOutput(t->cnn, output);
+		hit_rate[Tensor_Map(t->et.fitness_hit_rate, label, MSE, 0)] += t->cnn->normaErro;
+		t->et.image_fitnes = t->image;
+	}
+	EVENT(t->OnInitFitnes, t);
 }
 
 void loadImage(ManageTrain *t) {
@@ -93,36 +120,31 @@ void loadImage(ManageTrain *t) {
 		return;
 	}
 	// bytes de cabeçalho
-	fread(t->imagens, 1, t->headers_images, fimage);
+	fread(t->imagens->host, 1, t->headers_images, fimage);
 	// le as imagens;
-	fread(t->imagens, pixelsByImage, t->n_images, fimage);
+	fread(t->imagens->host, pixelsByImage, t->n_images, fimage);
 	fclose(fimage);
 
-	Tensor imageInt = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-	                             TENSOR_CHAR | TENSOR4D,
+	Tensor imageInt = new_Tensor(t->cnn->cl->context, t->cnn->queue,TENSOR_CHAR | TENSOR4D|TENSOR_UPTR ,
 	                             t->imagens->x, t->imagens->y, t->imagens->z, t->imagens->w,
-	                             &t->cnn->error, NULL
+	                             &t->cnn->error, t->imagens->host
 	);
+
 	if (t->cnn->error.error) {
 		ERROR("Falha ao criar tensores imageInt: ");
 		return;
 	}
 	Tensor imageDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-	                                TENSOR_UPTR | TENSOR4D,
+	                                 TENSOR4D,
 	                                t->imagens->x, t->imagens->y, t->imagens->z, t->imagens->w,
-	                                &t->cnn->error, t->imagens->host);
+	                                &t->cnn->error, NULL);
 
 	if (t->cnn->error.error) {
 		ERROR("Falha ao criar tensores imageDouble: ");
 		return;
 	}
-	t->cnn->error.error = TensorPutValuesMem(t->cnn->queue, imageInt, t->imagens->host, imageInt->bytes * imageInt->w);
-	if (t->cnn->error.error) {
-		ERROR("Falha ao recuperar dados do tensor: ");
-		releaseTensor(&imageInt);
-		releaseTensor(&imageDouble);
-		return;
-	}
+
+
 	double value = 255;
 	kernel_run_recursive(t->cnn->error.error, t->cnn->kerneldivInt, t->cnn->queue, pixelsByImage * t->n_images,
 	                     t->cnn->cl->maxworks,
@@ -131,21 +153,18 @@ void loadImage(ManageTrain *t) {
 	                     K_ARG value
 	);
 	if (t->cnn->error.error) {
-		ERROR("Falha ao iniciar kernel: ");
-		releaseTensor(&imageInt);
-		return;
-	}
-
-	t->cnn->error.error = synchronizeKernel(t->cnn->queue);
-	if (t->cnn->error.error) {
-		ERROR("Falha enquanto roda o kernel: ");
+		ERROR("Falha ao iniciar Kernel: ");
 		releaseTensor(&imageInt);
 		releaseTensor(&imageDouble);
 		return;
 	}
 	releaseTensor(&imageInt);
-	releaseTensor(&imageDouble);
+	t->cnn->error.error = TensorGetValuesMem(t->cnn->queue,imageDouble,t->imagens->host,t->imagens->bytes*t->imagens->w);
 
+	releaseTensor(&imageDouble);
+	if (t->cnn->error.error) {
+		ERROR("Falha enquanto roda o kernel: ");
+	}
 }
 
 void loadLabels(ManageTrain *t) {
@@ -157,9 +176,9 @@ void loadLabels(ManageTrain *t) {
 		return;
 	}
 	// bytes de cabeçalho
-	fread(t->labels, 1, t->headers_labels, flabel);
+	fread(t->labels->host, 1, t->headers_labels, flabel);
 	// le as imagens;
-	fread(t->imagens, 1, t->n_images, flabel);
+	fread(t->labels->host, 1, t->n_images, flabel);
 	fclose(flabel);
 
 	Tensor labelInt = new_Tensor(t->cnn->cl->context, t->cnn->queue,
@@ -171,9 +190,9 @@ void loadLabels(ManageTrain *t) {
 		return;
 	}
 	Tensor labelDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-	                                TENSOR_UPTR,
+	                                0,
 	                                t->targets->x, t->targets->y, 1, 1,
-	                                &t->cnn->error, t->targets->host);
+	                                &t->cnn->error,NULL);
 
 	if (t->cnn->error.error) {
 		ERROR("Falha ao criar tensores imageDouble: ");
@@ -193,13 +212,28 @@ void loadLabels(ManageTrain *t) {
 		return;
 	}
 
-	t->cnn->error.error = synchronizeKernel(t->cnn->queue);
+	t->cnn->error.error = TensorGetValuesMem(t->cnn->queue,labelDouble,t->targets->host,t->targets->bytes);
+	releaseTensor(&labelInt);
 	if (t->cnn->error.error) {
 		ERROR("Falha enquanto roda o kernel: ");
-		releaseTensor(&labelInt);
-		releaseTensor(&labelDouble);
-		return;
 	}
-	releaseTensor(&labelInt);
 	releaseTensor(&labelDouble);
+}
+
+void releaseManageTrain(ManageTrain *t) {
+	t->can_run = 0;
+	pthread_join(t->process, NULL);
+	releaseCnn(&t->cnn);
+	releaseTensor(&t->imagens);
+	releaseTensor(&t->targets);
+	releaseTensor(&t->labels);
+	releaseTensor(&t->et.fitness_hit_rate);
+	if (t->releaseStrings) {
+		if (t->file_labels)free_mem(t->file_labels);
+		if (t->file_images)free_mem(t->file_images);
+		if (t->class_names)free_mem(t->class_names);
+	}
+	if (t->et.acertos)free_mem(t->et.acertos);
+	if (t->et.erros)free_mem(t->et.erros);
+	if (t->self_release)free_mem(t);
 }

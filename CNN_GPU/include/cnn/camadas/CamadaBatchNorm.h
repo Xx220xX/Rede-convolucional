@@ -9,7 +9,7 @@
 #include"../tensor/Tensor.h"
 #include <stdlib.h>
 
-#define UINT unsigned int
+typedef unsigned int UINT;
 #define ULL unsigned long long int
 typedef struct {
 	Typecamada super;

@@ -33,11 +33,11 @@ set(camadasCNN include/cnn/camadas/Camada.h src/camadas/Camada.c
         include/cnn/camadas/CamadaSoftMax.h src/camadas/CamadaSoftMax.c
         include/cnn/camadas/funcoesDeAtivacao.h
         )
-set(cnn include/cnn/cnn.h src/cnn.c
+set(cnn include/cnn/cnn.h src/cnn.c src/CnnLua.h
         include/cnn/cnn_errors_list.h
         include/cnn/utils/memory_utils.h src/memory_utils.c
         include/cnn/utils/vectorUtils.h src/vectorUtils.c
-        include/cnn/utils/manageTrain.h src/manageTrain.c include/cnn/utils/time_utils.c include/cnn/utils/time_utils.h)
+        include/cnn/utils/manageTrain.h src/manageTrain.c src/time_utils.c include/cnn/utils/time_utils.h)
 
 set(tensor include/cnn/tensor/Tensor.h src/tensor/Tensor.c)
 

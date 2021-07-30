@@ -25,6 +25,11 @@
  */
 #define Tensor_Map(T, xx, yy, zz) (zz)*((T)->y*(T)->x)+(xx)*(T)->y+(yy)
 
+// TYPE_VALUE    TYPEMEMORY     HOST/DRIVE      3d/4d
+// 000           000            0               0
+// 001           000            0               0
+// 010           000            0               0
+
 /// USE DRIVE. Alloca recursos no drive (default).
 #define TENSOR_DRIV 0b00000
 /// USE host.  Os recursos serão alocados apenas no host
@@ -49,15 +54,14 @@
 /// Tensor tipo double (default).
 #define TENSOR_DOUBLE 0x0
 /// Tensor tipo char.
-#define TENSOR_CHAR 0x10
+#define TENSOR_CHAR 0b00100000
 /// Tensor tipo int.
-#define TENSOR_INT 0x20
+#define TENSOR_INT 0b01000000
 
-#define TENSOR_MASK_DIM         0x00001
-#define TENSOR_MASK_MEM         0b11100
-#define TENSOR_MASK_DRIVEORHOST 0b00010
-
-#define TENSOR_MASK_TYPE 0x30
+#define TENSOR_MASK_DIM         0x00000001
+#define TENSOR_MASK_MEM         0b00011100
+#define TENSOR_MASK_DRIVEORHOST 0b00000010
+#define TENSOR_MASK_TYPE        0b01100000
 
 typedef unsigned int UINT;
 typedef unsigned int flag_t;
@@ -99,11 +103,12 @@ typedef struct typetensor {
 	cl_context context;
 
 } *Tensor;
-#define newTensor(context,queue,x,y,z,flag,error)new_Tensor(context,queue,flag,x,y,z,1,error,NULL)
-#define newTensorChar(context,queue,x,y,z,flag,error)new_Tensor(context,queue,flag|TENSOR_CHAR,x,y,z,1,error,NULL)
-#define newTensor4D(context,queue,x,y,z,w,flag,error)new_Tensor(context,queue,flag|TENSOR4D,x,y,z,w,error,NULL)
+#define newTensor(context, queue, x, y, z, flag, error)new_Tensor(context,queue,flag,x,y,z,1,error,NULL)
+#define newTensorChar(context, queue, x, y, z, flag, error)new_Tensor(context,queue,flag|TENSOR_CHAR,x,y,z,1,error,NULL)
+#define newTensor4D(context, queue, x, y, z, w, flag, error)new_Tensor(context,queue,flag|TENSOR4D,x,y,z,w,error,NULL)
 
-Tensor new_Tensor(cl_context context, QUEUE queue, char tensor_flag, UINT x, UINT y, UINT z, UINT w, Exception *error, void *p);
+Tensor new_Tensor(cl_context context, QUEUE queue, char tensor_flag, UINT x, UINT y, UINT z, UINT w, Exception *error,
+                  void *p);
 
 void printTensor(QUEUE q, Tensor t, FILE *f);
 
@@ -133,8 +138,9 @@ int TensorPutValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, si
 
 int TensorGetNorm(QUEUE queue, Tensor t, double *norm);
 
-void releaseTensor(Tensor *t);
+int TensorAt(Tensor t, UINT x, UINT y, UINT z, UINT w, UINT *index);
 
+void releaseTensor(Tensor *t);
 
 
 int dividirVetor(double *v, Tensor m, size_t len, double value, Kernel funcNorm, size_t max_works,

@@ -55,7 +55,7 @@ int get_global_id(int);
 
 int set_global_id(int);
 
-#if  (RUN_KERNEL_USING_GPU == 1)
+#if  (RUN_KERNEL_USING_GPU != 1)
 #define __global
 #define __kernel
 typedef void (*kernel_function_type)(void *, ...);
