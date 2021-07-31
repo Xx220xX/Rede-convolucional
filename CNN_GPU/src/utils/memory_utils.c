@@ -130,6 +130,10 @@ char *printBytes(size_t bytes, char *buff) {
 #undef main
 int main(int arg, char ** args) {
 	printf("Running\n");
+	printf("%d args\n",arg);
+	for(int i=0;i<arg;i++){
+		printf("'%s'\n",args[i]);
+	}
 	int erro = __main__(arg,args);
 	printMemStatus();
 	releaseMemWatcher();

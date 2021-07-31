@@ -5,6 +5,7 @@
 #include "utils/manageTrain.h"
 #include "utils/vectorUtils.h"
 #include"utils/time_utils.h"
+#include"utils/dir.h"
 
 #define ERROR(format, ...)    getClErrorWithContext(t->cnn->error.error, \
 t->cnn->error.msg,EXCEPTION_MAX_MSG_SIZE,format, ## __VA_ARGS__)
@@ -15,15 +16,24 @@ void loadImage(ManageTrain *t);
 
 void loadLabels(ManageTrain *t);
 
+void releaseStringsManageTrain(ManageTrain *t);
+
+
 void loadImages(ManageTrain *t) {
 	if (!t->cnn || t->cnn->error.error)return;
+	if (t->cnn->size == 0)return;
 	Tensor entrada = t->cnn->camadas[0]->entrada;
-	t->imagens = new_Tensor(t->cnn->cl->context, t->cnn->queue,TENSOR_HOST | TENSOR_SMEM | TENSOR4D,entrada->x, entrada->y, entrada->z, t->n_images,&t->cnn->error, NULL);
-	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue,TENSOR_HOST | TENSOR_SMEM | TENSOR_CHAR,t->n_images, 1, 1, 1,&t->cnn->error, NULL);
-	t->targets = new_Tensor(t->cnn->cl->context, t->cnn->queue,TENSOR_HOST | TENSOR_SMEM,t->n_images, t->n_classes, 1, 1,&t->cnn->error, NULL);
+	t->imagens = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST | TENSOR_SMEM | TENSOR4D, entrada->x,
+	                        entrada->y, entrada->z, t->n_images, &t->cnn->error, NULL);
+	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST | TENSOR_SMEM | TENSOR_CHAR, t->n_images, 1,
+	                       1, 1, &t->cnn->error, NULL);
+	t->targets = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST | TENSOR_SMEM, t->n_images, t->n_classes, 1,
+	                        1, &t->cnn->error, NULL);
 	loadImage(t);
 	loadLabels(t);
+
 	EVENT(t->OnloadedImages, t);
+
 }
 
 void train(ManageTrain *t) {
@@ -125,7 +135,7 @@ void loadImage(ManageTrain *t) {
 	fread(t->imagens->host, pixelsByImage, t->n_images, fimage);
 	fclose(fimage);
 
-	Tensor imageInt = new_Tensor(t->cnn->cl->context, t->cnn->queue,TENSOR_CHAR | TENSOR4D|TENSOR_UPTR ,
+	Tensor imageInt = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_CHAR | TENSOR4D | TENSOR_UPTR,
 	                             t->imagens->x, t->imagens->y, t->imagens->z, t->imagens->w,
 	                             &t->cnn->error, t->imagens->host
 	);
@@ -135,7 +145,7 @@ void loadImage(ManageTrain *t) {
 		return;
 	}
 	Tensor imageDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-	                                 TENSOR4D,
+	                                TENSOR4D,
 	                                t->imagens->x, t->imagens->y, t->imagens->z, t->imagens->w,
 	                                &t->cnn->error, NULL);
 
@@ -159,7 +169,8 @@ void loadImage(ManageTrain *t) {
 		return;
 	}
 	releaseTensor(&imageInt);
-	t->cnn->error.error = TensorGetValuesMem(t->cnn->queue,imageDouble,t->imagens->host,t->imagens->bytes*t->imagens->w);
+	t->cnn->error.error = TensorGetValuesMem(t->cnn->queue, imageDouble, t->imagens->host,
+	                                         t->imagens->bytes * t->imagens->w);
 
 	releaseTensor(&imageDouble);
 	if (t->cnn->error.error) {
@@ -192,7 +203,7 @@ void loadLabels(ManageTrain *t) {
 	Tensor labelDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue,
 	                                0,
 	                                t->targets->x, t->targets->y, 1, 1,
-	                                &t->cnn->error,NULL);
+	                                &t->cnn->error, NULL);
 
 	if (t->cnn->error.error) {
 		ERROR("Falha ao criar tensores imageDouble: ");
@@ -212,7 +223,7 @@ void loadLabels(ManageTrain *t) {
 		return;
 	}
 
-	t->cnn->error.error = TensorGetValuesMem(t->cnn->queue,labelDouble,t->targets->host,t->targets->bytes);
+	t->cnn->error.error = TensorGetValuesMem(t->cnn->queue, labelDouble, t->targets->host, t->targets->bytes);
 	releaseTensor(&labelInt);
 	if (t->cnn->error.error) {
 		ERROR("Falha enquanto roda o kernel: ");
@@ -228,12 +239,25 @@ void releaseManageTrain(ManageTrain *t) {
 	releaseTensor(&t->targets);
 	releaseTensor(&t->labels);
 	releaseTensor(&t->et.fitness_hit_rate);
+	releaseStringsManageTrain(t);
+	if (t->et.acertos)free_mem(t->et.acertos);
+	if (t->et.erros)free_mem(t->et.erros);
+	if (t->self_release)free_mem(t);
+}
+
+void releaseStringsManageTrain(ManageTrain *t) {
 	if (t->releaseStrings) {
 		if (t->file_labels)free_mem(t->file_labels);
 		if (t->file_images)free_mem(t->file_images);
 		if (t->class_names)free_mem(t->class_names);
+		if (t->homePath)free_mem(t->class_names);
 	}
-	if (t->et.acertos)free_mem(t->et.acertos);
-	if (t->et.erros)free_mem(t->et.erros);
-	if (t->self_release)free_mem(t);
+}
+
+void manage2WorkDir(ManageTrain *t) {
+	if (!t->cnn || t->cnn->error.error)return;
+	if (SetDir(t->homePath)) {
+		t->cnn->error.error = FAILED_SET_DIR;
+		return;
+	};
 }

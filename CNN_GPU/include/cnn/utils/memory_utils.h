@@ -28,6 +28,8 @@ void releaseMemWatcher();
 
 void printMemStatus();
 
+#define check_free_mem(x)if(x)free_mem(x);(x)=NULL
+#define check_free_cl_svm(x)if(x)free_cl_svm(x)(x)=NULL
 
 #if (MEMORY_WATCHER == 1)
 #define alloc_cl_svm __alloc_cl_svm__
@@ -36,6 +38,7 @@ void printMemStatus();
 #define alloc_mem __alloc_mem_
 #define free_mem __free_mem_
 #define realloc_mem __realloc_mem_
+
 
 int __main__(int arg, char **args);
 

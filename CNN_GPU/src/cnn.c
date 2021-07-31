@@ -1,7 +1,7 @@
 //
 // Created by Henrique on 29-May-21.
 //
-#include "../include/cnn/cnn.h"
+#include "cnn.h"
 #include "CnnLua.h"
 
 #if  (RUN_KERNEL_USING_GPU != 1)
@@ -102,6 +102,7 @@ void releaseCnn(Cnn *pc) {
 	if (c->L) {
 		c->releaseL(c->L);
 	}
+	releaseList_args(&c->luaArgs);
 	free_mem(c);
 	*pc = NULL;
 }
@@ -653,12 +654,12 @@ void printCnn(Cnn c) {
 	}
 }
 
-void CnnLoadLua(Cnn c) {
+void CnnInitLuaVm(Cnn c) {
 	lua_State *L = luaL_newstate();
 	luaL_openlibs(L);
 	loadCnnLuaLibrary(L);
 	lua_pushlightuserdata(L, c);
-	lua_setglobal(L, "__CNN_ADRESS__");
+	lua_setglobal(L, LCNN);
 	c->L = L;
 	c->releaseL = (fv) lua_close;
 

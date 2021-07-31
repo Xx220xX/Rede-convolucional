@@ -14,6 +14,8 @@
 #include "camadas/CamadaSoftMax.h"
 #include "camadas/CamadaBatchNorm.h"
 
+#include "utils/list_args.h"
+
 ///Armazena os dados de uma rede neural convolucional
 typedef struct Cnn {
 	Params parametros;
@@ -33,9 +35,9 @@ typedef struct Cnn {
 	Kernel kernelcreateIMG;
 	double normaErro;
 	void *L;
+	List_args luaArgs;
 	fv releaseL;
 	Exception error;
-
 } *Cnn, TypeCnn;
 
 ///Cria uma Cnn
@@ -90,9 +92,13 @@ int CnnCall(Cnn c, double *input);
 
 int CnnLearn(Cnn c, double *target);
 
-void CnnLoadLua(Cnn c);
+void CnnInitLuaVm(Cnn c);
 
 int CnnLuaConsole(Cnn c);
+
+void LuaputHelpFunctionArgs(void (*myf)());
+
+int CnnLuaLoadFile(Cnn c, const char *file_name);
 
 void cnnSave(Cnn c, FILE *dst);
 

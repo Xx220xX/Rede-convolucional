@@ -9,7 +9,8 @@
 #include "lua/lua.h"
 #include "lua/lualib.h"
 #include "lua/lauxlib.h"
-
+#include "windows.h"
+#include "conio.h"
 #include<time.h>
 
 #define LCNN "Cnn"
@@ -29,8 +30,50 @@ lua_setglobal(state,name)
 
 #define L_POOLINGAV_NAME "PoolingAv"
 
+#define GETLUAVALUE(to, L, key, type, isnil) lua_getglobal(L,key);if(lua_isnoneornil(L,-1)){lua_pop(L,1);isnil}else{to =  luaL_check##type(L,-1);lua_pop(L,1);}
+
+#define GETLUASTRING(to, aux, len, L, key, isnil) lua_getglobal(L,key);if(lua_isnoneornil(L,-1)){lua_pop(L,1);isnil}else{ \
+aux = (char *) lua_tostring(L,-1);snprintf(to,len,"%s",aux);lua_pop(L,1);}
+
+typedef struct Luac_function {
+	void *f;
+	const char *name;
+} Luac_function;
+typedef struct Luac_contantes {
+	UINT v;
+	const char *name;
+} Luac_contantes;
+char global_close = 0;
+
+void (*globalFunctionHelpArgs)(void) =NULL;
+
+typedef struct {
+	char *str;
+	UINT len;
+	UINT n;
+} Comando;
+
+#define INDICADOR ">> "
+#define CONTINUA ".. "
+
+
 static int l_createCnn(lua_State *L) {
-	luaL_error(L, "Invalid function\n");
+	int nArgs = lua_gettop(L);
+	if (nArgs != 3) {
+		luaL_error(L, "Expected x:int, y:int, z:int");
+		return 0;
+	}
+	lua_getglobal(L, LCNN);
+	Cnn c = lua_touserdata(L, -1);
+	size_t x, y, z;
+	x = luaL_checkinteger(L, 1);
+	y = luaL_checkinteger(L, 2);
+	z = luaL_checkinteger(L, 3);
+	c->sizeIn = (Ponto) {x, y, z};
+	if (c->size != 0) {
+		luaL_error(L, "O tamanho da rede não pode ser alterado");
+		return 0;
+	}
 	return 0;
 }
 
@@ -240,7 +283,7 @@ static int l_poolingav(lua_State *L) {
 			              " %s(stepx,stepy,filterSizex,filterSizey)\n"
 			              " %s(stepx,stepy,filterSizex,filterSizey,memory_flag)\n", L_POOLINGAV_NAME, L_POOLINGAV_NAME,
 			           L_POOLINGAV_NAME, L_POOLINGAV_NAME);
-			return 2;
+			return 0;
 	}
 	PoolingAv(c, flag, px, py, fx, fy);
 	if (c->error.error) {
@@ -256,9 +299,20 @@ static int l_relu(lua_State *L) {
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
 	char usehost = 0;
-	if (!lua_isnoneornil(L, 1)) {
-		usehost = luaL_checkinteger(L, 1);
+	int arg = 1;
+	switch (nArgs) {
+		case 0:
+			break;
+		case 1:
+			usehost = luaL_checkinteger(L, arg++);
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n"
+			              " %s()\n"
+			              " %s(memory_flag)\n", "Relu", "Relu");
+			return 0;
 	}
+
 	int erro = Relu(c, usehost);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
@@ -278,7 +332,19 @@ static int l_padding(lua_State *L) {
 	UINT left = luaL_checkinteger(L, 3);
 	UINT right = luaL_checkinteger(L, 4);
 	char usehost = 0;
-	if (!lua_isnoneornil(L, 5)) {
+	switch (nArgs) {
+		case 4:
+			break;
+		case 5:
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n"
+			              " %s(pad_top,pad_bottom,pad_left,pad_right)\n"
+			              " %s(pad_top,pad_bottom,pad_left,pad_right,memory_flag)\n",
+			           "Padding", "Padding");
+			return 0;
+	}
+	if (nArgs == 5) {
 		usehost = luaL_checkinteger(L, 5);
 	}
 	Padding(c, usehost, top, bottom, left, right);
@@ -294,15 +360,27 @@ static int l_dropout(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-
 	double ativa = luaL_checknumber(L, 1);
 	long long int seed = time(NULL);
-	if (!lua_isnoneornil(L, 2))
-		seed = luaL_checkinteger(L, 2);
 	char usehost = 0;
-	if (!lua_isnoneornil(L, 3)) {
-		usehost = luaL_checkinteger(L, 3);
+	switch (nArgs) {
+		case 1:
+			break;
+		case 2:
+			seed = luaL_checkinteger(L, 2);
+			break;
+		case 3:
+			seed = luaL_checkinteger(L, 2);
+			usehost = luaL_checkinteger(L, 3);
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n"
+			              " %s(prob_saida)\n"
+			              " %s(prob_saida,seed)\n"
+			              " %s(prob_saida,seed)memory_flag)\n", "Dropout", "Dropout", "Dropout");
+			return 0;
 	}
+
 	Dropout(c, usehost, ativa, seed);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
@@ -416,6 +494,61 @@ static int l_callCnn(lua_State *L) {
 	RETURN_LUA_STATUS_FUNCTION();
 }
 
+static int l_putlua_arg(lua_State *L) {
+	int nArgs = lua_gettop(L);
+	if (nArgs != 2) {
+		luaL_error(L, "Expected name:str,value:str\n");
+		return 0;
+	}
+	lua_getglobal(L, LCNN);
+	Cnn c = lua_touserdata(L, -1);
+
+	List_argspushValue(&c->luaArgs, lua_tostring(L, 1), lua_tostring(L, 2));
+	RETURN_LUA_STATUS_FUNCTION();
+}
+
+static int l_CamadasetParam(lua_State *L) {
+	int nArgs = lua_gettop(L);
+	if (nArgs != 4) {
+		luaL_error(L, "Expected camada:int,hitlearn:float,momento:float,decaimentoPeso:float\n");
+		return 0;
+	}
+	lua_getglobal(L, LCNN);
+	Cnn c = lua_touserdata(L, -1);
+	double ht, mm, dc;
+	int cm = lua_tointeger(L, 1) - 1;
+	if (cm < 0 || cm >= c->size) {
+		luaL_error(L, "Violação de memória, acesso a posição %d  de %d.\nA posição válida é 1<= i <= %d\n", cm + 1,
+		           c->size, c->size);
+		return 0;
+	}
+	ht = lua_tonumber(L, 2);
+	mm = lua_tonumber(L, 3);
+	dc = lua_tonumber(L, 4);
+	c->camadas[cm]->setParams(c->camadas[cm], ht, mm, dc);
+	RETURN_LUA_STATUS_FUNCTION();
+}
+
+static int l_CamadasetLearnable(lua_State *L) {
+	int nArgs = lua_gettop(L);
+	if (nArgs != 2) {
+		luaL_error(L, "Expected camada:int,learnable:boolean\n");
+		return 0;
+	}
+	lua_getglobal(L, LCNN);
+	Cnn c = lua_touserdata(L, -1);
+	int learn;
+	int cm = lua_tointeger(L, 1) - 1;
+	if (cm < 0 || cm >= c->size) {
+		luaL_error(L, "Violação de memória, acesso a posição %d  de %d.\nA posição válida é 1<= i <= %d\n", cm + 1,
+		           c->size, c->size);
+		return 0;
+	}
+	learn = lua_tointeger(L, 2);
+	c->camadas[cm]->setLearn(c->camadas[cm], learn);
+	RETURN_LUA_STATUS_FUNCTION();
+}
+
 static int l_learnCnn(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
@@ -433,45 +566,56 @@ static int l_learnCnn(lua_State *L) {
 
 static int l_helpCnn(lua_State *L);
 
-struct luac_function {
-	void *f;
-	const char *name;
-};
-char global_close = 0;
 
 static int l_closeConsole(lua_State *L) {
 	global_close = 1;
 	return 0;
 }
 
-struct luac_function globalFunctions[] = {
-		{l_createCnn,    "Entrada"},
-		{l_removeLayer,  "RemoveLastLayer"},
-		{l_printCnn,     "PrintCnn"},
-		{l_callCnn,      "Call"},
-		{l_learnCnn,     "Learn"},
-		{l_helpCnn,      "helpCnn"},
+Luac_function globalFunctions[] = {
+		{l_createCnn,          "Entrada"},
+		{l_CamadasetLearnable, "SetLearnable"},
+		{l_CamadasetParam,     "SetParams"},
+		{l_removeLayer,        "RemoveLastLayer"},
+		{l_printCnn,           "PrintCnn"},
+		{l_putlua_arg,         "Args"},
+		{l_callCnn,            "Call"},
+		{l_learnCnn,           "Learn"},
+		{l_helpCnn,            "helpCnn"},
 		{l_convolution,            L_CONVOLUTION_NAME},
 		{l_convolution_non_causal, L_CONVOLUTIONNC_NAME},
 		{l_pooling,                L_POOLING_NAME},
 		{l_poolingav,              L_POOLINGAV_NAME},
-		{l_relu,         "Relu"},
-		{l_padding,      "Padding"},
-		{l_dropout,      "Dropout"},
-		{l_fullConnect,  "FullConnect"},
-		{l_batchnorm,    "BatchNorm"},
-		{l_softmax,      "SoftMax"},
-		{l_loadCnn,      "CarregarRede"},
-		{l_closeConsole, "closeConsole"},
-		{NULL,           ""}
+		{l_relu,               "Relu"},
+		{l_padding,            "Padding"},
+		{l_dropout,            "Dropout"},
+		{l_fullConnect,        "FullConnect"},
+		{l_batchnorm,          "BatchNorm"},
+		{l_softmax,            "SoftMax"},
+		{l_loadCnn,            "CarregarRede"},
+		{l_closeConsole,       "closeConsole"},
+		{NULL,                 ""}
+};
+Luac_contantes globalConstantes[] = {
+		{FSIGMOID,    "SIGMOID"},
+		{FTANH,       "TANH"},
+		{FRELU,       "RELU"},
+		{TENSOR_NCPY, "NO_CPY"},
+		{TENSOR_SMEM, "SHARED_MEM"},
+		{0, NULL}
 };
 
 static int l_helpCnn(lua_State *L) {
-	printf("Funções:\n");
+	printf("Functions:\n");
 	for (int i = 0; globalFunctions[i].f; i++) {
 		printf("%s\n", globalFunctions[i].name);
 	}
-//	printf("Constantes:\n");
+	printf("Constantes:\n");
+	for (int i = 0; globalConstantes[i].v; i++) {
+		printf("%s\n", globalConstantes[i].name);
+	}
+	if (globalFunctionHelpArgs)
+		globalFunctionHelpArgs();
 	return 0;
 }
 
@@ -479,38 +623,19 @@ void loadCnnLuaLibrary(lua_State *L) {
 	for (int i = 0; globalFunctions[i].f; i++) {
 		REGISTERC_L(L, globalFunctions[i].f, globalFunctions[i].name);
 	}
-
-	lua_pushinteger(L, FSIGMOID);
-	lua_setglobal(L, "SIGMOID");
-	lua_pushinteger(L, FTANH);
-	lua_setglobal(L, "TANH");
-	lua_pushinteger(L, FRELU);
-	lua_setglobal(L, "RELU");
-
-
-	lua_pushinteger(L, TENSOR_NCPY);
-	lua_setglobal(L, "NO_CPY");
-	lua_pushinteger(L, TENSOR_SMEM);
-	lua_setglobal(L, "SHARED_MEM");
-
-
+	for (int i = 0; globalConstantes[i].v; i++) {
+		lua_pushinteger(L, globalConstantes[i].v);
+		lua_setglobal(L, globalConstantes[i].name);
+	}
 }
 
-
-typedef struct {
-	char *str;
-	UINT len;
-	UINT n;
-} Comando;
-#define INDICADOR ">> "
-#define CONTINUA ".. "
-
-#include "windows.h"
-#include "conio.h"
+void LuaputHelpFunctionArgs(void (*myf)()) {
+	globalFunctionHelpArgs = myf;
+}
 
 int CnnLuaConsole(Cnn c) {
 	if (!c)return NULL_PARAM;
-	if (!c->L)CnnLoadLua(c);
+	if (!c->L)CnnInitLuaVm(c);
 	Comando cmd = {0};
 	int ch = 0;
 	global_close = 0;
@@ -557,9 +682,15 @@ int CnnLuaConsole(Cnn c) {
 	free_mem(cmd.str);
 }
 
-#define GETLUAVALUE(to, L, key, type, isnil) lua_getglobal(L,key);if(lua_isnoneornil(L,-1)){lua_pop(L,1);isnil}else{to =  luaL_check##type(L,-1);lua_pop(L,1);}
-
-#define GETLUASTRING(to, aux, len, L, key, isnil) lua_getglobal(L,key);if(lua_isnoneornil(L,-1)){lua_pop(L,1);isnil}else{ \
-aux = (char *) lua_tostring(L,-1);snprintf(to,len,"%s",aux);lua_pop(L,1);}
+int CnnLuaLoadFile(Cnn c, const char *file_name) {
+	if (!c)return NULL_PARAM;
+	if (!c->L)CnnInitLuaVm(c);
+	int error = luaL_dofile(c->L, file_name);
+	if (error) {
+		fflush(stdout);
+		fprintf(stderr, "\nError: %d %d %s\n", lua_gettop(c->L), error, lua_tostring(c->L, -1));
+		fflush(stderr);
+	}
+}
 
 #endif //CNN_GPU_CNNLUA_H

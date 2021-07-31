@@ -26,7 +26,8 @@ typedef struct {
 typedef struct {
 	// rede convolucional
 	Cnn cnn;
-
+	// diretorio de trabalho
+	char *homePath;
 	// arquivos de treino
 	char *file_images;
 	char *file_labels;
@@ -81,6 +82,9 @@ void train(ManageTrain *t);
 
 void fitnes(ManageTrain *t);
 
+void manage2WorkDir(ManageTrain *t);
+
 void releaseManageTrain(ManageTrain *t);
 
+#define releaseSTRManageTrain(t, str)if((t).releaseStrings){if((str))free_mem(str);(str)=NULL;}
 #endif //CNN_GPU_MANAGETRAIN_H
