@@ -57,7 +57,7 @@ def cvarToPy(variables: list):
     return pvars
 
 
-outfile = open('gab_py/cnn_wrapper_structs.py', 'w')
+outfile = open('../gab_py_c/cnn_wrapper_structs.py', 'w')
 ctypes_name = 'c'
 
 def putClassInFile(file_h, fpy, ctypes_name='c'):

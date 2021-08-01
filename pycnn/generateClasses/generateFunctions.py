@@ -79,7 +79,7 @@ proto = []
 for fl in code:
 	proto += getProtoFromCode(open(fl, 'r').read())
 
-fout = open('gab_py/cnn_wraper_function.py', 'w')
+fout = open('../gab_py_c/cnn_wraper_function.py', 'w')
 lprint = print
 
 clib = 'clib'
