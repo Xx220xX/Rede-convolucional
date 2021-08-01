@@ -57,10 +57,8 @@ def cvarToPy(variables: list):
     return pvars
 
 
-outfile = open('cfunctions.py', 'w')
+outfile = open('gab_py/cnn_wrapper_structs.py', 'w')
 ctypes_name = 'c'
-print(f"import ctypes as {ctypes_name}", file=outfile)
-
 
 def putClassInFile(file_h, fpy, ctypes_name='c'):
     c_h = removeComents(open(file_h, 'r').read())
@@ -77,32 +75,30 @@ def putClassInFile(file_h, fpy, ctypes_name='c'):
         print("\t]", file=fpy)
         for n in nomes[1:]:
             print(f"{n} = {nomes[0]}", file=fpy)
+path_include = r"C:/Users/Henrique/Desktop/Rede-convolucional/CNN_GPU/include/cnn/"
 
-
-camadas = [r'C:\Gabriela\Rede-convolucional\CNN_GPU\src\gpu\Kernel.h'] + \
-          [r'C:\Gabriela\Rede-convolucional\CNN_GPU\src\tensor\Tensor.h'] + \
-          [r'C:\Gabriela\Rede-convolucional\CNN_GPU\src\camadas\\' + camada for camada in
-           os.listdir(r"/src/camadas") if camada.endswith('.h')]
+camadas = [path_include + 'gpu/Kernel.h'] + \
+          [path_include+'tensor/Tensor.h'] + \
+          [path_include + 'camadas/'+ camada for camada in
+           os.listdir(path_include+ 'camadas/') if camada.endswith('.h')]
 
 print("""
+from wrapper_dll import *
+EXCEPTION_MAX_MSG_SIZE = 500
 def TOPOINTER(c_type):
     tp = c.POINTER(c_type)
-
     def get(self, item):
         return self[0].__getattribute__(item)
-
     def set(self, key, value):
         self[0].__setattr__(key, value)
-
     def rep(self):
         return self[0].__repr__()
-
     tp.__getattribute__ = get
     tp.__setattr__ = set
     tp.__repr__ = rep
-
     return tp
 """,file=outfile)
+
 for file in camadas:
     putClassInFile(file, outfile)
 outfile.close()

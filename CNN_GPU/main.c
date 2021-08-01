@@ -11,7 +11,12 @@ void helpArguments();
 void loadArgsLua(ManageTrain *t, List_args *args);
 
 int main(int arg, char **args) {
-
+	system("chcp 65001");
+	printf("##############################\n");
+	printf("Gabriela IA\n");
+	printf("email: gab.cnn.ia@gmail.com\n");
+	printf("Versão %s\n", getVersion());
+	printf("##############################\n");
 	ManageTrain manageTrain = {0};
 
 	manageTrain.cnn = createCnnWithWrapperProgram(default_kernel, (Params) {0.1, 0, 0},
@@ -20,10 +25,15 @@ int main(int arg, char **args) {
 
 	manageTrain.OnloadedImages = (ManageEvent) printALLIMGS;
 
-	if(arg==1){
+	if (arg == 1) {
 		CnnLuaConsole(manageTrain.cnn);
-	}else if(arg == 2){
-		CnnLuaLoadFile(manageTrain.cnn,args[1]);
+	} else if (arg == 2) {
+		CnnLuaLoadFile(manageTrain.cnn, args[1]);
+	}
+	if (!manageTrain.cnn->error.error) {
+		int err = manageTrain.cnn->error.error;
+		releaseManageTrain(&manageTrain);
+		return err;
 	}
 	manage2WorkDir(&manageTrain);
 	loadImages(&manageTrain);

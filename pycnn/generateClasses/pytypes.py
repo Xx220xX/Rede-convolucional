@@ -49,9 +49,11 @@ CPYTYPES = {'bool': '{ctypes}.c_bool',
             'cl_kernel':'{ctypes}.c_void_p',
             'cl_int':'{ctypes}.c_int',
             'cl_ulong':'{ctypes}.c_uint64',
+            'flag_t':'{ctypes}.c_uint8',
             'Typecamada':'Camada',
             'Tensor':'TOPOINTER(Tensor)',
             'TensorChar':'TOPOINTER(Tensor)',
+            'Kernel':'TOPOINTER(Kernel)',
             }
 
 CPYTYPES_P = {
@@ -60,7 +62,36 @@ CPYTYPES_P = {
             'wchar':'{ctypes}.c_wchar_p',
             }
 
-
+CPYFUNCTYPES = {
+	'Cnn':'{ctype}.c_void_p',
+	'WrapperCL *':'{ctype}.c_void_p',
+	'Params':'Params',
+	'UINT':'{ctype}.c_uint32',
+	'void':'None',
+	'Cnn *':'{ctype}.c_void_p',
+	'const char *':'{ctype}.c_void_p',
+	'unsigned long long int':'{ctype}.c_uint64',
+	'ULL':'{ctype}.c_uint64',
+	'int':'{ctype}.c_int',
+	'double *':'{ctype}.c_void_p',
+	'char':'{ctype}.c_char',
+	'double':'{ctype}.c_double',
+	'long long int':'{ctype}.c_int64',
+	'void *':'{ctype}.c_void_p',
+	'FILE *':'{ctype}.c_void_p',
+	'char *':'{ctype}.c_void_p',
+	'size_t *':'{ctype}.c_void_p',
+	'Pointer *':'{ctype}.c_void_p',
+	'Camada':'{ctype}.c_void_p',
+	'Tensor':'{ctype}.c_void_p',
+	'cl_context':'{ctype}.c_void_p',
+	'QUEUE':'{ctype}.c_void_p',
+	'Exception *':'{ctype}.c_void_p',
+	'size_t':'{ctype}.c_uint64',
+	'UINT *':'{ctype}.c_void_p',
+	'Tensor *':'{ctype}.c_void_p',
+	'Kernel':'{ctype}.c_void_p',
+}
 def toPointer(ctp):
     if ctp in CPYTYPES_P:
         return CPYTYPES_P[ctp]

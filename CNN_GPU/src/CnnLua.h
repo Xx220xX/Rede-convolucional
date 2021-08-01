@@ -636,6 +636,7 @@ void LuaputHelpFunctionArgs(void (*myf)()) {
 int CnnLuaConsole(Cnn c) {
 	if (!c)return NULL_PARAM;
 	if (!c->L)CnnInitLuaVm(c);
+
 	Comando cmd = {0};
 	int ch = 0;
 	global_close = 0;
@@ -646,7 +647,7 @@ int CnnLuaConsole(Cnn c) {
 		cmd.n = 0;
 		cmd.str[cmd.n] = 0;
 		while (1) {
-			ch = getche();
+			ch = getch();
 			if (ch == '\n' || ch == 13 || ch == '\r') {
 				if (GetKeyState(VK_SHIFT) & 0x8000) {
 					printf(CONTINUA);
@@ -658,7 +659,13 @@ int CnnLuaConsole(Cnn c) {
 				}
 			}
 			if (ch == 8) {
-				cmd.n--;
+				if (cmd.n >= 1) {
+					cmd.n--;
+					printf("\b");
+					printf(" ");
+					printf("\b");
+
+				}
 			} else {
 				if (cmd.n <= cmd.len - 1) {
 					cmd.len++;
@@ -666,6 +673,7 @@ int CnnLuaConsole(Cnn c) {
 				}
 				cmd.str[cmd.n] = ch;
 				cmd.n++;
+				printf("%c",ch);
 			}
 			cmd.str[cmd.n] = 0;
 		}

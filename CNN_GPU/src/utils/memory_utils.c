@@ -135,6 +135,8 @@ int main(int arg, char ** args) {
 		printf("'%s'\n",args[i]);
 	}
 	int erro = __main__(arg,args);
+	fflush(stdout);
+	fflush(stderr);
 	printMemStatus();
 	releaseMemWatcher();
 	return erro;
