@@ -24,6 +24,7 @@ typedef struct {
 } Estatistica;
 
 typedef struct {
+	Estatistica et;
 	// rede convolucional
 	Cnn cnn;
 	// diretorio de trabalho
@@ -54,7 +55,7 @@ typedef struct {
 	double sum_erro;
 	int sum_acerto;
 
-	Estatistica et;
+	
 
 	double current_time;
 

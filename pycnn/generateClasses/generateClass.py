@@ -57,7 +57,8 @@ def cvarToPy(variables: list):
     return pvars
 
 
-outfile = open('../gab_py_c/cnn_wrapper_structs.py', 'w')
+#outfile = open('../gab_py_c/cnn_wrapper_structs.py', 'w')
+outfile = open('manageTrain.py', 'w')
 ctypes_name = 'c'
 
 def putClassInFile(file_h, fpy, ctypes_name='c'):
@@ -77,10 +78,12 @@ def putClassInFile(file_h, fpy, ctypes_name='c'):
             print(f"{n} = {nomes[0]}", file=fpy)
 path_include = r"C:/Users/Henrique/Desktop/Rede-convolucional/CNN_GPU/include/cnn/"
 
-camadas = [path_include + 'gpu/Kernel.h'] + \
-          [path_include+'tensor/Tensor.h'] + \
-          [path_include + 'camadas/'+ camada for camada in
-           os.listdir(path_include+ 'camadas/') if camada.endswith('.h')]
+camadas = [path_include + 'utils/manageTrain.h']
+
+# gg = [path_include + 'gpu/Kernel.h'] + \
+#           [path_include+'tensor/Tensor.h'] + \
+#           [path_include + 'camadas/'+ camada for camada in
+#            os.listdir(path_include+ 'camadas/') if camada.endswith('.h')]
 
 print("""
 from wrapper_dll import *
