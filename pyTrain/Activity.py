@@ -230,6 +230,7 @@ class Activity(Thread):
 				gp2.set_data(w, z)
 				ax.set_xlim(x[0], x[-1])
 				cv.draw()
+		return plot
 
 	def getButton(self, id) -> tk.Button:
 		return self.buttons[id]

@@ -14,7 +14,7 @@ with open(output, 'w')as fout:
             fout.write('\n')
     fout.write('#endif //GAB_KERNELS_OPENCL_H\n')
 print()
-with open('../src/defaultkernel.h', 'w')as fout:
+with open('../include/cnn/utils/defaultkernel.h', 'w')as fout:
     fout.write('#ifndef KERNELS_H\n')
     fout.write('#define KERNELS_H\n')
     fout.write('const char default_kernel[] = \n')

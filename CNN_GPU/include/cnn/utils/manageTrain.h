@@ -11,17 +11,24 @@
 
 typedef void (*ManageEvent)(void *);
 
+
 typedef struct {
-	double *erros;
-	double *acertos;
-	Tensor fitness_hit_rate;
-	UINT image_fitnes;
-	UINT max_size;
-	UINT image;
-	UINT epic;
-	double mean_error;
-	double hit_rate;
+	double *tr_mse_vector;
+	double *tr_acertos_vector;
+	UINT tr_imagem_atual;
+	UINT tr_numero_imagens;
+	UINT tr_epoca_atual;
+	UINT tr_numero_epocas;
+	double tr_erro_medio;
+	double tr_acerto_medio;
+
+	UINT ft_imagem_atual;
+	UINT ft_numero_imagens;
+	double * ft_info; // Acerto, acerto medio, erro medio
+	UINT ft_numero_classes;
+
 } Estatistica;
+
 
 typedef struct {
 	Estatistica et;
@@ -87,5 +94,12 @@ void manage2WorkDir(ManageTrain *t);
 
 void releaseManageTrain(ManageTrain *t);
 
+void manageTrainSetEvent(ManageEvent *dst,ManageEvent src);
+
+void manageTrainSetRun(ManageTrain *t,int run);
+
+ManageTrain createManageTrain(char *luafile,double tx_aprendizado,double momento,double decaimento);
+
+void ManageTrainInitThreadHigh(ManageTrain *t );
 #define releaseSTRManageTrain(t, str)if((t).releaseStrings){if((str))free_mem(str);(str)=NULL;}
 #endif //CNN_GPU_MANAGETRAIN_H

@@ -37,7 +37,7 @@ set(cnn include/cnn/cnn.h src/cnn.c src/CnnLua.h
         include/cnn/cnn_errors_list.h
         include/cnn/utils/memory_utils.h src/utils/memory_utils.c
         include/cnn/utils/vectorUtils.h src/utils/vectorUtils.c
-        include/cnn/utils/manageTrain.h src/utils/manageTrain.c src/utils/time_utils.c include/cnn/utils/time_utils.h src/utils/list_args.c include/cnn/utils/list_args.h include/cnn/utils/dir.c include/cnn/utils/dir.h)
+        include/cnn/utils/manageTrain.h src/utils/manageTrain.c src/utils/time_utils.c include/cnn/utils/time_utils.h src/utils/list_args.c include/cnn/utils/list_args.h src/utils/dir.c include/cnn/utils/dir.h)
 
 set(tensor include/cnn/tensor/Tensor.h src/tensor/Tensor.c)
 
@@ -61,7 +61,7 @@ set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/c
 #        ${conio2})
 
 add_executable(CNN_GPU main.c ${lua}
-        src/defaultkernel.h
+        include/cnn/utils/defaultkernel.h
         src/icon/icon.o
         ${cnn}
         ${kernels}

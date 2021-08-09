@@ -2,7 +2,7 @@
 // Created by Henrique on 26-Jun-21.
 //
 #include"../include/cnn/cnn.h"
-#include "../src/defaultkernel.h"
+#include "cnn/utils/defaultkernel.h"
 
 void printTensor(Tensor t, cl_command_queue queue, int ofset);
 

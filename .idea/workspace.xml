@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="09f1d54d-853d-4b58-b573-4144c6df1f03" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/bin/CNN_GPU.exe" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/bin/CNN_GPU.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/debug/testeAllCNN.c" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/debug/testeAllCNN.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/include/cnn/utils/dir.c" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/src/utils/dir.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/include/cnn/utils/manageTrain.h" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/include/cnn/utils/manageTrain.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/kernels/buildKernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/kernels/buildKernel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/src/defaultkernel.h" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/include/cnn/utils/defaultkernel.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/src/libraryPythonWrapper.c" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/src/libraryPythonWrapper.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/src/utils/manageTrain.c" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/src/utils/manageTrain.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CNN_GPU/teste/testeCnn.h" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/teste/testeCnn.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyTrain/.idea/pyTrain.iml" beforeDir="false" afterPath="$PROJECT_DIR$/pyTrain/.idea/pyTrain.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyTrain/Activity.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyTrain/Activity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyTrain/manageTrain.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyTrain/manageTrain.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyTrain/treinoui.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyTrain/treinoui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pycnn/numeros0_9.cnn" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1wVRnQZ86AD1GVXJWGlLPfU68O8" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="RunOnceActivity.cidr.known.project.marker" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="cidr.known.project.marker" value="true" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="09f1d54d-853d-4b58-b573-4144c6df1f03" name="Changes" comment="" />
+      <created>1628541938942</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1628541938942</updated>
+      <workItem from="1628541940942" duration="4000" />
+    </task>
+    <servers />
+  </component>
+</project>

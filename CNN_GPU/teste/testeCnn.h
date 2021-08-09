@@ -7,7 +7,7 @@
 
 #include "locale.h"
 #include"cnn/cnn.h"
-#include"../src/defaultkernel.h"
+#include"cnn/utils/defaultkernel.h"
 
 #define XY 4
 #define Z 3

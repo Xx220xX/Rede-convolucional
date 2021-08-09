@@ -6,6 +6,8 @@
 #include "utils/vectorUtils.h"
 #include"utils/time_utils.h"
 #include"utils/dir.h"
+#include "utils/defaultkernel.h"
+#include "windows.h"
 
 #define ERROR(format, ...)    getClErrorWithContext(t->cnn->error.error, \
 t->cnn->error.msg,EXCEPTION_MAX_MSG_SIZE,format, ## __VA_ARGS__)
@@ -24,11 +26,11 @@ void loadImages(ManageTrain *t) {
 	if (t->cnn->size == 0)return;
 	Tensor entrada = t->cnn->camadas[0]->entrada;
 	t->imagens = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST | TENSOR_SMEM | TENSOR4D, entrada->x,
-	                        entrada->y, entrada->z, t->n_images, &t->cnn->error, NULL);
+							entrada->y, entrada->z, t->n_images, &t->cnn->error, NULL);
 	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST | TENSOR_SMEM | TENSOR_CHAR, t->n_images, 1,
-	                       1, 1, &t->cnn->error, NULL);
+						   1, 1, &t->cnn->error, NULL);
 	t->targets = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST | TENSOR_SMEM, t->n_images, t->n_classes, 1,
-	                        1, &t->cnn->error, NULL);
+							1, &t->cnn->error, NULL);
 	loadImage(t);
 	loadLabels(t);
 
@@ -44,18 +46,19 @@ void train(ManageTrain *t) {
 	double *output;
 	char label;
 	char cnn_label;
-	if (!t->et.acertos) {
-		t->et.acertos = alloc_mem(t->n_images2train, sizeof(double));
-		t->et.erros = alloc_mem(t->n_images2train, sizeof(double));
+	if (!t->et.tr_acertos_vector) {
+		t->et.tr_acertos_vector = alloc_mem(t->n_images2train, sizeof(double));
+		t->et.tr_mse_vector = alloc_mem(t->n_images2train, sizeof(double));
 	}
-
+	t->et.tr_numero_epocas = t->n_epics;
 
 	for (; t->can_run && !t->cnn->error.error && t->epic < t->n_epics; t->epic++) {
 		if (t->image >= t->n_images) {
 			t->image = 0;
-			t->et.image = 0;
-			t->et.max_size = t->n_images;
+			t->et.tr_imagem_atual = 0;
+			t->et.tr_numero_imagens = t->n_images;
 		}
+		t->et.tr_epoca_atual = t->epic;
 		for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2train; t->image++) {
 			time_init_train = getms();
 			input = t->imagens->host + (t->imagens->bytes * t->image);
@@ -70,9 +73,9 @@ void train(ManageTrain *t) {
 
 			t->sum_acerto += cnn_label == label;
 			t->sum_erro += t->cnn->normaErro;
-			t->et.acertos[t->image] = t->sum_acerto / (t->image + 1.0);
-			t->et.erros[t->image] = t->sum_erro / (t->image + 1.0);
-			t->et.image = t->image;
+			t->et.tr_acertos_vector[t->image] = t->sum_acerto / (t->image + 1.0);
+			t->et.tr_mse_vector[t->image] = t->sum_erro / (t->image + 1.0);
+			t->et.tr_imagem_atual = t->image;
 			internal_time += getms() - time_init_train;
 			t->current_time = internal_time;
 		}
@@ -92,14 +95,17 @@ void fitnes(ManageTrain *t) {
 	char label;
 	char cnnLabel;
 	int img_atual;
-	double *hit_rate;
-	if (!t->et.fitness_hit_rate) {
-		t->et.fitness_hit_rate = new_Tensor(t->cnn->cl->context,
-		                                    t->cnn->queue,
-		                                    TENSOR_HOST, t->n_classes, 3, 1, 1,
-		                                    &t->cnn->error, NULL);
+	Tensor info = NULL;
+	if (!t->et.ft_info) {
+		t->et.ft_info = alloc_mem(t->n_images * 3, sizeof(double));
 	}
-	hit_rate = t->et.fitness_hit_rate->host;
+	info = new_Tensor(NULL,
+					  NULL,
+					  TENSOR_HOST | TENSOR_UPTR, t->n_classes, 3, 1, 1,
+					  &t->cnn->error, t->et.ft_info);
+	t->et.ft_numero_imagens = t->n_images2fitness;
+	t->et.ft_numero_classes = t->n_classes;
+
 	for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2fitness; t->image++) {
 		img_atual = t->image + t->n_images2train;
 		input = t->imagens->host + (t->imagens->bytes * img_atual);
@@ -107,14 +113,17 @@ void fitnes(ManageTrain *t) {
 		label = ((char *) t->labels->host)[img_atual];
 		CnnCall(t->cnn, input);
 		cnnLabel = CnnGetIndexMax(t->cnn);
-		hit_rate[Tensor_Map(t->et.fitness_hit_rate, label, CASOS, 0)]++;
+
+
+		t->et.ft_info[Tensor_Map(info, label, CASOS, 0)]++;
 		if (cnnLabel == label) {
-			hit_rate[Tensor_Map(t->et.fitness_hit_rate, label, HIT_RATE, 0)]++;
+			t->et.ft_info[Tensor_Map(info, label, HIT_RATE, 0)]++;
 		}
 		CnnCalculeErrorWithOutput(t->cnn, output);
-		hit_rate[Tensor_Map(t->et.fitness_hit_rate, label, MSE, 0)] += t->cnn->normaErro;
-		t->et.image_fitnes = t->image;
+		t->et.ft_info[Tensor_Map(info, label, MSE, 0)] += t->cnn->normaErro;
+		t->et.ft_imagem_atual = t->image;
 	}
+	releaseTensor(&info);
 	EVENT(t->OnInitFitnes, t);
 }
 
@@ -136,8 +145,8 @@ void loadImage(ManageTrain *t) {
 	fclose(fimage);
 
 	Tensor imageInt = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_CHAR | TENSOR4D | TENSOR_UPTR,
-	                             t->imagens->x, t->imagens->y, t->imagens->z, t->imagens->w,
-	                             &t->cnn->error, t->imagens->host
+								 t->imagens->x, t->imagens->y, t->imagens->z, t->imagens->w,
+								 &t->cnn->error, t->imagens->host
 	);
 
 	if (t->cnn->error.error) {
@@ -145,9 +154,9 @@ void loadImage(ManageTrain *t) {
 		return;
 	}
 	Tensor imageDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-	                                TENSOR4D,
-	                                t->imagens->x, t->imagens->y, t->imagens->z, t->imagens->w,
-	                                &t->cnn->error, NULL);
+									TENSOR4D,
+									t->imagens->x, t->imagens->y, t->imagens->z, t->imagens->w,
+									&t->cnn->error, NULL);
 
 	if (t->cnn->error.error) {
 		ERROR("Falha ao criar tensores imageDouble: ");
@@ -157,10 +166,10 @@ void loadImage(ManageTrain *t) {
 
 	double value = 255;
 	kernel_run_recursive(t->cnn->error.error, t->cnn->kerneldivInt, t->cnn->queue, pixelsByImage * t->n_images,
-	                     t->cnn->cl->maxworks,
-	                     K_ARG imageInt->data,
-	                     K_ARG imageDouble->data,
-	                     K_ARG value
+						 t->cnn->cl->maxworks,
+						 K_ARG imageInt->data,
+						 K_ARG imageDouble->data,
+						 K_ARG value
 	);
 	if (t->cnn->error.error) {
 		ERROR("Falha ao iniciar Kernel: ");
@@ -170,7 +179,7 @@ void loadImage(ManageTrain *t) {
 	}
 	releaseTensor(&imageInt);
 	t->cnn->error.error = TensorGetValuesMem(t->cnn->queue, imageDouble, t->imagens->host,
-	                                         t->imagens->bytes * t->imagens->w);
+											 t->imagens->bytes * t->imagens->w);
 
 	releaseTensor(&imageDouble);
 	if (t->cnn->error.error) {
@@ -193,17 +202,17 @@ void loadLabels(ManageTrain *t) {
 	fclose(flabel);
 
 	Tensor labelInt = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-	                             TENSOR_CHAR | TENSOR_UPTR,
-	                             t->labels->x, t->labels->y, 1, 1,
-	                             &t->cnn->error, t->labels->host);
+								 TENSOR_CHAR | TENSOR_UPTR,
+								 t->labels->x, t->labels->y, 1, 1,
+								 &t->cnn->error, t->labels->host);
 	if (t->cnn->error.error) {
 		ERROR("Falha ao criar tensores imageInt: ");
 		return;
 	}
 	Tensor labelDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-	                                0,
-	                                t->targets->x, t->targets->y, 1, 1,
-	                                &t->cnn->error, NULL);
+									0,
+									t->targets->x, t->targets->y, 1, 1,
+									&t->cnn->error, NULL);
 
 	if (t->cnn->error.error) {
 		ERROR("Falha ao criar tensores imageDouble: ");
@@ -211,10 +220,10 @@ void loadLabels(ManageTrain *t) {
 	}
 
 	kernel_run_recursive(t->cnn->error.error, t->cnn->kernelInt2Vector, t->cnn->queue,
-	                     t->labels->x * t->labels->y, t->cnn->cl->maxworks,
-	                     K_ARG labelInt->data,
-	                     K_ARG labelDouble->data,
-	                     K_ARG labelDouble->y
+						 t->labels->x * t->labels->y, t->cnn->cl->maxworks,
+						 K_ARG labelInt->data,
+						 K_ARG labelDouble->data,
+						 K_ARG labelDouble->y
 	);
 	if (t->cnn->error.error) {
 		ERROR("Falha ao iniciar kernel: ");
@@ -231,6 +240,12 @@ void loadLabels(ManageTrain *t) {
 	releaseTensor(&labelDouble);
 }
 
+void releaseEstatitica(Estatistica *et) {
+	if (et->tr_acertos_vector)free_mem(et->tr_acertos_vector);
+	if (et->tr_mse_vector)free_mem(et->tr_mse_vector);
+	if (et->ft_info)free_mem(et->ft_info);
+}
+
 void releaseManageTrain(ManageTrain *t) {
 	t->can_run = 0;
 	pthread_join(t->process, NULL);
@@ -238,11 +253,9 @@ void releaseManageTrain(ManageTrain *t) {
 	releaseTensor(&t->imagens);
 	releaseTensor(&t->targets);
 	releaseTensor(&t->labels);
-	releaseTensor(&t->et.fitness_hit_rate);
+	releaseEstatitica(&t->et);
 	releaseStringsManageTrain(t);
-	if (t->et.acertos)free_mem(t->et.acertos);
-	if (t->et.erros)free_mem(t->et.erros);
-	if (t->self_release)free_mem(t);
+
 }
 
 void releaseStringsManageTrain(ManageTrain *t) {
@@ -260,4 +273,106 @@ void manage2WorkDir(ManageTrain *t) {
 		t->cnn->error.error = FAILED_SET_DIR;
 		return;
 	};
+}
+
+void manageTrainSetEvent(ManageEvent *dst, ManageEvent src) {
+	*dst = src;
+}
+
+void manageTrainSetRun(ManageTrain *t, int run) {
+	t->can_run = run != 0;
+}
+
+void helpArgumentsManageTrain() {
+	struct {
+		char *name;
+		char *type;
+		char *desc;
+	} args[] = {
+			{"work_path",      "string", "diretorio de trabalho"},
+			{"file_image",     "string", "nome do arquivo contendo imagens com endereço relativo a 'work_path'"},
+			{"file_label",     "string", "nome do arquivo contendo descrição das imagens com endereço relativo a 'work_path'"},
+			{"header_image",   "int",    "número de bytes de cabeçalho no arquivo de imagens"},
+			{"header_label",   "int",    "número de bytes de cabeçalho no arquivo de labels"},
+			{"numero_imagens", "int",    "número de imagens a serem lidas"},
+			{"numero_treino",  "int",    "número de imagens a serem treinada, deve ser menor que 'numero_imagens'"},
+			{"numero_fitnes",  "int",    "número de imagens a serem testadas, deve ser menor que 'numero_imagens'-'numero_treino'"},
+			{"numero_classes", "int",    "número de de classes possivels no treinamento, deve ser menor que 255 (limite para 8 bits)"},
+			{"sep",            "char",   "por padrão é ' '"},
+			{"nome_classes",   "string", "nomeda das classes separados por 'sep'"},
+			{0}
+	};
+	printf("Argumentos :\n");
+	for (int i = 0; args[i].name; i++) {
+		printf("Nome: '%s'\n", args[i].name);
+		printf("tipo: '%s'\n", args[i].type);
+		printf("descrição: '%s'\n", args[i].desc);
+		printf("\n");
+	}
+
+}
+
+void loadArgsLuaManageTrain(ManageTrain *t, List_args *args) {
+	Dbchar_p arg;
+	if (!t->releaseStrings) {
+		fflush(stdout);
+		fprintf(stderr, "As strings não podem ser estaticas para esta função");
+		fflush(stderr);
+		releaseManageTrain(t);
+		exit(-1);
+	}
+	for (int i = 0; i < args->size; i++) {
+		arg = args->values[i];
+		if (STREQUALS(arg.name, "work_path")) {
+			check_free_mem(t->homePath);
+			t->homePath = copystr(arg.value);
+		} else if (STREQUALS(arg.name, "file_image")) {
+			check_free_mem(t->file_images);
+			t->file_images = copystr(arg.value);
+		} else if (STREQUALS(arg.name, "file_label")) {
+			check_free_mem(t->file_labels);
+			t->file_labels = copystr(arg.value);
+		} else if (STREQUALS(arg.name, "nome_classes")) {
+			check_free_mem(t->class_names);
+			t->class_names = copystr(arg.value);
+		} else if (STREQUALS(arg.name, "sep")) {
+			t->character_sep = arg.value[0];
+		} else if (STREQUALS(arg.name, "header_image")) {
+			t->headers_images = atoi(arg.value);
+		} else if (STREQUALS(arg.name, "header_label")) {
+			t->headers_labels = atoi(arg.value);
+		} else if (STREQUALS(arg.name, "numero_imagens")) {
+			t->n_images = atoi(arg.value);
+		} else if (STREQUALS(arg.name, "numero_treino")) {
+			t->n_images2train = atoi(arg.value);
+		} else if (STREQUALS(arg.name, "numero_fitnes")) {
+			t->n_images2fitness = atoi(arg.value);
+		} else if (STREQUALS(arg.name, "numero_classes")) {
+			t->n_classes = atoi(arg.value);
+		}
+	}
+}
+
+ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momento, double decaimento) {
+	ManageTrain result;
+
+	result.cnn = createCnnWithWrapperProgram(default_kernel, (Params) {tx_aprendizado, momento, decaimento},
+											 0, 0, 0, CL_DEVICE_TYPE_GPU);
+	LuaputHelpFunctionArgs(helpArgumentsManageTrain);
+	CnnLuaLoadFile(result.cnn, luafile);
+	loadArgsLuaManageTrain(&result, &result.cnn->luaArgs);
+	return result;
+}
+
+void ManageTrainInitThreadHigh(ManageTrain *t) {
+	int tid=0;
+	HANDLE thread = CreateThread(
+			NULL,                   // default security attributes
+			0,                      // use default stack size
+			(LPTHREAD_START_ROUTINE) train,       // thread function name
+			t,          // argument to thread function
+			0,                      // use default creation flags
+			(LPDWORD) &tid);   // returns the thread identifier
+			;
+
 }

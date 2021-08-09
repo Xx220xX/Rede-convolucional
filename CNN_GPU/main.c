@@ -1,10 +1,8 @@
 #include "utils/manageTrain.h"
-#include "src/defaultkernel.h"
+#include "cnn/utils/defaultkernel.h"
 #include "utils/vectorUtils.h"
 // call backs
-
-
-void printALLIMGS(ManageTrain *t);
+void onLoad   (ManageTrain *t);
 
 void helpArguments();
 
@@ -23,7 +21,7 @@ int main(int arg, char **args) {
 	                                              32, 32, 3, CL_DEVICE_TYPE_GPU);
 	LuaputHelpFunctionArgs(helpArguments);
 
-	manageTrain.OnloadedImages = (ManageEvent) printALLIMGS;
+	manageTrain.OnloadedImages = (ManageEvent) onLoad;
 
 	if (arg == 1) {
 		CnnLuaConsole(manageTrain.cnn);

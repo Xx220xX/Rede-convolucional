@@ -1,5 +1,8 @@
 #include "../include/cnn/libraryPythonWrapper.h"
-#include "defaultkernel.h"
+#include "cnn/utils/defaultkernel.h"
+
+
+
 void createCnnPy(Pointer *p, double hitLearn, double momento, double decaimentoDePeso,
                        UINT inx, UINT iny, UINT inz) {
 	Params pr = {hitLearn, momento, decaimentoDePeso};
