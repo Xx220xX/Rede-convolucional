@@ -95,7 +95,6 @@ static int l_convolution(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	printf("%p\n", c);
 	int px, py, fx, fy, flag = 0;
 	int nfiltros;
 	int arg = 1;
@@ -398,7 +397,7 @@ static int l_fullConnect(lua_State *L) {
 	int func = luaL_checkinteger(L, 2);
 	checkLua(func == FTANH || func == FSIGMOID || func == FRELU, "FUNCAO DE ATIVACAO INVALIDA");
 	char usehost = 0;
-	if (!lua_isnoneornil(L, 3)) {
+	if(nArgs == 3){
 		usehost = luaL_checkinteger(L, 3);
 	}
 	FullConnect(c, usehost, neuros, func);
@@ -495,6 +494,7 @@ static int l_callCnn(lua_State *L) {
 }
 
 static int l_putlua_arg(lua_State *L) {
+	if(lua_isnoneornil(L,2))return 0;
 	int nArgs = lua_gettop(L);
 	if (nArgs != 2) {
 		luaL_error(L, "Expected name:str,value:str\n");
@@ -608,11 +608,11 @@ Luac_contantes globalConstantes[] = {
 static int l_helpCnn(lua_State *L) {
 	printf("Functions:\n");
 	for (int i = 0; globalFunctions[i].f; i++) {
-		printf("%s\n", globalFunctions[i].name);
+		printf("\t%s\n", globalFunctions[i].name);
 	}
 	printf("Constantes:\n");
-	for (int i = 0; globalConstantes[i].v; i++) {
-		printf("%s\n", globalConstantes[i].name);
+	for (int i = 0; globalConstantes[i].name; i++) {
+		printf("\t%s\n", globalConstantes[i].name);
 	}
 	if (globalFunctionHelpArgs)
 		globalFunctionHelpArgs();
@@ -623,7 +623,7 @@ void loadCnnLuaLibrary(lua_State *L) {
 	for (int i = 0; globalFunctions[i].f; i++) {
 		REGISTERC_L(L, globalFunctions[i].f, globalFunctions[i].name);
 	}
-	for (int i = 0; globalConstantes[i].v; i++) {
+	for (int i = 0; globalConstantes[i].name; i++) {
 		lua_pushinteger(L, globalConstantes[i].v);
 		lua_setglobal(L, globalConstantes[i].name);
 	}
@@ -648,7 +648,7 @@ int CnnLuaConsole(Cnn c) {
 		cmd.str[cmd.n] = 0;
 		while (1) {
 			ch = getch();
-			if (ch == '\n' || ch == 13 || ch == '\r') {
+			if (ch == '\n' || ch == '\r') {
 				if (GetKeyState(VK_SHIFT) & 0x8000) {
 					printf(CONTINUA);
 					printf("\n");
@@ -693,11 +693,44 @@ int CnnLuaConsole(Cnn c) {
 int CnnLuaLoadFile(Cnn c, const char *file_name) {
 	if (!c)return NULL_PARAM;
 	if (!c->L)CnnInitLuaVm(c);
+
+
 	int error = luaL_dofile(c->L, file_name);
+	c->error.error = error;
 	if (error) {
 		fflush(stdout);
 		fprintf(stderr, "\nError: %d %d %s\n", lua_gettop(c->L), error, lua_tostring(c->L, -1));
 		fflush(stderr);
+		return error;
+	}
+	// retro compatibilidade
+	{
+		luaL_dostring(c->L,
+					  "Args('work_path', home)\n"
+					  "Args('file_image', arquivoContendoImagens)\n"
+					  "Args('file_label', arquivoContendoRespostas)\n"
+					  "Args('header_image', bytes_remanessentes_imagem)\n"
+					  "Args('header_label', bytes_remanessentes_classes)\n"
+					  "Args('numero_epocas', Numero_epocas)\n"
+					  "Args('numero_imagens', Numero_Imagens)\n"
+					  "Args('numero_treino', Numero_ImagensTreino)\n"
+					  "Args('numero_fitnes', Numero_ImagensAvaliacao)\n"
+					  "Args('numero_classes', Numero_Classes)\n"
+					  "Args('sep', 32)\n"
+					  "local nome_classes_lua\n"
+					  "local sep_lua\n"
+					  "sep_lua = ' '\n"
+					  "if sep ~= nil then\n"
+					  "    sep_lua = sep\n"
+					  "end\n"
+					  "for _, v in pairs(classes) do\n"
+					  "    if nome_classes_lua == nil then\n"
+					  "        nome_classes_lua = v\n"
+					  "    else\n"
+					  "        nome_classes_lua = nome_classes_lua .. sep_lua .. v\n"
+					  "    end\n"
+					  "end\n"
+					  "Args('nome_classes', nome_classes_lua)");
 	}
 }
 

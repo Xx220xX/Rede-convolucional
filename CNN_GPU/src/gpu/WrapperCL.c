@@ -66,7 +66,7 @@ int WrapperCL_init(WrapperCL *self, const char *src) {
 	if (stt != CL_SUCCESS) {
 		char buff[0x10000];
 		clGetProgramBuildInfo(self->program, self->device, CL_PROGRAM_BUILD_LOG, 0x10000, buff, NULL);
-		fprintf(stderr, "ERROR: %s\n", buff);
+		fprintf(stderr, "CNN_ERROR: %s\n", buff);
 
 		return stt;
 	}
@@ -299,7 +299,7 @@ cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source) {
 	if (stt != CL_SUCCESS) {
 		char buff[0x10000];
 		clGetProgramBuildInfo(program, dv, CL_PROGRAM_BUILD_LOG, 0x10000, buff, NULL);
-		fprintf(stderr, "ERROR: %s\n", buff);
+		fprintf(stderr, "CNN_ERROR: %s\n", buff);
 		clReleaseProgram(program);
 		return NULL;
 	}

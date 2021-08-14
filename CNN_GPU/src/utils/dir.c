@@ -10,5 +10,5 @@ void GetCurrentDir(char *buff_dest, size_t size_buff) {
 }
 
 int SetDir(char *path) {
-	return SetCurrentDirectoryA(path);
+	return !SetCurrentDirectoryA(path);
 }

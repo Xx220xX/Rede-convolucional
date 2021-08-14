@@ -22,6 +22,5 @@ void List_argspushValue(List_args *lst,const char *name,const char *value);
 
 void releaseList_args(List_args *largs);
 
-char *copystr(char *str);
 
 #endif //CNN_GPU_LIST_ARGS_H

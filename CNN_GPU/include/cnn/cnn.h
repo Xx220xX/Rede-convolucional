@@ -118,6 +118,5 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r);
 
 const char *getVersion();
 
-const char *getInfo();
 
 #endif

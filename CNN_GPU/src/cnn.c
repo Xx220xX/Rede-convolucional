@@ -8,42 +8,19 @@
 #include "../kernels/camadas/utils.h"
 #include "../kernels/camadas/cnnutils.h"
 #endif
-char __version__[] = "2.1.010"
+char __version__[] = "2.2.006"
 #if (RUN_KERNEL_USING_GPU != 1)
 "host mode"
 #endif // DISABLE_KERNELS_INSIDE_DRIVE
 ;
-char __notas__[] =
-		"camada conv corrigida 2.0.007\n"
-		"camada padding adicionada 2.0.009\n"
-		"camada padding corrigida 2.0.011\n"
-		"corrigido implementacao dropout 2.0.012\n"
-		"camada polling av adicionada 2.0.013\n"
-		"camada convNc adicionada 2.0.014\n"
-		"Todas as camadas possui seus proprios parametros 2.0.015\n"
-		"verificação interna de erros adicionada 2.0.016\n"
-		"verificação de camadas 2.0.017\n"
-		"Revisado todas camadas, corrigido erros internos 2.1.000\n"
-		"\n"
-		"Suporte a SVM removido 2.1.001\n"
-		"Bugs concertados em getValues 2.1.002\n"
-		"Removidos trabalhos sequencias das funções Kernel 2.1.003\n"
-		"Suporte adicionado para SVM 2.1.004\n"
-		"O Tensor agora pode ser Alocado somente no HOST 2.1.005\n"
-		"Agora os kernels podem ser compilados e executador somente pelo host 2.1.006\n"
-		"Otimização de calculo de gradiente dos pesos camada convolucional 2.1.007\n"
-		"Mudança no algoritmo de calculo de gradiente de entrada camada convolucional 2.1.008\n"
-		"Mudança no algoritmo de calculo de gradiente de entrada camada pooling 2.1.009\n"
-		"Bugs corrigidos camada conv, pool e poolAv 2.1.010\n";
+
 
 
 const char *getVersion() {
 	return __version__;
 }
 
-const char *getInfo() {
-	return __notas__;
-}
+
 
 #define CHECKDIN(input, filtro, abertura, passo) \
     (((((input-1) - (filtro - 1) * abertura) / passo +1)>0) && \

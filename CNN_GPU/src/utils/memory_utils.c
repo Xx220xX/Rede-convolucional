@@ -126,7 +126,7 @@ char *printBytes(size_t bytes, char *buff) {
 	buff[b - 1] = 0;
 	return buff;
 }
-#ifdef MEMORY_WATCHER
+#if (MEMORY_WATCHER == 1)
 #undef main
 int main(int arg, char ** args) {
 	printf("Running\n");

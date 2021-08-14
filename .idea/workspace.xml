@@ -7,22 +7,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="09f1d54d-853d-4b58-b573-4144c6df1f03" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/bin/CNN_GPU.exe" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/bin/CNN_GPU.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/debug/testeAllCNN.c" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/debug/testeAllCNN.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/include/cnn/utils/dir.c" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/src/utils/dir.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/include/cnn/utils/manageTrain.h" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/include/cnn/utils/manageTrain.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/kernels/buildKernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/kernels/buildKernel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/main.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/src/defaultkernel.h" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/include/cnn/utils/defaultkernel.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/src/libraryPythonWrapper.c" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/src/libraryPythonWrapper.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/src/utils/manageTrain.c" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/src/utils/manageTrain.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CNN_GPU/teste/testeCnn.h" beforeDir="false" afterPath="$PROJECT_DIR$/CNN_GPU/teste/testeCnn.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyTrain/.idea/pyTrain.iml" beforeDir="false" afterPath="$PROJECT_DIR$/pyTrain/.idea/pyTrain.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyTrain/Activity.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyTrain/Activity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyTrain/manageTrain.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyTrain/manageTrain.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyTrain/treinoui.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyTrain/treinoui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pycnn/numeros0_9.cnn" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,7 +42,11 @@
       <option name="presentableId" value="Default" />
       <updated>1628541938942</updated>
       <workItem from="1628541940942" duration="4000" />
+      <workItem from="1628551091791" duration="7000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
 </project>

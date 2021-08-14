@@ -3,12 +3,6 @@
 //
 
 #include "utils/list_args.h"
-char * copystr(char *str){
-	int len = strlen(str);
-	char *r = alloc_mem(len+1,1);
-	strcpy(r,str);
-	return r;
-}
 void List_argspushValue(List_args *lst,const char *name, const char *value) {
 	int i;
 	int lenName;

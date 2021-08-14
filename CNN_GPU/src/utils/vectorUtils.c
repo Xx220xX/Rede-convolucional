@@ -108,7 +108,6 @@ int salveTensor4DAsPPM3(const char *name, Tensor t, Cnn c, UINT w) {
 
 int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c, UINT w) {
 	if (w >= t->w) return -2;
-
 	double *dt = alloc_mem(t->bytes, 1);
 	c->error.error = TensorGetValuesOffSet(c->queue, t, dt, t->bytes * w);
 	if (c->error.error) {
@@ -116,7 +115,6 @@ int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c, UINT w) {
 		return c->error.error;
 	}
 	normalizeGPU(c, dt, dt, t->bytes / sizeof(double), 255, 0);
-	printf("salveTensor4DAsPPM\n");
 	if (c->error.error) {
 		free_mem(dt);
 		return c->error.error;
