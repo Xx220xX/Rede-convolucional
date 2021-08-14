@@ -37,7 +37,13 @@ set(cnn include/cnn/cnn.h src/cnn.c src/CnnLua.h
         include/cnn/cnn_errors_list.h
         include/cnn/utils/memory_utils.h src/utils/memory_utils.c
         include/cnn/utils/vectorUtils.h src/utils/vectorUtils.c
-        include/cnn/utils/manageTrain.h src/utils/manageTrain.c src/utils/time_utils.c include/cnn/utils/time_utils.h src/utils/list_args.c include/cnn/utils/list_args.h src/utils/dir.c include/cnn/utils/dir.h src/utils/String.c include/cnn/utils/String.h)
+        include/cnn/utils/manageTrain.h src/utils/manageTrain.c
+        src/utils/time_utils.c include/cnn/utils/time_utils.h
+        src/utils/list_args.c include/cnn/utils/list_args.h
+        src/utils/dir.c include/cnn/utils/dir.h
+        src/utils/String.c include/cnn/utils/String.h
+        src/utils/defaultkernel.c include/cnn/utils/defaultkernel.h
+        )
 
 set(tensor include/cnn/tensor/Tensor.h src/tensor/Tensor.c)
 
@@ -50,18 +56,8 @@ set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/c
         kernels/camadas/relu.h kernels/camadas/softmax.h
         kernels/camadas/cnnutils.h)
 
-#add_library(CNNGPU SHARED ${CNNpython}
-#        src/defaultkernel.h
-#        src/icon/icon.o
-#        ${kernels}
-#        ${gpu}
-#        ${camadasCNN}
-#        ${LCG_RANDOM}
-#        ${tensor}
-#        ${conio2})
+add_library(CNNGPU SHARED ${CNNpython}
 
-add_executable(CNN_GPU main.c ${lua}
-        include/cnn/utils/defaultkernel.h
         src/icon/icon.o
         ${cnn}
         ${kernels}
@@ -70,3 +66,14 @@ add_executable(CNN_GPU main.c ${lua}
         ${LCG_RANDOM}
         ${tensor}
         ${conio2} include/cnn/config.h)
+
+#add_executable(CNN_GPU main.c ${lua}
+#        include/cnn/utils/defaultkernel.h
+#        src/icon/icon.o
+#        ${cnn}
+#        ${kernels}
+#        ${gpu}
+#        ${camadasCNN}
+#        ${LCG_RANDOM}
+#        ${tensor}
+#        ${conio2} include/cnn/config.h)

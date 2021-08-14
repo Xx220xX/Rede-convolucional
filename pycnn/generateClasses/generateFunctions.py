@@ -67,32 +67,43 @@ def getProtoFromCode(code):
 			continue
 		proto.append(ff)
 	return proto
+def putFunctionInFile(hfile,outFile,clib='clib',ctypes = 'c'):
+        proto  =  getProtoFromCode(open(hfile, 'r').read())
+        for retorno, nome, argumentos in proto:
+                ag = []
+                for a in argumentos:
+                        ag.append(CPYFUNCTYPES[a])
+                print(f'{clib}.{nome}.argtypes = [{",".join(ag)}]'.replace("{ctype}",ctypes),file=outFile)
+                print(f'{clib}.{nome}.restype = {CPYFUNCTYPES[retorno]}'.replace("{ctype}",ctypes),file=outFile)
+     
+if __name__ == '__main__':
+        path_include = "../../CNN_GPU/include/cnn/"
+        code = [
+                #path_include + 'cnn.h',
+                #path_include + 'libraryPythonWrapper.h',
+                #path_include + 'tensor/Tensor.h'
+                path_include + 'utils/manageTrain.h'
+        ]
+        proto = []
+        for fl in code:
+                proto += getProtoFromCode(open(fl, 'r').read())
 
+        fout = open('../gab_py_c/manageTrainWrapper_functions.py', 'w')
+        lprint = print
 
-path_include = "C:/Users/Henrique/Desktop/Rede-convolucional/CNN_GPU/include/cnn/"
-code = [
-	path_include + 'cnn.h',
-	path_include + 'libraryPythonWrapper.h',
-	path_include + 'tensor/Tensor.h'
-]
-proto = []
-for fl in code:
-	proto += getProtoFromCode(open(fl, 'r').read())
+        clib = 'clib'
+        ctyp = 'c'
+        def print(*args, file=fout, **kw):
+                return lprint(*args, file=file, **kw)
 
-fout = open('../gab_py_c/cnn_wraper_function.py', 'w')
-lprint = print
+        print("from cnn_wrapper_structs import *")
 
-clib = 'clib'
-ctyp = 'c'
-def print(*args, file=fout, **kw):
-	return lprint(*args, file=file, **kw)
+        for retorno, nome, argumentos in proto:
+                ag = []
+                for a in argumentos:
+                        ag.append(CPYFUNCTYPES[a])
+                print(f'{clib}.{nome}.argtypes = [{",".join(ag)}]'.replace("{ctype}",ctyp))
+                print(f'{clib}.{nome}.restype = {CPYFUNCTYPES[retorno]}'.replace("{ctype}",ctyp))
+        fout.close()
 
-print("from cnn_wrapper_structs import *")
-
-for retorno, nome, argumentos in proto:
-	ag = []
-	for a in argumentos:
-		ag.append(CPYFUNCTYPES[a])
-	print(f'{clib}.{nome}.argtypes = [{",".join(ag)}]'.replace("{ctype}",ctyp))
-	print(f'{clib}.{nome}.restype = {CPYFUNCTYPES[retorno]}'.replace("{ctype}",ctyp))
-fout.close()
+        lprint('finalizado')

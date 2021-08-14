@@ -203,7 +203,7 @@ class Activity(Thread):
 		return filedialog.askopenfilename(defaultextension=types, filetypes=types)
 
 	def putGraphics(self, frame=None, x=None, y=None, width=None, height=None, title='', xlabel=None, data=1,
-					legend=['Tensão(V)'], ):
+					legend=['Tensão(V)'],ylim=[-15,15]):
 		if frame is None: frame = self.frame
 		figure = plt.Figure(figsize=(6, 6), dpi=100)
 		ax = figure.add_subplot(111)
@@ -214,7 +214,7 @@ class Activity(Thread):
 		else:
 			gp, gp2 = ax.plot([0], [0], [0], [0])
 		ax.set_title(title)
-		ax.set_ylim(-15, 15)
+		ax.set_ylim(ylim[0],ylim[1])
 		ax.grid()
 		ax.legend(legend)
 		if xlabel != None:

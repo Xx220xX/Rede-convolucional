@@ -1,4 +1,5 @@
 #include <conio.h>
+#include <windows.h>
 #include "utils/manageTrain.h"
 #include "utils/vectorUtils.h"
 
@@ -22,17 +23,18 @@ void UpdateFitnes(ManageTrain *t);
 
 int main(int arg, char **args) {
 	system("chcp 65001");
-//	printf("##############################\n");
+	//	printf("##############################\n");
 //	printf("Gabriela IA\n");
 //	printf("email: gab.cnn.ia@gmail.com\n");
 //	printf("Versão %s\n", getVersion());
 //	printf("##############################\n");
-
+char *file = "D:\\Henrique\\treino_ia\\treino_numero_0_9\\TESTE_NUMEROS_0_9.lua";
 	if (arg != 2) {
 		fprintf(stderr, "É esperado um arquivo lua para iniciar o treinamento");
-		return -1;
+//		return -1;
 	}
-	ManageTrain manageTrain = createManageTrain(args[1], 0.1, 0.0, 0.0);
+
+	ManageTrain manageTrain = createManageTrain(file, 0.1, 0.0, 0.0);
 	manage2WorkDir(&manageTrain);
 //	ManageTrainSetEvent(manageTrain.OnloadedImages, onLoad);
 //	ManageTrainSetEvent(manageTrain.OnInitTrain, OnInitTrain);
@@ -55,9 +57,7 @@ int main(int arg, char **args) {
 }
 
 void onLoad(ManageTrain *t) {
-
 	printf("Imagens carregadas com sucesso\n");
-
 //	fflush(stderr);
 //	fflush(stdout);
 //	char name[100];
@@ -109,16 +109,16 @@ void UpdateTrain(Estatistica *t) {
 	double imps = 0;
 	if (t->tr_time)
 		imps = (t->tr_epoca_atual * t->tr_numero_imagens + t->tr_imagem_atual) / (double) t->tr_time * 1000.0;
-	size_t tmp_restante_epoca = (t->tr_numero_imagens - t->tr_imagem_atual) / imps;
+	size_t tmp_restante_epoca = round((t->tr_numero_imagens - t->tr_imagem_atual-1) / imps);
 	size_t tmp_restante_treino =
-			((t->tr_numero_epocas - t->tr_epoca_atual) * t->tr_numero_imagens + t->tr_numero_imagens -
-			 t->tr_imagem_atual) / imps;
+			round(((t->tr_numero_epocas - t->tr_epoca_atual-1) * t->tr_numero_imagens + t->tr_numero_imagens -
+			 t->tr_imagem_atual-1) / imps);
 	printf("epoca %d Imagem %d total %u "
-		   "%.lf im/s tempo restante %lld:%02lld:%02lld "
-		   "tempo para o fim da epoca %lld:%02lld:%02lld \n",
+		   "%.2lf im/s tempo restante %lld:%02lld:%02lld "
+		   "tempo para o fim treino %lld:%02lld:%02lld \n",
 		   t->tr_epoca_atual,
 		   t->tr_imagem_atual,
-		   (t->tr_numero_imagens - t->tr_imagem_atual),
+		   (t->tr_numero_imagens ),
 		   imps,
 		   tmp_restante_epoca / 3600,
 		   (tmp_restante_epoca % 3600) / 60,
@@ -136,4 +136,5 @@ void UpdateTrain(Estatistica *t) {
 			manageTrainSetRun((ManageTrain *) t, 0);
 		}
 	}
+	Sleep(100);
 }

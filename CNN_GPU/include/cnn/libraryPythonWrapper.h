@@ -3,12 +3,12 @@
 
 
 #include "cnn.h"
-
+#include "cnn/utils/manageTrain.h"
 
 typedef struct {
 	void *p;
 } Pointer;
-
+void createManageTrainPy(ManageTrain *self, char *luafile, double tx_aprendizado, double momento, double decaimento);
 void createCnnPy(Pointer *p, double hitLearn, double momento, double decaimentoDePeso,
                 UINT inx, UINT iny, UINT inz);
 

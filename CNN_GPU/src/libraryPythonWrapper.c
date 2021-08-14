@@ -1,5 +1,6 @@
-#include "../include/cnn/libraryPythonWrapper.h"
+#include "libraryPythonWrapper.h"
 #include "cnn/utils/defaultkernel.h"
+
 
 
 
@@ -76,4 +77,9 @@ void Py_getCnnOutPutAsPPM(Cnn c, Pointer *p, size_t *h, size_t *w) {
 char *camadaToString(Camada c) {
 	c->toString(c);
 	return c->__string__;
+}
+
+void createManageTrainPy(ManageTrain *self, char *luafile, double tx_aprendizado, double momento, double decaimento) {
+	ManageTrain tmp  = createManageTrain(luafile,tx_aprendizado,momento,decaimento);
+	memcpy(self,&tmp,sizeof (ManageTrain));
 }

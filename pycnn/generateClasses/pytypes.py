@@ -42,6 +42,7 @@ CPYTYPES = {'bool': '{ctypes}.c_bool',
             'fv3d': '{ctypes}.CFUNCTYPE({ctypes}.c_int,{ctypes}.c_void_p,{ctypes}.c_double,{ctypes}.c_double,{ctypes}.c_double)',
             'f4v': '{ctypes}.CFUNCTYPE({ctypes}.c_int,{ctypes}.c_void_p,{ctypes}.c_void_p,{ctypes}.c_void_p,{ctypes}.c_void_p)',
             'cfv': '{ctypes}.CFUNCTYPE({ctypes}.c_char_p,{ctypes}.c_void_p)',
+            'ManageEvent': '{ctypes}.CFUNCTYPE(None,{ctypes}.c_void_p)',
             'cl_context':'{ctypes}.c_void_p',
             'QUEUE':'{ctypes}.c_void_p',
             'UINT':'{ctypes}.c_uint',
@@ -53,17 +54,24 @@ CPYTYPES = {'bool': '{ctypes}.c_bool',
             'Typecamada':'Camada',
             'Tensor':'TOPOINTER(Tensor)',
             'TensorChar':'TOPOINTER(Tensor)',
-            'Kernel':'TOPOINTER(Kernel)',
+            'Kernel':'{ctypes}.c_void_p',
+            'atomic_int':'{ctypes}.c_uint',
+            'pthread_cond_t':'{ctypes}.c_void_p',
+            #'Kernel':'TOPOINTER(Kernel)',
             }
 
 CPYTYPES_P = {
             'char': '{ctypes}.c_char_p',
             'void': '{ctypes}.c_void_p',
             'wchar':'{ctypes}.c_wchar_p',
+            'WrapperCL':'{ctypes}.c_void_p',
+            'pthread_t':'{ctypes}.c_void_p',
+           
+            
             }
 
 CPYFUNCTYPES = {
-	'Cnn':'{ctype}.c_void_p',
+	'Cnn':'TOPOINTER(Cnn)',
 	'WrapperCL *':'{ctype}.c_void_p',
 	'Params':'Params',
 	'UINT':'{ctype}.c_uint32',
@@ -91,6 +99,14 @@ CPYFUNCTYPES = {
 	'UINT *':'{ctype}.c_void_p',
 	'Tensor *':'{ctype}.c_void_p',
 	'Kernel':'{ctype}.c_void_p',
+        'ManageTrain *':'{ctype}.c_void_p',
+        'ManageTrain':'{ctype}.c_void_p',
+        'ManageEvent *':'{ctype}.c_void_p',
+        'ManageEvent':'ManageEvent',
+        'cl_command_queue':'{ctype}.c_void_p',
+        'unsigned int':'{ctype}.c_uint',
+        
+        
 }
 def toPointer(ctp):
     if ctp in CPYTYPES_P:
