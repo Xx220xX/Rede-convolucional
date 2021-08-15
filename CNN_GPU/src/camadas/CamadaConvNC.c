@@ -45,7 +45,7 @@ const char *tostringConvNc(CamadaConvNc c) {
 }
 
 
-int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, Exception *error) {
+int ConvNcRandomize(CamadaConvNc c, WrapperCL *cl, CNN_ERROR *error) {
 	UINT fx = c->filtros->x, fy = c->filtros->y,
 			inz = c->super.entrada->z,
 			numeroFiltros = c->numeroFiltros;
@@ -154,7 +154,7 @@ int calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
 
 }
 
-void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, Exception *error) {
+void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
@@ -178,7 +178,7 @@ void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, Exception *error) {
 }
 
 Camada carregarConvNc(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
-                      Params params, Exception *error) {
+					  Params params, CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -225,9 +225,9 @@ void releaseConvNc(CamadaConvNc *pc) {
 
 
 Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
-                    UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
-                    UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-                    Tensor entrada, Params params, char usehost, Exception *error, int randomize) {
+					UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
+					UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
+					Tensor entrada, Params params, char usehost, CNN_ERROR *error, int randomize) {
 	if (error->error)return NULL;
 	CamadaConvNc c = (CamadaConvNc) alloc_mem(1, sizeof(TypecamadaConvNc));
 	__newCamada__(&c->super, cl, CONVNC, entrada, queue, params,

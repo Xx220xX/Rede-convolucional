@@ -22,8 +22,8 @@ typedef struct {
 
 
 Camada createRelu(WrapperCL *cl, QUEUE queue, unsigned int inx, unsigned int iny,
-                  unsigned int inz, Tensor entrada,
-                  char usehost, Exception *error);
+				  unsigned int inz, Tensor entrada,
+				  char usehost, CNN_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADA_RELU_H

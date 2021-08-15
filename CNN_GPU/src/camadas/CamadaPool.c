@@ -90,7 +90,7 @@ int calc_gradsPool(CamadaPool c, Tensor GradNext) {
 }
 
 
-void salvarPool(WrapperCL *cl, CamadaPool c, FILE *dst, Exception *error) {
+void salvarPool(WrapperCL *cl, CamadaPool c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
@@ -104,7 +104,7 @@ void salvarPool(WrapperCL *cl, CamadaPool c, FILE *dst, Exception *error) {
 }
 
 Camada carregarPool(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-                    Params params, Exception *error) {
+					Params params, CNN_ERROR *error) {
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')
@@ -123,10 +123,10 @@ Camada carregarPool(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor ent
 }
 
 Camada createPool(WrapperCL *cl, cl_command_queue queue,
-                  UINT passox, UINT passoy, UINT filtrox, UINT filtroy,
-                  UINT inx, UINT iny, UINT inz,
-                  Tensor entrada, Params params,
-                  char usehost, Exception *error) {
+				  UINT passox, UINT passoy, UINT filtrox, UINT filtroy,
+				  UINT inx, UINT iny, UINT inz,
+				  Tensor entrada, Params params,
+				  char usehost, CNN_ERROR *error) {
 	CamadaPool c = (CamadaPool) alloc_mem(1, sizeof(Typecamadapool));
 	c->passox = passox;
 	c->passoy = passoy;

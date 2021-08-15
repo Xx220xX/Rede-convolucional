@@ -107,8 +107,8 @@ typedef struct typetensor {
 #define newTensorChar(context, queue, x, y, z, flag, error)new_Tensor(context,queue,flag|TENSOR_CHAR,x,y,z,1,error,NULL)
 #define newTensor4D(context, queue, x, y, z, w, flag, error)new_Tensor(context,queue,flag|TENSOR4D,x,y,z,w,error,NULL)
 
-Tensor new_Tensor(cl_context context, QUEUE queue, char tensor_flag, UINT x, UINT y, UINT z, UINT w, Exception *error,
-                  void *p);
+Tensor new_Tensor(cl_context context, QUEUE queue, char tensor_flag, UINT x, UINT y, UINT z, UINT w, CNN_ERROR *error,
+				  void *p);
 
 void printTensor(QUEUE q, Tensor t, FILE *f);
 

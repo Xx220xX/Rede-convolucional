@@ -58,8 +58,6 @@ def cvarToPy(variables: list):
 
 
 #outfile = open('../gab_py_c/cnn_wrapper_structs.py', 'w')
-outfile = open('manageTrain.py', 'w')
-ctypes_name = 'c'
 
 def putClassInFile(file_h, fpy, ctypes_name='c'):
     c_h = removeComents(open(file_h, 'r').read())
@@ -72,15 +70,19 @@ def putClassInFile(file_h, fpy, ctypes_name='c'):
         print(f"class {nomes[0]}({ctypes_name}.Structure):", file=fpy)
         print("\t_fields_ = [", file=fpy)
         for v in variablespy:
-            print(f"\t\t('{v[0]}',{v[1].replace('{ctypes}', ctypes_name)}),", file=fpy)
+            print(f"\t\t('{v[0]}', {v[1].replace('{ctypes}', ctypes_name)}),", file=fpy)
         print("\t]", file=fpy)
         for n in nomes[1:]:
             print(f"{n} = {nomes[0]}", file=fpy)
+        print('\n',file=fpy)
 
 if __name__ == '__main__':
+    outfile = None
+    ctypes_name = 'c'
+
     path_include = r"D:/Henrique/Rede-convolucional/CNN_GPU/include/cnn/"
 
-    camadas = [path_include + 'utils/manageTrain.h']
+    camadas = [path_include + 'tensor/Tensor.h']
 
     # gg = [path_include + 'gpu/Kernel.h'] + \
     #           [path_include+'tensor/Tensor.h'] + \
@@ -106,5 +108,5 @@ if __name__ == '__main__':
 
     for file in camadas:
         putClassInFile(file, outfile)
-    outfile.close()
+    
     print('finalizado')

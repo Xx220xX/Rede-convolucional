@@ -37,7 +37,7 @@ typedef struct Cnn {
 	void *L;
 	List_args luaArgs;
 	fv releaseL;
-	Exception error;
+	CNN_ERROR error;
 } *Cnn, TypeCnn;
 
 ///Cria uma Cnn
@@ -50,12 +50,12 @@ void CnnRemoveLastLayer(Cnn c);
 
 /// Cria uma Cnn a partir de um kernel em um arquivo
 Cnn createCnnWithWrapperFile(const char *kernelFile, Params p, UINT inx, UINT iny, UINT inz,
-                             unsigned long long int devicetype);
+							 unsigned long long int devicetype);
 
 
 /// Cria uma Cnn a partir de um kernel em uma string
 Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, UINT iny,
-                                UINT inz, ULL devicetype);
+								UINT inz, ULL devicetype);
 
 /// Calcula o erro gerada na saida da rede
 int CnnCalculeError(Cnn c);
@@ -68,11 +68,11 @@ int CnnGetIndexMax(Cnn c);
 int Convolucao(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros);
 
 int ConvolucaoNcausal(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy,
-                      UINT largx, UINT largy,
-                      UINT numeroDeFiltros);
+					  UINT largx, UINT largy,
+					  UINT numeroDeFiltros);
 
 int Pooling(Cnn c, char tensor_flag, UINT passox, UINT passoy,
-            UINT filtrox, UINT filtroy);
+			UINT filtrox, UINT filtroy);
 
 int PoolingAv(Cnn c, char tensor_flag, UINT passox, UINT pasoy, UINT fx, UINT fy);
 
@@ -109,8 +109,8 @@ void normalizeGPU(Cnn c, double *input, double *output, int len, double maximo, 
 
 
 void normalizeGPUSpaceKnow(Cnn c, double *input, double *output, int len, double input_maximo,
-                           double input_minimo,
-                           double maximo, double minimo);
+						   double input_minimo,
+						   double maximo, double minimo);
 
 void printCnn(Cnn c);
 

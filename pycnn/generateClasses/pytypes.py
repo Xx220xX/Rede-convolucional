@@ -55,8 +55,10 @@ CPYTYPES = {'bool': '{ctypes}.c_bool',
             'Tensor':'TOPOINTER(Tensor)',
             'TensorChar':'TOPOINTER(Tensor)',
             'Kernel':'{ctypes}.c_void_p',
+            'ManageEvent':'{ctypes}.c_void_p',
             'atomic_int':'{ctypes}.c_uint',
             'pthread_cond_t':'{ctypes}.c_void_p',
+            'char_500':'{ctypes}.c_char_p*EXCEPTION_MAX_MSG_SIZE',
             #'Kernel':'TOPOINTER(Kernel)',
             }
 
@@ -94,7 +96,7 @@ CPYFUNCTYPES = {
 	'Tensor':'{ctype}.c_void_p',
 	'cl_context':'{ctype}.c_void_p',
 	'QUEUE':'{ctype}.c_void_p',
-	'Exception *':'{ctype}.c_void_p',
+	'CNN_ERROR *':'{ctype}.c_void_p',
 	'size_t':'{ctype}.c_uint64',
 	'UINT *':'{ctype}.c_void_p',
 	'Tensor *':'{ctype}.c_void_p',
@@ -102,7 +104,7 @@ CPYFUNCTYPES = {
         'ManageTrain *':'{ctype}.c_void_p',
         'ManageTrain':'{ctype}.c_void_p',
         'ManageEvent *':'{ctype}.c_void_p',
-        'ManageEvent':'ManageEvent',
+        'ManageEvent':'{ctype}.c_void_p',
         'cl_command_queue':'{ctype}.c_void_p',
         'unsigned int':'{ctype}.c_uint',
         

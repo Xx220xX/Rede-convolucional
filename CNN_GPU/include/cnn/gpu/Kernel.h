@@ -25,13 +25,16 @@ typedef struct _Kernel {
 #ifndef EXCEPTION_MAX_MSG_SIZE
 #define EXCEPTION_MAX_MSG_SIZE 500
 #endif
+
+typedef char char_500[EXCEPTION_MAX_MSG_SIZE] ;
+
 typedef struct Exception {
 	cl_int error;
-	char msg[EXCEPTION_MAX_MSG_SIZE];
-} Exception;
+	char_500 msg;
+} CNN_ERROR;
 
 
-Kernel __newKernel(void *pointer_clprogram, Exception *error, void *pointer_char_name_function, int n_args, ...);
+Kernel __newKernel(void *pointer_clprogram, CNN_ERROR *error, void *pointer_char_name_function, int n_args, ...);
 
 
 void __releaseKernel(Kernel *selfp);
@@ -43,7 +46,7 @@ int __kernel_run_recursive(Kernel, QUEUE, size_t, size_t, ...);
 void __printKernel(Kernel self);
 
 Kernel
-__newKernelHost(void *, Exception *, void *, int, ...);
+__newKernelHost(void *, CNN_ERROR *, void *, int, ...);
 
 
 void __releaseKernelHost(Kernel *);

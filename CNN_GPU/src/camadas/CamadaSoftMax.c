@@ -77,7 +77,7 @@ int calc_gradsSoftMax(CamadaSoftMax c, Tensor GradNext) {
 
 }
 
-void salvarSoftMax(WrapperCL *cl, CamadaSoftMax c, FILE *dst, Exception *error) {
+void salvarSoftMax(WrapperCL *cl, CamadaSoftMax c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
@@ -89,7 +89,7 @@ void salvarSoftMax(WrapperCL *cl, CamadaSoftMax c, FILE *dst, Exception *error) 
 }
 
 Camada carregarSoftMax(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-                       Params params, Exception *error) {
+					   Params params, CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -105,7 +105,7 @@ Camada carregarSoftMax(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor 
 }
 
 Camada createSoftMax(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsigned int iny,
-                     unsigned int inz, Tensor entrada, char usehost, Exception *error) {
+					 unsigned int inz, Tensor entrada, char usehost, CNN_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaSoftMax c = (CamadaSoftMax) alloc_mem(1, sizeof(TypecamadaSoftMax));

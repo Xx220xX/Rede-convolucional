@@ -8,9 +8,11 @@
 typedef struct {
 	void *p;
 } Pointer;
+
 void createManageTrainPy(ManageTrain *self, char *luafile, double tx_aprendizado, double momento, double decaimento);
+
 void createCnnPy(Pointer *p, double hitLearn, double momento, double decaimentoDePeso,
-                UINT inx, UINT iny, UINT inz);
+				 UINT inx, UINT iny, UINT inz);
 
 void releaseCnnWrapper(Pointer *p);
 
@@ -23,7 +25,6 @@ int CnnLoadByFile(Cnn c, char *fileName);
 int openFILE(Pointer *p, char *fileName, char *mode);
 
 int closeFile(Pointer *p);
-
 
 void initRandom(long long int seed);
 

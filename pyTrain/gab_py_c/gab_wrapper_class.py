@@ -1,4 +1,10 @@
-from gab_wrapper_functions import *
+try:
+	from gab_wrapper_structs import *
+	from gab_wrapper_load_dll import *
+except Exception:
+	from gab_py_c.gab_wrapper_structs import *
+	from gab_py_c.gab_wrapper_load_dll import *
+import numpy as np
 
 
 class ManageTrain(ManageTrain):
@@ -32,3 +38,29 @@ class ManageTrain(ManageTrain):
 		anotherThread = int(anotherThread)
 		clib.manageTrainLoop(c.addressof(self), anotherThread)
 
+	def save(self, file_name):
+		file_name = file_name.encode('utf-8')
+		return clib.CnnSaveInFile(c.addressof(self), file_name)
+
+
+class Camada(Camada):
+	def __repr__(self):
+		t = self.toString(c.addressof(self))
+		t = t.value.decode('utf-8')
+		return t
+
+
+class Cnn(Cnn):
+	def __repr__(self):
+		t = []
+		for l in range(self.size):
+			t.append(str(self.camadas[l]))
+		return '\n'.join(t)
+
+
+class Tensor(Tensor):
+	def getvalues(self, ):
+		pass
+
+	def getvalues_np(self):
+		pass

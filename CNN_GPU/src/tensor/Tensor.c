@@ -4,10 +4,10 @@
 
 #include "tensor/Tensor.h"
 
-void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error, void *p);
+void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, CNN_ERROR *error, void *p);
 
-Tensor new_Tensor(cl_context context, QUEUE queue, char tensor_flag, UINT x, UINT y, UINT z, UINT w, Exception *error,
-                  void *p) {
+Tensor new_Tensor(cl_context context, QUEUE queue, char tensor_flag, UINT x, UINT y, UINT z, UINT w, CNN_ERROR *error,
+				  void *p) {
 	if (error->error)return NULL;
 	Tensor t = (Tensor) alloc_mem(1, sizeof(struct typetensor));
 	t->x = x;
@@ -107,7 +107,7 @@ void releaseTensor(Tensor *t) {
 }
 
 
-void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, Exception *error, void *p) {
+void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, CNN_ERROR *error, void *p) {
 	if (error->error)return;
 	//int lencontext = sprintf(error->context + strlen(error->context), "/%s", "__fillTensor__");
 #if  (RUN_KERNEL_USING_GPU != 1)

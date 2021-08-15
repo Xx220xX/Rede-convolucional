@@ -30,7 +30,7 @@ const char *tostringBatchNorm(CamadaBatchNorm c) {
 	return c->super.__string__;
 }
 
-int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, Exception *error);
+int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, CNN_ERROR *error);
 
 
 int ativaBatchNorm(CamadaBatchNorm c) {
@@ -122,7 +122,7 @@ int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext) {
 	return erro;
 }
 
-void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, Exception *error) {
+void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(& c->super.type, sizeof(char), 1, dst);
 	fwrite(& c->super.flag_usehost, sizeof(char), 1, dst);
@@ -140,7 +140,7 @@ void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, Exception *err
 }
 
 Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-                         Params params, Exception *error) {
+						 Params params, CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -164,7 +164,7 @@ Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tenso
 	return (Camada) cm;
 }
 
-int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, Exception *error) {
+int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, CNN_ERROR *error) {
 	UINT inz = c->super.entrada->z;
 	UINT valmax = inz;
 	double max_weight = 1.0 / (valmax);
@@ -220,9 +220,9 @@ void realeaseBatchNorm(CamadaBatchNorm *pc) {
 }
 
 Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
-                       UINT inx, UINT iny,
-                       UINT inz, Tensor entrada, double epsilon, int randomize,
-                       char usehost, Exception *error) {
+					   UINT inx, UINT iny,
+					   UINT inz, Tensor entrada, double epsilon, int randomize,
+					   char usehost, CNN_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaBatchNorm c = (CamadaBatchNorm) alloc_mem(1, sizeof(TypecamadaBatchNorm));

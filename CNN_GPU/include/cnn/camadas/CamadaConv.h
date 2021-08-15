@@ -27,9 +27,9 @@ typedef struct {
 	Kernel kernelConvCalcGrads;
 } *CamadaConv, Typecamadaconv;
 
-Camada createConv(WrapperCL *cl, QUEUE queue, UINT passox, UINT passoy, UINT lenFilterx,UINT lenFiltery,
-                  UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-                  Tensor entrada, Params params, char usehost, Exception *error, int randomize);
+Camada createConv(WrapperCL *cl, QUEUE queue, UINT passox, UINT passoy, UINT lenFilterx, UINT lenFiltery,
+				  UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
+				  Tensor entrada, Params params, char usehost, CNN_ERROR *error, int randomize);
 
 void releaseConv(CamadaConv *pc);
 

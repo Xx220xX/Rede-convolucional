@@ -19,8 +19,7 @@ def TOPOINTER(c_type):
 	tp.__setattr__ = set
 	tp.__repr__ = rep
 	return tp
-
-
+    
 class String(c.Structure):
 	_fields_ = [
 		('d', c.c_char_p),
@@ -74,10 +73,10 @@ class Kernel(c.Structure):
 	]
 
 
-class Exception(c.Structure):
+class CNN_ERROR(c.Structure):
 	_fields_ = [
 		('error', c.c_int),
-		('msg', c.c_char* EXCEPTION_MAX_MSG_SIZE),
+		('msg', c.c_char_p*EXCEPTION_MAX_MSG_SIZE),
 	]
 
 
@@ -102,15 +101,15 @@ class Camada(c.Structure):
 		('queue', c.c_void_p),
 		('context', c.c_void_p),
 		('max_works', c.POINTER(c.c_size_t)),
-		('calc_grads', c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_void_p)),
-		('corrige_pesos', c.CFUNCTYPE(c.c_int, c.c_void_p)),
-		('ativa', c.CFUNCTYPE(c.c_int, c.c_void_p)),
-		('release', c.CFUNCTYPE(c.c_int, c.c_void_p)),
-		('salvar', c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_void_p, c.c_void_p, c.c_void_p)),
-		('toString', c.CFUNCTYPE(c.c_char_p, c.c_void_p)),
-		('getCreateParams', c.CFUNCTYPE(c.c_char_p, c.c_void_p)),
-		('setLearn', c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_char)),
-		('setParams', c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_double, c.c_double, c.c_double)),
+		('calc_grads', c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_void_p)),
+		('corrige_pesos', c.CFUNCTYPE(c.c_int,c.c_void_p)),
+		('ativa', c.CFUNCTYPE(c.c_int,c.c_void_p)),
+		('release', c.CFUNCTYPE(c.c_int,c.c_void_p)),
+		('salvar', c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_void_p,c.c_void_p,c.c_void_p)),
+		('toString', c.CFUNCTYPE(c.c_char_p,c.c_void_p)),
+		('getCreateParams', c.CFUNCTYPE(c.c_char_p,c.c_void_p)),
+		('setLearn', c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_char)),
+		('setParams', c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_double,c.c_double,c.c_double)),
 		('__string__', c.c_char_p),
 	]
 
@@ -275,8 +274,8 @@ class Cnn(c.Structure):
 		('normaErro', c.c_double),
 		('L', c.c_void_p),
 		('luaArgs', List_args),
-		('releaseL', c.CFUNCTYPE(c.c_int, c.c_void_p)),
-		('error', Exception),
+		('releaseL', c.CFUNCTYPE(c.c_int,c.c_void_p)),
+		('error', CNN_ERROR),
 	]
 
 
@@ -323,14 +322,14 @@ class ManageTrain(c.Structure):
 		('sum_erro', c.c_double),
 		('sum_acerto', c.c_int),
 		('current_time', c.c_double),
-		('OnloadedImages', c.CFUNCTYPE(None, c.c_void_p)),
-		('OnfinishEpic', c.CFUNCTYPE(None, c.c_void_p)),
-		('OnInitTrain', c.CFUNCTYPE(None, c.c_void_p)),
-		('OnfinishTrain', c.CFUNCTYPE(None, c.c_void_p)),
-		('OnInitFitnes', c.CFUNCTYPE(None, c.c_void_p)),
-		('OnfinishFitnes', c.CFUNCTYPE(None, c.c_void_p)),
-		('UpdateTrain', c.CFUNCTYPE(None, c.c_void_p)),
-		('UpdateFitnes', c.CFUNCTYPE(None, c.c_void_p)),
+		('OnloadedImages', c.c_void_p),
+		('OnfinishEpic', c.c_void_p),
+		('OnInitTrain', c.c_void_p),
+		('OnfinishTrain', c.c_void_p),
+		('OnInitFitnes', c.c_void_p),
+		('OnfinishFitnes', c.c_void_p),
+		('UpdateTrain', c.c_void_p),
+		('UpdateFitnes', c.c_void_p),
 		('self_release', c.c_char),
 		('real_time', c.c_char),
 		('process', c.c_void_p),
@@ -339,3 +338,5 @@ class ManageTrain(c.Structure):
 		('can_run', c.c_uint),
 		('process_id', c.c_uint),
 	]
+
+

@@ -29,8 +29,8 @@ typedef struct {
 } *CamadaFullConnect, Typecamadafullconnect;
 
 Camada createFullConnect(WrapperCL *cl, QUEUE queue, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida,
-                         Tensor entrada, Params params, int funcaoDeAtivacao, int randomize,
-                         char usehost, Exception *error);
+						 Tensor entrada, Params params, int funcaoDeAtivacao, int randomize,
+						 char usehost, CNN_ERROR *error);
 
 
 

@@ -35,7 +35,7 @@ const char *tostringFullConnect(CamadaFullConnect c) {
 	return c->super.__string__;
 }
 
-int fullRandomize(CamadaFullConnect c, WrapperCL *cl, Exception *error) {
+int fullRandomize(CamadaFullConnect c, WrapperCL *cl, CNN_ERROR *error) {
 	unsigned int inx = c->super.entrada->x;
 	unsigned int iny = c->super.entrada->y;
 	unsigned int inz = c->super.entrada->z;
@@ -132,7 +132,7 @@ int calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext) {
 
 }
 
-void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, Exception *error) {
+void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
@@ -151,8 +151,8 @@ void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, Exception 
 }
 
 Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-                           Params params,
-                           Exception *error) {
+						   Params params,
+						   CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
@@ -178,8 +178,8 @@ Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Ten
 }
 
 Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida,
-                         Tensor entrada, Params params,
-                         int funcaoDeAtivacao, int randomize, char usehost, Exception *error) {
+						 Tensor entrada, Params params,
+						 int funcaoDeAtivacao, int randomize, char usehost, CNN_ERROR *error) {
 	if (error->error)return NULL;
 	CamadaFullConnect c = (CamadaFullConnect) alloc_mem(1, sizeof(Typecamadafullconnect));
 	cl_context context = cl->context;

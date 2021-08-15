@@ -11,7 +11,7 @@
 
 int __id_global__kernel = 0;
 
-Kernel __newKernel(void *pointer_clprogram, Exception *error, void *pointer_char_name_function, int n_args, ...) {
+Kernel __newKernel(void *pointer_clprogram, CNN_ERROR *error, void *pointer_char_name_function, int n_args, ...) {
 	char *f_name = pointer_char_name_function;
 	Kernel self = (Kernel) alloc_mem(1, sizeof(struct _Kernel));
 	if (error->error)return self;
@@ -124,7 +124,7 @@ void __printKernel(Kernel self) {
 }
 
 Kernel
-__newKernelHost(void *pointer_function_kernel, Exception *error, void *pointer_char_name_function, int n_args, ...) {
+__newKernelHost(void *pointer_function_kernel, CNN_ERROR *error, void *pointer_char_name_function, int n_args, ...) {
 	char *f_name = pointer_char_name_function;
 	Kernel self = (Kernel) alloc_mem(1, sizeof(struct _Kernel));
 	if (error->error)return self;
