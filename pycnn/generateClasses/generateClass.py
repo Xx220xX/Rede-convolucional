@@ -67,7 +67,9 @@ def putClassInFile(file_h, fpy, ctypes_name='c'):
         nomes = structGetName(structs)
         variables = structGetvars(structs)
         variablespy = cvarToPy(variables)
-        print(f"class {nomes[0]}({ctypes_name}.Structure):", file=fpy)
+
+        # print(f"class {nomes[0]}({ctypes_name}.Structure):\n\tpass", file=open('tmp.py','a'))
+        print(f"class {nomes[0]}({nomes[0]}):", file=fpy)
         print("\t_fields_ = [", file=fpy)
         for v in variablespy:
             print(f"\t\t('{v[0]}', {v[1].replace('{ctypes}', ctypes_name)}),", file=fpy)

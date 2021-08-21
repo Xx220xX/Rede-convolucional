@@ -6,7 +6,7 @@
 #define GAB_WRAPPERCL_H
 
 
-#include<CL/cl.h>
+#include<CL/opencl.h>
 #include"Kernel.h"
 #include <stdio.h>
 #include"utils/memory_utils.h"
@@ -54,7 +54,7 @@ char *getClError(int error, char *msg, int len_msg);
 CLInfo getClinfo(WrapperCL *cl);
 
 
-#define PERRW(e, x, contextName)if(e){fprintf(stderr,"%s: %s  error code : %d\n\t",contextName,x,e);showError(e);}
-#define PERR(e, format, ...)if(e){fprintf(stderr,format,## __VA_ARGS__);fprintf(stderr," error code:%d\n",e);showError(e);return e;}
-#define PER(e, x, contextName)if(e){fprintf(stderr,"%s: %s error code: %d\n\t",contextName,x,e);showError(e);exit(e);}
+#define PERRW(e, x, contextName)if(e){fprintf(stderr,"%s: %s  error code : %d\n\t",contextName,x,e);}
+#define PERR(e, format, ...)if(e){fprintf(stderr,format,## __VA_ARGS__);fprintf(stderr," error code:%d\n",e);return e;}
+#define PER(e, x, contextName)if(e){fprintf(stderr,"%s: %s error code: %d\n\t",contextName,x,e);exit(e);}
 #endif //GAB_WRAPPERCL_H

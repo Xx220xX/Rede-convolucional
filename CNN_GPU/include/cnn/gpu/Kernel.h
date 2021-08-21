@@ -6,7 +6,7 @@
 #define GABKernel_H
 
 #include "config.h"
-#include<CL/cl.h>
+#include<CL/opencl.h>
 #include "utils/memory_utils.h"
 
 #define K_VOID_P sizeof(cl_mem)

@@ -7,7 +7,7 @@
 #include"utils/time_utils.h"
 #include"utils/dir.h"
 #include "utils/defaultkernel.h"
-#include "windows.h"
+
 
 
 #define HIT_RATE 0
@@ -100,7 +100,7 @@ void train(ManageTrain *t) {
 		for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2train; t->image++) {
 			time_init_train = getms();
 			input = t->imagens->host + (t->imagens->bytes * t->image);
-			output = t->targets->host + (t->targets->y*sizeof(double) * t->image);
+			output = t->targets->host + (t->targets->y * sizeof(double) * t->image);
 			label = ((char *) t->labels->host)[t->image];
 //			printf("imagem %d : label %d: ", t->image,label);
 //			for(int i=0;i<t->targets->y;i++){
@@ -302,12 +302,12 @@ void releaseEstatitica(Estatistica *et) {
 	if (et->ft_info)free_mem(et->ft_info);
 }
 
-int releaseProcess(pthread_t **p_th) {
-	if (!p_th)return 0;
-	pthread_t *process = *p_th;
-	if (!process)return 0;
-	pthread_kill(*process, -1);
-	free_mem(process);
+int releaseProcess(Thread *p_th) {
+	if (!p_th)return 1;
+	Thread process = *p_th;
+	if (!process)return 2;
+	ThreadKill(process, -1);
+	ThreadClose(process);
 	*p_th = NULL;
 	return 0;
 }
@@ -434,9 +434,8 @@ int ManageTrainloadImages(ManageTrain *t) {
 	t->real_time = 1;
 	t->process_id = PROCESS_ID_LOAD;
 	releaseProcess(&t->process);
-	t->process = alloc_mem(1, sizeof(pthread_t));
-	pthread_create(t->process, NULL, (void *(*)(void *)) loadData, t);
-	return pthread_setname_np(*t->process, "Load Imagens");
+	t->process = newThread(loadData, t, NULL);
+	return t->process != NULL;
 //	loadData(t);
 //	return 0;
 }
@@ -444,14 +443,10 @@ int ManageTrainloadImages(ManageTrain *t) {
 int ManageTraintrain(ManageTrain *t) {
 	t->can_run = 1;
 	t->real_time = 1;
-	int rn = t->can_run;
-	printf("can run %d , error %d\n", rn, t->cnn->error.error);
-
 	t->process_id = PROCESS_ID_TRAIN;
 	releaseProcess(&t->process);
-	t->process = alloc_mem(1, sizeof(pthread_t));
-	pthread_create(t->process, NULL, (void *(*)(void *)) train, t);
-	return pthread_setname_np(*t->process, "Train");
+	t->process = newThread(train, t, NULL);
+	return t->process != NULL;
 //	train(t);
 //	return 0;
 }
@@ -459,10 +454,10 @@ int ManageTraintrain(ManageTrain *t) {
 int ManageTrainfitnes(ManageTrain *t) {
 	t->can_run = 1;
 	t->real_time = 1;
+	t->process_id = PROCESS_ID_FITNES;
 	releaseProcess(&t->process);
-	t->process = alloc_mem(1, sizeof(pthread_t));
-	pthread_create(t->process, NULL, (void *(*)(void *)) fitnes, t);
-	return pthread_setname_np(*t->process, "Fitnes");
+	t->process = newThread(fitnes, t, NULL);
+	return t->process != NULL;
 }
 
 void waitEndProces(ManageTrain *t) {
@@ -499,9 +494,13 @@ void __manageTrainloop__(ManageTrain *t) {
 }
 
 void manageTrainLoop(ManageTrain *t, int run_background) {
-	pthread_t tid;
+
 	if (run_background) {
-		pthread_create(&tid, NULL, (void *(*)(void *)) __manageTrainloop__, t);
+		if (t->update_loop){
+			ThreadKill(t->update_loop,-1);
+			ThreadClose(t->update_loop);
+		}
+		t->update_loop = newThread(__manageTrainloop__,t,NULL);
 		return;
 	}
 	__manageTrainloop__(t);

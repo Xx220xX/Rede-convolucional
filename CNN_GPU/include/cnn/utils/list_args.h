@@ -5,7 +5,7 @@
 #ifndef CNN_GPU_LIST_ARGS_H
 #define CNN_GPU_LIST_ARGS_H
 
-#include "string.h"
+#include <string.h>
 #include "memory_utils.h"
 
 #define STREQUALS(x, y)(!strcmp(x,y))

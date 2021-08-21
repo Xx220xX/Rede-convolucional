@@ -1,5 +1,7 @@
 import ctypes as c
 
+from gab_wrapper_class import *
+
 EXCEPTION_MAX_MSG_SIZE = 500
 
 
@@ -20,7 +22,7 @@ def TOPOINTER(c_type):
 	tp.__repr__ = rep
 	return tp
     
-class String(c.Structure):
+class String(String):
 	_fields_ = [
 		('d', c.c_char_p),
 		('size', c.c_size_t),
@@ -28,21 +30,21 @@ class String(c.Structure):
 	]
 
 
-class Dbchar_p(c.Structure):
+class Dbchar_p(Dbchar_p):
 	_fields_ = [
 		('name', c.c_char_p),
 		('value', c.c_char_p),
 	]
 
 
-class List_args(c.Structure):
+class List_args(List_args):
 	_fields_ = [
 		('values', c.POINTER(Dbchar_p)),
 		('size', c.c_int),
 	]
 
 
-class Ponto(c.Structure):
+class Ponto(Ponto):
 	_fields_ = [
 		('x', c.c_size_t),
 		('y', c.c_size_t),
@@ -50,7 +52,7 @@ class Ponto(c.Structure):
 	]
 
 
-class Tensor(c.Structure):
+class Tensor(Tensor):
 	_fields_ = [
 		('data', c.c_void_p),
 		('bytes', c.c_uint),
@@ -64,7 +66,7 @@ class Tensor(c.Structure):
 	]
 
 
-class Kernel(c.Structure):
+class Kernel(Kernel):
 	_fields_ = [
 		('kernel', c.c_void_p),
 		('kernel_name', c.c_char_p),
@@ -73,14 +75,14 @@ class Kernel(c.Structure):
 	]
 
 
-class CNN_ERROR(c.Structure):
+class CNN_ERROR(CNN_ERROR):
 	_fields_ = [
 		('error', c.c_int),
 		('msg', c.c_char_p*EXCEPTION_MAX_MSG_SIZE),
 	]
 
 
-class Params(c.Structure):
+class Params(Params):
 	_fields_ = [
 		('hitLearn', c.c_double),
 		('momento', c.c_double),
@@ -88,7 +90,7 @@ class Params(c.Structure):
 	]
 
 
-class Camada(c.Structure):
+class Camada(Camada):
 	_fields_ = [
 		('type', c.c_char),
 		('flag_releaseInput', c.c_char),
@@ -114,7 +116,7 @@ class Camada(c.Structure):
 	]
 
 
-class CamadaBatchNorm(c.Structure):
+class CamadaBatchNorm(CamadaBatchNorm):
 	_fields_ = [
 		('super', Camada),
 		('Y', TOPOINTER(Tensor)),
@@ -139,7 +141,7 @@ class CamadaBatchNorm(c.Structure):
 	]
 
 
-class CamadaConv(c.Structure):
+class CamadaConv(CamadaConv):
 	_fields_ = [
 		('super', Camada),
 		('filtros', TOPOINTER(Tensor)),
@@ -153,7 +155,7 @@ class CamadaConv(c.Structure):
 	]
 
 
-class CamadaConvNc(c.Structure):
+class CamadaConvNc(CamadaConvNc):
 	_fields_ = [
 		('super', Camada),
 		('filtros', TOPOINTER(Tensor)),
@@ -171,7 +173,7 @@ class CamadaConvNc(c.Structure):
 	]
 
 
-class CamadaDropOut(c.Structure):
+class CamadaDropOut(CamadaDropOut):
 	_fields_ = [
 		('super', Camada),
 		('hitmap', TOPOINTER(Tensor)),
@@ -183,7 +185,7 @@ class CamadaDropOut(c.Structure):
 	]
 
 
-class CamadaFullConnect(c.Structure):
+class CamadaFullConnect(CamadaFullConnect):
 	_fields_ = [
 		('super', Camada),
 		('pesos', TOPOINTER(Tensor)),
@@ -199,7 +201,7 @@ class CamadaFullConnect(c.Structure):
 	]
 
 
-class CamadaPadding(c.Structure):
+class CamadaPadding(CamadaPadding):
 	_fields_ = [
 		('super', Camada),
 		('top', c.c_size_t),
@@ -211,7 +213,7 @@ class CamadaPadding(c.Structure):
 	]
 
 
-class CamadaPool(c.Structure):
+class CamadaPool(CamadaPool):
 	_fields_ = [
 		('super', Camada),
 		('passox', c.c_uint),
@@ -223,7 +225,7 @@ class CamadaPool(c.Structure):
 	]
 
 
-class CamadaPoolAv(c.Structure):
+class CamadaPoolAv(CamadaPoolAv):
 	_fields_ = [
 		('super', Camada),
 		('passox', c.c_uint),
@@ -235,7 +237,7 @@ class CamadaPoolAv(c.Structure):
 	]
 
 
-class CamadaRelu(c.Structure):
+class CamadaRelu(CamadaRelu):
 	_fields_ = [
 		('super', Camada),
 		('kernelReluAtiva', c.c_void_p),
@@ -243,7 +245,7 @@ class CamadaRelu(c.Structure):
 	]
 
 
-class CamadaSoftMax(c.Structure):
+class CamadaSoftMax(CamadaSoftMax):
 	_fields_ = [
 		('super', Camada),
 		('kernelSoftMaxAtiva1', c.c_void_p),
@@ -254,7 +256,7 @@ class CamadaSoftMax(c.Structure):
 	]
 
 
-class Cnn(c.Structure):
+class Cnn(Cnn):
 	_fields_ = [
 		('parametros', Params),
 		('camadas', c.POINTER(Camada)),
@@ -279,7 +281,7 @@ class Cnn(c.Structure):
 	]
 
 
-class Estatistica(c.Structure):
+class Estatistica(Estatistica):
 	_fields_ = [
 		('tr_mse_vector', c.POINTER(c.c_double)),
 		('tr_acertos_vector', c.POINTER(c.c_double)),
@@ -298,7 +300,7 @@ class Estatistica(c.Structure):
 	]
 
 
-class ManageTrain(c.Structure):
+class ManageTrain(ManageTrain):
 	_fields_ = [
 		('et', Estatistica),
 		('cnn', Cnn),
@@ -322,19 +324,18 @@ class ManageTrain(c.Structure):
 		('sum_erro', c.c_double),
 		('sum_acerto', c.c_int),
 		('current_time', c.c_double),
-		('OnloadedImages', c.c_void_p),
-		('OnfinishEpic', c.c_void_p),
-		('OnInitTrain', c.c_void_p),
-		('OnfinishTrain', c.c_void_p),
-		('OnInitFitnes', c.c_void_p),
-		('OnfinishFitnes', c.c_void_p),
-		('UpdateTrain', c.c_void_p),
-		('UpdateFitnes', c.c_void_p),
+		('OnloadedImages', c.CFUNCTYPE(None,c.c_void_p)),
+		('OnfinishEpic', c.CFUNCTYPE(None,c.c_void_p)),
+		('OnInitTrain', c.CFUNCTYPE(None,c.c_void_p)),
+		('OnfinishTrain', c.CFUNCTYPE(None,c.c_void_p)),
+		('OnInitFitnes', c.CFUNCTYPE(None,c.c_void_p)),
+		('OnfinishFitnes', c.CFUNCTYPE(None,c.c_void_p)),
+		('UpdateTrain', c.CFUNCTYPE(None,c.c_void_p)),
+		('UpdateFitnes', c.CFUNCTYPE(None,c.c_void_p)),
 		('self_release', c.c_char),
 		('real_time', c.c_char),
 		('process', c.c_void_p),
 		('update_loop', c.c_void_p),
-		('exist', c.c_void_p),
 		('can_run', c.c_uint),
 		('process_id', c.c_uint),
 	]

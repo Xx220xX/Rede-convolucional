@@ -7,7 +7,7 @@
 
 #include"cnn.h"
 #include <stdatomic.h>
-#include "pthread.h"
+#include "Thread.h"
 #include "utils/String.h"
 
 typedef void (*ManageEvent)(void *);
@@ -82,9 +82,8 @@ typedef struct {
 
 	// id para thread processo (ler imagens, treinar e avaliar rede)
 	char real_time;
-	pthread_t *process;
-	pthread_t *update_loop;
-	pthread_cond_t exist;
+	Thread process;
+	Thread update_loop;
 	// controle do processo
 	atomic_int can_run;
 	atomic_int process_id;

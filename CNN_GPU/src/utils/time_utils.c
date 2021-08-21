@@ -3,17 +3,27 @@
 //
 
 #include "utils/time_utils.h"
-#include <time.h>
+#include <windows.h>
+
 double getns() {
-	struct timespec t = {0};
-	clock_gettime(CLOCK_MONOTONIC, &t);
-	double ns = (double) t.tv_sec * 1.0e9 + t.tv_nsec;
-	return ns;
+	return getus() * 1e3;
+}
+
+double getus() {
+	FILETIME ft;
+	LARGE_INTEGER li;
+	GetSystemTimePreciseAsFileTime(&ft);
+	li.LowPart = ft.dwLowDateTime;
+	li.HighPart = ft.dwHighDateTime;
+	u_int64 ret = li.QuadPart;
+//	ret -= 116444736000000000LL; /* Convert from file time to UNIX epoch time. */
+	return (double) ret / 10.0;
 }
 
 double getms() {
-	return getns() * 1.0e-6;
+	return getus() * 1.0e-3;
 }
-double getsec(){
-	return getns()*1e-9;
+
+double getsec() {
+	return getus() * 1e-6;
 }

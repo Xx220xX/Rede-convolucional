@@ -30,7 +30,6 @@ void initRandom(long long int seed);
 
 void Py_getCnnOutPutAsPPM(Cnn c, Pointer *p, size_t *h, size_t *w);
 
-void freeP(void *p);
 
 
 #endif //LIBRARY_LIBRARY_H

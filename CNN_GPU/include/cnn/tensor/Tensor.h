@@ -143,8 +143,7 @@ int TensorAt(Tensor t, UINT x, UINT y, UINT z, UINT w, UINT *index);
 void releaseTensor(Tensor *t);
 
 
-int dividirVetor(double *v, Tensor m, size_t len, double value, Kernel funcNorm, size_t max_works,
-                 QUEUE queue);
+
 
 
 #endif //CNN_GPU_TENSOR_H

@@ -4,9 +4,10 @@
 
 #ifndef CNN_GPU_TIME_UTILS_H
 #define CNN_GPU_TIME_UTILS_H
-
+#include <time.h>
 double getns();
 
+double getus();
 double getms();
 
 double getsec();

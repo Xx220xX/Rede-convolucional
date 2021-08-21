@@ -64,7 +64,9 @@ from generateClass import *
 file = open(PathOut + file_structs + '.py', 'w')
 
 print(f"import ctypes as {ctypes_name}", file=file)
-print("""
+print(f"""
+from {file_class} import *
+
 EXCEPTION_MAX_MSG_SIZE = 500
 
 
@@ -95,12 +97,8 @@ file.close()
 print('Gerar wrapper de funções')
 file = open(PathOut + file_functions + '.py', 'w')
 print(
-	f'''
-try:
-	from {file_class}  import *
-except Exception:
-	from gab_py_c.{file_class}  import *
-	
+f'''
+from {file_structs}  import *
 ''', file=file)
 
 from generateFunctions import *

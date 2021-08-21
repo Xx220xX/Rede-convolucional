@@ -23,5 +23,7 @@ void salveTensorAsPPM(const char *name, Tensor t, Cnn c);
 
 int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c, UINT w);
 
+int dividirVetor(double *v, Tensor m, size_t len, double value, Kernel funcNorm, size_t max_works,
+				 QUEUE queue);
 
 #endif //CNN_GPU_VECTORUTILS_H

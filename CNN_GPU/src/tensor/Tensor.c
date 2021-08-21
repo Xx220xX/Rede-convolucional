@@ -343,15 +343,6 @@ int TensorPutValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, si
 
 }
 
-int dividirVetor(double *v, Tensor m, size_t len, double value, Kernel funcNorm, size_t max_works,
-                 QUEUE queue) {
-	int error = TensorPutValuesMem(queue, m, v, len * sizeof(double));
-	if (error)return error;
-	kernel_run_recursive(error, funcNorm, queue, len, max_works, K_ARG m, K_ARG value);
-	if (error)return error;
-	error = TensorGetValuesMem(queue, m, v, len * sizeof(double));
-	return error;
-}
 
 
 void printTensor(QUEUE q, Tensor t, FILE *f) {
@@ -363,7 +354,7 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 	v.d = alloc_mem(t->bytes, 1);
 	char buff[EXCEPTION_MAX_MSG_SIZE];
 	int error = 0;
-	fprintf(f, "%u %u %u %u (%s)\n", t->x, t->y, t->z, t->w, printBytes(t->bytes * t->w, buff));
+//	fprintf(f, "%u %u %u %u (%s)\n", t->x, t->y, t->z, t->w, printBytes(t->bytes * t->w, buff));
 	for (int l = 0; l < t->w; l++) {
 		error = TensorGetValuesOffSet(q, t, v.d, l * t->bytes);
 		if (error)break;
@@ -397,7 +388,8 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 	fprintf(f, "\n");
 	free_mem(v.d);
 	if (error) {
-		fprintf(stderr, "printTensor: %d %s", error, getClError(error, buff, EXCEPTION_MAX_MSG_SIZE));
+		fprintf(stderr, "printTensor: %d\n",error);
+//		fprintf(stderr, "printTensor: %d %s", error, getClError(error, buff, EXCEPTION_MAX_MSG_SIZE));
 	}
 
 }
@@ -415,7 +407,7 @@ int TensorGetNorm(QUEUE queue, Tensor t, double *norm) {
 	}
 	if (error) {
 		fprintf(stderr, "TensorGetNorm/TensorGetValuesOffSet(%d of %d):", a, t->w);
-		showError(error);
+//		showError(error);
 		free_mem(v);
 		return error;
 	}

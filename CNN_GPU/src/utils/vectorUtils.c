@@ -145,6 +145,15 @@ int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c, UINT w) {
 }
 
 
+int dividirVetor(double *v, Tensor m, size_t len, double value, Kernel funcNorm, size_t max_works,
+				 QUEUE queue) {
+	int error = TensorPutValuesMem(queue, m, v, len * sizeof(double));
+	if (error)return error;
+	kernel_run_recursive(error, funcNorm, queue, len, max_works, K_ARG m, K_ARG value);
+	if (error)return error;
+	error = TensorGetValuesMem(queue, m, v, len * sizeof(double));
+	return error;
+}
 
 
 
