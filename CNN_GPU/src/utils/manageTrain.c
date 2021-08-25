@@ -7,6 +7,17 @@
 #include"utils/time_utils.h"
 #include"utils/dir.h"
 #include "utils/defaultkernel.h"
+#if (DEBUG_TRAIN ==1)
+#define LOG_TRAIN(fmt,...)printf("Manage train: ");printf(fmt,## __VA_ARGS__);printf("\n");
+#define LOG_TRAIN_v(v,fmv,init,end)\
+{for(int _i_=init;_i_<end;_i_++){  \
+	printf(fmv,v[_i_]);                                   \
+}\
+};
+#else
+#define LOG_TRAIN(fmt,...)
+#define LOG_TRAIN_v(v,fmv,init,end)
+#endif
 
 
 #define HIT_RATE 0
@@ -92,6 +103,7 @@ void train(ManageTrain *t) {
 		if (t->image >= t->n_images2train) {
 			t->image = 0;
 			t->et.tr_imagem_atual = 0;
+			t->sum_acerto = 0;
 		}
 		t->et.tr_numero_imagens = t->n_images2train;
 
@@ -101,22 +113,28 @@ void train(ManageTrain *t) {
 			input = t->imagens->host + (t->imagens->bytes * t->image);
 			output = t->targets->host + (t->targets->y * sizeof(double) * t->image);
 			label = ((char *) t->labels->host)[t->image];
-//			printf("imagem %d : label %d: ", t->image,label);
-//			for(int i=0;i<t->targets->y;i++){
-//				printf("%d ",(int)output[i]);
-//			}
-//			printf("\n");
 
 			CnnCall(t->cnn, input);
+			double *v = alloc_mem(t->cnn->camadas[t->cnn->size-1]->saida->bytes,1);
+			TensorGetValues(t->cnn->queue,t->cnn->camadas[t->cnn->size-1]->saida,v);
+//			LOG_TRAIN("saida :")
+//			LOG_TRAIN_v(v,"%.2lf ",0,10);
+//
+//			free_mem(v);
+//			LOG_TRAIN("\nEsperado:")
+//			LOG_TRAIN_v(output,"%.2lf ",0,10);
 			CnnLearn(t->cnn, output);
-
 			CnnCalculeError(t->cnn, &local_mse);
+
 			cnn_label = CnnGetIndexMax(t->cnn);
 
-			t->sum_acerto += cnn_label == label;
+			t->sum_acerto += (cnn_label == label);
 			t->sum_erro += local_mse;
 			t->et.tr_acertos_vector[t->image] = t->sum_acerto / (t->image + 1.0);
 			t->et.tr_mse_vector[t->image] = t->sum_erro / (t->image + 1.0);
+			t->et.tr_erro_medio =t->et.tr_mse_vector[t->image];
+			t->et.tr_acerto_medio = t->et.tr_acertos_vector[t->image];
+//			LOG_TRAIN("%lf %lf\n",local_mse,t->et.tr_erro_medio)
 			t->et.tr_imagem_atual = t->image;
 			internal_time += getms() - time_init_train;
 			t->current_time = internal_time;

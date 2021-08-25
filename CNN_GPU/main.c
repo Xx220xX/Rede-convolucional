@@ -17,14 +17,14 @@ void OnInitFitnes(ManageTrain *t);
 
 void OnfinishFitnes(ManageTrain *t);
 
-void UpdateTrain(Estatistica *t);
+void UpdateTrain(ManageTrain *t);
 
 void UpdateFitnes(ManageTrain *t);
 
 int main(int arg, char **args) {
 	system("chcp 65001");
 	showVersion();
-	char *file = "D:\\Henrique\\treino_ia\\treino_numero_0_9\\TESTE_NUMEROS_0_9.lua";
+	char *file = "D:\\Henrique\\treino_ia\\treino_numero_0_9\\config_09.lua";
 
 	ManageTrain manageTrain = createManageTrain(file, 0.1, 0.0, 0.0);
 	manage2WorkDir(&manageTrain);
@@ -41,7 +41,9 @@ int main(int arg, char **args) {
 	// Treinar
 	ManageTraintrain(&manageTrain);
 	manageTrainLoop(&manageTrain, 0);
-
+	FILE * f = fopen("t1.cnn","wb");
+	cnnSave(manageTrain.cnn,f);
+	fclose(f);
 
 	getClError(manageTrain.cnn->error.error, manageTrain.cnn->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	printf("%d %s\n", manageTrain.cnn->error.error, manageTrain.cnn->error.msg);
@@ -67,8 +69,9 @@ void OnfinishTrain(ManageTrain *t) {
 	printf("Treino finalizado\n");
 }
 
-void UpdateTrain(Estatistica *t) {
+void UpdateTrain(ManageTrain *mt) {
 	double imps = 0;
+	Estatistica *t =(Estatistica *) mt;
 	if (t->tr_time)
 		imps = (t->tr_epoca_atual * t->tr_numero_imagens + t->tr_imagem_atual) / (double) t->tr_time * 1000.0;
 	size_t tmp_restante_epoca = round((t->tr_numero_imagens - t->tr_imagem_atual - 1) / imps);
@@ -81,20 +84,31 @@ void UpdateTrain(Estatistica *t) {
 			"Tempo estimado final do treino  %lld:%02lld:%02lld\n"
 			"Tempo estimado final da epoca %lld:%02lld:%02lld\n"
 			"Imagens por segundo %.2lf\n"
+			"Mse %lf\n"
+			"Acerto medio %lf\n";
+
+	gotoxy(1,1);
+	int bytes = printf("Epoca %d of %d     imagem %d of %d \n",t->tr_epoca_atual,t->tr_numero_epocas,t->tr_imagem_atual,t->tr_numero_imagens);
+	bytes += printf("Tempo estimado final do treino  %lld:%02lld:%02lld\n",
+				   tmp_restante_treino / 3600,
+				   (tmp_restante_treino % 3600) / 60,
+				   (tmp_restante_treino % 3600) % 60);
+	bytes += printf("Tempo estimado final da epoca %lld:%02lld:%02lld\n",
+				   tmp_restante_epoca / 3600,
+				   (tmp_restante_epoca % 3600) / 60,
+				   (tmp_restante_epoca % 3600) % 60);
+	bytes += printf("Imagens por segundo %.2lf\n",
+					imps);
+	bytes += printf("Mse %lf\n"
+					"Acerto medio %lf\n",
+					t->tr_erro_medio,
+					t->tr_acerto_medio*100);
+
 	static int delete = 0;
-	gotoxy(10,10);
-	delete = printf(format,t->tr_epoca_atual,t->tr_numero_epocas,
-					t->tr_imagem_atual,t->tr_numero_imagens,
-					tmp_restante_epoca / 3600,
-					(tmp_restante_epoca % 3600) / 60,
-					(tmp_restante_epoca % 3600) % 60,
-					tmp_restante_treino / 3600,
-					(tmp_restante_treino % 3600) / 60,
-					(tmp_restante_treino % 3600) % 60,
-					imps) - delete;
-	delete = delete<0?0:delete;
-
-
+	delete = bytes - delete;
+	for(int i=0;i<delete;i++)
+		printf(" ");
+	delete = bytes;
 	char c = 0;
 	if (kbhit()) {
 		c = getche();
