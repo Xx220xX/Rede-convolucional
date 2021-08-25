@@ -1,5 +1,5 @@
-
-from gab_wrapper_structs  import *
+from gab_wrapper_structs import *
+from gab_wrapper_load_dll import *
 
 clib.new_Tensor.argtypes = [c.c_void_p,c.c_void_p,c.c_char,c.c_uint32,c.c_uint32,c.c_uint32,c.c_uint32,c.c_void_p,c.c_void_p]
 clib.new_Tensor.restype = c.c_void_p
@@ -45,9 +45,9 @@ clib.createCnnWithWrapperFile.argtypes = [c.c_void_p,Params,c.c_uint32,c.c_uint3
 clib.createCnnWithWrapperFile.restype = TOPOINTER(Cnn)
 clib.createCnnWithWrapperProgram.argtypes = [c.c_void_p,Params,c.c_uint32,c.c_uint32,c.c_uint32,c.c_uint64]
 clib.createCnnWithWrapperProgram.restype = TOPOINTER(Cnn)
-clib.CnnCalculeError.argtypes = [TOPOINTER(Cnn)]
+clib.CnnCalculeError.argtypes = [TOPOINTER(Cnn),c.c_void_p]
 clib.CnnCalculeError.restype = c.c_int
-clib.CnnCalculeErrorWithOutput.argtypes = [TOPOINTER(Cnn),c.c_void_p]
+clib.CnnCalculeErrorWithOutput.argtypes = [TOPOINTER(Cnn),c.c_void_p,c.c_void_p]
 clib.CnnCalculeErrorWithOutput.restype = c.c_int
 clib.CnnGetIndexMax.argtypes = [TOPOINTER(Cnn)]
 clib.CnnGetIndexMax.restype = c.c_int
@@ -117,20 +117,14 @@ clib.manageTrainLoop.argtypes = [c.c_void_p,c.c_int]
 clib.manageTrainLoop.restype = None
 clib.createManageTrainPy.argtypes = [c.c_void_p,c.c_void_p,c.c_double,c.c_double,c.c_double]
 clib.createManageTrainPy.restype = None
-clib.createCnnPy.argtypes = [c.c_void_p,c.c_double,c.c_double,c.c_double,c.c_uint32,c.c_uint32,c.c_uint32]
+clib.createCnnPy.argtypes = [TOPOINTER(Cnn),c.c_double,c.c_double,c.c_double,c.c_uint32,c.c_uint32,c.c_uint32]
 clib.createCnnPy.restype = None
-clib.releaseCnnWrapper.argtypes = [c.c_void_p]
+clib.releaseCnnWrapper.argtypes = [TOPOINTER(Cnn)]
 clib.releaseCnnWrapper.restype = None
 clib.CnnSaveInFile.argtypes = [TOPOINTER(Cnn),c.c_void_p]
 clib.CnnSaveInFile.restype = c.c_int
-clib.camadaToString.argtypes = [c.c_void_p]
-clib.camadaToString.restype = c.c_void_p
 clib.CnnLoadByFile.argtypes = [TOPOINTER(Cnn),c.c_void_p]
 clib.CnnLoadByFile.restype = c.c_int
-clib.openFILE.argtypes = [c.c_void_p,c.c_void_p,c.c_void_p]
-clib.openFILE.restype = c.c_int
-clib.closeFile.argtypes = [c.c_void_p]
-clib.closeFile.restype = c.c_int
 clib.initRandom.argtypes = [c.c_int64]
 clib.initRandom.restype = None
 clib.Py_getCnnOutPutAsPPM.argtypes = [TOPOINTER(Cnn),c.c_void_p,c.c_void_p,c.c_void_p]

@@ -16,7 +16,6 @@ h_structs = [
 	"utils/list_args.h",
 	"tensor/Tensor.h",
 	"gpu/Kernel.h",
-
 	"camadas/Camada.h",
 	"camadas/CamadaBatchNorm.h",
 	"camadas/CamadaConv.h",
@@ -29,7 +28,8 @@ h_structs = [
 	"camadas/CamadaRelu.h",
 	"camadas/CamadaSoftMax.h",
 	'cnn.h',
-	"utils/manageTrain.h"
+	"utils/manageTrain.h",
+	"libraryPythonWrapper.h",
 ]
 
 h_functions = [
@@ -44,29 +44,42 @@ print('gerar leitura da dll')
 file = open(PathOut + file_load_dll + '.py', 'w')
 
 print(
-	f"""
-import ctypes as {ctypes_name}
+	f"""import ctypes as {ctypes_name}
 import os
-__dir = os.path.abspath(__file__)
-__dir = os.path.realpath(__dir)
-__dir = os.path.dirname(__dir)
-__dll = os.path.join(__dir, '../bin/{dll_file_name}')
+from os.path import isfile
+import sys
 
-{dll_var_name} = {ctypes_name}.CDLL(__dll)
+__dir__ = os.path.abspath(__file__)
+__dir__ = os.path.realpath(__dir__)
+__dir__ = os.path.dirname(__dir__)
+__dir__ = os.path.join(__dir__, '../bin/')
+__dir__ = os.path.realpath(__dir__)
+if __dir__ not in sys.path:
+	sys.path.append(__dir__)
+__dll__ = '{dll_file_name}'
+for path in sys.path:
+	if isfile(path+'/'+__dll__):
+		__dll__ = path+'/'+__dll__
+		break
+
+{dll_var_name} = {ctypes_name}.CDLL(__dll__)
 """, file=file)
 file.close()
 
 # gerar arquivo de estruturas
 # este nao depende da DLL
 print('gerar arquivo de estruturas')
+
+print('lendo arquivo classe')
+
+file_class_value = open(PathOut + file_class + '.py', 'r').read()
+
 from generateClass import *
 
 file = open(PathOut + file_structs + '.py', 'w')
 
 print(f"import ctypes as {ctypes_name}", file=file)
 print(f"""
-from {file_class} import *
-
 EXCEPTION_MAX_MSG_SIZE = 500
 
 
@@ -89,7 +102,10 @@ def TOPOINTER(c_type):
     """, file=file)
 
 for h in h_structs:
-	putClassInFile(pathInclude_h + h, file)
+	# putClassInFile(pathInclude_h + h, file)
+	file_class_value = putClassInString(pathInclude_h + h, file_class_value,ctypes_name)
+
+file.write(file_class_value)
 
 file.close()
 
@@ -97,8 +113,8 @@ file.close()
 print('Gerar wrapper de funções')
 file = open(PathOut + file_functions + '.py', 'w')
 print(
-f'''
-from {file_structs}  import *
+	f'''from {file_structs} import *
+from {file_load_dll} import *
 ''', file=file)
 
 from generateFunctions import *

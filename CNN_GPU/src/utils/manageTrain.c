@@ -57,11 +57,11 @@ void loadData(ManageTrain *t) {
 		return;
 	}
 	Tensor entrada = t->cnn->camadas[0]->entrada;
-	t->imagens = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST | TENSOR_SMEM | TENSOR4D, entrada->x,
+	t->imagens = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST  | TENSOR4D, entrada->x,
 							entrada->y, entrada->z, t->n_images, &t->cnn->error, NULL);
-	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST | TENSOR_SMEM | TENSOR_CHAR, t->n_images, 1,
+	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST  | TENSOR_CHAR, t->n_images, 1,
 						   1, 1, &t->cnn->error, NULL);
-	t->targets = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST | TENSOR_SMEM, t->n_images, t->n_classes, 1,
+	t->targets = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST , t->n_images, t->n_classes, 1,
 							1, &t->cnn->error, NULL);
 	loadImage(t);
 	loadLabels(t);
