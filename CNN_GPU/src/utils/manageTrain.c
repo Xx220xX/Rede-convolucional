@@ -9,7 +9,6 @@
 #include "utils/defaultkernel.h"
 
 
-
 #define HIT_RATE 0
 #define MSE 1
 #define CASOS 2
@@ -72,7 +71,7 @@ void train(ManageTrain *t) {
 	}
 	EVENT(t->OnInitTrain, t);
 
-
+	double local_mse = 0;
 	double time_init_train;
 	double internal_time = t->current_time;
 	double *input;
@@ -111,11 +110,11 @@ void train(ManageTrain *t) {
 			CnnCall(t->cnn, input);
 			CnnLearn(t->cnn, output);
 
-			CnnCalculeError(t->cnn);
+			CnnCalculeError(t->cnn, &local_mse);
 			cnn_label = CnnGetIndexMax(t->cnn);
 
 			t->sum_acerto += cnn_label == label;
-			t->sum_erro += t->cnn->normaErro;
+			t->sum_erro += local_mse;
 			t->et.tr_acertos_vector[t->image] = t->sum_acerto / (t->image + 1.0);
 			t->et.tr_mse_vector[t->image] = t->sum_erro / (t->image + 1.0);
 			t->et.tr_imagem_atual = t->image;
@@ -134,7 +133,7 @@ void fitnes(ManageTrain *t) {
 	CHECK_REAL_TIME(t->real_time);
 	EVENT(t->OnInitFitnes, t);
 
-
+	double local_mse = 0;
 	double *input;
 	double *output;
 	char label;
@@ -169,8 +168,8 @@ void fitnes(ManageTrain *t) {
 		if (cnnLabel == label) {
 			t->et.ft_info[Tensor_Map(info, label, HIT_RATE, 0)]++;
 		}
-		CnnCalculeErrorWithOutput(t->cnn, output);
-		t->et.ft_info[Tensor_Map(info, label, MSE, 0)] += t->cnn->normaErro;
+		CnnCalculeErrorWithOutput(t->cnn, output, &local_mse);
+		t->et.ft_info[Tensor_Map(info, label, MSE, 0)] += local_mse;
 		t->et.ft_imagem_atual = t->image;
 		internal_time += getms() - time_init_train;
 		t->current_time = internal_time;
@@ -496,11 +495,11 @@ void __manageTrainloop__(ManageTrain *t) {
 void manageTrainLoop(ManageTrain *t, int run_background) {
 
 	if (run_background) {
-		if (t->update_loop){
-			ThreadKill(t->update_loop,-1);
+		if (t->update_loop) {
+			ThreadKill(t->update_loop, -1);
 			ThreadClose(t->update_loop);
 		}
-		t->update_loop = newThread(__manageTrainloop__,t,NULL);
+		t->update_loop = newThread(__manageTrainloop__, t, NULL);
 		return;
 	}
 	__manageTrainloop__(t);

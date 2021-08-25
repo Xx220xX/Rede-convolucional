@@ -2,10 +2,10 @@
 #include <windows.h>
 #include "utils/manageTrain.h"
 #include "utils/vectorUtils.h"
+#include "conio2/conio2.h"
 
 // call backs
 void onLoad(ManageTrain *t);
-
 
 void OnfinishEpic(ManageTrain *t);
 
@@ -23,22 +23,15 @@ void UpdateFitnes(ManageTrain *t);
 
 int main(int arg, char **args) {
 	system("chcp 65001");
-	//	printf("##############################\n");
-//	printf("Gabriela IA\n");
-//	printf("email: gab.cnn.ia@gmail.com\n");
-//	printf("Versão %s\n", getVersion());
-//	printf("##############################\n");
-char *file = "D:\\Henrique\\treino_ia\\treino_numero_0_9\\TESTE_NUMEROS_0_9.lua";
-	if (arg != 2) {
-		fprintf(stderr, "É esperado um arquivo lua para iniciar o treinamento");
-//		return -1;
-	}
+	showVersion();
+	char *file = "D:\\Henrique\\treino_ia\\treino_numero_0_9\\TESTE_NUMEROS_0_9.lua";
 
 	ManageTrain manageTrain = createManageTrain(file, 0.1, 0.0, 0.0);
 	manage2WorkDir(&manageTrain);
-//	ManageTrainSetEvent(manageTrain.OnloadedImages, onLoad);
-//	ManageTrainSetEvent(manageTrain.OnInitTrain, OnInitTrain);
-//	ManageTrainSetEvent(manageTrain.OnfinishEpic, OnfinishEpic);
+
+	ManageTrainSetEvent(manageTrain.OnloadedImages, onLoad);
+	ManageTrainSetEvent(manageTrain.OnInitTrain, OnInitTrain);
+	ManageTrainSetEvent(manageTrain.OnfinishEpic, OnfinishEpic);
 	ManageTrainSetEvent(manageTrain.UpdateTrain, UpdateTrain);
 
 	// ler imagens
@@ -58,76 +51,49 @@ char *file = "D:\\Henrique\\treino_ia\\treino_numero_0_9\\TESTE_NUMEROS_0_9.lua"
 
 void onLoad(ManageTrain *t) {
 	printf("Imagens carregadas com sucesso\n");
-//	fflush(stderr);
-//	fflush(stdout);
-//	char name[100];
-//	int len;
-//	double *v;
-//	char *aux;
-//	printf("%u %u %u %u\n",t->imagens->x,t->imagens->y,t->imagens->z,t->imagens->w);
-//	for (int w = 0; w < t->imagens->w && w < 300; w++) {
-//		len = snprintf(name, 100, "imagens/l%d_%d.", w, (int) ((char *) t->labels->host)[w]);
-//		v = t->targets->host + w * t->targets->y * sizeof(double);
-//		aux = name;
-//		for (int i = 0; i < t->n_classes; i++) {
-//			aux = aux + len;
-//			len = snprintf(aux, 100 - (size_t) aux + (size_t) name, "%d_", (int) v[i]);
-//		}
-//		aux = aux + len;
-//		len = snprintf(aux, 100 - (size_t) aux + (size_t) name, ".ppm");
-//
-//		salveTensor4DAsPPM(name, t->imagens, t->cnn, w);
-//	}
+	Sleep(400);
 }
 
 void OnfinishEpic(ManageTrain *t) {
-	printf("Epoca: \n");
+//	printf("Epoca: \n");
 }
 
 void OnInitTrain(ManageTrain *t) {
 	printf("treino iniciado\n");
+
 }
 
 void OnfinishTrain(ManageTrain *t) {
 	printf("Treino finalizado\n");
 }
 
-void OnInitFitnes(ManageTrain *t) {
-
-}
-
-void OnfinishFitnes(ManageTrain *t) {
-
-}
-
-
-void UpdateFitnes(ManageTrain *t) {
-
-}
-
 void UpdateTrain(Estatistica *t) {
 	double imps = 0;
 	if (t->tr_time)
 		imps = (t->tr_epoca_atual * t->tr_numero_imagens + t->tr_imagem_atual) / (double) t->tr_time * 1000.0;
-	size_t tmp_restante_epoca = round((t->tr_numero_imagens - t->tr_imagem_atual-1) / imps);
+	size_t tmp_restante_epoca = round((t->tr_numero_imagens - t->tr_imagem_atual - 1) / imps);
 	size_t tmp_restante_treino =
-			round(((t->tr_numero_epocas - t->tr_epoca_atual-1) * t->tr_numero_imagens + t->tr_numero_imagens -
-			 t->tr_imagem_atual-1) / imps);
-	printf("epoca %d Imagem %d total %u "
-		   "%.2lf im/s tempo restante %lld:%02lld:%02lld "
-		   "tempo para o fim treino %lld:%02lld:%02lld \n",
-		   t->tr_epoca_atual,
-		   t->tr_imagem_atual,
-		   (t->tr_numero_imagens ),
-		   imps,
-		   tmp_restante_epoca / 3600,
-		   (tmp_restante_epoca % 3600) / 60,
-		   (tmp_restante_epoca % 3600) % 60,
-		   tmp_restante_treino / 3600,
-		   (tmp_restante_treino % 3600) / 60,
-		   (tmp_restante_treino % 3600) % 60
+			round(((t->tr_numero_epocas - t->tr_epoca_atual - 1) * t->tr_numero_imagens + t->tr_numero_imagens -
+				   t->tr_imagem_atual - 1) / imps);
 
-	);
+	char *format =
+			"Epoca %d of %d     imagem %d of %d \n"
+			"Tempo estimado final do treino  %lld:%02lld:%02lld\n"
+			"Tempo estimado final da epoca %lld:%02lld:%02lld\n"
+			"Imagens por segundo %.2lf\n"
+	static int delete = 0;
+	gotoxy(10,10);
+	delete = printf(format,t->tr_epoca_atual,t->tr_numero_epocas,
+					t->tr_imagem_atual,t->tr_numero_imagens,
+					tmp_restante_epoca / 3600,
+					(tmp_restante_epoca % 3600) / 60,
+					(tmp_restante_epoca % 3600) % 60,
+					tmp_restante_treino / 3600,
+					(tmp_restante_treino % 3600) / 60,
+					(tmp_restante_treino % 3600) % 60,
+					imps) - delete;
+	delete = delete<0?0:delete;
+
 
 	char c = 0;
 	if (kbhit()) {
@@ -137,4 +103,7 @@ void UpdateTrain(Estatistica *t) {
 		}
 	}
 	Sleep(100);
+	system("cls");
 }
+
+

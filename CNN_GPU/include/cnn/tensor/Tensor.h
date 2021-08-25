@@ -90,7 +90,7 @@ typedef struct Ponto {
  * @flags TENSOR_HOST Faz a copia com um ponteiro host que pode ser usando enquanto o kernel está executando
  * @flags TENSOR_HSTA Faz a copia mas o driver faz alocação dos recursos
  */
-typedef struct typetensor {
+typedef struct Tensor_t {
 	cl_mem data;
 	UINT bytes;
 	UINT x;

@@ -27,18 +27,21 @@ typedef struct Cnn {
 	QUEUE queue;
 	WrapperCL *cl;
 	char releaseCL;
+
 	Kernel kernelsub;
 	Kernel kerneldiv;
 	Kernel kerneldivInt;
 	Kernel kernelNormalize;
 	Kernel kernelInt2Vector;
 	Kernel kernelcreateIMG;
-	double normaErro;
+
 	void *L;
 	List_args luaArgs;
 	fv releaseL;
 	CNN_ERROR error;
-} *Cnn, TypeCnn;
+
+	char release_self;
+} *Cnn, Cnn_t;
 
 ///Cria uma Cnn
 Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz);
@@ -50,7 +53,7 @@ void CnnRemoveLastLayer(Cnn c);
 
 /// Cria uma Cnn a partir de um kernel em um arquivo
 Cnn createCnnWithWrapperFile(const char *kernelFile, Params p, UINT inx, UINT iny, UINT inz,
-							 unsigned long long int devicetype);
+							 uint64_t devicetype);
 
 
 /// Cria uma Cnn a partir de um kernel em uma string
@@ -58,9 +61,9 @@ Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, U
 								UINT inz, ULL devicetype);
 
 /// Calcula o erro gerada na saida da rede
-int CnnCalculeError(Cnn c);
+int CnnCalculeError(Cnn c, double *mse);
 
-int CnnCalculeErrorWithOutput(Cnn c, double *target);
+int CnnCalculeErrorWithOutput(Cnn c, double *target, double *mse);
 
 
 int CnnGetIndexMax(Cnn c);
@@ -117,6 +120,8 @@ void printCnn(Cnn c);
 char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r);
 
 const char *getVersion();
+
+void showVersion();
 
 
 #endif

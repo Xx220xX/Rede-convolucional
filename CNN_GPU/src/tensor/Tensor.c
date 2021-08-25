@@ -9,7 +9,7 @@ void __fillTensor__(Tensor t, cl_context context, QUEUE queue, size_t bytes, CNN
 Tensor new_Tensor(cl_context context, QUEUE queue, char tensor_flag, UINT x, UINT y, UINT z, UINT w, CNN_ERROR *error,
 				  void *p) {
 	if (error->error)return NULL;
-	Tensor t = (Tensor) alloc_mem(1, sizeof(struct typetensor));
+	Tensor t = (Tensor) alloc_mem(1, sizeof(struct Tensor_t));
 	t->x = x;
 	t->y = y;
 	t->z = z;
