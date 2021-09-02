@@ -78,8 +78,7 @@ int __kernel_run_recursive(Kernel self, cl_command_queue queue, size_t globals, 
 	int id = 0;
 
 	va_start(vaList, max_works);
-	for (i = 0; i < self->nArgs - 1; i++) {
-		error = clSetKernelArg(self->kernel, i, self->l_args[i], va_arg(vaList, void *));
+	for (i = 0; i < self->nArgs - 1; i++) {error = clSetKernelArg(self->kernel, i, self->l_args[i], va_arg(vaList, void *));
 		PERR(error, "%s: %zu For i = %d arg kernel", self->kernel_name, self->l_args[i], i);
 	}
 	va_end(vaList);

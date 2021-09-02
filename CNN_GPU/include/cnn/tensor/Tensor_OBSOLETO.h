@@ -29,18 +29,24 @@
  */
 #define Tensor_Map_V(T, xx, yy, zz) ((double *)(T)->host)[(zz)*((T)->y*(T)->x)+(xx)*(T)->y+(yy)]
 
-// TYPE_VALUE    COPY_PTR   TYPEMEMORY     OBSOLETO         3d/4d
-// 000          	 0  		10            1               0
+// TYPE_VALUE    TYPEMEMORY     DRIVE/HOST      3d/4d
+// 000           010            1               0
 
-/// Tensor será armazenado na ram
-#define TENSOR_RAM 0b00100
-/// Tensor será armazenado na memoria compartilhada
-#define TENSOR_SVM 0b01000
-/// Tensor será armazenado no dispositivo(default)
-#define TENSOR_GPU 0b00000
+/// USE DRIVE. Alloca recursos no drive (default).
+#define TENSOR_DRIV 0b00000
+/// USE host.  Os recursos serão alocados apenas no host
+#define TENSOR_HOST 0b00010
 
-/// Será feita a copia do ponteiro passado
-#define TENSOR_CPY 0b10000
+/// valido somente para quando TENSOR_DRIV estiver ativo
+#define TENSOR_NCPY 0b00000
+
+/// será utilizado um ponteiro para criar a memoria no drive.
+#define TENSOR_UPTR 0b00100
+/// será feito o uso da memoria compartilhada
+#define TENSOR_SMEM 0b01000
+/// será feito o uso da memoria comum
+#define TENSOR_HMEM 0b10000
+
 
 /// Tensor 3D (defautl).
 #define TENSOR3D 0b0
@@ -55,8 +61,8 @@
 #define TENSOR_INT 0b01000000
 
 #define TENSOR_MASK_DIM         0x00000001
-#define TENSOR_MASK_MEM         0b00001100
-#define TENSOR_MASK_CPY         0b00010000
+#define TENSOR_MASK_MEM         0b00011100
+#define TENSOR_MASK_DRIVEORHOST 0b00000010
 #define TENSOR_MASK_TYPE        0b01100000
 
 typedef unsigned int UINT;
@@ -88,6 +94,9 @@ typedef struct Ponto {
  * @Atributtes y dimensão y do tensor
  * @Atributtes z dimensão z do tensor
  * @Atributtes w dimensão w do tensor
+ * @flags TENSOR_NCPY Não faz nenhuma copia, toda memoria é armazenada no driver
+ * @flags TENSOR_HOST Faz a copia com um ponteiro host que pode ser usando enquanto o kernel está executando
+ * @flags TENSOR_HSTA Faz a copia mas o driver faz alocação dos recursos
  */
 typedef struct Tensor_t {
 	cl_mem data;

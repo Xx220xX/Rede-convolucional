@@ -1,9 +1,12 @@
 Gabriela IA
 email: gab.cnn.ia@gmail.com
-Versão 2.1.010
+Versão 2.2.009
 
 | Versão | Mudanças |
 | ---- | :---- |
+|2.2.009 | Bug resolvido em kernel.h  | 
+|2.2.008 | Tensores reformulados resolvendo problemas de compatibilidade funcionamento  | 
+|2.2.007 | Mudançãs nos nomes das funções para adotar uma covenção | 
 |2.2.006 | implementado thread de alta prioridade / tempo real | 
 |2.2.005 | mudança no uso de thread | 
 |2.2.004 | Retrocompatibilidade com arquivos de configuração da versão 2.1 | 

@@ -93,7 +93,7 @@ void releaseCnn(Cnn *pc) {
 Cnn createCnnWithWrapperFile(const char *kernelFile, Params p, UINT inx, UINT iny, UINT inz, ULL devicetype) {
 	WrapperCL *cl = (WrapperCL *) alloc_mem(sizeof(WrapperCL), 1);
 	cl->type_device = devicetype;
-	WrapperCL_initbyFile(cl, kernelFile);
+	WrapperCL_init_file(cl, kernelFile);
 	Cnn c = createCnn(cl, p, inx, iny, inz);
 	c->releaseCL = 1;
 	return c;
@@ -104,7 +104,7 @@ Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, U
 	cl->type_device = devicetype;
 	if (kernelprogram == NULL)
 		kernelprogram = default_kernel;
-	WrapperCL_init(cl, kernelprogram);
+	WrapperCl_init(cl, kernelprogram);
 	Cnn c = createCnn(cl, p, inx, iny, inz);
 	c->releaseCL = 1;
 	return c;

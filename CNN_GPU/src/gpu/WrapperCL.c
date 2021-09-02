@@ -7,7 +7,7 @@
 #include<stdlib.h>
 #include<stdarg.h>
 
-int WrapperCL_initbyFile(WrapperCL *self, const char *filename) {
+int WrapperCL_init_file(WrapperCL *self, const char *filename) {
 	FILE *f;
 	f = fopen(filename, "r");
 	if (!f) {
@@ -22,15 +22,13 @@ int WrapperCL_initbyFile(WrapperCL *self, const char *filename) {
 	fseek(f, 0L, SEEK_SET);
 	fread(src, sizeof(char), size, f);
 	src[size - 1] = 0;
-	WrapperCL_init(self, src);
+	WrapperCl_init(self, src);
 	free_mem(src);
 	fclose(f);
 	return 0;
 }
 
-int WrapperCL_init(WrapperCL *self, const char *src) {
-//    printf("%s\n",src);
-	const size_t length = strlen(src);
+int WrapperCl_init(WrapperCL *self, const char *src) {
 	cl_int error = CL_SUCCESS;
 	if (self->type_device == -1) {
 		self->type_device = CL_DEVICE_TYPE_GPU;
@@ -45,36 +43,29 @@ int WrapperCL_init(WrapperCL *self, const char *src) {
 
 	// get size of compute
 	error = clGetDeviceInfo(self->device, CL_DEVICE_MAX_COMPUTE_UNITS,
-	                        sizeof(cl_uint), &self->compute_units, NULL);
+							sizeof(cl_uint), &self->compute_units, NULL);
 	PERR(error, "falha ao pegar informacao do dispositivo", "wrapper init");
 
 	// create context
 	self->context = clCreateContext(NULL, 1, &self->device, 0, NULL, &error);
 	PERR(error, "failed when try create context", "wrapper init");
 
+
+	size_t maxLW = 1;
+	int errorr = clGetDeviceInfo(self->device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxLW, NULL);
+	if (errorr)fprintf(stderr, "falha ao checar valor error id: %d\n", error);
+	self->maxworks = maxLW;
+
 	// compile program kernel
-	self->program = clCreateProgramWithSource(self->context, // contexto
-	                                          1,       // numero de strings
-	                                          &src,    // strings
-	                                          &length, // tamanho de cada string
-	                                          &error   // error check
-	);
+	self->program = compileProgram(self->context, self->device, src, &error);
 	PERR(error, "failed to create program", "wrapper init");
+
 
 	// build
 	cl_int stt = clBuildProgram(self->program, 1, &self->device, NULL, NULL, NULL);
 	if (stt != CL_SUCCESS) {
-		char buff[0x10000];
-		clGetProgramBuildInfo(self->program, self->device, CL_PROGRAM_BUILD_LOG, 0x10000, buff, NULL);
-		fprintf(stderr, "CNN_ERROR: %s\n", buff);
-
 		return stt;
 	}
-	size_t maxLW = 1;
-	int errorr = clGetDeviceInfo(self->device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxLW, NULL);
-	if (errorr)fprintf(stderr, "falha ao checar valor error id: %d\n", error);
-
-	self->maxworks = maxLW;
 	return 0;
 
 }
@@ -85,10 +76,10 @@ void WrapperCL_release(WrapperCL *self) {
 	clReleaseContext(self->context);
 }
 
-char *getClErrorWithContext(int error, char *msg, int len_msg, char *context,...) {
+char *getClErrorWithContext(int error, char *msg, int len_msg, char *context, ...) {
 	va_list args;
-	va_start(args,context);
-	int len = vsnprintf(msg, len_msg,  context,args);
+	va_start(args, context);
+	int len = vsnprintf(msg, len_msg, context, args);
 	va_end(args);
 	getClError(error, msg + len, len_msg - len);
 	return msg;
@@ -285,16 +276,18 @@ void showError(int error) {
 	fprintf(stderr, "%s\n", errormsg);
 }
 
-cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source) {
+cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source, int *error) {
+	if (!source)return NULL;
 	size_t length = strlen(source);
-	int error = 0;
+	int __error__ = 0;
+	if (!error)error = &__error__;
 	cl_program program = clCreateProgramWithSource(ct, // contexto
-	                                               1,       // numero de strings
-	                                               &source,    // strings
-	                                               &length, // tamanho de cada string
-	                                               &error   // error check
+												   1,       // numero de strings
+												   &source,    // strings
+												   &length, // tamanho de cada string
+												   error   // error check
 	);
-	PERRW(error, "failed to create program", "compile program");
+	PERRW(*error, "failed to create program", "compile program");
 	cl_int stt = clBuildProgram(program, 1, &dv, NULL, NULL, NULL);
 	if (stt != CL_SUCCESS) {
 		char buff[0x10000];
@@ -310,23 +303,23 @@ cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source) {
 void printCLInfo(CLInfo cif) {
 	char buff[250];
 	printf("global_mem_cache_size %s\n"
-	       "global_mem_cache_line_size %s\n"
-	       "global_mem_size %s\n"
-	       "local_mem_size %s\n"
-	       "max_mem_alloc_size %s\n"
-	       "max_freq_mhz %u\n"
-	       "max_work_group_size %llu\n"
-	       "max_work_item_sizes (%llu,%llu,%llu)\n\n",
-	       printBytes(cif.global_mem_cache_size, buff),
-	       printBytes(cif.global_mem_cache_line_size, buff),
-	       printBytes(cif.global_mem_size, buff),
-	       printBytes(cif.local_mem_size, buff),
-	       printBytes(cif.max_mem_alloc_size, buff),
-	       cif.max_freq_mhz,
-	       cif.max_work_group_size,
-	       cif.max_work_item_sizes[0],
-	       cif.max_work_item_sizes[1],
-	       cif.max_work_item_sizes[2]
+		   "global_mem_cache_line_size %s\n"
+		   "global_mem_size %s\n"
+		   "local_mem_size %s\n"
+		   "max_mem_alloc_size %s\n"
+		   "max_freq_mhz %u\n"
+		   "max_work_group_size %llu\n"
+		   "max_work_item_sizes (%llu,%llu,%llu)\n\n",
+		   printBytes(cif.global_mem_cache_size, buff),
+		   printBytes(cif.global_mem_cache_line_size, buff),
+		   printBytes(cif.global_mem_size, buff),
+		   printBytes(cif.local_mem_size, buff),
+		   printBytes(cif.max_mem_alloc_size, buff),
+		   cif.max_freq_mhz,
+		   cif.max_work_group_size,
+		   cif.max_work_item_sizes[0],
+		   cif.max_work_item_sizes[1],
+		   cif.max_work_item_sizes[2]
 	);
 }
 
@@ -334,7 +327,7 @@ CLInfo getClinfo(WrapperCL *cl) {
 	CLInfo cif;
 	clGetDeviceInfo(cl->device, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(cl_ulong), &cif.global_mem_cache_size, NULL);
 	clGetDeviceInfo(cl->device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(cl_ulong), &cif.global_mem_cache_line_size,
-	                NULL);
+					NULL);
 	clGetDeviceInfo(cl->device, CL_MEM_SIZE, sizeof(cl_ulong), &cif.global_mem_size, NULL);
 	clGetDeviceInfo(cl->device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_ulong), &cif.local_mem_size, NULL);
 	clGetDeviceInfo(cl->device, CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(cl_uint), &cif.max_freq_mhz, NULL);

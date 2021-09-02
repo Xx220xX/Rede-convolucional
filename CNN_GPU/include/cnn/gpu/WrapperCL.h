@@ -37,15 +37,15 @@ typedef struct {
 
 void printCLInfo(CLInfo cif);
 
-int WrapperCL_init(WrapperCL *self, const char *src);
+int WrapperCl_init(WrapperCL *self, const char *src);
 
-int WrapperCL_initbyFile(WrapperCL *self, const char *filename);
+int WrapperCL_init_file(WrapperCL *self, const char *filename);
 
 void WrapperCL_release(WrapperCL *self);
 
 void showError(int error);
 
-cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source);
+cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source,int *error);
 
 char *getClErrorWithContext(int error, char *msg, int len_msg, char *context,...);
 
