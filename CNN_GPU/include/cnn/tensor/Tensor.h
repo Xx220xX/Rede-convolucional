@@ -136,7 +136,7 @@ int TensorPutValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, si
 int TensorGetNorm(QUEUE queue, Tensor t, double *norm);
 
 int TensorAt(Tensor t, UINT x, UINT y, UINT z, UINT w, UINT *index);
-
+int TensorCpy(QUEUE queue,Tensor tdst,Tensor tsrc,size_t wsrc);
 void releaseTensor(Tensor *t);
 
 

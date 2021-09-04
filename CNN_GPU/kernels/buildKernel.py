@@ -18,7 +18,7 @@ with open('../src/utils/defaultkernel.c', 'w') as fout:
 	fout.write("//\n"
 			   "// Created by hslhe on 14/08/2021.\n"
 			   "//\n"
-			   "#include \"utils/defaultkernel.h\"")
+			   "#include \"utils/defaultkernel.h\"\n")
 
 	fout.write('const char __default_kernel__[] = \n')
 	l = 1

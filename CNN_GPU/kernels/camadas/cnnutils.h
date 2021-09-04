@@ -13,7 +13,6 @@ kV createImg(__global unsigned char *out, Vector v, int vx, int vy, int imi, int
 }
 
 
-
 kV
 normalizeVector(Vector input, Vector saida, double multiplicador, double somador, double subtrator,
 				int k0) {
@@ -39,9 +38,15 @@ kV divIntDo(__global unsigned char *src, Vector v, double value, int k0) {
 
 kV int2vector(__global unsigned char *ints, Vector v, int noptiobs, int k0) {
 	int k = get_global_id(0) + k0;
+
+	int d;
+//	printf("%d %d ",k,ints[k]);
 	for (int j = 0; j < noptiobs; j++) {
-		v[k * noptiobs + j] = (double) (j == ints[k]);
+		d = TensorMap4D(0, j, 0, k, 1, noptiobs, 1);
+//		printf("%d ",d);
+		v[d] = (double) (j == ints[k]);
 	}
+//	printf("\n");
 }
 
 

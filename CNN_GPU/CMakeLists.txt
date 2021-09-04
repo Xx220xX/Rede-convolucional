@@ -76,20 +76,20 @@ set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/c
 #        ${tensor}
 #        ${conio2} include/cnn/config.h)
 
-#add_executable(CNN_GPU main.c ${lua}
-#        src/icon/icon.o
-#        ${cnn}
-#        ${time_util}
-#        ${list_util}
-#        ${dir_util}
-#        ${string_util}
-#        ${default_kernel_util}
-#        ${thread_util}
-#        ${gpu}
-#        ${camadasCNN}
-#        ${memory_util}
-#        ${LCG_RANDOM}
-#        ${tensor}
-#        ${conio2} include/cnn/config.h)
-#
-include(${CMAKE_CURRENT_SOURCE_DIR}/teste/CMakeTensor.txt)
+add_executable(CNN_GPU main.c ${lua}
+        src/icon/icon.o
+        ${cnn}
+        ${time_util}
+        ${list_util}
+        ${dir_util}
+        ${string_util}
+        ${default_kernel_util}
+        ${thread_util}
+        ${gpu}
+        ${camadasCNN}
+        ${memory_util}
+        ${LCG_RANDOM}
+        ${tensor}
+        ${conio2} include/cnn/config.h)
+
+#include(${CMAKE_CURRENT_SOURCE_DIR}/teste/CMakeTensor.txt)

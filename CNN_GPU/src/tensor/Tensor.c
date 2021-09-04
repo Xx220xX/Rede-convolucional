@@ -220,7 +220,7 @@ int TensorPutValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, si
 	switch (t->flag & TENSOR_MASK_MEM) {
 		case TENSOR_RAM:
 		case TENSOR_SVM:
-			memcpy(t->host + offset,data, bytes);
+			memcpy(t->host + offset, data, bytes);
 			return erro;
 		case TENSOR_GPU:
 			erro = clEnqueueWriteBuffer(queue, t->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
@@ -258,20 +258,23 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 							fprintf(f, "%d ", v.i[Tensor_Map(t, i, j, z)]);
 							break;
 						case TENSOR_CHAR:
-							fprintf(f, "%2X ", (int) v.c[Tensor_Map(t, i, j, z)]);
+							fprintf(f, "%02X ", (int) v.c[Tensor_Map(t, i, j, z)]);
 							break;
 						default:
 							free_mem(v.d);
 
 					}
-
-				fprintf(f, "\n");
+				if (t->y != 1)
+					fprintf(f, "\n");
 			}
 			if (z + 1 != t->z)
 				fprintf(f, "\n");
 		}
-		if (l + 1 != t->w)
+		if (l + 1 != t->w) {
+			if (t->y == 1)
+				fprintf(f, "\n");
 			fprintf(f, "------------\n");
+		}
 	}
 	fprintf(f, "\n");
 	free_mem(v.d);
@@ -291,7 +294,7 @@ int TensorGetNorm(QUEUE queue, Tensor t, double *norm) {
 	double *v = alloc_mem(t->bytes, t->w);
 	int a;
 	for (a = 0; a < t->w && !error; ++a) {
-		error = TensorGetValuesOffSet(queue, t, v + a, a * t->bytes);
+		error = TensorGetValuesOffSet(queue, t, v + a * t->bytes, a * t->bytes);
 	}
 	if (error) {
 		fprintf(stderr, "TensorGetNorm/TensorGetValuesOffSet(%d of %d):", a, t->w);
@@ -329,5 +332,33 @@ int TensorAt(Tensor t, UINT x, UINT y, UINT z, UINT w, UINT *index) {
 	}
 
 	return erro;
+}
+
+int TensorCpy(QUEUE queue, Tensor tdst, Tensor tsrc, size_t wsrc) {
+	int erro = 0;
+	if (tdst->bytes != tsrc->bytes)return TENSOR_INVALID_FLAG_DIM;
+	if (wsrc >= tsrc->w)return TENSOR_INVALID_FLAG_DIM;
+	void *tmp;
+	switch (tdst->flag & TENSOR_MASK_MEM) {
+		case TENSOR_RAM:
+		case TENSOR_SVM:
+			erro = TensorGetValuesMemOffSet(queue, tsrc, tdst->host, tdst->bytes, wsrc * tsrc->bytes);
+			PERR(erro, "TensorCpy/clEnqueueReadBuffer ");
+			return erro;
+		case TENSOR_GPU:
+			tmp = alloc_mem(tsrc->bytes, 1);
+			erro = TensorGetValuesMemOffSet(queue, tsrc, tmp, tsrc->bytes, wsrc * tsrc->bytes);
+			if (erro)free_mem(tmp);
+			PERR(erro, "TensorCpy/clEnqueueReadBuffer ");
+			erro = TensorPutValuesMemOffSet(queue, tdst, tmp, tdst->bytes, 0);
+			free_mem(tmp);
+			PERR(erro, "TensorCpy/clEnqueueReadBuffer ");
+			return erro;
+		default:
+			erro = TENSOR_INVALID_FLAG_MEM;
+			PERR(erro, "TensorCpy: INVALID TENSOR FLAG %d ", tdst->flag);
+
+	}
+	return 0;
 }
 

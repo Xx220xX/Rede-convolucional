@@ -600,8 +600,6 @@ Luac_contantes globalConstantes[] = {
 		{FSIGMOID,    "SIGMOID"},
 		{FTANH,       "TANH"},
 		{FRELU,       "RELU"},
-		{TENSOR_NCPY, "NO_CPY"},
-		{TENSOR_SMEM, "SHARED_MEM"},
 		{0, NULL}
 };
 

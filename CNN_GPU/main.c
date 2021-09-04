@@ -40,11 +40,14 @@ int main(int arg, char **args) {
 	ManageTrainSetEvent(manageTrain.UpdateTrain, UpdateTrain);
 
 	// ler imagens
-	ManageTrainloadImages(&manageTrain);
-	manageTrainLoop(&manageTrain, 0);
+	ManageTrainloadImages(&manageTrain,0);
+
+
+//	manageTrainLoop(&manageTrain, 0);
 
 	// Treinar
-	ManageTraintrain(&manageTrain);
+	ManageTraintrain(&manageTrain,1);
+//	system("cls");
 	manageTrainLoop(&manageTrain, 0);
 	FILE * f = fopen("t1.cnn","wb");
 	cnnSave(manageTrain.cnn,f);
@@ -53,6 +56,7 @@ int main(int arg, char **args) {
 	getClError(manageTrain.cnn->error.error, manageTrain.cnn->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	printf("%d %s\n", manageTrain.cnn->error.error, manageTrain.cnn->error.msg);
 	releaseManageTrain(&manageTrain);
+	system("pause");
 	return 0;
 }
 
@@ -122,7 +126,7 @@ void UpdateTrain(ManageTrain *mt) {
 		}
 	}
 	Sleep(100);
-	system("cls");
+//	system("cls");
 }
 
 

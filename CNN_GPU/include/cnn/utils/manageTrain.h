@@ -45,8 +45,8 @@ typedef struct {
 	UINT headers_images;
 	UINT headers_labels;
 
-	Tensor imagens;//double
-	Tensor targets;//double
+	Tensor *imagens;//double
+	Tensor *targets;//double
 	Tensor labels;//char
 
 	// controle de treino
@@ -100,9 +100,9 @@ void manageTrainSetRun(ManageTrain *t, int run);
 
 ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momento, double decaimento);
 
-int ManageTrainloadImages(ManageTrain *t);
+int ManageTrainloadImages(ManageTrain *t,int runBackground);
 
-int ManageTraintrain(ManageTrain *t);
+int ManageTraintrain(ManageTrain *t,int runBackground);
 
 int ManageTrainfitnes(ManageTrain *t);
 

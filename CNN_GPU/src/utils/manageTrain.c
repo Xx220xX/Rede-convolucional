@@ -7,11 +7,12 @@
 #include"utils/time_utils.h"
 #include"utils/dir.h"
 #include "utils/defaultkernel.h"
-#if (DEBUG_TRAIN ==1)
-#define LOG_TRAIN(fmt,...)printf("Manage train: ");printf(fmt,## __VA_ARGS__);printf("\n");
-#define LOG_TRAIN_v(v,fmv,init,end)\
+
+#if (DEBUG_TRAIN == 1)
+#define LOG_TRAIN(fmt, ...)printf("Manage train: ");printf(fmt,## __VA_ARGS__);printf("\n");
+#define LOG_TRAIN_v(v, fmv, init, end)\
 {for(int _i_=init;_i_<end;_i_++){  \
-	printf(fmv,v[_i_]);                                   \
+    printf(fmv,v[_i_]);                                   \
 }\
 };
 #else
@@ -56,13 +57,10 @@ void loadData(ManageTrain *t) {
 		t->process_id = PROCESS_ID_END;
 		return;
 	}
-	Tensor entrada = t->cnn->camadas[0]->entrada;
-	t->imagens = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST  |TENSOR_SMEM| TENSOR4D, entrada->x,
-							entrada->y, entrada->z, t->n_images, &t->cnn->error, NULL);
-	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST  |TENSOR_SMEM| TENSOR_CHAR, t->n_images, 1,
+	t->imagens = alloc_mem(t->n_images, sizeof(struct Tensor_t));
+	t->targets = alloc_mem(t->n_images, sizeof(struct Tensor_t));
+	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_SVM | TENSOR_CHAR, t->n_images, 1,
 						   1, 1, &t->cnn->error, NULL);
-	t->targets = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_HOST|TENSOR_SMEM, t->n_images, t->n_classes, 1,
-							1, &t->cnn->error, NULL);
 	loadImage(t);
 	loadLabels(t);
 
@@ -85,8 +83,9 @@ void train(ManageTrain *t) {
 	double local_mse = 0;
 	double time_init_train;
 	double internal_time = t->current_time;
-	double *input;
-	double *output;
+	Tensor input;
+	Tensor output;
+	Tensor aux_tmp;
 	char label;
 	char cnn_label;
 
@@ -97,9 +96,8 @@ void train(ManageTrain *t) {
 	}
 	t->et.tr_numero_epocas = t->n_epics;
 
-
 	for (; t->can_run && !t->cnn->error.error && t->epic < t->n_epics; t->epic++) {
-		printf("imagem %d of %d\n", t->image, t->n_images);
+//		printf("imagem %d of %d\n", t->image, t->n_images);
 		if (t->image >= t->n_images2train) {
 			t->image = 0;
 			t->et.tr_imagem_atual = 0;
@@ -110,29 +108,40 @@ void train(ManageTrain *t) {
 		t->et.tr_epoca_atual = t->epic;
 		for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2train; t->image++) {
 			time_init_train = getms();
-			input = t->imagens->host + (t->imagens->bytes * t->image);
-			output = t->targets->host + (t->targets->y * sizeof(double) * t->image);
-			label = ((char *) t->labels->host)[t->image];
+			input = t->imagens[t->image];
+			output = t->targets[t->image];
+			label = t->labels->hostc[t->image];
+			aux_tmp = t->cnn->camadas[0]->entrada;
+			t->cnn->camadas[0]->entrada = input;
+			CnnCall(t->cnn, NULL);
+			t->cnn->camadas[0]->entrada = aux_tmp;
 
-			CnnCall(t->cnn, input);
-			double *v = alloc_mem(t->cnn->camadas[t->cnn->size-1]->saida->bytes,1);
-			TensorGetValues(t->cnn->queue,t->cnn->camadas[t->cnn->size-1]->saida,v);
+//			double *v = alloc_mem(t->cnn->camadas[t->cnn->size - 1]->saida->bytes, 1);
+//			TensorGetValues(t->cnn->queue, t->cnn->camadas[t->cnn->size - 1]->saida, v);
 //			LOG_TRAIN("saida :")
 //			LOG_TRAIN_v(v,"%.2lf ",0,10);
 //
 //			free_mem(v);
 //			LOG_TRAIN("\nEsperado:")
 //			LOG_TRAIN_v(output,"%.2lf ",0,10);
-			CnnLearn(t->cnn, output);
+
+//			printf("\nSaída");
+//			printTensor(t->cnn->queue, t->cnn->camadas[t->cnn->size - 1]->saida, stdout);
+//			printTensor(t->cnn->queue, output, stdout);
+			aux_tmp = t->cnn->target;
+			t->cnn->target = output;
+			CnnLearn(t->cnn, NULL);
 			CnnCalculeError(t->cnn, &local_mse);
+			t->cnn->target = aux_tmp;
 
 			cnn_label = CnnGetIndexMax(t->cnn);
 
 			t->sum_acerto += (cnn_label == label);
+
 			t->sum_erro += local_mse;
 			t->et.tr_acertos_vector[t->image] = t->sum_acerto / (t->image + 1.0);
 			t->et.tr_mse_vector[t->image] = t->sum_erro / (t->image + 1.0);
-			t->et.tr_erro_medio =t->et.tr_mse_vector[t->image];
+			t->et.tr_erro_medio = t->et.tr_mse_vector[t->image];
 			t->et.tr_acerto_medio = t->et.tr_acertos_vector[t->image];
 //			LOG_TRAIN("%lf %lf\n",local_mse,t->et.tr_erro_medio)
 			t->et.tr_imagem_atual = t->image;
@@ -162,39 +171,32 @@ void fitnes(ManageTrain *t) {
 	double internal_time = t->current_time;
 
 
-	if (!t->et.ft_info) {
-		t->et.ft_info = alloc_mem(t->n_images * 3, sizeof(double));
-	}
-	info = new_Tensor(NULL,
-					  NULL,
-					  TENSOR_HOST | TENSOR_UPTR, t->n_classes, 3, 1, 1,
-					  &t->cnn->error, t->et.ft_info);
 	t->et.ft_numero_imagens = t->n_images2fitness;
 	t->et.ft_numero_classes = t->n_classes;
-
-	for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2fitness; t->image++) {
-		time_init_train = getms();
-		img_atual = t->image + t->n_images2train;
-		input = t->imagens->host + (t->imagens->bytes * img_atual);
-		output = t->targets->host + (t->targets->bytes * img_atual);
-		label = ((char *) t->labels->host)[img_atual];
-		CnnCall(t->cnn, input);
-		cnnLabel = CnnGetIndexMax(t->cnn);
-
-
-		t->et.ft_info[Tensor_Map(info, label, CASOS, 0)]++;
-		if (cnnLabel == label) {
-			t->et.ft_info[Tensor_Map(info, label, HIT_RATE, 0)]++;
-		}
-		CnnCalculeErrorWithOutput(t->cnn, output, &local_mse);
-		t->et.ft_info[Tensor_Map(info, label, MSE, 0)] += local_mse;
-		t->et.ft_imagem_atual = t->image;
-		internal_time += getms() - time_init_train;
-		t->current_time = internal_time;
-		t->et.ft_time = t->current_time;
-
-	}
-	releaseTensor(&info);
+//
+//	for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2fitness; t->image++) {
+//		time_init_train = getms();
+//		img_atual = t->image + t->n_images2train;
+//		input = t->imagens->host + (t->imagens->bytes * img_atual);
+//		output = t->targets->host + (t->targets->bytes * img_atual);
+//		label = ((char *) t->labels->host)[img_atual];
+//		CnnCall(t->cnn, input);
+//		cnnLabel = CnnGetIndexMax(t->cnn);
+//
+//
+//		t->et.ft_info[Tensor_Map(info, label, CASOS, 0)]++;
+//		if (cnnLabel == label) {
+//			t->et.ft_info[Tensor_Map(info, label, HIT_RATE, 0)]++;
+//		}
+//		CnnCalculeErrorWithOutput(t->cnn, output, &local_mse);
+//		t->et.ft_info[Tensor_Map(info, label, MSE, 0)] += local_mse;
+//		t->et.ft_imagem_atual = t->image;
+//		internal_time += getms() - time_init_train;
+//		t->current_time = internal_time;
+//		t->et.ft_time = t->current_time;
+//
+//	}
+//	releaseTensor(&info);
 	EVENT(t->OnInitFitnes, t);
 	t->process_id = PROCESS_ID_END;
 }
@@ -202,7 +204,8 @@ void fitnes(ManageTrain *t) {
 void loadImage(ManageTrain *t) {
 	if (t->cnn->error.error)return;
 	// obtem o tamanho de cada imagem
-	size_t pixelsByImage = t->imagens->x * t->imagens->y * t->imagens->z;
+	Tensor entrada = t->cnn->camadas[0]->entrada;
+	size_t pixelsByImage = entrada->x * entrada->y * entrada->z;
 
 	FILE *fimage = fopen(t->file_images.d, "rb");
 	if (!fimage) {
@@ -210,28 +213,32 @@ void loadImage(ManageTrain *t) {
 		CNN_ERROR("Imagens nao foram encontradas em %s\n", t->file_images);
 		return;
 	}
+	Tensor tmp = new_Tensor(t->cnn->cl->context, NULL, TENSOR_CHAR | TENSOR_SVM | TENSOR4D, entrada->x, entrada->y, entrada->z, t->n_images, &t->cnn->error, NULL);
 	// bytes de cabeçalho
-	fread(t->imagens->host, 1, t->headers_images, fimage);
+	fread(tmp->host, 1, t->headers_images, fimage);
 	// le as imagens;
-	fread(t->imagens->host, pixelsByImage, t->n_images, fimage);
+	fread(tmp->host, pixelsByImage, t->n_images, fimage);
 	fclose(fimage);
 
-	Tensor imageInt = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_CHAR | TENSOR4D | TENSOR_UPTR,
-								 t->imagens->x, t->imagens->y, t->imagens->z, t->imagens->w,
-								 &t->cnn->error, t->imagens->host
+	Tensor imageInt = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_CHAR | TENSOR4D | TENSOR_CPY,
+								 tmp->x, tmp->y, tmp->z, tmp->w,
+								 &t->cnn->error, tmp->host
 	);
 
+	releaseTensor(&tmp);
 	if (t->cnn->error.error) {
 		CNN_ERROR("Falha ao criar tensores imageInt: ");
 		return;
 	}
-	Tensor imageDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-									TENSOR4D,
-									t->imagens->x, t->imagens->y, t->imagens->z, t->imagens->w,
-									&t->cnn->error, NULL);
+	Tensor imageDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR4D,
+									imageInt->x, imageInt->y, imageInt->z, imageInt->w,
+									&t->cnn->error, NULL
+	);
+
 
 	if (t->cnn->error.error) {
 		CNN_ERROR("Falha ao criar tensores imageDouble: ");
+		releaseTensor(&imageInt);
 		return;
 	}
 
@@ -243,6 +250,8 @@ void loadImage(ManageTrain *t) {
 						 K_ARG imageDouble->data,
 						 K_ARG value
 	);
+	synchronizeKernel(t->cnn->queue);
+
 	if (t->cnn->error.error) {
 		CNN_ERROR("Falha ao iniciar Kernel: ");
 		releaseTensor(&imageInt);
@@ -250,14 +259,18 @@ void loadImage(ManageTrain *t) {
 		return;
 	}
 	releaseTensor(&imageInt);
-	t->cnn->error.error = TensorGetValuesMem(t->cnn->queue, imageDouble, t->imagens->host,
-											 t->imagens->bytes * t->imagens->w);
 
+	for (int i = 0; i < t->n_images; ++i) {
+		t->imagens[i] = new_Tensor(t->cnn->cl->context, t->cnn->queue, 0,
+								   imageDouble->x, imageDouble->y, imageDouble->z, 1,
+								   &t->cnn->error, NULL
+		);
+		TensorCpy(t->cnn->queue, t->imagens[i], imageDouble, i);
+	}
 	releaseTensor(&imageDouble);
 	if (t->cnn->error.error) {
 		CNN_ERROR("Falha enquanto roda o kernel: ");
 	}
-
 }
 
 void loadLabels(ManageTrain *t) {
@@ -273,18 +286,17 @@ void loadLabels(ManageTrain *t) {
 	// le as imagens;
 	fread(t->labels->host, 1, t->n_images, flabel);
 	fclose(flabel);
-
-	Tensor labelInt = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-								 TENSOR_CHAR | TENSOR_UPTR,
-								 t->labels->x, t->labels->y, 1, 1,
-								 &t->cnn->error, t->labels->host);
 	if (t->cnn->error.error) {
 		CNN_ERROR("Falha ao criar tensores imageInt: ");
 		return;
 	}
+	Tensor labelInt = new_Tensor(t->cnn->cl->context, t->cnn->queue,
+								 TENSOR_CHAR | TENSOR_CPY,
+								 t->n_images, 1, 1, 1,
+								 &t->cnn->error, t->labels->host);
 	Tensor labelDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue,
-									0,
-									t->targets->x, t->targets->y, 1, 1,
+									TENSOR4D,
+									1, t->n_classes, 1, t->n_images,
 									&t->cnn->error, NULL);
 
 	if (t->cnn->error.error) {
@@ -293,24 +305,26 @@ void loadLabels(ManageTrain *t) {
 	}
 
 	kernel_run_recursive(t->cnn->error.error, t->cnn->kernelInt2Vector, t->cnn->queue,
-						 t->labels->x * t->labels->y, t->cnn->cl->maxworks,
+						 t->n_images, t->cnn->cl->maxworks,
 						 K_ARG labelInt->data,
 						 K_ARG labelDouble->data,
-						 K_ARG labelDouble->y
+						 K_ARG t->n_classes
 	);
+	synchronizeKernel(t->cnn->queue);
+	releaseTensor(&labelInt);
 	if (t->cnn->error.error) {
 		CNN_ERROR("Falha ao iniciar kernel: ");
-		releaseTensor(&labelInt);
 		releaseTensor(&labelDouble);
 		return;
 	}
+	for (int i = 0; i < t->n_images; ++i) {
+		t->targets[i] = new_Tensor(t->cnn->cl->context, t->cnn->queue, 0, t->n_classes, 1, 1, 1, &t->cnn->error, NULL);
+		t->cnn->error.error |= TensorCpy(t->cnn->queue, t->targets[i], labelDouble, i);
 
-	t->cnn->error.error = TensorGetValuesMem(t->cnn->queue, labelDouble, t->targets->host, t->targets->bytes);
-	releaseTensor(&labelInt);
-	if (t->cnn->error.error) {
-		CNN_ERROR("Falha enquanto roda o kernel: ");
 	}
 	releaseTensor(&labelDouble);
+
+
 }
 
 void releaseEstatitica(Estatistica *et) {
@@ -333,8 +347,16 @@ void releaseManageTrain(ManageTrain *t) {
 	t->can_run = 0;
 	releaseProcess(&t->process);
 	releaseCnn(&t->cnn);
-	releaseTensor(&t->imagens);
-	releaseTensor(&t->targets);
+	for (int i = 0; i < t->n_images; i++) {
+		releaseTensor(&t->imagens[i]);
+		releaseTensor(&t->targets[i]);
+	}
+
+	if (t->imagens)
+		free_mem(t->imagens);
+	if (t->targets)
+		free_mem(t->targets);
+
 	releaseTensor(&t->labels);
 	releaseEstatitica(&t->et);
 	releaseStringsManageTrain(t);
@@ -446,26 +468,31 @@ ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momen
 }
 
 
-int ManageTrainloadImages(ManageTrain *t) {
+int ManageTrainloadImages(ManageTrain *t, int runBackground) {
 	t->can_run = 1;
 	t->real_time = 1;
 	t->process_id = PROCESS_ID_LOAD;
 	releaseProcess(&t->process);
-	t->process = newThread(loadData, t, NULL);
-	return t->process != NULL;
-//	loadData(t);
-//	return 0;
+	if (runBackground) {
+		t->process = newThread(loadData, t, NULL);
+		return t->process != NULL;
+	}
+
+	loadData(t);
+	return 0;
 }
 
-int ManageTraintrain(ManageTrain *t) {
+int ManageTraintrain(ManageTrain *t, int runBackground) {
 	t->can_run = 1;
 	t->real_time = 1;
 	t->process_id = PROCESS_ID_TRAIN;
 	releaseProcess(&t->process);
-	t->process = newThread(train, t, NULL);
-	return t->process != NULL;
-//	train(t);
-//	return 0;
+	if (runBackground) {
+		t->process = newThread(train, t, NULL);
+		return t->process != NULL;
+	}
+	train(t);
+	return 0;
 }
 
 int ManageTrainfitnes(ManageTrain *t) {
