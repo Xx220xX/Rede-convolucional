@@ -30,6 +30,8 @@ typedef struct {
 	double *ft_info; // Acerto, acerto medio, erro medio
 	UINT ft_numero_classes;
 	size_t ft_time;
+    size_t ll_imagem_atual;
+    size_t ld_imagem_atual;
 } Estatistica;
 
 
@@ -77,6 +79,7 @@ typedef struct {
 
 	ManageEvent UpdateTrain;
 	ManageEvent UpdateFitnes;
+	ManageEvent UpdateLoad;
 	// controle de memoria
 	char self_release;
 

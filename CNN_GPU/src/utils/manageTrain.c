@@ -59,7 +59,7 @@ void loadData(ManageTrain *t) {
 	}
 	t->imagens = alloc_mem(t->n_images, sizeof(struct Tensor_t));
 	t->targets = alloc_mem(t->n_images, sizeof(struct Tensor_t));
-	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_SVM | TENSOR_CHAR, t->n_images, 1,
+	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_RAM | TENSOR_CHAR, t->n_images, 1,
 						   1, 1, &t->cnn->error, NULL);
 	loadImage(t);
 	loadLabels(t);
@@ -213,13 +213,13 @@ void loadImage(ManageTrain *t) {
 		CNN_ERROR("Imagens nao foram encontradas em %s\n", t->file_images);
 		return;
 	}
-	Tensor tmp = new_Tensor(t->cnn->cl->context, NULL, TENSOR_CHAR | TENSOR_SVM | TENSOR4D, entrada->x, entrada->y, entrada->z, t->n_images, &t->cnn->error, NULL);
+	Tensor tmp = new_Tensor(t->cnn->cl->context, NULL, TENSOR_CHAR | TENSOR_RAM | TENSOR4D, entrada->x, entrada->y, entrada->z, t->n_images, &t->cnn->error, NULL);
+
 	// bytes de cabeçalho
 	fread(tmp->host, 1, t->headers_images, fimage);
 	// le as imagens;
 	fread(tmp->host, pixelsByImage, t->n_images, fimage);
 	fclose(fimage);
-
 	Tensor imageInt = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_CHAR | TENSOR4D | TENSOR_CPY,
 								 tmp->x, tmp->y, tmp->z, tmp->w,
 								 &t->cnn->error, tmp->host
@@ -265,6 +265,7 @@ void loadImage(ManageTrain *t) {
 								   imageDouble->x, imageDouble->y, imageDouble->z, 1,
 								   &t->cnn->error, NULL
 		);
+		t->et.ld_imagem_atual = i;
 		TensorCpy(t->cnn->queue, t->imagens[i], imageDouble, i);
 	}
 	releaseTensor(&imageDouble);
@@ -320,7 +321,7 @@ void loadLabels(ManageTrain *t) {
 	for (int i = 0; i < t->n_images; ++i) {
 		t->targets[i] = new_Tensor(t->cnn->cl->context, t->cnn->queue, 0, t->n_classes, 1, 1, 1, &t->cnn->error, NULL);
 		t->cnn->error.error |= TensorCpy(t->cnn->queue, t->targets[i], labelDouble, i);
-
+        t->et.ll_imagem_atual = i;
 	}
 	releaseTensor(&labelDouble);
 
@@ -521,8 +522,10 @@ void __manageTrainloop__(ManageTrain *t) {
 		case PROCESS_ID_TRAIN:
 			ev = t->UpdateTrain;
 			break;
-		case PROCESS_ID_END:
 		case PROCESS_ID_LOAD:
+            ev = t->UpdateLoad;
+            break;
+        case PROCESS_ID_END:
 			ev = (ManageEvent) waitEndProces;
 			break;
 		default:
