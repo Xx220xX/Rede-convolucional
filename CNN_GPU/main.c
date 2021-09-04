@@ -24,12 +24,12 @@ void UpdateFitnes(ManageTrain *t);
 int main(int arg, char **args) {
 	system("chcp 65001");
 	showVersion();
-	char *file = "D:\\Henrique\\treino_ia\\treino_numero_0_9\\config_09.lua";
-//	if (arg != 2){
-//		fprintf(stderr,"É esperado um arquivo lua para executar o programa\n");
-//		return -1;
-//	}
-//	char *file = args[1];
+//	char *file= "D:\\Henrique\\treino_ia\\treino_numero_0_9\\config_09.lua";
+	if (arg != 2){
+		fprintf(stderr,"É esperado um arquivo lua para executar o programa\n");
+		return -1;
+	}
+	char *file = args[1];
 	ManageTrain manageTrain = createManageTrain(file, 0.1, 0.0, 0.0);
 	if(manageTrain.cnn->error.error)goto end;
 	manage2WorkDir(&manageTrain);
