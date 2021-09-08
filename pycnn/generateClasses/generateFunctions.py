@@ -60,50 +60,60 @@ def getProtoFromCode(code):
 	code = removeExcessSpaces(code)
 	code = putLines(code)
 	funcs = getFunctions(code)
+	# print('\n'.join(funcs))
+	# input()
 	proto = []
 	for f in funcs:
 		ff = getFunctionPrototype(f)
 		if ff is None:
 			continue
 		proto.append(ff)
+
 	return proto
-def putFunctionInFile(hfile,outFile,clib='clib',ctypes = 'c'):
-        proto  =  getProtoFromCode(open(hfile, 'r').read())
-        for retorno, nome, argumentos in proto:
-                ag = []
-                for a in argumentos:
-                        ag.append(CPYFUNCTYPES[a])
-                print(f'{clib}.{nome}.argtypes = [{",".join(ag)}]'.replace("{ctype}",ctypes),file=outFile)
-                print(f'{clib}.{nome}.restype = {CPYFUNCTYPES[retorno]}'.replace("{ctype}",ctypes),file=outFile)
-     
+
+
+def putFunctionInFile(hfile, outFile, clib='clib', ctypes='c'):
+	proto = getProtoFromCode(open(hfile, 'r').read())
+
+	for retorno, nome, argumentos in proto:
+		ag = []
+		for a in argumentos:
+			ag.append(CPYFUNCTYPES[a])
+		print(f'{clib}.{nome}.argtypes = [{",".join(ag)}]'.replace("{ctype}", ctypes), file=outFile)
+		print(f'{clib}.{nome}.restype = {CPYFUNCTYPES[retorno]}'.replace("{ctype}", ctypes), file=outFile)
+
+
 if __name__ == '__main__':
-        path_include = "../../CNN_GPU/include/cnn/"
-        code = [
-                #path_include + 'cnn.h',
-                #path_include + 'libraryPythonWrapper.h',
-                #path_include + 'tensor/Tensor.h'
-                path_include + 'utils/manageTrain.h'
-        ]
-        proto = []
-        for fl in code:
-                proto += getProtoFromCode(open(fl, 'r').read())
+	path_include = "../../CNN_GPU/include/cnn/"
+	code = [
+		# path_include + 'cnn.h',
+		# path_include + 'libraryPythonWrapper.h',
+		# path_include + 'tensor/Tensor.h'
+		path_include + 'utils/manageTrain.h'
+	]
+	proto = []
+	for fl in code:
+		proto += getProtoFromCode(open(fl, 'r').read())
 
-        fout = open('../gab_py_c/manageTrainWrapper_functions.py', 'w')
-        lprint = print
+	fout = open('../gab_py_c/manageTrainWrapper_functions.py', 'w')
+	lprint = print
 
-        clib = 'clib'
-        ctyp = 'c'
-        def print(*args, file=fout, **kw):
-                return lprint(*args, file=file, **kw)
+	clib = 'clib'
+	ctyp = 'c'
 
-        print("from cnn_wrapper_structs import *")
 
-        for retorno, nome, argumentos in proto:
-                ag = []
-                for a in argumentos:
-                        ag.append(CPYFUNCTYPES[a])
-                print(f'{clib}.{nome}.argtypes = [{",".join(ag)}]'.replace("{ctype}",ctyp))
-                print(f'{clib}.{nome}.restype = {CPYFUNCTYPES[retorno]}'.replace("{ctype}",ctyp))
-        fout.close()
+	def print(*args, file=fout, **kw):
+		return lprint(*args, file=file, **kw)
 
-        lprint('finalizado')
+
+	print("from cnn_wrapper_structs import *")
+
+	for retorno, nome, argumentos in proto:
+		ag = []
+		for a in argumentos:
+			ag.append(CPYFUNCTYPES[a])
+		print(f'{clib}.{nome}.argtypes = [{",".join(ag)}]'.replace("{ctype}", ctyp))
+		print(f'{clib}.{nome}.restype = {CPYFUNCTYPES[retorno]}'.replace("{ctype}", ctyp))
+	fout.close()
+
+	lprint('finalizado')

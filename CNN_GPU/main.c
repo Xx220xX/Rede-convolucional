@@ -28,7 +28,9 @@ int main(int arg, char **args) {
 	ManageTrainloadImages(&manageTrain,1);
 
 
+	system("cls");
 	manageTrainLoop(&manageTrain, 0);
+	system("cls");
 
 	// Treinar
 	ManageTraintrain(&manageTrain,1);

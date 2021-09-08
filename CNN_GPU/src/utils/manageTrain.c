@@ -12,7 +12,7 @@
 #define LOG_TRAIN(fmt, ...)printf("Manage train: ");printf(fmt,## __VA_ARGS__);printf("\n");
 #define LOG_TRAIN_v(v, fmv, init, end)\
 {for(int _i_=init;_i_<end;_i_++){  \
-    printf(fmv,v[_i_]);                                   \
+printf(fmv,v[_i_]);                                   \
 }\
 };
 #else
@@ -30,15 +30,9 @@
 #define PROCESS_ID_TRAIN 2
 #define PROCESS_ID_FITNES 3
 
-#define CNN_ERROR(format, ...)    getClErrorWithContext(t->cnn->error.error, \
-t->cnn->error.msg,EXCEPTION_MAX_MSG_SIZE,format, ## __VA_ARGS__)
-
+#define CNN_ERROR(format, ...)    getClErrorWithContext(t->cnn->error.error,t->cnn->error.msg,EXCEPTION_MAX_MSG_SIZE,format, ## __VA_ARGS__)
 #define EVENT(event, param) if(event)event(param)
-#define CHECK_REAL_TIME(real_time) \
-   if(real_time){                 \
-   SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); \
-   SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);\
-   }
+#define CHECK_REAL_TIME(real_time) if(real_time){SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS); SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);}
 
 void loadImage(ManageTrain *t);
 
@@ -71,9 +65,9 @@ void loadData(ManageTrain *t) {
 
 void train(ManageTrain *t) {
 	CHECK_REAL_TIME(t->real_time);
-	printf("train epoca %d of %d\n", t->epic, t->n_epics);
+//	printf("train epoca %d of %d\n", t->epic, t->n_epics);
 	int rn = t->can_run;
-	printf("train can run %d , error %d\n", rn, t->cnn->error.error);
+//	printf("train can run %d , error %d\n", rn, t->cnn->error.error);
 	if (t->cnn->error.error) {
 		t->process_id = PROCESS_ID_END;
 		return;
@@ -85,7 +79,6 @@ void train(ManageTrain *t) {
 	double internal_time = t->current_time;
 	Tensor input;
 	Tensor output;
-	Tensor aux_tmp;
 	char label;
 	char cnn_label;
 
@@ -97,11 +90,12 @@ void train(ManageTrain *t) {
 	t->et.tr_numero_epocas = t->n_epics;
 
 	for (; t->can_run && !t->cnn->error.error && t->epic < t->n_epics; t->epic++) {
-//		printf("imagem %d of %d\n", t->image, t->n_images);
+		//		printf("imagem %d of %d\n", t->image, t->n_images);
 		if (t->image >= t->n_images2train) {
 			t->image = 0;
 			t->et.tr_imagem_atual = 0;
 			t->sum_acerto = 0;
+			t->sum_erro = 0;
 		}
 		t->et.tr_numero_imagens = t->n_images2train;
 
@@ -111,28 +105,9 @@ void train(ManageTrain *t) {
 			input = t->imagens[t->image];
 			output = t->targets[t->image];
 			label = t->labels->hostc[t->image];
-			aux_tmp = t->cnn->camadas[0]->entrada;
-			t->cnn->camadas[0]->entrada = input;
-			CnnCall(t->cnn, NULL);
-			t->cnn->camadas[0]->entrada = aux_tmp;
-
-//			double *v = alloc_mem(t->cnn->camadas[t->cnn->size - 1]->saida->bytes, 1);
-//			TensorGetValues(t->cnn->queue, t->cnn->camadas[t->cnn->size - 1]->saida, v);
-//			LOG_TRAIN("saida :")
-//			LOG_TRAIN_v(v,"%.2lf ",0,10);
-//
-//			free_mem(v);
-//			LOG_TRAIN("\nEsperado:")
-//			LOG_TRAIN_v(output,"%.2lf ",0,10);
-
-//			printf("\nSaída");
-//			printTensor(t->cnn->queue, t->cnn->camadas[t->cnn->size - 1]->saida, stdout);
-//			printTensor(t->cnn->queue, output, stdout);
-			aux_tmp = t->cnn->target;
-			t->cnn->target = output;
-			CnnLearn(t->cnn, NULL);
+			CnnCallT(t->cnn, input);
+			CnnLearnT(t->cnn, output);
 			CnnCalculeError(t->cnn, &local_mse);
-			t->cnn->target = aux_tmp;
 
 			cnn_label = CnnGetIndexMax(t->cnn);
 
@@ -143,7 +118,7 @@ void train(ManageTrain *t) {
 			t->et.tr_mse_vector[t->image] = t->sum_erro / (t->image + 1.0);
 			t->et.tr_erro_medio = t->et.tr_mse_vector[t->image];
 			t->et.tr_acerto_medio = t->et.tr_acertos_vector[t->image];
-//			LOG_TRAIN("%lf %lf\n",local_mse,t->et.tr_erro_medio)
+			//			LOG_TRAIN("%lf %lf\n",local_mse,t->et.tr_erro_medio)
 			t->et.tr_imagem_atual = t->image;
 			internal_time += getms() - time_init_train;
 			t->current_time = internal_time;
@@ -173,30 +148,30 @@ void fitnes(ManageTrain *t) {
 
 	t->et.ft_numero_imagens = t->n_images2fitness;
 	t->et.ft_numero_classes = t->n_classes;
-//
-//	for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2fitness; t->image++) {
-//		time_init_train = getms();
-//		img_atual = t->image + t->n_images2train;
-//		input = t->imagens->host + (t->imagens->bytes * img_atual);
-//		output = t->targets->host + (t->targets->bytes * img_atual);
-//		label = ((char *) t->labels->host)[img_atual];
-//		CnnCall(t->cnn, input);
-//		cnnLabel = CnnGetIndexMax(t->cnn);
-//
-//
-//		t->et.ft_info[Tensor_Map(info, label, CASOS, 0)]++;
-//		if (cnnLabel == label) {
-//			t->et.ft_info[Tensor_Map(info, label, HIT_RATE, 0)]++;
-//		}
-//		CnnCalculeErrorWithOutput(t->cnn, output, &local_mse);
-//		t->et.ft_info[Tensor_Map(info, label, MSE, 0)] += local_mse;
-//		t->et.ft_imagem_atual = t->image;
-//		internal_time += getms() - time_init_train;
-//		t->current_time = internal_time;
-//		t->et.ft_time = t->current_time;
-//
-//	}
-//	releaseTensor(&info);
+	//
+	//	for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2fitness; t->image++) {
+	//		time_init_train = getms();
+	//		img_atual = t->image + t->n_images2train;
+	//		input = t->imagens->host + (t->imagens->bytes * img_atual);
+	//		output = t->targets->host + (t->targets->bytes * img_atual);
+	//		label = ((char *) t->labels->host)[img_atual];
+	//		CnnCall(t->cnn, input);
+	//		cnnLabel = CnnGetIndexMax(t->cnn);
+	//
+	//
+	//		t->et.ft_info[Tensor_Map(info, label, CASOS, 0)]++;
+	//		if (cnnLabel == label) {
+	//			t->et.ft_info[Tensor_Map(info, label, HIT_RATE, 0)]++;
+	//		}
+	//		CnnCalculeErrorWithOutput(t->cnn, output, &local_mse);
+	//		t->et.ft_info[Tensor_Map(info, label, MSE, 0)] += local_mse;
+	//		t->et.ft_imagem_atual = t->image;
+	//		internal_time += getms() - time_init_train;
+	//		t->current_time = internal_time;
+	//		t->et.ft_time = t->current_time;
+	//
+	//	}
+	//	releaseTensor(&info);
 	EVENT(t->OnInitFitnes, t);
 	t->process_id = PROCESS_ID_END;
 }
@@ -306,7 +281,7 @@ void loadLabels(ManageTrain *t) {
 	}
 
 	kernel_run_recursive(t->cnn->error.error, t->cnn->kernelInt2Vector, t->cnn->queue,
-						 t->n_images, t->cnn->cl->maxworks,
+						 t->n_images * t->n_classes, t->cnn->cl->maxworks,
 						 K_ARG labelInt->data,
 						 K_ARG labelDouble->data,
 						 K_ARG t->n_classes
@@ -321,7 +296,7 @@ void loadLabels(ManageTrain *t) {
 	for (int i = 0; i < t->n_images; ++i) {
 		t->targets[i] = new_Tensor(t->cnn->cl->context, t->cnn->queue, 0, t->n_classes, 1, 1, 1, &t->cnn->error, NULL);
 		t->cnn->error.error |= TensorCpy(t->cnn->queue, t->targets[i], labelDouble, i);
-        t->et.ll_imagem_atual = i;
+		t->et.ll_imagem_atual = i;
 	}
 	releaseTensor(&labelDouble);
 
@@ -523,9 +498,9 @@ void __manageTrainloop__(ManageTrain *t) {
 			ev = t->UpdateTrain;
 			break;
 		case PROCESS_ID_LOAD:
-            ev = t->UpdateLoad;
-            break;
-        case PROCESS_ID_END:
+			ev = t->UpdateLoad;
+			break;
+		case PROCESS_ID_END:
 			ev = (ManageEvent) waitEndProces;
 			break;
 		default:
@@ -552,4 +527,3 @@ void manageTrainLoop(ManageTrain *t, int run_background) {
 	}
 	__manageTrainloop__(t);
 }
-

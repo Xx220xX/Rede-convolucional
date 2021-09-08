@@ -28,7 +28,7 @@ typedef struct Cnn {
 	WrapperCL *cl;
 	char releaseCL;
 
-	Kernel kernelsub;
+ 	Kernel kernelsub;
 	Kernel kerneldiv;
 	Kernel kerneldivInt;
 	Kernel kernelNormalize;
@@ -93,7 +93,11 @@ int FullConnect(Cnn c, char tensor_flag, UINT tamanhoDaSaida, int funcaoDeAtivac
 
 int CnnCall(Cnn c, double *input);
 
+int CnnCallT(Cnn c, Tensor input);
+
 int CnnLearn(Cnn c, double *target);
+
+int CnnLearnT(Cnn c, Tensor target);
 
 void CnnInitLuaVm(Cnn c);
 

@@ -1,9 +1,10 @@
 Gabriela IA
 email: gab.cnn.ia@gmail.com
-Versão 2.2.009
+Versão 2.2.010
 
 | Versão | Mudanças |
 | ---- | :---- |
+|2.2.010 | Adicionado função para treinar com Tensor  | 
 |2.2.009 | Bug resolvido em kernel.h  | 
 |2.2.008 | Tensores reformulados resolvendo problemas de compatibilidade funcionamento  | 
 |2.2.007 | Mudançãs nos nomes das funções para adotar uma covenção | 

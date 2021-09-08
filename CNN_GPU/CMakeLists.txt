@@ -58,23 +58,23 @@ set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/c
         kernels/camadas/relu.h kernels/camadas/softmax.h
         kernels/camadas/cnnutils.h)
 
-#add_library(CNNGPU SHARED
-#        ${CNNpython}
-#        src/icon/icon.o
-#        ${cnn}
-#        #        ${kernels}
-#        ${time_util}
-#        ${list_util}
-#        ${dir_util}
-#        ${string_util}
-#        ${default_kernel_util}
-#        ${thread_util}
-#        ${gpu}
-#        ${camadasCNN}
-#        ${memory_util}
-#        ${LCG_RANDOM}
-#        ${tensor}
-#        ${conio2} include/cnn/config.h)
+add_library(CNNGPU SHARED
+        ${CNNpython}
+        src/icon/icon.o
+        ${cnn}
+        #        ${kernels}
+        ${time_util}
+        ${list_util}
+        ${dir_util}
+        ${string_util}
+        ${default_kernel_util}
+        ${thread_util}
+        ${gpu}
+        ${camadasCNN}
+        ${memory_util}
+        ${LCG_RANDOM}
+        ${tensor}
+        ${conio2} include/cnn/config.h)
 
 add_executable(CNN_GPU main.c ${lua}
         src/icon/icon.o

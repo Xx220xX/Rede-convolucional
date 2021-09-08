@@ -58,6 +58,7 @@ CPYTYPES = {'bool': '{ctypes}.c_bool',
 			'Thread': '{ctypes}.c_void_p',
 			'atomic_int': '{ctypes}.c_uint',
 			'pthread_cond_t': '{ctypes}.c_void_p',
+			'Ptr': '{ctypes}.c_void_p',
 			'char_500': '{ctypes}.c_char_p*EXCEPTION_MAX_MSG_SIZE',
 			# 'Kernel':'TOPOINTER(Kernel)',
 			}
@@ -72,7 +73,7 @@ CPYTYPES_P = {
 }
 
 CPYFUNCTYPES = {
-	'Cnn': 'TOPOINTER(Cnn)',
+	'Cnn': '{ctype}.c_void_p',
 	'WrapperCL *': '{ctype}.c_void_p',
 	'Params': 'Params',
 	'UINT': '{ctype}.c_uint32',

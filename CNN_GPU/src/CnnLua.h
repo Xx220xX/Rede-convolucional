@@ -118,7 +118,7 @@ static int l_convolution(lua_State *L) {
 			fy = luaL_checkinteger(L, arg++);
 			nfiltros = luaL_checkinteger(L, arg++);
 			break;
-		case 6:// px,py, fx,fy,,nfilters,flag
+		case 6:// px,py, fx,fy,nfilters,flag
 			px = luaL_checkinteger(L, arg++);
 			py = luaL_checkinteger(L, arg++);
 			fx = luaL_checkinteger(L, arg++);
@@ -128,10 +128,10 @@ static int l_convolution(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize,nfilters)\n"
-			              " %s(step,filterSize,nfilters,memory_flag)\n"
-			              " %s(stepx,stepy,filterSizex,filterSizey,nfilters)\n"
-			              " %s(stepx,stepy,filterSizex,filterSizey,nfilters,memory_flag)\n", L_CONVOLUTION_NAME,
-			           L_CONVOLUTION_NAME, L_CONVOLUTION_NAME, L_CONVOLUTION_NAME);
+						  " %s(step,filterSize,nfilters,memory_flag)\n"
+						  " %s(stepx,stepy,filterSizex,filterSizey,nfilters)\n"
+						  " %s(stepx,stepy,filterSizex,filterSizey,nfilters,memory_flag)\n", L_CONVOLUTION_NAME,
+					   L_CONVOLUTION_NAME, L_CONVOLUTION_NAME, L_CONVOLUTION_NAME);
 			RETURN_LUA_STATUS_FUNCTION();
 
 	}
@@ -187,10 +187,10 @@ static int l_convolution_non_causal(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize,aperture,nfilters)\n"
-			              " %s(step,filterSize,aperture,nfilters,memory_flag)\n"
-			              " %s(stepx,stepy,filterSizex,filterSizey,aperturex,aperturey,nfilters)\n"
-			              " %s(stepx,stepy,filterSizex,filterSizey,aperturex,aperturey,nfilters,memory_flag)\n",
-			           L_CONVOLUTIONNC_NAME, L_CONVOLUTIONNC_NAME, L_CONVOLUTIONNC_NAME, L_CONVOLUTIONNC_NAME);
+						  " %s(step,filterSize,aperture,nfilters,memory_flag)\n"
+						  " %s(stepx,stepy,filterSizex,filterSizey,aperturex,aperturey,nfilters)\n"
+						  " %s(stepx,stepy,filterSizex,filterSizey,aperturex,aperturey,nfilters,memory_flag)\n",
+					   L_CONVOLUTIONNC_NAME, L_CONVOLUTIONNC_NAME, L_CONVOLUTIONNC_NAME, L_CONVOLUTIONNC_NAME);
 			return 0;
 	}
 	c->error.error = ConvolucaoNcausal(c, flag, px, py, fx, fy, ax, ay, nfiltros);
@@ -233,10 +233,10 @@ static int l_pooling(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize)\n"
-			              " %s(step,filterSize,memory_flag)\n"
-			              " %s(stepx,stepy,filterSizex,filterSizey)\n"
-			              " %s(stepx,stepy,filterSizex,filterSizey,memory_flag)\n", L_POOLING_NAME, L_POOLING_NAME,
-			           L_POOLING_NAME, L_POOLING_NAME);
+						  " %s(step,filterSize,memory_flag)\n"
+						  " %s(stepx,stepy,filterSizex,filterSizey)\n"
+						  " %s(stepx,stepy,filterSizex,filterSizey,memory_flag)\n", L_POOLING_NAME, L_POOLING_NAME,
+					   L_POOLING_NAME, L_POOLING_NAME);
 			return 2;
 	}
 	c->error.error = Pooling(c, flag, px, py, fx, fy);
@@ -278,10 +278,10 @@ static int l_poolingav(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize)\n"
-			              " %s(step,filterSize,memory_flag)\n"
-			              " %s(stepx,stepy,filterSizex,filterSizey)\n"
-			              " %s(stepx,stepy,filterSizex,filterSizey,memory_flag)\n", L_POOLINGAV_NAME, L_POOLINGAV_NAME,
-			           L_POOLINGAV_NAME, L_POOLINGAV_NAME);
+						  " %s(step,filterSize,memory_flag)\n"
+						  " %s(stepx,stepy,filterSizex,filterSizey)\n"
+						  " %s(stepx,stepy,filterSizex,filterSizey,memory_flag)\n", L_POOLINGAV_NAME, L_POOLINGAV_NAME,
+					   L_POOLINGAV_NAME, L_POOLINGAV_NAME);
 			return 0;
 	}
 	PoolingAv(c, flag, px, py, fx, fy);
@@ -307,8 +307,8 @@ static int l_relu(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
-			              " %s()\n"
-			              " %s(memory_flag)\n", "Relu", "Relu");
+						  " %s()\n"
+						  " %s(memory_flag)\n", "Relu", "Relu");
 			return 0;
 	}
 
@@ -338,9 +338,9 @@ static int l_padding(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
-			              " %s(pad_top,pad_bottom,pad_left,pad_right)\n"
-			              " %s(pad_top,pad_bottom,pad_left,pad_right,memory_flag)\n",
-			           "Padding", "Padding");
+						  " %s(pad_top,pad_bottom,pad_left,pad_right)\n"
+						  " %s(pad_top,pad_bottom,pad_left,pad_right,memory_flag)\n",
+					   "Padding", "Padding");
 			return 0;
 	}
 	if (nArgs == 5) {
@@ -374,9 +374,9 @@ static int l_dropout(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
-			              " %s(prob_saida)\n"
-			              " %s(prob_saida,seed)\n"
-			              " %s(prob_saida,seed)memory_flag)\n", "Dropout", "Dropout", "Dropout");
+						  " %s(prob_saida)\n"
+						  " %s(prob_saida,seed)\n"
+						  " %s(prob_saida,seed)memory_flag)\n", "Dropout", "Dropout", "Dropout");
 			return 0;
 	}
 
@@ -397,7 +397,7 @@ static int l_fullConnect(lua_State *L) {
 	int func = luaL_checkinteger(L, 2);
 	checkLua(func == FTANH || func == FSIGMOID || func == FRELU, "FUNCAO DE ATIVACAO INVALIDA");
 	char usehost = 0;
-	if(nArgs == 3){
+	if (nArgs == 3) {
 		usehost = luaL_checkinteger(L, 3);
 	}
 	FullConnect(c, usehost, neuros, func);
@@ -494,7 +494,7 @@ static int l_callCnn(lua_State *L) {
 }
 
 static int l_putlua_arg(lua_State *L) {
-	if(lua_isnoneornil(L,2))return 0;
+	if (lua_isnoneornil(L, 2))return 0;
 	int nArgs = lua_gettop(L);
 	if (nArgs != 2) {
 		luaL_error(L, "Expected name:str,value:str\n");
@@ -519,7 +519,7 @@ static int l_CamadasetParam(lua_State *L) {
 	int cm = lua_tointeger(L, 1) - 1;
 	if (cm < 0 || cm >= c->size) {
 		luaL_error(L, "Violação de memória, acesso a posição %d  de %d.\nA posição válida é 1<= i <= %d\n", cm + 1,
-		           c->size, c->size);
+				   c->size, c->size);
 		return 0;
 	}
 	ht = lua_tonumber(L, 2);
@@ -541,7 +541,7 @@ static int l_CamadasetLearnable(lua_State *L) {
 	int cm = lua_tointeger(L, 1) - 1;
 	if (cm < 0 || cm >= c->size) {
 		luaL_error(L, "Violação de memória, acesso a posição %d  de %d.\nA posição válida é 1<= i <= %d\n", cm + 1,
-		           c->size, c->size);
+				   c->size, c->size);
 		return 0;
 	}
 	learn = lua_tointeger(L, 2);
@@ -597,9 +597,9 @@ Luac_function globalFunctions[] = {
 		{NULL,                 ""}
 };
 Luac_contantes globalConstantes[] = {
-		{FSIGMOID,    "SIGMOID"},
-		{FTANH,       "TANH"},
-		{FRELU,       "RELU"},
+		{FSIGMOID, "SIGMOID"},
+		{FTANH,    "TANH"},
+		{FRELU,    "RELU"},
 		{0, NULL}
 };
 
@@ -671,7 +671,7 @@ int CnnLuaConsole(Cnn c) {
 				}
 				cmd.str[cmd.n] = ch;
 				cmd.n++;
-				printf("%c",ch);
+				printf("%c", ch);
 			}
 			cmd.str[cmd.n] = 0;
 		}
@@ -729,6 +729,48 @@ int CnnLuaLoadFile(Cnn c, const char *file_name) {
 					  "    end\n"
 					  "end\n"
 					  "Args('nome_classes', nome_classes_lua)");
+	}
+}
+
+int CnnCallT(Cnn c, Tensor input) {
+	if (!c)return NULL_PARAM;
+	if (!input)return NULL_PARAM;
+	if (!c->size)return NULL_PARAM;
+	int erro = 0;
+	Tensor aux;
+	switch (input->flag & TENSOR_MASK_MEM) {
+		case TENSOR_SVM:
+		case TENSOR_RAM:
+			return CnnCall(c, input->hostd);
+		case TENSOR_GPU:
+			aux = c->camadas[0]->entrada;
+			c->camadas[0]->entrada = input;
+			erro = CnnCall(c, NULL);
+			c->camadas[0]->entrada = aux;
+			return erro;
+		default:
+			return TENSOR_INVALID_FLAG_MEM;
+	}
+}
+
+int CnnLearnT(Cnn c, Tensor target) {
+	if (!c)return NULL_PARAM;
+	if (!target)return NULL_PARAM;
+	if (!c->size)return NULL_PARAM;
+	int erro = 0;
+	Tensor aux;
+	switch (target->flag & TENSOR_MASK_MEM) {
+		case TENSOR_SVM:
+		case TENSOR_RAM:
+			return CnnLearn(c, target->hostd);
+		case TENSOR_GPU:
+			aux = c->target;
+			c->target= target;
+			erro = CnnLearn(c, NULL);
+			c->target = aux;
+			return erro;
+		default:
+			return TENSOR_INVALID_FLAG_MEM;
 	}
 }
 

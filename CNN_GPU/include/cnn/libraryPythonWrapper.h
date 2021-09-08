@@ -11,10 +11,10 @@ typedef struct {
 
 void createManageTrainPy(ManageTrain *self, char *luafile, double tx_aprendizado, double momento, double decaimento);
 
-void createCnnPy(Cnn c, double hitLearn, double momento, double decaimentoDePeso,
-				 UINT inx, UINT iny, UINT inz);
+void PY_createCnn(Cnn c, double hitLearn, double momento, double decaimentoDePeso,
+				  UINT inx, UINT iny, UINT inz);
 
-void releaseCnnWrapper(Cnn c);
+void PY_releaseCnn(Cnn c);
 
 int CnnSaveInFile(Cnn c, char *fileName);
 

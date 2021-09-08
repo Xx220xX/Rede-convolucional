@@ -86,7 +86,7 @@ void UpdateTrain(ManageTrain *mt) {
             manageTrainSetRun((ManageTrain *) t, 0);
         }
     }
-    Sleep(100);
+    Sleep(1);
 //	system("cls");
 }
 

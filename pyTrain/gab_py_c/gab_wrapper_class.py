@@ -141,15 +141,43 @@ class Cnn(CStruct):
 
 	def __init__(self, x, y, z, hitlearn=0.1, momento=0, decaimento=0):
 		super(Cnn, self).__init__()
-		print('init', c.sizeof(Cnn))
-		self.pointer = Pointer()
-		clib.createCnnPy(self.address(), hitlearn, momento, decaimento, x, y, z)
+		self.__released__= False
+		clib.PY_createCnn(self.address(), hitlearn, momento, decaimento, x, y, z)
 
 	def __del__(self):
-		clib.releaseCnnWrapper(self.address())
+		if self.__released__: return
+		self.__released__ = True
+		clib.PY_releaseCnn(self.address())
+	def convolucao(self,passo,filtro,numeroFiltros):
+		if not isinstance(passo,(list,tuple)):
+
+		clib.Convolucao()
+
+	int Convolucao(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros);
+
+	int ConvolucaoNcausal(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy,
+																								UINT largx, UINT largy,
+																												 UINT numeroDeFiltros);
+
+	int Pooling(Cnn c, char tensor_flag, UINT passox, UINT passoy,
+														   UINT filtrox, UINT filtroy);
+
+	int PoolingAv(Cnn c, char tensor_flag, UINT passox, UINT pasoy, UINT fx, UINT fy);
+
+	int Relu(Cnn c, char tensor_flag);
+
+	int Padding(Cnn c, char tensor_flag, UINT top, UINT bottom, UINT left, UINT right);
+
+	int BatchNorm(Cnn c, char tensor_flag, double epsilon);
+
+	int SoftMax(Cnn c, char tensor_flag);
+
+	int Dropout(Cnn c, char tensor_flag, double pontoAtivacao, long long int seed);
+
+	int FullConnect(Cnn c, char tensor_flag, UINT tamanhoDaSaida, int funcaoDeAtivacao);
 
 
-class ManageTrain(CStruct):
+	class ManageTrain(CStruct):
 	# ${ManageTrain}
 	def chose2WorkDir(self):
 		clib.manage2WorkDir(c.addressof(self))

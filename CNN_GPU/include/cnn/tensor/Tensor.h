@@ -62,12 +62,8 @@
 typedef unsigned int UINT;
 typedef unsigned int flag_t;
 #define Ptr
-#define var_host union {\
-void *host;\
-double *hostd;\
-char *hostc;\
-int *hosti;\
-}
+#define var_host union {void *host;double *hostd;char *hostc;int *hosti;}
+
 /**
  * Armazena as três dimensões de um ponto
  * @Atributtes x dimensão x do Ponto
