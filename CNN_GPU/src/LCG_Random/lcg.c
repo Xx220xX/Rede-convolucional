@@ -74,3 +74,15 @@ void pLCG_shuffle(LCG *self, void *d, size_t n, size_t size_element) {
 void LCG_shuffle(void *d, size_t n, size_t size_element) {
 	pLCG_shuffle(&default_var_lcg, d, n, size_element);
 }
+
+double pLCG_randn(LCG *self) {
+	//https://en.wikipedia.org/wiki/Box–Muller_transform
+	double u1 = pLCG_randD(self);
+	double u2 = pLCG_randD(self);
+	double Z0 = sqrt(-2 * log(u1)) * cos(2 * M_PI * u2);
+	return Z0;
+}
+
+double LCG_randn() {
+	return pLCG_randn(&default_var_lcg);
+}

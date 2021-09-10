@@ -165,10 +165,8 @@ void CnnRemoveLastLayer(Cnn c) {
 	__CnnCheckNewLayer__(c);
 }
 
-int Convolucao(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros) {
+int Convolucao(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros) {
 	if (c->error.error)return c->error.error;
-
-//	//int len = sprintf(c->error.context, "%s", "Convolucao");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	if (!CHECKDIN(sizeIn.x, filtrox, 1, passox) || !CHECKDIN(sizeIn.x, filtroy, 1, passoy)) {
 		c->error.error = INVALID_FILTER_SIZE;
@@ -181,12 +179,12 @@ int Convolucao(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, 
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passox, passoy, filtrox, filtroy, numeroDeFiltros, sizeIn.x,
-										 sizeIn.y, sizeIn.z, entrada, c->parametros, tensor_flag, &c->error, 1);
+										 sizeIn.y, sizeIn.z, entrada, c->parametros, 0, &c->error, 1);
 	return __CnnCheckNewLayer__(c);
 }
 
 int
-ConvolucaoNcausal(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT largx, UINT largy,
+ConvolucaoNcausal(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT largx, UINT largy,
 				  UINT numeroDeFiltros) {
 
 	if (c->error.error)return c->error.error;
@@ -211,11 +209,11 @@ ConvolucaoNcausal(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtro
 										   numeroDeFiltros, sizeIn.x, sizeIn.y,
 										   sizeIn.z,
 										   entrada,
-										   c->parametros, tensor_flag, &c->error, 1);
+										   c->parametros, 0, &c->error, 1);
 	return __CnnCheckNewLayer__(c);
 }
 
-int Pooling(Cnn c, char tensor_flag, UINT passox, UINT passoy,
+int Pooling(Cnn c, UINT passox, UINT passoy,
 			UINT filtrox, UINT filtroy) {
 	if (c->error.error)return c->error.error;
 	Ponto sizeIn = __CnnaddLayer__(c);
@@ -232,11 +230,11 @@ int Pooling(Cnn c, char tensor_flag, UINT passox, UINT passoy,
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passox, passoy, filtrox, filtroy, sizeIn.x, sizeIn.y,
 										 sizeIn.z, entrada,
-										 c->parametros, tensor_flag, &c->error);
+										 c->parametros, 0, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
-int PoolingAv(Cnn c, char tensor_flag, UINT passox, UINT pasoy,
+int PoolingAv(Cnn c, UINT passox, UINT pasoy,
 			  UINT fx, UINT fy) {
 	if (c->error.error)return c->error.error;
 	Ponto sizeIn = __CnnaddLayer__(c);
@@ -252,34 +250,46 @@ int PoolingAv(Cnn c, char tensor_flag, UINT passox, UINT pasoy,
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passox, pasoy, fx, fy, sizeIn.x, sizeIn.y, sizeIn.z,
-										   entrada, c->parametros, tensor_flag, &c->error);
+										   entrada, c->parametros, 0, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
-int BatchNorm(Cnn c, char tensor_flag, double epsilon) {
+int BatchNorm(Cnn c, double epsilon) {
 	if (c->error.error)return c->error.error;
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
 											  epsilon, 1,
-											  tensor_flag, &c->error);
+											  0, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
-int Relu(Cnn c, char tensor_flag) {
+int Relu(Cnn c) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "Relu");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada, tensor_flag,
+	c->camadas[c->size - 1] = createRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada, 0,
 										 &c->error);
 	return __CnnCheckNewLayer__(c);
 
 }
 
-int Padding(Cnn c, char tensor_flag, UINT top, UINT bottom, UINT left, UINT right) {
+int PRelu(Cnn c) {
+	if (c->error.error)return c->error.error;
+	//int len = sprintf(c->error.context, "%s", "Relu");
+	Ponto sizeIn = __CnnaddLayer__(c);
+	Tensor entrada = NULL;
+	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
+	c->camadas[c->size - 1] = createPRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z,
+										  entrada, 0, 1, &c->error);
+	return __CnnCheckNewLayer__(c);
+
+}
+
+int Padding(Cnn c, UINT top, UINT bottom, UINT left, UINT right) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "Padding");
 	Ponto sizeIn = __CnnaddLayer__(c);
@@ -287,35 +297,35 @@ int Padding(Cnn c, char tensor_flag, UINT top, UINT bottom, UINT left, UINT righ
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] =
 			createPadding(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, top, bottom, left, right, entrada,
-						  tensor_flag, &c->error);
+						  0, &c->error);
 
 
 	return __CnnCheckNewLayer__(c);
 }
 
-int SoftMax(Cnn c, char tensor_flag) {
+int SoftMax(Cnn c) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "SoftMax");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createSoftMax(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-											tensor_flag, &c->error);
+											0, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
-int Dropout(Cnn c, char tensor_flag, double pontoAtivacao, long long int seed) {
+int Dropout(Cnn c, double pontoAtivacao, long long int seed) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "Dropout");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createDropOut(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, pontoAtivacao, seed, entrada,
-											tensor_flag, &c->error);
+											0, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
-int FullConnect(Cnn c, char tensor_flag, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
+int FullConnect(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "FullConnect");
 	Ponto sizeIn = __CnnaddLayer__(c);
@@ -323,7 +333,7 @@ int FullConnect(Cnn c, char tensor_flag, UINT tamanhoDaSaida, int funcaoDeAtivac
 
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createFullConnect(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada,
-												c->parametros, funcaoDeAtivacao, 1, tensor_flag, &c->error);
+												c->parametros, funcaoDeAtivacao, 1, 0, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -335,12 +345,12 @@ int CnnCall(Cnn c, double *input) {
 	if (c->error.error)getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	int i;
 	for (i = 0; i < c->size && !c->error.error; ++i) {
-		c->error.error = c->camadas[i]->ativa(c->camadas[i]);
+		c->error.error = c->camadas[i]->propagation(c->camadas[i]);
 	}
 	if (c->error.error) {
 		i--;
 		int len = strlen(c->error.msg);
-		snprintf(c->error.msg + len, EXCEPTION_MAX_MSG_SIZE - len - 1, "\nCall/camada[%d]%d/ativa", i,
+		snprintf(c->error.msg + len, EXCEPTION_MAX_MSG_SIZE - len - 1, "\nCall/camada[%d]%d/propagation", i,
 				 c->camadas[i]->type);
 	}
 	return c->error.error;
@@ -376,14 +386,11 @@ int CnnLearn(Cnn c, double *target) {
 	gradNext = lastGrad;
 	int l;
 	for (l = c->size - 1; l >= 0 && !c->error.error; l--) {
-		c->error.error = c->camadas[l]->calc_grads(c->camadas[l], gradNext);
-		if (!c->camadas[l]->flag_notlearn && !c->error.error) {
-			c->error.error = c->camadas[l]->corrige_pesos(c->camadas[l]);
-		}
+		c->error.error = c->camadas[l]->backpropagation(c->camadas[l], gradNext);
 		gradNext = c->camadas[l]->gradsEntrada;
 	}
 	if (c->error.error) {
-		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d/calc_grads:", l);
+		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnLearn/%d/backpropagation:", l);
 	}
 	return c->error.error;
 }

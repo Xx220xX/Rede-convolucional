@@ -348,7 +348,10 @@ int TensorCpy(QUEUE queue, Tensor tdst, Tensor tsrc, size_t wsrc) {
 		case TENSOR_GPU:
 			tmp = alloc_mem(tsrc->bytes, 1);
 			erro = TensorGetValuesMemOffSet(queue, tsrc, tmp, tsrc->bytes, wsrc * tsrc->bytes);
-			if (erro)free_mem(tmp);
+			if (erro) {
+				free_mem(tmp);
+				return erro;
+			}
 			PERR(erro, "TensorCpy/clEnqueueReadBuffer ");
 			erro = TensorPutValuesMemOffSet(queue, tdst, tmp, tdst->bytes, 0);
 			free_mem(tmp);
@@ -360,5 +363,24 @@ int TensorCpy(QUEUE queue, Tensor tdst, Tensor tsrc, size_t wsrc) {
 
 	}
 	return 0;
+}
+
+int TensorRandomize(QUEUE queue, Tensor t, const char *distribuicao, double a, double b) {
+	double *values;
+	int length;
+	int erro;
+	if (!t)return NULL_PARAM;
+	values = alloc_mem(t->bytes, t->w);
+	length = t->bytes / sizeof(double);
+	double (*X)() = LCG_randD;
+	if (distribuicao && (!strcmp(distribuicao, "normal"))) {
+		X = LCG_randn;
+	}
+	for (int i = 0; i < length; ++i) {
+		values[i] = X() * a + b;
+	}
+	erro = TensorPutValuesMem(queue, t, values, t->bytes * t->w);
+	free_mem(values);
+	return erro;
 }
 

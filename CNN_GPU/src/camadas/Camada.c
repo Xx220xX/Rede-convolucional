@@ -69,7 +69,7 @@ void __releaseCamada__(Camada c) {
 }
 
 void CamadaSetLearn(Camada c, char learn) {
-	c->flag_notlearn = !learn;
+	c->learnable = learn != 0;
 }
 
 void CamadaSetParams(Camada c, double hitlearn, double momento, double decaimento) {

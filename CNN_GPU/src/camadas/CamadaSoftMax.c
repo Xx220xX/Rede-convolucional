@@ -2,7 +2,7 @@
 // Created by Henrique on 5/8/2021.
 //
 #include "camadas/CamadaSoftMax.h"
-#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#if (RUN_KERNEL_USING_GPU != 1)
 #include "../../../kernels/camadas/utils.h"
 #include "../../../kernels/camadas/softmax.h"
 #endif
@@ -61,7 +61,6 @@ int ativaSoftMax(CamadaSoftMax c) {
 	return erro;
 }
 
-int corrige_pesosSoftMax(CamadaSoftMax c) { return 0; }
 
 int calc_gradsSoftMax(CamadaSoftMax c, Tensor GradNext) {
 	if (!c->super.gradsEntrada)return 0;
@@ -114,9 +113,8 @@ Camada createSoftMax(WrapperCL *cl, cl_command_queue queue, unsigned int inx, un
 	c->super.toString = (cfv) tostringSoftMax;
 	c->super.getCreateParams = (cfv) getCreateParamsSoftMax;
 	c->super.release = (fv) realeaseSoftMax;
-	c->super.ativa = (fv) ativaSoftMax;
-	c->super.calc_grads = (f2v) calc_gradsSoftMax;
-	c->super.corrige_pesos = (fv) corrige_pesosSoftMax;
+	c->super.propagation = (fv) ativaSoftMax;
+	c->super.backpropagation = (f2v) calc_gradsSoftMax;
 	c->super.salvar = (f4v) salvarSoftMax;
 
 	c->soma = newTensor(cl->context, queue, 1, 1, inz, 0, error);

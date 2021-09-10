@@ -28,6 +28,7 @@ set(camadasCNN include/cnn/camadas/Camada.h src/camadas/Camada.c
         include/cnn/camadas/CamadaDropOut.h src/camadas/CamadaDropOut.c
         include/cnn/camadas/CamadaFullConnect.h src/camadas/CamadaFullConnect.c
         include/cnn/camadas/CamadaBatchNorm.h src/camadas/CamadaBatchNorm.c
+        include/cnn/camadas/CamadaPRelu.h src/camadas/CamadaPRelu.c
         include/cnn/camadas/CamadaRelu.h src/camadas/CamadaRelu.c
         include/cnn/camadas/CamadaPadding.h src/camadas/CamadaPadding.c
         include/cnn/camadas/CamadaSoftMax.h src/camadas/CamadaSoftMax.c
@@ -55,7 +56,9 @@ set(CNNpython src/libraryPythonWrapper.c include/cnn/libraryPythonWrapper.h)
 
 set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/conv.h
         kernels/camadas/dropout.h kernels/camadas/fullconnect.h kernels/camadas/pool.h
-        kernels/camadas/relu.h kernels/camadas/softmax.h
+        kernels/camadas/relu.h
+        kernels/camadas/prelu.h
+        kernels/camadas/softmax.h
         kernels/camadas/cnnutils.h)
 
 add_library(CNNGPU SHARED

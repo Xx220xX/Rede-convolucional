@@ -3,7 +3,7 @@
 //
 #include "camadas/CamadaDropOut.h"
 #include <time.h>
-#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#if (RUN_KERNEL_USING_GPU != 1)
 #include "../../../kernels/camadas/utils.h"
 #include "../../../kernels/camadas/dropout.h"
 #endif
@@ -63,7 +63,6 @@ int ativaDropOut(CamadaDropOut c) {
 	return erro;
 }
 
-int corrigePesosDropOut(CamadaDropOut c) { return 0; }
 
 int calc_gradsDropOut(CamadaDropOut c, Tensor GradNext) {
 	if (!c->super.gradsEntrada)return 0;
@@ -120,9 +119,8 @@ Camada createDropOut(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, 
 	c->hitmap = newTensorChar(cl->context, queue, inx, iny, inz, usehost, error);
 	c->p_ativacao = p_ativacao;
 	c->super.release = (fv) releaseDropOut;
-	c->super.ativa = (fv) ativaDropOut;
-	c->super.calc_grads = (f2v) calc_gradsDropOut;
-	c->super.corrige_pesos = (fv) corrigePesosDropOut;
+	c->super.propagation = (fv) ativaDropOut;
+	c->super.backpropagation = (f2v) calc_gradsDropOut;
 	c->seed = seed;
 	c->super.salvar = (f4v) salvarDropOut;
 	c->kerneldropativa = new_Kernel(cl->program, error, dropativa, 6, K_VOID_P, K_VOID_P, K_VOID_P, sizeof(cl_long),

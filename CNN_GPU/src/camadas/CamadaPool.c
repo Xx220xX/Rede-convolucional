@@ -3,7 +3,7 @@
 //
 #include "camadas/CamadaPool.h"
 
-#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#if (RUN_KERNEL_USING_GPU != 1)
 #include "../../../kernels/camadas/utils.h"
 #include "../../../kernels/camadas/pool.h"
 #endif
@@ -65,7 +65,6 @@ int ativaPool(CamadaPool c) {
 	return erro;
 }
 
-int corrige_pesosPool(CamadaPool c) { return 0; }
 
 int calc_gradsPool(CamadaPool c, Tensor GradNext) {
 	if (!c->super.gradsEntrada)return 0;
@@ -139,9 +138,8 @@ Camada createPool(WrapperCL *cl, cl_command_queue queue,
 	c->super.toString = (cfv) tostringPool;
 	c->super.getCreateParams = (cfv) getCreateParamsPool;
 	c->super.release = (fv) releasePool;
-	c->super.ativa = (fv) ativaPool;
-	c->super.corrige_pesos = (fv) corrige_pesosPool;
-	c->super.calc_grads = (f2v) calc_gradsPool;
+	c->super.propagation = (fv) ativaPool;
+	c->super.backpropagation = (f2v) calc_gradsPool;
 	c->super.parametros = params;
 	c->super.salvar = (f4v) salvarPool;
 

@@ -2,7 +2,7 @@
 // Created by Henrique on 5/8/2021.
 //
 #include "camadas/CamadaFullConnect.h"
-#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#if (RUN_KERNEL_USING_GPU != 1)
 #include "../../../kernels/camadas/utils.h"
 #include "../../../kernels/camadas/fullconnect.h"
 #endif
@@ -33,29 +33,6 @@ const char *tostringFullConnect(CamadaFullConnect c) {
 	len += 1;
 	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
 	return c->super.__string__;
-}
-
-int fullRandomize(CamadaFullConnect c, WrapperCL *cl, CNN_ERROR *error) {
-	unsigned int inx = c->super.entrada->x;
-	unsigned int iny = c->super.entrada->y;
-	unsigned int inz = c->super.entrada->z;
-	unsigned int tamanhoSaida = c->super.saida->x;
-	unsigned int valmax = inx * iny * inz;
-	double max_weight = 1.0 / sqrt(valmax);
-	double *data = (double *)alloc_mem(inx * iny * inz * tamanhoSaida,sizeof(double));
-	for (int i = 0; i < tamanhoSaida; ++i) {
-		for (int j = 0; j < valmax; ++j) {
-			data[Tensor_Map(c->pesos, i, j, 0)] =
-					RANDOM_BILATERAL() * max_weight; //2.19722  (valmax) * RANDOM_BILATERAL();
-		}
-	}
-	error->error = TensorPutValues(c->super.queue, c->pesos, data);
-	free_mem(data);
-	if (error->error) {
-		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
-		return error->error;
-
-	}
 }
 
 void releaseFullConnect(CamadaFullConnect *pc) {
@@ -128,6 +105,8 @@ int calc_gradsFullConnect(CamadaFullConnect c, Tensor GradNext) {
 	                     K_ARG c->pesos->data,
 	                     K_ARG c->pesos->x,
 	                     K_ARG c->pesos->y);
+	if(erro)return erro;
+	if(c->super.learnable)return corrigePesosFullConnect(c);
 	return erro;
 
 }
@@ -196,14 +175,14 @@ Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT i
 	}
 
 	if (randomize) {
-		fullRandomize(c, cl, error);
+		double  val = 2.19722/sqrt(c->pesos->x*c->pesos->y);
+		TensorRandomize(queue,c->pesos,"uniforme",2*val,-val);
 	}
 	c->super.toString = (cfv) tostringFullConnect;
 	c->super.getCreateParams = (cfv) getCreateParamsFullConnect;
 	c->super.release = (fv) releaseFullConnect;
-	c->super.ativa = (fv) ativaFullConnect;
-	c->super.calc_grads = (f2v) calc_gradsFullConnect;
-	c->super.corrige_pesos = (fv) corrigePesosFullConnect;
+	c->super.propagation = (fv) ativaFullConnect;
+	c->super.backpropagation = (f2v) calc_gradsFullConnect;
 	c->fa = funcaoDeAtivacao;
 	c->dfa = funcaoDeAtivacao | FLAGDIF;
 	c->super.salvar = (f4v) salvarFullConnect;

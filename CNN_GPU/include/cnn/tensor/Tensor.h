@@ -132,7 +132,20 @@ int TensorPutValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, si
 int TensorGetNorm(QUEUE queue, Tensor t, double *norm);
 
 int TensorAt(Tensor t, UINT x, UINT y, UINT z, UINT w, UINT *index);
-int TensorCpy(QUEUE queue,Tensor tdst,Tensor tsrc,size_t wsrc);
+
+int TensorCpy(QUEUE queue, Tensor tdst, Tensor tsrc, size_t wsrc);
+
+/***
+ * v[i] = X * a + b
+ * @param queue
+ * @param t
+ * @param distribuicao  "normal" para distribuição normal
+ * @param a  fator de multiplicação, para distribuição normal é o desvio padrão
+ * @param b  soma, para distribuição normal é a média
+ * @return se falhar retorna um valor diferente de 0
+ */
+int TensorRandomize(QUEUE queue, Tensor t, const char *distribuicao, double a, double b);
+
 void releaseTensor(Tensor *t);
 
 

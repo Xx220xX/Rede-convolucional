@@ -10,10 +10,24 @@
 #include "utils/memory_utils.h"
 #include "cnn_errors_list.h"
 
+
+#define CONV        1
+#define POOL        2
+#define RELU        3
+#define DROPOUT     4
+#define FULLCONNECT 5
+#define SOFTMAX     6
+#define BATCHNORM   7
+#define PADDING     8
+#define POOLAV      9
+#define CONVNC     10
+#define PRELU     11
+
+
 typedef struct {
 	double hitLearn, momento, decaimentoDePeso;
 } Params;
-// funcao com dois parametros do tipo ponteiro com retorno inteiro
+
 
 typedef int (*f2v)(void *, void *);
 
@@ -30,7 +44,7 @@ typedef const char *(*cfv)(void *);
 typedef struct {
 	char type;
 	char flag_releaseInput;
-	char flag_notlearn;
+	char learnable;
 	char flag_usehost;
 	Params parametros;
 	Tensor gradsEntrada;
@@ -39,9 +53,8 @@ typedef struct {
 	QUEUE queue;
 	cl_context context;
 	size_t *max_works;
-	f2v calc_grads;
-	fv corrige_pesos;
-	fv ativa;
+	f2v backpropagation;
+	fv propagation;
 	fv release;
 	f4v salvar;
 	cfv toString;
@@ -50,21 +63,6 @@ typedef struct {
 	fv3d setParams;
 	char *__string__;
 } *Camada, Typecamada;
-//typedef struct {
-//	Typecamada super;
-//	Tensor w;
-//	Tensor dw;
-//}*CamadaLearnable;
-#define CONV        1
-#define POOL        2
-#define RELU        3
-#define DROPOUT     4
-#define FULLCONNECT 5
-#define SOFTMAX     6
-#define BATCHNORM   7
-#define PADDING     8
-#define POOLAV      9
-#define CONVNC     10
 
 void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE queue,
 				   Params params, size_t xi, size_t yi, size_t zi,

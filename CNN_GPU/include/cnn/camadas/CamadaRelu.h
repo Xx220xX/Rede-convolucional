@@ -9,9 +9,6 @@
 #include"../tensor/Tensor.h"
 #include <stdlib.h>
 
-#ifndef UINT
-//#define UINT unsigned int
-#endif
 typedef struct {
 	Typecamada super;
 	Kernel kernelReluAtiva;

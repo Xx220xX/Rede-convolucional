@@ -6,6 +6,7 @@
 #include "camadas/CamadaConv.h"
 #include "camadas/CamadaConvNC.h"
 #include "camadas/CamadaRelu.h"
+#include "camadas/CamadaPRelu.h"
 #include "camadas/CamadaPadding.h"
 #include "camadas/CamadaDropOut.h"
 #include "camadas/CamadaFullConnect.h"
@@ -28,7 +29,7 @@ typedef struct Cnn {
 	WrapperCL *cl;
 	char releaseCL;
 
- 	Kernel kernelsub;
+	Kernel kernelsub;
 	Kernel kerneldiv;
 	Kernel kerneldivInt;
 	Kernel kernelNormalize;
@@ -68,28 +69,26 @@ int CnnCalculeErrorWithOutput(Cnn c, double *target, double *mse);
 
 int CnnGetIndexMax(Cnn c);
 
-int Convolucao(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros);
+int Convolucao(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros);
 
-int ConvolucaoNcausal(Cnn c, char tensor_flag, UINT passox, UINT passoy, UINT filtrox, UINT filtroy,
-					  UINT largx, UINT largy,
-					  UINT numeroDeFiltros);
+int ConvolucaoNcausal(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT largx, UINT largy, UINT numeroDeFiltros);
 
-int Pooling(Cnn c, char tensor_flag, UINT passox, UINT passoy,
-			UINT filtrox, UINT filtroy);
+int Pooling(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy);
 
-int PoolingAv(Cnn c, char tensor_flag, UINT passox, UINT pasoy, UINT fx, UINT fy);
+int PoolingAv(Cnn c, UINT passox, UINT pasoy, UINT fx, UINT fy);
 
-int Relu(Cnn c, char tensor_flag);
+int Relu(Cnn c);
+int PRelu(Cnn c);
 
-int Padding(Cnn c, char tensor_flag, UINT top, UINT bottom, UINT left, UINT right);
+int Padding(Cnn c, UINT top, UINT bottom, UINT left, UINT right);
 
-int BatchNorm(Cnn c, char tensor_flag, double epsilon);
+int BatchNorm(Cnn c, double epsilon);
 
-int SoftMax(Cnn c, char tensor_flag);
+int SoftMax(Cnn c);
 
-int Dropout(Cnn c, char tensor_flag, double pontoAtivacao, long long int seed);
+int Dropout(Cnn c, double pontoAtivacao, long long int seed);
 
-int FullConnect(Cnn c, char tensor_flag, UINT tamanhoDaSaida, int funcaoDeAtivacao);
+int FullConnect(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao);
 
 int CnnCall(Cnn c, double *input);
 

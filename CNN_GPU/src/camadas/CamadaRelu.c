@@ -2,7 +2,7 @@
 // Created by Henrique on 5/8/2021.
 //
 #include "camadas/CamadaRelu.h"
-#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#if (RUN_KERNEL_USING_GPU != 1)
 #include "../../../kernels/camadas/utils.h"
 #include "../../../kernels/camadas/relu.h"
 #endif
@@ -50,7 +50,6 @@ int ativaRelu(CamadaRelu c) {
 	return erro;
 }
 
-int corrige_pesosRelu(CamadaRelu c) { return 0; }
 
 int calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
 	if (!c->super.gradsEntrada)return 0;
@@ -101,9 +100,8 @@ Camada createRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsig
 	c->super.toString = (cfv) tostringRelu;
 	c->super.getCreateParams = (cfv) getCreateParamsRelu;
 	c->super.release = (fv) realeaseRelu;
-	c->super.ativa = (fv) ativaRelu;
-	c->super.calc_grads = (f2v) calc_gradsRelu;
-	c->super.corrige_pesos = (fv) corrige_pesosRelu;
+	c->super.propagation = (fv) ativaRelu;
+	c->super.backpropagation = (f2v) calc_gradsRelu;
 	c->super.salvar = (f4v) salvarRelu;
 
 	c->kernelReluAtiva = new_Kernel(cl->program, error, reluativa, 3, K_VOID_P, K_VOID_P, K_INT);

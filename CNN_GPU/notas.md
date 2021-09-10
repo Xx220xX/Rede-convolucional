@@ -4,6 +4,10 @@ Versão 2.2.010
 
 | Versão | Mudanças |
 | ---- | :---- |
+|2.2.014 | Adicionado camada PRelu  | 
+|2.2.013 | Removido metódo corrige_peso das camadas, agora o metodo backpropagation faz a correção dos pesos caso learnable ==1   | 
+|2.2.012 | O Tensor agora é possui a função randomize  | 
+|2.2.011 | Adicionado função aleatoria com distribuição normal  | 
 |2.2.010 | Adicionado função para treinar com Tensor  | 
 |2.2.009 | Bug resolvido em kernel.h  | 
 |2.2.008 | Tensores reformulados resolvendo problemas de compatibilidade funcionamento  | 

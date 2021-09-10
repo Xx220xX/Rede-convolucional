@@ -2,7 +2,7 @@
 // Created by Henrique on 03/08/2021.
 //
 #include "camadas/CamadaPadding.h"
-#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#if (RUN_KERNEL_USING_GPU != 1)
 #include "../../../kernels/camadas/utils.h"
 #include "../../../kernels/camadas/padding.h"
 #endif
@@ -60,7 +60,6 @@ int ativaPadding(CamadaPadding c) {
 	return erro;
 }
 
-int corrige_pesosPadding(CamadaPadding c) { return 0; }
 
 int calc_gradsPadding(CamadaPadding c, Tensor GradNext) {
 	if (!c->super.gradsEntrada)return 0;
@@ -131,9 +130,8 @@ Camada createPadding(WrapperCL *cl, QUEUE queue,
 	c->super.toString = (cfv) tostringPadding;
 	c->super.getCreateParams = (cfv) getCreateParamsPadding;
 	c->super.release = (fv) realeasePadding;
-	c->super.ativa = (fv) ativaPadding;
-	c->super.calc_grads = (f2v) calc_gradsPadding;
-	c->super.corrige_pesos = (fv) corrige_pesosPadding;
+	c->super.propagation = (fv) ativaPadding;
+	c->super.backpropagation = (f2v) calc_gradsPadding;
 	c->super.salvar = (f4v) salvarPadding;
 	c->top = top;
 	c->bottom = bottom;

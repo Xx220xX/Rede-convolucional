@@ -29,6 +29,9 @@ void LCG_setSeed(Bytes64 seed);
 
 double LCG_randD();
 
+double pLCG_randn(LCG *self);
+double LCG_randn();
+
 int LCG_randI();
 
 Bytes64 LCG_randB();

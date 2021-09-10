@@ -2,7 +2,7 @@
 // Created by Henrique on 5/8/2021.
 //
 #include "camadas/CamadaBatchNorm.h"
-#if  defined(DISABLE_KERNELS_INSIDE_DRIVE)
+#if (RUN_KERNEL_USING_GPU != 1)
 #include "../../../kernels/camadas/utils.h"
 #include "../../../kernels/camadas/bathnorm.h"
 #endif
@@ -30,7 +30,7 @@ const char *tostringBatchNorm(CamadaBatchNorm c) {
 	return c->super.__string__;
 }
 
-int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, CNN_ERROR *error);
+
 
 
 int ativaBatchNorm(CamadaBatchNorm c) {
@@ -119,6 +119,9 @@ int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext) {
 	                     K_ARG c->gradB->data,
 	                     K_ARG c->super.entrada->x,
 	                     K_ARG c->super.entrada->y);
+	if(erro)return erro;
+	if(c->super.learnable)
+		erro = corrige_pesosBatchNorm(c);
 	return erro;
 }
 
@@ -164,33 +167,6 @@ Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tenso
 	return (Camada) cm;
 }
 
-int batchNormRandomize(CamadaBatchNorm c, WrapperCL *cl, CNN_ERROR *error) {
-	UINT inz = c->super.entrada->z;
-	UINT valmax = inz;
-	double max_weight = 1.0 / (valmax);
-	double *data = (double *)alloc_mem(inz,sizeof (double));
-	for (int i = 0; i < inz; ++i) {
-		data[i] = LCG_randD() * max_weight; //2.19722  (valmax) * RANDOM_BILATERAL();
-	}
-	error->error = TensorPutValues(c->super.queue, c->Y, data);
-	if (error->error) {
-		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
-		free_mem(data);
-		return error->error;
-	}
-	for (int i = 0; i < inz; ++i) {
-		data[i] = RANDOM_BILATERAL() * max_weight; //2.19722  (valmax) * RANDOM_BILATERAL();
-	}
-	error->error = TensorPutValues(c->super.queue, c->B, data);
-	if (error->error) {
-		getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
-		free_mem(data);
-		return error->error;
-	}
-	free_mem(data);
-	return 0;
-}
-
 void realeaseBatchNorm(CamadaBatchNorm *pc) {
 	CamadaBatchNorm c = *pc;
 	__releaseCamada__((Camada) c);
@@ -231,9 +207,8 @@ Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
 	c->super.toString = (cfv) tostringBatchNorm;
 	c->super.getCreateParams = (cfv) getCreateParamsBatchNorm;
 	c->super.release = (fv) realeaseBatchNorm;
-	c->super.ativa = (fv) ativaBatchNorm;
-	c->super.calc_grads = (f2v) calc_gradsBatchNorm;
-	c->super.corrige_pesos = (fv) corrige_pesosBatchNorm;
+	c->super.propagation = (fv) ativaBatchNorm;
+	c->super.backpropagation = (f2v) calc_gradsBatchNorm;
 	c->super.salvar = (f4v) salvarBatchNorm;
 
 	c->media = newTensor(cl->context, queue, 1, 1, inz, usehost, error);
@@ -276,7 +251,9 @@ Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
 	c->kernelBatchNormCorrige = new_Kernel(cl->program, error, batchNormCorrigePeso, 6,
 	                                       K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 	                                       K_DOUBLE, K_INT);
-	if (randomize)
-		batchNormRandomize(c, cl, error);
+	if (randomize){
+		TensorRandomize(queue,c->Y,"uniform",1.0/inz,0);
+		TensorRandomize(queue,c->B,"normal",1,0);
+	}
 	return (Camada) c;
 }
