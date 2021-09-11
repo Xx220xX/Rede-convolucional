@@ -38,26 +38,26 @@ Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 
 void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE queue,
 				   Params params, size_t xi,
-				   size_t yi, size_t zi, size_t xo, size_t yo, size_t zo, char usehost, CNN_ERROR *error) {
+				   size_t yi, size_t zi, size_t xo, size_t yo, size_t zo, CNN_ERROR *error) {
 	cl_context context = cl->context;
 	if (error->error)return;
-	c->flag_usehost = usehost;
 	c->queue = queue;
 	c->type = type;
 	c->entrada = entrada;
 	c->gradsEntrada = NULL;
 	if (!entrada) {
-		c->entrada = newTensor(context, c->queue, xi, yi, zi, c->flag_usehost, error);
+		c->entrada = newTensor(context, c->queue, xi, yi, zi, 0, error);
 		c->flag_releaseInput = 1;
 	} else {
-		c->gradsEntrada = newTensor(context, queue, xi, yi, zi, c->flag_usehost, error);
+		c->gradsEntrada = newTensor(context, queue, xi, yi, zi, 0, error);
 	}
-	c->saida = newTensor(context, queue, xo, yo, zo, c->flag_usehost, error);
+	c->saida = newTensor(context, queue, xo, yo, zo, 0, error);
 	c->parametros = params;
 	c->max_works = &cl->maxworks;
 	c->context = cl->context;
 	c->setLearn = (fvc) CamadaSetLearn;
 	c->setParams = (fv3d) CamadaSetParams;
+	c->learnable = 1;
 }
 
 void __releaseCamada__(Camada c) {

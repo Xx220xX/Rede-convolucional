@@ -79,7 +79,7 @@ add_library(CNNGPU SHARED
         ${tensor}
         ${conio2} include/cnn/config.h)
 
-add_executable(CNN_GPU main.c ${lua}
+add_executable(CNN_GPU main.c  mainui.h ${lua}
         src/icon/icon.o
         ${cnn}
         ${time_util}

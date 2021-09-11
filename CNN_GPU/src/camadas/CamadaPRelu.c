@@ -65,7 +65,7 @@ int calc_gradsPRelu(CamadaPRelu c, Tensor GradNext) {
 						 *c->super.max_works,
 						 K_ARG c->super.gradsEntrada->data,
 						 K_ARG c->super.entrada->data,
-						 K_ARG GradNext,
+						 K_ARG GradNext->data,
 						 K_ARG c->A->data,
 						 K_ARG c->dA->data,
 						 K_ARG c->super.parametros.hitLearn,
@@ -80,7 +80,6 @@ void salvarPRelu(WrapperCL *cl, CamadaPRelu c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
-	fwrite(&c->super.flag_usehost, sizeof(char), 1, dst);
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
@@ -94,21 +93,19 @@ Camada carregarPRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor en
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
 	UINT inx, iny, inz;
-	char flag_usehost = 0;
-	fread(&flag_usehost, sizeof(char), 1, src);
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createPRelu(cl, queue, inx, iny, inz, entrada, flag_usehost, 0, error);
+	return createPRelu(cl, queue, inx, iny, inz, entrada,  params, 0,error);
 }
 
 Camada createPRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsigned int iny,
-				   unsigned int inz, Tensor entrada, char usehost, int randomize, CNN_ERROR *error) {
+				   unsigned int inz, Tensor entrada, Params params, int randomize, CNN_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaPRelu c = (CamadaPRelu) alloc_mem(1, sizeof(TypecamadaPRelu));
 
-	__newCamada__((Camada) c, cl, PRELU, entrada, queue, (Params) {0}, inx, iny, inz, inx, iny, inz, usehost, error);
+	__newCamada__((Camada) c, cl, PRELU, entrada, queue,params, inx, iny, inz, inx, iny, inz, error);
 	c->super.toString = (cfv) tostringPRelu;
 	c->super.getCreateParams = (cfv) getCreateParamsPRelu;
 	c->super.release = (fv) realeasePRelu;

@@ -45,7 +45,6 @@ typedef struct {
 	char type;
 	char flag_releaseInput;
 	char learnable;
-	char flag_usehost;
 	Params parametros;
 	Tensor gradsEntrada;
 	Tensor entrada;
@@ -67,7 +66,7 @@ typedef struct {
 void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE queue,
 				   Params params, size_t xi, size_t yi, size_t zi,
 				   size_t xo, size_t yo, size_t zo,
-				   char usehost, CNN_ERROR *error);
+				   CNN_ERROR *error);
 
 void __releaseCamada__(Camada c);
 

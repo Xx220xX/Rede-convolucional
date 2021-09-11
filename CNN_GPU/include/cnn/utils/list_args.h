@@ -16,11 +16,12 @@ typedef struct {
 typedef struct List_args {
 	Dbchar_p *values;
 	int size;
-} List_args;
+	char self_release;
+} Dictionary;
 
-void List_argspushValue(List_args *lst,const char *name,const char *value);
+void Dict_push(Dictionary *lst, const char *name, const char *value);
 
-void releaseList_args(List_args *largs);
+void releaseDictionary(Dictionary *largs);
 
 
 #endif //CNN_GPU_LIST_ARGS_H

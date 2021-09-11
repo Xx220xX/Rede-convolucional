@@ -37,7 +37,7 @@ typedef struct Cnn {
 	Kernel kernelcreateIMG;
 
 	void *L;
-	List_args luaArgs;
+	Dictionary luaArgs;
 	fv releaseL;
 	CNN_ERROR error;
 
@@ -66,6 +66,7 @@ int CnnCalculeError(Cnn c, double *mse);
 
 int CnnCalculeErrorWithOutput(Cnn c, double *target, double *mse);
 
+int CnnCalculeErrorTWithOutput(Cnn c, Tensor target, double *mse);
 
 int CnnGetIndexMax(Cnn c);
 
@@ -78,6 +79,7 @@ int Pooling(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy);
 int PoolingAv(Cnn c, UINT passox, UINT pasoy, UINT fx, UINT fy);
 
 int Relu(Cnn c);
+
 int PRelu(Cnn c);
 
 int Padding(Cnn c, UINT top, UINT bottom, UINT left, UINT right);

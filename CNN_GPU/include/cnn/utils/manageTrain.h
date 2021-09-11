@@ -107,7 +107,7 @@ int ManageTrainloadImages(ManageTrain *t,int runBackground);
 
 int ManageTraintrain(ManageTrain *t,int runBackground);
 
-int ManageTrainfitnes(ManageTrain *t);
+int ManageTrainfitnes(ManageTrain *t,int runBackground);
 
 void manageTrainLoop(ManageTrain *t, int run_background);
 

@@ -447,7 +447,7 @@ static int l_putlua_arg(lua_State *L) {
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
 
-	List_argspushValue(&c->luaArgs, lua_tostring(L, 1), lua_tostring(L, 2));
+	Dict_push(&c->luaArgs, lua_tostring(L, 1), lua_tostring(L, 2));
 	RETURN_LUA_STATUS_FUNCTION();
 }
 

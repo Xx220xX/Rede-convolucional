@@ -18,7 +18,7 @@ typedef struct {
 Camada createPadding(WrapperCL *cl, QUEUE queue,
 					 UINT inx, UINT iny, UINT inz,
 					 UINT top, UINT bottom, UINT left, UINT right, Tensor entrada,
-					 char usehost, CNN_ERROR *error);
+					  CNN_ERROR *error);
 
 
 

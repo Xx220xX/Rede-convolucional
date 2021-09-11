@@ -59,7 +59,7 @@ int calc_gradsRelu(CamadaRelu c, Tensor GradNext) {
 	                     *c->super.max_works,
 	                     K_ARG c->super.gradsEntrada->data,
 	                     K_ARG c->super.entrada->data,
-	                     K_ARG GradNext);
+	                     K_ARG GradNext->data);
 	return erro;
 
 }
@@ -68,7 +68,6 @@ void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
-	fwrite(&c->super.flag_usehost, sizeof(char), 1, dst);
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
@@ -82,21 +81,19 @@ Camada carregarRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor ent
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
 	UINT inx, iny, inz;
-	char flag_usehost = 0;
-	fread(&flag_usehost, sizeof(char), 1, src);
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createRelu(cl, queue, inx, iny, inz, entrada, flag_usehost, error);
+	return createRelu(cl, queue, inx, iny, inz, entrada, error);
 }
 
 Camada createRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsigned int iny,
-				  unsigned int inz, Tensor entrada, char usehost, CNN_ERROR *error) {
+				  unsigned int inz, Tensor entrada, CNN_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaRelu c = (CamadaRelu) alloc_mem(1, sizeof(TypecamadaRelu));
 
-	__newCamada__((Camada) c, cl, RELU, entrada, queue, (Params) {0}, inx, iny, inz, inx, iny, inz, usehost, error);
+	__newCamada__((Camada) c, cl, RELU, entrada, queue, (Params) {0}, inx, iny, inz, inx, iny, inz,  error);
 	c->super.toString = (cfv) tostringRelu;
 	c->super.getCreateParams = (cfv) getCreateParamsRelu;
 	c->super.release = (fv) realeaseRelu;

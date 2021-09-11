@@ -84,7 +84,7 @@ void releaseCnn(Cnn *pc) {
 	if (c->L) {
 		c->releaseL(c->L);
 	}
-	releaseList_args(&c->luaArgs);
+	releaseDictionary(&c->luaArgs);
 	if (c->release_self)
 		free_mem(c);
 	*pc = NULL;
@@ -179,7 +179,7 @@ int Convolucao(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passox, passoy, filtrox, filtroy, numeroDeFiltros, sizeIn.x,
-										 sizeIn.y, sizeIn.z, entrada, c->parametros, 0, &c->error, 1);
+										 sizeIn.y, sizeIn.z, entrada, c->parametros, &c->error, 1);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -209,7 +209,7 @@ ConvolucaoNcausal(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, U
 										   numeroDeFiltros, sizeIn.x, sizeIn.y,
 										   sizeIn.z,
 										   entrada,
-										   c->parametros, 0, &c->error, 1);
+										   c->parametros, &c->error, 1);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -230,7 +230,7 @@ int Pooling(Cnn c, UINT passox, UINT passoy,
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passox, passoy, filtrox, filtroy, sizeIn.x, sizeIn.y,
 										 sizeIn.z, entrada,
-										 c->parametros, 0, &c->error);
+										 c->parametros, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -250,7 +250,7 @@ int PoolingAv(Cnn c, UINT passox, UINT pasoy,
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passox, pasoy, fx, fy, sizeIn.x, sizeIn.y, sizeIn.z,
-										   entrada, c->parametros, 0, &c->error);
+										   entrada, c->parametros, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -261,7 +261,7 @@ int BatchNorm(Cnn c, double epsilon) {
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
 											  epsilon, 1,
-											  0, &c->error);
+											  &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -271,7 +271,7 @@ int Relu(Cnn c) {
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada, 0,
+	c->camadas[c->size - 1] = createRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
 										 &c->error);
 	return __CnnCheckNewLayer__(c);
 
@@ -284,7 +284,7 @@ int PRelu(Cnn c) {
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z,
-										  entrada, 0, 1, &c->error);
+										  entrada, c->parametros, 1, &c->error);
 	return __CnnCheckNewLayer__(c);
 
 }
@@ -297,7 +297,7 @@ int Padding(Cnn c, UINT top, UINT bottom, UINT left, UINT right) {
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] =
 			createPadding(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, top, bottom, left, right, entrada,
-						  0, &c->error);
+						  &c->error);
 
 
 	return __CnnCheckNewLayer__(c);
@@ -310,7 +310,7 @@ int SoftMax(Cnn c) {
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createSoftMax(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-											0, &c->error);
+											&c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -321,7 +321,7 @@ int Dropout(Cnn c, double pontoAtivacao, long long int seed) {
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createDropOut(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, pontoAtivacao, seed, entrada,
-											0, &c->error);
+											&c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -333,7 +333,7 @@ int FullConnect(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createFullConnect(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada,
-												c->parametros, funcaoDeAtivacao, 1, 0, &c->error);
+												c->parametros, funcaoDeAtivacao, 1, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -397,6 +397,7 @@ int CnnLearn(Cnn c, double *target) {
 
 int CnnCalculeErrorWithOutput(Cnn c, double *target, double *mse) {
 	if (c->error.error)return 0;
+	*mse = 0;
 	Tensor saida = c->camadas[c->size - 1]->saida;
 	int len = (int) (saida->x * saida->y * saida->z);
 	double *values = alloc_mem(saida->bytes, 1);
@@ -405,7 +406,7 @@ int CnnCalculeErrorWithOutput(Cnn c, double *target, double *mse) {
 		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,
 							  "CnnCalculeErrorWithOutput/TensorGetValues ");
 		free_mem(values);
-		return 0;
+		return c->error.error;
 	}
 	double sum = 0;
 	double aux;
@@ -414,6 +415,41 @@ int CnnCalculeErrorWithOutput(Cnn c, double *target, double *mse) {
 		sum += aux * aux;
 	}
 	free_mem(values);
+	*mse = sqrt(sum);
+	return c->error.error;
+}
+
+int CnnCalculeErrorTWithOutput(Cnn c, Tensor target, double *mse) {
+	if (c->error.error)return 0;
+	*mse = 0;
+	Tensor saida = c->camadas[c->size - 1]->saida;
+	int len = (int) (saida->x * saida->y * saida->z);
+	double *values = alloc_mem(saida->bytes, 1);
+	double *vTarget = alloc_mem(saida->bytes, 1);
+	c->error.error = TensorGetValues(c->queue, saida, values);
+	if (c->error.error) {
+		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,
+							  "CnnCalculeErrorWithOutput/TensorGetValues ");
+		free_mem(vTarget);
+		free_mem(values);
+		return c->error.error;
+	}
+	c->error.error = TensorGetValues(c->queue, target, vTarget);
+	if (c->error.error) {
+		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE,
+							  "CnnCalculeErrorWithOutput/TensorGetValues ");
+		free_mem(values);
+		free_mem(vTarget);
+		return c->error.error;
+	}
+	double sum = 0;
+	double aux;
+	for (int i = 1; i < len; i++) {
+		aux = values[i] - vTarget[i];
+		sum += aux * aux;
+	}
+	free_mem(values);
+	free_mem(vTarget);
 	*mse = sqrt(sum);
 	return c->error.error;
 }

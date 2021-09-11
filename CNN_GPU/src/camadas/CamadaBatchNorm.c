@@ -128,7 +128,6 @@ int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext) {
 void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(& c->super.type, sizeof(char), 1, dst);
-	fwrite(& c->super.flag_usehost, sizeof(char), 1, dst);
 	fwrite(& flag, sizeof(char), 1, dst);
 	fwrite(&  c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(& c->super.entrada->y, sizeof(UINT), 1, dst);
@@ -150,14 +149,12 @@ Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tenso
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
 	UINT inx, iny, inz;
-	char usehost = 0;
-	fread(&usehost, sizeof(char), 1, src);
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
 	double epsilon = 1e-10;
 	CamadaBatchNorm cm = (CamadaBatchNorm) createBatchNorm(cl, queue, params, inx, iny, inz, entrada,
-	                                                       epsilon, 0, usehost, error);
+	                                                       epsilon, 0,  error);
 	double *data = (double *)alloc_mem(cm->Y->z,sizeof(double));
 	fread(data, cm->Y->bytes, 1, src);
 	TensorPutValues(cm->super.queue, cm->Y, data);
@@ -198,12 +195,12 @@ void realeaseBatchNorm(CamadaBatchNorm *pc) {
 Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
 					   UINT inx, UINT iny,
 					   UINT inz, Tensor entrada, double epsilon, int randomize,
-					   char usehost, CNN_ERROR *error) {
+					    CNN_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaBatchNorm c = (CamadaBatchNorm) alloc_mem(1, sizeof(TypecamadaBatchNorm));
 
-	__newCamada__((Camada) c, cl, BATCHNORM, entrada, queue, params, inx, iny, inz, inx, iny, inz, usehost, error);
+	__newCamada__((Camada) c, cl, BATCHNORM, entrada, queue, params, inx, iny, inz, inx, iny, inz,  error);
 	c->super.toString = (cfv) tostringBatchNorm;
 	c->super.getCreateParams = (cfv) getCreateParamsBatchNorm;
 	c->super.release = (fv) realeaseBatchNorm;
@@ -211,19 +208,19 @@ Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
 	c->super.backpropagation = (f2v) calc_gradsBatchNorm;
 	c->super.salvar = (f4v) salvarBatchNorm;
 
-	c->media = newTensor(cl->context, queue, 1, 1, inz, usehost, error);
-	c->somaDiferenca = newTensor(cl->context, queue, 1, 1, inz, usehost, error);
-	c->variancia = newTensor(cl->context, queue, 1, 1, inz, usehost, error);
-	c->gradVariancia = newTensor(cl->context, queue, 1, 1, inz, usehost, error);
+	c->media = newTensor(cl->context, queue, 1, 1, inz, 0, error);
+	c->somaDiferenca = newTensor(cl->context, queue, 1, 1, inz, 0, error);
+	c->variancia = newTensor(cl->context, queue, 1, 1, inz, 0, error);
+	c->gradVariancia = newTensor(cl->context, queue, 1, 1, inz, 0, error);
 
-	c->Y = newTensor(cl->context, queue, 1, 1, inz, usehost, error);
-	c->B = newTensor(cl->context, queue, 1, 1, inz, usehost, error);
-	c->gradY = newTensor(cl->context, queue, 1, 1, inz, usehost, error);
-	c->gradB = newTensor(cl->context, queue, 1, 1, inz, usehost, error);
+	c->Y = newTensor(cl->context, queue, 1, 1, inz, 0, error);
+	c->B = newTensor(cl->context, queue, 1, 1, inz, 0, error);
+	c->gradY = newTensor(cl->context, queue, 1, 1, inz, 0, error);
+	c->gradB = newTensor(cl->context, queue, 1, 1, inz, 0, error);
 
-	c->diferenca = newTensor(cl->context, queue, inx, iny, inz, usehost, error);
-	c->diferencaquad = newTensor(cl->context, queue, inx, iny, inz, usehost, error);
-	c->norma = newTensor(cl->context, queue, inx, iny, inz, usehost, error);
+	c->diferenca = newTensor(cl->context, queue, inx, iny, inz, 0, error);
+	c->diferencaquad = newTensor(cl->context, queue, inx, iny, inz, 0, error);
+	c->norma = newTensor(cl->context, queue, inx, iny, inz, 0, error);
 
 	c->epsilon = epsilon;
 	c->kernelBatchNormAtiva1 = new_Kernel(cl->program, error, BatchNormMedia, 5,

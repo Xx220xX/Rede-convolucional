@@ -148,7 +148,7 @@ Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
 	CamadaConv c = (CamadaConv) createConv(cl, queue, passox, passoy, tamanhoFiltrox, tamanhoFiltroy, numeroFiltros, inx, iny, inz, entrada,
-										   params, flag_usehost, error, 0);
+										   params, error, 0);
 	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->super.entrada->z, sizeof(double));
 	for (int a = 0; a < c->filtros->w; a++) {
 		fread(data, 1, c->filtros->bytes, src);
@@ -176,13 +176,13 @@ void releaseConv(CamadaConv *pc) {
 
 Camada createConv(WrapperCL *cl, QUEUE queue, UINT passox, UINT passoy, UINT lenFilterx, UINT lenFiltery,
 				  UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-				  Tensor entrada, Params params, char usehost, CNN_ERROR *error, int randomize) {
+				  Tensor entrada, Params params, CNN_ERROR *error, int randomize) {
 	if (error->error)return NULL;
 	CamadaConv c = (CamadaConv) alloc_mem(1, sizeof(Typecamadaconv));
 	__newCamada__(&c->super, cl, CONV, entrada, queue, params,
 				  inx, iny, inz,
 				  (inx - lenFilterx) / passox + 1, (iny - lenFiltery) / passoy + 1,
-				  numeroFiltros, usehost, error);
+				  numeroFiltros, error);
 
 	c->super.toString = (cfv) tostringConv;
 	c->super.getCreateParams = (cfv) getCreateParamsConv;
@@ -198,9 +198,9 @@ Camada createConv(WrapperCL *cl, QUEUE queue, UINT passox, UINT passoy, UINT len
 		return NULL;
 
 	}
-	c->filtros = newTensor4D(cl->context, queue, lenFilterx, lenFiltery, inz, numeroFiltros, c->super.flag_usehost,
+	c->filtros = newTensor4D(cl->context, queue, lenFilterx, lenFiltery, inz, numeroFiltros, 0,
 							 error);
-	c->grad_filtros = newTensor4D(cl->context, queue, lenFilterx, lenFiltery, inz, numeroFiltros, c->super.flag_usehost,
+	c->grad_filtros = newTensor4D(cl->context, queue, lenFilterx, lenFiltery, inz, numeroFiltros, 0,
 								  error);
 	if (error->error) {
 		c->super.release(&c);

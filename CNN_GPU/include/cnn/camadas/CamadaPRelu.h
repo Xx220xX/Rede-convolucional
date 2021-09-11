@@ -21,7 +21,7 @@ typedef struct {
 
 Camada createPRelu(WrapperCL *cl, QUEUE queue, unsigned int inx, unsigned int iny,
 				   unsigned int inz, Tensor entrada,
-				   char usehost,
+				   Params params,
 				   int randomize, CNN_ERROR *error);
 
 

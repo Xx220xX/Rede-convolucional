@@ -93,7 +93,6 @@ void salvarPoolAv(WrapperCL *cl, CamadaPoolAv c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
-	fwrite(&c->super.flag_usehost, sizeof(char), 1, dst);
 	fwrite(&c->passox, sizeof(UINT), 1, dst);
 	fwrite(&c->passoy, sizeof(UINT), 1, dst);
 	fwrite(&c->fx, sizeof(UINT), 1, dst);
@@ -110,8 +109,6 @@ Camada carregarPoolAv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor e
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
 	UINT px, py, fx, fy, inx, iny, inz;
-	char flag_usehost = 0;
-	fread(&flag_usehost, sizeof(char), 1, src);
 	fread(&px, sizeof(UINT), 1, src);
 	fread(&py, sizeof(UINT), 1, src);
 	fread(&fx, sizeof(UINT), 1, src);
@@ -119,13 +116,13 @@ Camada carregarPoolAv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor e
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createPoolAv(cl, queue, px, py, fx, fy, inx, iny, inz, entrada, params, flag_usehost, error);
+	return createPoolAv(cl, queue, px, py, fx, fy, inx, iny, inz, entrada, params, error);
 }
 
 Camada createPoolAv(WrapperCL *cl, QUEUE queue, UINT px, UINT py, UINT fx, UINT fy,
 					UINT inx, UINT iny, UINT inz,
 					Tensor entrada, Params params,
-					char usehost, CNN_ERROR *error) {
+					 CNN_ERROR *error) {
 	CamadaPoolAv c = (CamadaPoolAv) alloc_mem(1, sizeof(TypecamadaPoolAv));
 	c->passox = px;
 	c->passoy = py;
@@ -134,7 +131,7 @@ Camada createPoolAv(WrapperCL *cl, QUEUE queue, UINT px, UINT py, UINT fx, UINT 
 	__newCamada__((Camada) c, cl, POOLAV, entrada, queue, params, inx, iny, inz,
 				  (inx - fx) / px + 1,
 				  (iny - fy) / px + 1, inz,
-				  usehost, error);
+				 error);
 	c->super.toString = (cfv) tostringPoolAv;
 	c->super.getCreateParams = (cfv) getCreateParamsPoolAv;
 	c->super.release = (fv) releasePoolAv;

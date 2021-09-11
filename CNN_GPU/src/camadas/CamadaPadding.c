@@ -84,7 +84,6 @@ void salvarPadding(WrapperCL *cl, CamadaPadding c, FILE *dst, CNN_ERROR *error) 
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
-	fwrite(&c->super.flag_usehost, sizeof(char), 1, dst);
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
@@ -103,8 +102,6 @@ Camada carregarPadding(WrapperCL *cl, FILE *src, cl_command_queue queue,
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
 	UINT inx, iny, inz, top, bottom, left, right;
-	char flag_usehost = 0;
-	fread(&flag_usehost, sizeof(char), 1, src);
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
@@ -112,20 +109,20 @@ Camada carregarPadding(WrapperCL *cl, FILE *src, cl_command_queue queue,
 	fread(&bottom, sizeof(UINT), 1, src);
 	fread(&left, sizeof(UINT), 1, src);
 	fread(&right, sizeof(UINT), 1, src);
-	return createPadding(cl, queue, inx, iny, inz, top, bottom, left, right, entrada, flag_usehost, error);
+	return createPadding(cl, queue, inx, iny, inz, top, bottom, left, right, entrada, error);
 }
 
 Camada createPadding(WrapperCL *cl, QUEUE queue,
 					 UINT inx, UINT iny, UINT inz,
 					 UINT top, UINT bottom, UINT left, UINT right, Tensor entrada,
-					 char usehost, CNN_ERROR *error) {
+					 CNN_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaPadding c = (CamadaPadding) alloc_mem(1, sizeof(TypecamadaPadding));
 
 	__newCamada__((Camada) c, cl, PADDING, entrada, queue,
 	              (Params) {0}, inx, iny, inz, inx + top + bottom, iny + left + right,
-	              inz, usehost, error);
+	              inz, error);
 	error->error = TensorFill(queue, c->super.saida, 0);
 	c->super.toString = (cfv) tostringPadding;
 	c->super.getCreateParams = (cfv) getCreateParamsPadding;

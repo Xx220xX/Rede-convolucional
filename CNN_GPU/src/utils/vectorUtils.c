@@ -41,17 +41,6 @@ void ppmp3(double *data, int x, int y, int z, const char *fileName) {
 }
 
 
-void createDir(char *dir) {
-	printf("%s\n", dir);
-	char msg[250] = {0};
-	DWORD dwatt = GetFileAttributes(dir);
-	if (dwatt != INVALID_FILE_ATTRIBUTES && dwatt & FILE_ATTRIBUTE_DIRECTORY) {
-		sprintf(msg, "rmdir /S /Q %s", dir);
-		system(msg);
-	}
-	sprintf(msg, "mkdir  %s", dir);
-	system(msg);
-}
 
 void salveCnnOutAsPPM(Cnn c, const char *name) {
 	size_t w = 0, h = 0;

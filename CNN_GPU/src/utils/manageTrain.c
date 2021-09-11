@@ -21,9 +21,9 @@ printf(fmv,v[_i_]);                                   \
 #endif
 
 
-#define HIT_RATE 0
-#define MSE 1
-#define CASOS 2
+#define CASOS 0
+#define HIT_RATE 1
+#define MSE 2
 
 #define PROCESS_ID_END 0
 #define PROCESS_ID_LOAD 1
@@ -136,43 +136,38 @@ void fitnes(ManageTrain *t) {
 	EVENT(t->OnInitFitnes, t);
 
 	double local_mse = 0;
-	double *input;
-	double *output;
+	Tensor input;
+	Tensor output;
 	char label;
 	char cnnLabel;
 	int img_atual;
-	Tensor info = NULL;
 	double time_init_train;
 	double internal_time = t->current_time;
 
 
 	t->et.ft_numero_imagens = t->n_images2fitness;
 	t->et.ft_numero_classes = t->n_classes;
-	//
-	//	for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2fitness; t->image++) {
-	//		time_init_train = getms();
-	//		img_atual = t->image + t->n_images2train;
-	//		input = t->imagens->host + (t->imagens->bytes * img_atual);
-	//		output = t->targets->host + (t->targets->bytes * img_atual);
-	//		label = ((char *) t->labels->host)[img_atual];
-	//		CnnCall(t->cnn, input);
-	//		cnnLabel = CnnGetIndexMax(t->cnn);
-	//
-	//
-	//		t->et.ft_info[Tensor_Map(info, label, CASOS, 0)]++;
-	//		if (cnnLabel == label) {
-	//			t->et.ft_info[Tensor_Map(info, label, HIT_RATE, 0)]++;
-	//		}
-	//		CnnCalculeErrorWithOutput(t->cnn, output, &local_mse);
-	//		t->et.ft_info[Tensor_Map(info, label, MSE, 0)] += local_mse;
-	//		t->et.ft_imagem_atual = t->image;
-	//		internal_time += getms() - time_init_train;
-	//		t->current_time = internal_time;
-	//		t->et.ft_time = t->current_time;
-	//
-	//	}
-	//	releaseTensor(&info);
-	EVENT(t->OnInitFitnes, t);
+	if (!t->et.ft_info)t->et.ft_info = alloc_mem(t->n_classes * 3, sizeof(double));
+	for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2fitness; t->image++) {
+		time_init_train = getms();
+		img_atual = t->image + t->n_images2train;
+		input = t->imagens[t->image];
+		output = t->targets[img_atual];
+		label = t->labels->hostc[img_atual];
+		CnnCallT(t->cnn, input);
+		cnnLabel = CnnGetIndexMax(t->cnn);
+		t->et.ft_info[label * 3 + CASOS]++;
+		if (cnnLabel == label) {
+			t->et.ft_info[label * 3 + HIT_RATE]++;
+		}
+		CnnCalculeErrorTWithOutput(t->cnn, output, &local_mse);
+		t->et.ft_info[label * 3 + MSE] += local_mse;
+		t->et.ft_imagem_atual = t->image;
+		internal_time += getms() - time_init_train;
+		t->current_time = internal_time;
+		t->et.ft_time = t->current_time;
+	}
+	EVENT(t->OnfinishFitnes, t);
 	t->process_id = PROCESS_ID_END;
 }
 
@@ -398,7 +393,7 @@ void helpArgumentsManageTrain() {
 
 }
 
-void loadArgsLuaManageTrain(ManageTrain *t, List_args *args) {
+void loadArgsLuaManageTrain(ManageTrain *t, Dictionary *args) {
 	if (t->cnn->error.error)return;
 	Dbchar_p arg;
 	for (int i = 0; i < args->size; i++) {
@@ -471,13 +466,17 @@ int ManageTraintrain(ManageTrain *t, int runBackground) {
 	return 0;
 }
 
-int ManageTrainfitnes(ManageTrain *t) {
+int ManageTrainfitnes(ManageTrain *t, int runBackground) {
 	t->can_run = 1;
 	t->real_time = 1;
 	t->process_id = PROCESS_ID_FITNES;
 	releaseProcess(&t->process);
-	t->process = newThread(fitnes, t, NULL);
-	return t->process != NULL;
+	if (runBackground) {
+		t->process = newThread(fitnes, t, NULL);
+		return t->process != NULL;
+	}
+	fitnes(t);
+	return 0;
 }
 
 void waitEndProces(ManageTrain *t) {

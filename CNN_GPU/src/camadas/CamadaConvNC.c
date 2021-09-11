@@ -136,7 +136,6 @@ void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
-	fwrite(&c->super.flag_usehost, sizeof(char), 1, dst);
 	fwrite(&c->passox, sizeof(UINT), 1, dst);
 	fwrite(&c->passoy, sizeof(UINT), 1, dst);
 	fwrite(&c->largx, sizeof(UINT), 1, dst);
@@ -162,9 +161,7 @@ Camada carregarConvNc(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
-	char flag_usehost = 0;
 	UINT passox, passoy, largx, largy, fx, fy, numeroFiltros, inx, iny, inz;
-	fread(&flag_usehost, sizeof(char), 1, src);
 	fread(&passox, sizeof(UINT), 1, src);
 	fread(&passoy, sizeof(UINT), 1, src);
 	fread(&fx, sizeof(UINT), 1, src);
@@ -177,7 +174,7 @@ Camada carregarConvNc(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 	fread(&inz, sizeof(UINT), 1, src);
 	CamadaConvNc c = (CamadaConvNc) createConvNc(cl, queue, passox, passoy, largx, largy, fx, fy, numeroFiltros, inx,
 												 iny, inz,
-												 entrada, params, flag_usehost, error, 0);
+												 entrada, params, error, 0);
 	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->super.entrada->z, sizeof(double));
 	for (int a = 0; a < c->numeroFiltros; a++) {
 		fread(data, 1, c->filtros->bytes, src);
@@ -205,14 +202,14 @@ void releaseConvNc(CamadaConvNc *pc) {
 Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
 					UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
 					UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-					Tensor entrada, Params params, char usehost, CNN_ERROR *error, int randomize) {
+					Tensor entrada, Params params, CNN_ERROR *error, int randomize) {
 	if (error->error)return NULL;
 	CamadaConvNc c = (CamadaConvNc) alloc_mem(1, sizeof(TypecamadaConvNc));
 	__newCamada__(&c->super, cl, CONVNC, entrada, queue, params,
 				  inx, iny, inz,
 				  (inx - 1 - (filtrox - 1) * largx) / passox + 1,
 				  (iny - 1 - (filtroy - 1) * largy) / passoy + 1,
-				  numeroFiltros, usehost, error);
+				  numeroFiltros, error);
 
 	c->super.toString = (cfv) tostringConvNc;
 	c->super.getCreateParams = (cfv) getCreateParamsConvNc;

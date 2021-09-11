@@ -109,8 +109,6 @@ Camada carregarPool(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor ent
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
 	UINT passox, passoy, filtrox, filtroy, inx, iny, inz;
-	char flag_usehost;
-	fread(&flag_usehost, sizeof(char), 1, src);
 	fread(&passox, sizeof(UINT), 1, src);
 	fread(&passoy, sizeof(UINT), 1, src);
 	fread(&filtrox, sizeof(UINT), 1, src);
@@ -118,14 +116,14 @@ Camada carregarPool(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor ent
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createPool(cl, queue, passox, passoy, filtrox, filtroy, inx, iny, inz, entrada, params, flag_usehost, error);
+	return createPool(cl, queue, passox, passoy, filtrox, filtroy, inx, iny, inz, entrada, params, error);
 }
 
 Camada createPool(WrapperCL *cl, cl_command_queue queue,
 				  UINT passox, UINT passoy, UINT filtrox, UINT filtroy,
 				  UINT inx, UINT iny, UINT inz,
 				  Tensor entrada, Params params,
-				  char usehost, CNN_ERROR *error) {
+				   CNN_ERROR *error) {
 	CamadaPool c = (CamadaPool) alloc_mem(1, sizeof(Typecamadapool));
 	c->passox = passox;
 	c->passoy = passoy;
@@ -134,7 +132,7 @@ Camada createPool(WrapperCL *cl, cl_command_queue queue,
 	__newCamada__((Camada) c, cl, POOL, entrada, queue, params, inx, iny, inz,
 	              (inx - filtrox) / passox + 1,
 	              (iny - filtroy) / passoy + 1, inz,
-	              usehost, error);
+	               error);
 	c->super.toString = (cfv) tostringPool;
 	c->super.getCreateParams = (cfv) getCreateParamsPool;
 	c->super.release = (fv) releasePool;

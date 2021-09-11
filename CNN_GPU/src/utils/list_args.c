@@ -3,7 +3,7 @@
 //
 
 #include "utils/list_args.h"
-void List_argspushValue(List_args *lst,const char *name, const char *value) {
+void Dict_push(Dictionary *lst, const char *name, const char *value) {
 	int i;
 	int lenName;
 	int lenValue = strlen(value);
@@ -26,13 +26,16 @@ void List_argspushValue(List_args *lst,const char *name, const char *value) {
 	lst->values[i].name = alloc_mem(1, lenName + 1);
 	strcpy(lst->values[i].name, name);
 }
-void releaseList_args(List_args *largs) {
+void releaseDictionary(Dictionary *largs) {
 	for (int i = 0; i < largs->size; ++i) {
 		free_mem(largs->values[i].name);
 		free_mem(largs->values[i].value);
 	}
 	if (largs->values)
 		free_mem(largs->values);
+
 	largs->values = NULL;
 	largs->size = 0;
+	if(largs->self_release)
+		free_mem(largs);
 }
