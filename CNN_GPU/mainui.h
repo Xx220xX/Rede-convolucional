@@ -108,27 +108,23 @@ void UpdateTrain(ManageTrain *mt) {
 		y = wherey() + 2;
 	}
 	gotoxy(1, y);
-	int bytes = printf("Epoca %d of %d     imagem %d of %d \n", t->tr_epoca_atual, t->tr_numero_epocas, t->tr_imagem_atual, t->tr_numero_imagens);
-	bytes += printf("Tempo estimado final do treino  %lld:%02lld:%02lld\n",
+	printf("Epoca %d de %d     imagem %d de %d \n", t->tr_epoca_atual, t->tr_numero_epocas, t->tr_imagem_atual, t->tr_numero_imagens);
+	printf("Tempo estimado final do treino  %lld:%02lld:%02lld\n",
 					tmp_restante_treino / 3600,
 					(tmp_restante_treino % 3600) / 60,
 					(tmp_restante_treino % 3600) % 60);
-	bytes += printf("Tempo estimado final da epoca %lld:%02lld:%02lld\n",
+	printf("Tempo estimado final da epoca %lld:%02lld:%02lld\n",
 					tmp_restante_epoca / 3600,
 					(tmp_restante_epoca % 3600) / 60,
 					(tmp_restante_epoca % 3600) % 60);
-	bytes += printf("Imagens por segundo %.2lf\n",
+	printf("Imagens por segundo %.2lf\n",
 					imps);
-	bytes += printf("Mse %lf\n"
+	printf("Mse %.16lf\n"
 					"Acerto medio %lf\n",
 					t->tr_erro_medio,
 					t->tr_acerto_medio * 100);
 
 	static int delete = 0;
-	delete = bytes - delete;
-	for (int i = 0; i < delete; i++)
-		printf(" ");
-	delete = bytes;
 	char c = 0;
 	if (kbhit()) {
 		c = getche();
@@ -146,7 +142,7 @@ void UpdateFitnes(ManageTrain *t) {
 		y = wherey() + 2;
 	}
 	gotoxy(1, y);
-	printf("Imagem %d of %d   %lf%%    ",t->et.ft_imagem_atual+1,t->et.ft_numero_imagens,(t->et.ft_imagem_atual+1.0)/t->et.ft_numero_imagens*100);
+	printf("Imagem %d de %d   %lf%%    ",t->et.ft_imagem_atual+1,t->et.ft_numero_imagens,(t->et.ft_imagem_atual+1.0)/t->et.ft_numero_imagens*100);
 	double imps = 1e-40;
 	double tm = t->et.ft_time *1e-3;
 	if(tm!=0)
@@ -159,6 +155,13 @@ void UpdateFitnes(ManageTrain *t) {
 		   tmp / 3600,
 		   (tmp % 3600) / 60,
 		   (tmp % 3600) % 60);
+	char c = 0;
+	if (kbhit()) {
+		c = getche();
+		if (c == 'q') {
+			manageTrainSetRun((ManageTrain *) t, 0);
+		}
+	}
 }
 
 void UpdateLoad(ManageTrain *t) {

@@ -9,10 +9,10 @@
 #include "../kernels/camadas/utils.h"
 #include "../kernels/camadas/cnnutils.h"
 #endif
-char __version__[] = "2.2.010"
+char __version__[] = "2.2.015"
 #if (RUN_KERNEL_USING_GPU != 1)
 "host mode"
-#endif // DISABLE_KERNELS_INSIDE_DRIVE
+#endif
 ;
 
 
