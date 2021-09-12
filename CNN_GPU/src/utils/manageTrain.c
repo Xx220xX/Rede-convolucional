@@ -140,7 +140,6 @@ void fitnes(ManageTrain *t) {
 	Tensor output;
 	char label;
 	char cnnLabel;
-	int img_atual;
 	double time_init_train;
 	double internal_time = t->current_time;
 
@@ -148,12 +147,11 @@ void fitnes(ManageTrain *t) {
 	t->et.ft_numero_imagens = t->n_images2fitness;
 	t->et.ft_numero_classes = t->n_classes;
 	if (!t->et.ft_info)t->et.ft_info = alloc_mem(t->n_classes * 3, sizeof(double));
-	for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2fitness; t->image++) {
+	for (; t->can_run && !t->cnn->error.error && t->image -t->n_images2train< t->n_images2fitness; t->image++) {
 		time_init_train = getms();
-		img_atual = t->image + t->n_images2train;
 		input = t->imagens[t->image];
-		output = t->targets[img_atual];
-		label = t->labels->hostc[img_atual];
+		output = t->targets[t->image];
+		label = t->labels->hostc[t->image];
 		CnnCallT(t->cnn, input);
 		cnnLabel = CnnGetIndexMax(t->cnn);
 		t->et.ft_info[label * 3 + CASOS]++;
@@ -162,7 +160,7 @@ void fitnes(ManageTrain *t) {
 		}
 		CnnCalculeErrorTWithOutput(t->cnn, output, &local_mse);
 		t->et.ft_info[label * 3 + MSE] += local_mse;
-		t->et.ft_imagem_atual = t->image;
+		t->et.ft_imagem_atual = t->image - t->n_images2train;;
 		internal_time += getms() - time_init_train;
 		t->current_time = internal_time;
 		t->et.ft_time = t->current_time;

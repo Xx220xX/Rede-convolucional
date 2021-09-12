@@ -77,20 +77,71 @@ void OnInitTrain(ManageTrain *t) {
 
 void OnfinishFitnes(ManageTrain *t) {
 	FILE *f = fopen("fitnes.csv", "w");
-	fprintf(f, "Classe,Casos,Taxa de acerto,Erro médio\n");
+	fprintf(f, "Classe,Casos,Número de acertos,Taxa de acerto,Erro médio\n");
 	char *msg = t->class_names.d;
 	int i = 0;
 	char sep = t->character_sep;
-	sep =  ' ';
+	sep = ' ';
 	for (int j = 0; j < t->n_classes; ++j) {
 		for (; i < t->class_names.size && msg[i] != sep; i++) {
 			if (msg[i] == ',')continue;
 			fprintf(f, "%c", msg[i]);
 		}
 		fprintf(f, ",");
-		fprintf(f, "%d,%lf,%lf\n", (int) t->et.ft_info[0 + j * 3],100* t->et.ft_info[1 + j * 3] / (t->et.ft_info[0 + j * 3] + 1e-14), t->et.ft_info[2 + j * 3] / (t->et.ft_info[0 + j * 3] + 1e-14));
+		fprintf(f, "%d,%d,%lf,%lf\n", (int) t->et.ft_info[0 + j * 3], (int) t->et.ft_info[1 + j * 3], 100 * t->et.ft_info[1 + j * 3] / (t->et.ft_info[0 + j * 3] + 1e-14), t->et.ft_info[2 + j * 3] / (t->et.ft_info[0 + j * 3] + 1e-14));
 		i++;
 	}
+	fclose(f);
+
+	f = fopen("showGraphic.py","w");
+	{
+		fprintf(f,"import numpy as np\n"
+				  "\n"
+				  "# dir = \"D:/Henrique/treino_ia/treino_numero_0_9/statistic/\"\n"
+				  "dir = './'\n"
+				  "import os, ctypes as c\n"
+				  "import matplotlib.pyplot as plt\n"
+				  "\n"
+				  "files = [dir + x for x in os.listdir(dir)]\n"
+				  "geralx = []\n"
+				  "geraly = []\n"
+				  "geralt = []\n"
+				  "for file in files:\n"
+				  "\tif not  file.endswith('.bin'):continue\n"
+				  "\twith open(file, 'rb') as f:\n"
+				  "\t\tb = f.read(8)\n"
+				  "\t\tsize_t = c.c_char * 8\n"
+				  "\t\tb = size_t(*b)\n"
+				  "\t\tlength = c.cast(b, c.POINTER(c.c_size_t))[0]\n"
+				  "\t\tprint(length)\n"
+				  "\t\tx = f.read(length * 8)\n"
+				  "\t\ty = f.read(length * 8)\n"
+				  "\t\tv_c = c.c_char * (length * 8)\n"
+				  "\t\tx = c.cast(v_c(*x), c.POINTER(c.c_double))\n"
+				  "\t\ty = c.cast(v_c(*y), c.POINTER(c.c_double))\n"
+				  "\t\tx = [x[i] for i in range(length)]\n"
+				  "\t\ty = [y[i] for i in range(length)]\n"
+				  "\t\t# plt.figure(file)\n"
+				  "\t\t# plt.title(file.replace(dir, 'epoca ').replace('.bin', ''))\n"
+				  "\t\t# plt.plot(x)\n"
+				  "\t\t# plt.plot(y)\n"
+				  "\t\t# plt.legend(['erro medio', 'acerto medio'])\n"
+				  "\t\t# global geralx\n"
+				  "\t\t# global geralt\n"
+				  "\t\t# global geraly\n"
+				  "\t\tgeralx = geralx + x\n"
+				  "\t\tgeraly = geraly + y\n"
+				  "\t\tt = np.arange(0, 1, 1 / length)\n"
+				  "\t\tif len(geralt) != 0:\n"
+				  "\t\t\tt = t + geralt[-1]\n"
+				  "\t\tgeralt = geralt + list(t)\n"
+				  "plt.title('Aprendizado')\n"
+				  "plt.plot(geralt,geralx)\n"
+				  "plt.plot(geralt,geraly)\n"
+				  "plt.legend(['Erro','Taxa Acerto'])\n"
+				  "plt.show()");
+	}
+	fflush(f);
 	fclose(f);
 }
 
@@ -110,19 +161,19 @@ void UpdateTrain(ManageTrain *mt) {
 	gotoxy(1, y);
 	printf("Epoca %d de %d     imagem %d de %d \n", t->tr_epoca_atual, t->tr_numero_epocas, t->tr_imagem_atual, t->tr_numero_imagens);
 	printf("Tempo estimado final do treino  %lld:%02lld:%02lld\n",
-					tmp_restante_treino / 3600,
-					(tmp_restante_treino % 3600) / 60,
-					(tmp_restante_treino % 3600) % 60);
+		   tmp_restante_treino / 3600,
+		   (tmp_restante_treino % 3600) / 60,
+		   (tmp_restante_treino % 3600) % 60);
 	printf("Tempo estimado final da epoca %lld:%02lld:%02lld\n",
-					tmp_restante_epoca / 3600,
-					(tmp_restante_epoca % 3600) / 60,
-					(tmp_restante_epoca % 3600) % 60);
+		   tmp_restante_epoca / 3600,
+		   (tmp_restante_epoca % 3600) / 60,
+		   (tmp_restante_epoca % 3600) % 60);
 	printf("Imagens por segundo %.2lf\n",
-					imps);
+		   imps);
 	printf("Mse %.16lf\n"
-					"Acerto medio %lf\n",
-					t->tr_erro_medio,
-					t->tr_acerto_medio * 100);
+		   "Acerto medio %lf\n",
+		   t->tr_erro_medio,
+		   t->tr_acerto_medio * 100);
 
 	static int delete = 0;
 	char c = 0;
@@ -142,26 +193,27 @@ void UpdateFitnes(ManageTrain *t) {
 		y = wherey() + 2;
 	}
 	gotoxy(1, y);
-	printf("Imagem %d de %d   %lf%%    ",t->et.ft_imagem_atual+1,t->et.ft_numero_imagens,(t->et.ft_imagem_atual+1.0)/t->et.ft_numero_imagens*100);
+	printf("Imagem %d de %d   %lf%%    ", t->et.ft_imagem_atual + 1, t->et.ft_numero_imagens, (t->et.ft_imagem_atual + 1.0) / t->et.ft_numero_imagens * 100);
 	double imps = 1e-40;
-	double tm = t->et.ft_time *1e-3;
-	if(tm!=0)
-		imps = (t->et.ft_imagem_atual+1)/tm;
-	size_t tmp  = (t->et.ft_numero_imagens - t->et.ft_imagem_atual - 1.0)/imps;
+	double tm = t->et.ft_time * 1e-3;
+	if (tm != 0)
+		imps = (t->et.ft_imagem_atual + 1) / tm;
+	size_t tmp = (t->et.ft_numero_imagens - t->et.ft_imagem_atual - 1.0) / imps;
 //		printf("Tempo estimado final da avaliação --:--:--     \n");
-	printf("\n%lf imps     ",imps);
+	printf("\n%lf imps     ", imps);
 //	printf("\n%lf temp     ",tm);
 	printf("\nTempo estimado final da avaliação %lld:%02lld:%02lld     \n",
 		   tmp / 3600,
 		   (tmp % 3600) / 60,
+
 		   (tmp % 3600) % 60);
-	char c = 0;
-	if (kbhit()) {
-		c = getche();
-		if (c == 'q') {
-			manageTrainSetRun((ManageTrain *) t, 0);
-		}
-	}
+//	char c = 0;
+//	if (kbhit()) {
+//		c = getche();
+//		if (c == 'q') {
+//			manageTrainSetRun((ManageTrain *) t, 0);
+//		}
+//	}
 }
 
 void UpdateLoad(ManageTrain *t) {
@@ -170,6 +222,6 @@ void UpdateLoad(ManageTrain *t) {
 		y = wherey() + 1;
 	}
 	gotoxy(1, y);
-	printf("Imagem: %lld   %lf%%      \n", t->et.ld_imagem_atual+1, 100.0*(t->et.ld_imagem_atual+1.0)/t->n_images);
-	printf("Label: %lld    %lf%%        ", t->et.ll_imagem_atual+1,100.0*(t->et.ll_imagem_atual+1.0)/t->n_images );
+	printf("Imagem: %lld   %lf%%      \n", t->et.ld_imagem_atual + 1, 100.0 * (t->et.ld_imagem_atual + 1.0) / t->n_images);
+	printf("Label: %lld    %lf%%        ", t->et.ll_imagem_atual + 1, 100.0 * (t->et.ll_imagem_atual + 1.0) / t->n_images);
 }

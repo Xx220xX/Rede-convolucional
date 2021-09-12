@@ -27,11 +27,11 @@ int main(int arg, char **args) {
 	// ler imagens
 	ManageTrainloadImages(&manageTrain, 1);
 	manageTrainLoop(&manageTrain, 0);
-
 	// Treinar
 	ManageTraintrain(&manageTrain, 1);
 	manageTrainLoop(&manageTrain, 0);
-
+	printf("treinou \n");
+	manageTrainSetRun(&manageTrain, 1);
 	// Fitness
 	ManageTrainfitnes(&manageTrain, 1);
 	manageTrainLoop(&manageTrain, 0);

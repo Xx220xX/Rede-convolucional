@@ -1,7 +1,7 @@
 import numpy as np
 
-dir = "D:/Henrique/treino_ia/treino_numero_0_9/statistic/"
-
+# dir = "D:/Henrique/treino_ia/treino_numero_0_9/statistic/"
+dir = './'
 import os, ctypes as c
 import matplotlib.pyplot as plt
 
@@ -10,11 +10,13 @@ geralx = []
 geraly = []
 geralt = []
 for file in files:
+	if not  file.endswith('.bin'):continue
 	with open(file, 'rb') as f:
 		b = f.read(8)
 		size_t = c.c_char * 8
 		b = size_t(*b)
 		length = c.cast(b, c.POINTER(c.c_size_t))[0]
+		print(length)
 		x = f.read(length * 8)
 		y = f.read(length * 8)
 		v_c = c.c_char * (length * 8)
