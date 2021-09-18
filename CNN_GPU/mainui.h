@@ -82,6 +82,7 @@ void OnfinishFitnes(ManageTrain *t) {
 	int i = 0;
 	char sep = t->character_sep;
 	sep = ' ';
+	double media = 0;
 	for (int j = 0; j < t->n_classes; ++j) {
 		for (; i < t->class_names.size && msg[i] != sep; i++) {
 			if (msg[i] == ',')continue;
@@ -89,57 +90,59 @@ void OnfinishFitnes(ManageTrain *t) {
 		}
 		fprintf(f, ",");
 		fprintf(f, "%d,%d,%lf,%lf\n", (int) t->et.ft_info[0 + j * 3], (int) t->et.ft_info[1 + j * 3], 100 * t->et.ft_info[1 + j * 3] / (t->et.ft_info[0 + j * 3] + 1e-14), t->et.ft_info[2 + j * 3] / (t->et.ft_info[0 + j * 3] + 1e-14));
+		media += t->et.ft_info[1 + j * 3];
 		i++;
 	}
+	fprintf(f,"Media de acerto,%lf,null,null\n" ,100*media/t->et.ft_imagem_atual);
 	fclose(f);
-
-	f = fopen("showGraphic.py","w");
+	f = fopen("showGraphic.py", "w");
 	{
-		fprintf(f,"import numpy as np\n"
-				  "\n"
-				  "# dir = \"D:/Henrique/treino_ia/treino_numero_0_9/statistic/\"\n"
-				  "dir = './'\n"
-				  "import os, ctypes as c\n"
-				  "import matplotlib.pyplot as plt\n"
-				  "\n"
-				  "files = [dir + x for x in os.listdir(dir)]\n"
-				  "geralx = []\n"
-				  "geraly = []\n"
-				  "geralt = []\n"
-				  "for file in files:\n"
-				  "\tif not  file.endswith('.bin'):continue\n"
-				  "\twith open(file, 'rb') as f:\n"
-				  "\t\tb = f.read(8)\n"
-				  "\t\tsize_t = c.c_char * 8\n"
-				  "\t\tb = size_t(*b)\n"
-				  "\t\tlength = c.cast(b, c.POINTER(c.c_size_t))[0]\n"
-				  "\t\tprint(length)\n"
-				  "\t\tx = f.read(length * 8)\n"
-				  "\t\ty = f.read(length * 8)\n"
-				  "\t\tv_c = c.c_char * (length * 8)\n"
-				  "\t\tx = c.cast(v_c(*x), c.POINTER(c.c_double))\n"
-				  "\t\ty = c.cast(v_c(*y), c.POINTER(c.c_double))\n"
-				  "\t\tx = [x[i] for i in range(length)]\n"
-				  "\t\ty = [y[i] for i in range(length)]\n"
-				  "\t\t# plt.figure(file)\n"
-				  "\t\t# plt.title(file.replace(dir, 'epoca ').replace('.bin', ''))\n"
-				  "\t\t# plt.plot(x)\n"
-				  "\t\t# plt.plot(y)\n"
-				  "\t\t# plt.legend(['erro medio', 'acerto medio'])\n"
-				  "\t\t# global geralx\n"
-				  "\t\t# global geralt\n"
-				  "\t\t# global geraly\n"
-				  "\t\tgeralx = geralx + x\n"
-				  "\t\tgeraly = geraly + y\n"
-				  "\t\tt = np.arange(0, 1, 1 / length)\n"
-				  "\t\tif len(geralt) != 0:\n"
-				  "\t\t\tt = t + geralt[-1]\n"
-				  "\t\tgeralt = geralt + list(t)\n"
-				  "plt.title('Aprendizado')\n"
-				  "plt.plot(geralt,geralx)\n"
-				  "plt.plot(geralt,geraly)\n"
-				  "plt.legend(['Erro','Taxa Acerto'])\n"
-				  "plt.show()");
+		fprintf(f, "dir = './statistic'\n"
+				   "import os, ctypes as c\n"
+				   "import matplotlib.pyplot as plt\n"
+				   "import numpy as np\n"
+				   "files = [dir + x for x in os.listdir(dir)]\n"
+				   "geralx = []\n"
+				   "geraly = []\n"
+				   "geralt = []\n"
+				   "i = 0\n"
+				   "for file in files:\n"
+				   "\tif not file.endswith('.bin'): continue\n"
+				   "\ti+=1\n"
+				   "\t#if i == 30:break\n"
+				   "\twith open(file, 'rb') as f:\n"
+				   "\t\tb = f.read(8)\n"
+				   "\t\tsize_t = c.c_char * 8\n"
+				   "\t\tb = size_t(*b)\n"
+				   "\t\tlength = c.cast(b, c.POINTER(c.c_size_t))[0]\n"
+				   "\t\tx = f.read(length * 8)\n"
+				   "\t\ty = f.read(length * 8)\n"
+				   "\t\tv_c = c.c_char * (length * 8)\n"
+				   "\t\tx = c.cast(v_c(*x), c.POINTER(c.c_double))\n"
+				   "\t\ty = c.cast(v_c(*y), c.POINTER(c.c_double))\n"
+				   "\t\tx = [x[i] for i in range(1000,length)]\n"
+				   "\t\ty = [y[i] for i in range(1000,length)]\n"
+				   "\t\t#plt.figure(file)\n"
+				   "\n"
+				   "\t\t#plt.title(file.replace(dir, 'epoca ').replace('.bin', ''))\n"
+				   "\t\t#plt.plot(x)\n"
+				   "\t\t#plt.plot(y)\n"
+				   "\t\t#plt.legend(['erro medio', 'acerto medio'])\n"
+				   "\n"
+				   "\t\tgeralx.extend(x)# sum(x) / len(x))\n"
+				   "\t\tgeraly.extend(y)#sum(y) / len(y))\n"
+				   "\t\tt0 = 0\n"
+				   "\t\tif len(geralt)>0:t0 = geralt[-1]\n"
+				   "\t\tgeralt.extend(list(t0+np.arange(0,1,1/len(y))))#(len(geralt) + 1)\n"
+				   "plt.figure('Final')\n"
+				   "plt.title('Aprendizado')\n"
+				   "plt.plot(geralt, geralx)\n"
+				   "plt.plot(geralt, geraly)\n"
+				   "plt.xlabel('epoca')\n"
+				   "plt.legend(['Erro', 'Taxa Acerto'])\n"
+				   "\n"
+				   "plt.show()\n"
+				   "");
 	}
 	fflush(f);
 	fclose(f);

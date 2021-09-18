@@ -7,8 +7,10 @@
 
 #include <stdlib.h>
 #include "utils/memory_utils.h"
-typedef
-unsigned long long int Bytes64;
+
+#define LCG_NORMAL 2
+#define LCG_UNIFORM 1
+typedef unsigned long long int Bytes64;
 
 typedef struct {
 	Bytes64 a, c, m, rand_max, atual;
@@ -30,6 +32,7 @@ void LCG_setSeed(Bytes64 seed);
 double LCG_randD();
 
 double pLCG_randn(LCG *self);
+
 double LCG_randn();
 
 int LCG_randI();

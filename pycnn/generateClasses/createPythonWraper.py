@@ -103,7 +103,7 @@ def TOPOINTER(c_type):
 
 for h in h_structs:
 	# putClassInFile(pathInclude_h + h, file)
-	file_class_value = putClassInString(pathInclude_h + h, file_class_value,ctypes_name)
+	file_class_value = putClassInString(pathInclude_h + h, file_class_value, ctypes_name)
 
 file.write(file_class_value)
 
@@ -112,15 +112,20 @@ file.close()
 # Gerar wrapper de funções
 print('Gerar wrapper de funções')
 file = open(PathOut + file_functions + '.py', 'w')
+filefuncs = open(PathOut + file_functions +'py'+ '.py', 'w')
 print(
 	f'''from {file_structs} import *
 from {file_load_dll} import *
+from {file_functions}py import *
 ''', file=file)
+
+print('class LIBCNN:\n',file=filefuncs)
 
 from generateFunctions import *
 
 for h in h_functions:
-	putFunctionInFile(pathInclude_h + h, file, dll_var_name, ctypes_name)
+	putFunctionInFile(pathInclude_h + h, file,filefuncs, dll_var_name, ctypes_name)
+print(f'clib:LIBCNN\n',file=filefuncs)
 
 file.close()
 # input('finalizado')

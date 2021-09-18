@@ -126,8 +126,8 @@ int calc_gradsConvNc(CamadaConvNc c, Tensor Gradnext) {
 						 K_ARG c->filtros->y,
 						 K_ARG c->filtros->z,
 						 K_ARG c->numeroFiltros);
-	if(erro)return erro;
-	if(c->super.learnable)return corrige_pesosConvNc(c);
+	if (erro)return erro;
+	if (c->super.learnable)return corrige_pesosConvNc(c);
 	return erro;
 
 }
@@ -174,7 +174,7 @@ Camada carregarConvNc(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 	fread(&inz, sizeof(UINT), 1, src);
 	CamadaConvNc c = (CamadaConvNc) createConvNc(cl, queue, passox, passoy, largx, largy, fx, fy, numeroFiltros, inx,
 												 iny, inz,
-												 entrada, params, error, 0);
+												 entrada, params, (RandomParam){-1}, error);
 	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->super.entrada->z, sizeof(double));
 	for (int a = 0; a < c->numeroFiltros; a++) {
 		fread(data, 1, c->filtros->bytes, src);
@@ -202,7 +202,7 @@ void releaseConvNc(CamadaConvNc *pc) {
 Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
 					UINT passoy, UINT largx, UINT largy, UINT filtrox, UINT filtroy,
 					UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-					Tensor entrada, Params params, CNN_ERROR *error, int randomize) {
+					Tensor entrada, Params params, RandomParam randomParams, CNN_ERROR *error) {
 	if (error->error)return NULL;
 	CamadaConvNc c = (CamadaConvNc) alloc_mem(1, sizeof(TypecamadaConvNc));
 	__newCamada__(&c->super, cl, CONVNC, entrada, queue, params,
@@ -229,8 +229,10 @@ Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
 	c->grad_filtros_old = newTensor4D(cl->context, queue, filtrox, filtroy, inz, numeroFiltros, 1, error);
 
 
-	if (randomize)TensorRandomize(queue, c->filtros, "uniform", 2.0 * sizeof(double) / (c->filtros->bytes), -1.0 * sizeof(double) / (c->filtros->bytes));
-
+	if (randomParams.type != -1) {
+		if (randomParams.type == 0)TensorRandomize(queue, c->filtros, LCG_NORMAL, 2.0 * sizeof(double) / (c->filtros->bytes), -1.0 * sizeof(double) / (c->filtros->bytes));
+		else  TensorRandomize(queue, c->filtros, randomParams.type, randomParams.a,randomParams.b);
+	}
 	if (error->error) return (Camada) c;
 	c->kernelConvNcSum = new_Kernel(cl->program, error, convncSum, 15,
 									K_VOID_P, K_VOID_P, K_VOID_P,

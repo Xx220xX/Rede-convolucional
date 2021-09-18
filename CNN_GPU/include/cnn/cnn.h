@@ -25,6 +25,8 @@ typedef struct Cnn {
 	Tensor target;
 	int size;
 	Ponto sizeIn;
+	size_t len_input;
+	size_t len_output;
 	QUEUE queue;
 	WrapperCL *cl;
 	char releaseCL;
@@ -70,9 +72,9 @@ int CnnCalculeErrorTWithOutput(Cnn c, Tensor target, double *mse);
 
 int CnnGetIndexMax(Cnn c);
 
-int Convolucao(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros);
+int Convolucao(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros, RandomParam randomParam);
 
-int ConvolucaoNcausal(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT largx, UINT largy, UINT numeroDeFiltros);
+int ConvolucaoNcausal(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT largx, UINT largy, UINT numeroDeFiltros, RandomParam randomParam);
 
 int Pooling(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy);
 
@@ -80,17 +82,17 @@ int PoolingAv(Cnn c, UINT passox, UINT pasoy, UINT fx, UINT fy);
 
 int Relu(Cnn c);
 
-int PRelu(Cnn c);
+int PRelu(Cnn c, RandomParam randomParam);
 
 int Padding(Cnn c, UINT top, UINT bottom, UINT left, UINT right);
 
-int BatchNorm(Cnn c, double epsilon);
+int BatchNorm(Cnn c, double epsilon, RandomParam randomParamY, RandomParam randomParamB);
 
 int SoftMax(Cnn c);
 
 int Dropout(Cnn c, double pontoAtivacao, long long int seed);
 
-int FullConnect(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao);
+int FullConnect(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao, RandomParam randomParam);
 
 int CnnCall(Cnn c, double *input);
 

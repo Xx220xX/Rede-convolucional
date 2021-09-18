@@ -14,6 +14,7 @@ typedef struct {
 	Typecamada super;
 	Kernel kernelSoftMaxAtiva1;
 	Kernel kernelSoftMaxAtiva2;
+	Kernel kernelSoftMaxAtiva3;
 	Kernel kernelSoftMaxCalcGrads;
 	Tensor soma;
 	Tensor exponent;

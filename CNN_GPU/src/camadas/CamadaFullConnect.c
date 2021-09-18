@@ -147,7 +147,7 @@ Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Ten
 	fread(&tamanhoSaida, sizeof(UINT), 1, src);
 	CamadaFullConnect c = (CamadaFullConnect) createFullConnect(cl, queue, inx, iny, inz, tamanhoSaida,
 																entrada, params,
-																fa, 0, error);
+																fa, (RandomParam) {-1}, error);
 	double *data = (double *) alloc_mem(c->pesos->x * c->pesos->y * c->pesos->z, sizeof(double));
 	fread(data, 1, c->pesos->bytes, src);
 	TensorPutValues(queue, c->pesos, data);
@@ -157,7 +157,7 @@ Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Ten
 
 Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida,
 						 Tensor entrada, Params params,
-						 int funcaoDeAtivacao, int randomize,  CNN_ERROR *error) {
+						 int funcaoDeAtivacao, RandomParam randomParams, CNN_ERROR *error) {
 	if (error->error)return NULL;
 	CamadaFullConnect c = (CamadaFullConnect) alloc_mem(1, sizeof(Typecamadafullconnect));
 	cl_context context = cl->context;
@@ -172,9 +172,12 @@ Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT i
 		getClErrorWithContext(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE, "CreateFullConnect/TensorFill ");
 	}
 
-	if (randomize) {
-		double val = 2.19722 / sqrt(c->pesos->x * c->pesos->y);
-		TensorRandomize(queue, c->pesos, "uniforme", 2 * val, -val);
+	if (randomParams.type != -1) {
+		if (randomParams.type == 0) {
+			double val = 2.19722 / sqrt(c->pesos->x * c->pesos->y);
+			TensorRandomize(queue, c->pesos, LCG_UNIFORM, 2 * val, -val);
+		} else
+			TensorRandomize(queue, c->pesos, randomParams.type, randomParams.a, randomParams.b);
 	}
 	c->super.toString = (cfv) tostringFullConnect;
 	c->super.getCreateParams = (cfv) getCreateParamsFullConnect;

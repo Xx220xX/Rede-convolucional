@@ -40,6 +40,7 @@ void realeaseSoftMax(CamadaSoftMax *pc) {
 	releaseKernel(&c->kernelSoftMaxCalcGrads);
 	releaseKernel(&c->kernelSoftMaxAtiva1);
 	releaseKernel(&c->kernelSoftMaxAtiva2);
+	releaseKernel(&c->kernelSoftMaxAtiva3);
 	free_mem(c);
 	*pc = NULL;
 }
@@ -50,9 +51,18 @@ int ativaSoftMax(CamadaSoftMax c) {
 						 c->super.saida->x * c->super.saida->y * c->super.saida->z,
 						 *c->super.max_works,
 						 K_ARG c->super.entrada->data,
-						 K_ARG c->super.saida->data);
+						 K_ARG c->exponent->data
+						 );
 	if (erro)return erro;
 	kernel_run_recursive(erro, c->kernelSoftMaxAtiva2, c->super.queue,
+						 c->super.saida->x * c->super.saida->y * c->super.saida->z,
+						 *c->super.max_works,
+						 K_ARG c->exponent->data,
+						 K_ARG c->soma->data,
+						 K_ARG c->super.entrada->x,
+						 K_ARG c->super.entrada->y);
+	if (erro)return erro;
+	kernel_run_recursive(erro, c->kernelSoftMaxAtiva3, c->super.queue,
 						 c->super.saida->x * c->super.saida->y * c->super.saida->z,
 						 *c->super.max_works,
 						 K_ARG c->exponent->data,
@@ -99,13 +109,13 @@ Camada carregarSoftMax(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor 
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createSoftMax(cl, queue, inx, iny, inz, entrada,  error);
+	return createSoftMax(cl, queue, inx, iny, inz, entrada, error);
 }
 
 Camada createSoftMax(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsigned int iny,
 					 unsigned int inz, Tensor entrada, CNN_ERROR *error) {
 	if (error->error)return NULL;
-
+//	fprintf(stderr, "Warning: camada softmax com falha de convergencia\n");
 	CamadaSoftMax c = (CamadaSoftMax) alloc_mem(1, sizeof(TypecamadaSoftMax));
 
 	__newCamada__((Camada) c, cl, SOFTMAX, entrada, queue, (Params) {0}, inx, iny, inz, inx, iny, inz, error);
@@ -119,9 +129,10 @@ Camada createSoftMax(WrapperCL *cl, cl_command_queue queue, unsigned int inx, un
 	c->soma = newTensor(cl->context, queue, 1, 1, inz, 0, error);
 	c->exponent = newTensor(cl->context, queue, inx, iny, inz, 0, error);
 
-	c->kernelSoftMaxAtiva1 = new_Kernel(cl->program, error, SoftMaxativa1, 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
+	c->kernelSoftMaxAtiva1 = new_Kernel(cl->program, error, SoftMaxativa1, 3, K_VOID_P, K_VOID_P,K_INT);
+	c->kernelSoftMaxAtiva2 = new_Kernel(cl->program, error, SoftMaxativa2, 5, K_VOID_P, K_VOID_P, K_INT,
 										K_INT, K_INT);
-	c->kernelSoftMaxAtiva2 = new_Kernel(cl->program, error, SoftMaxativa2, 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
+	c->kernelSoftMaxAtiva3 = new_Kernel(cl->program, error, SoftMaxativa3, 6, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
 										K_INT, K_INT);
 	c->kernelSoftMaxCalcGrads = new_Kernel(cl->program, error, softMaxcalcgrad, 4, K_VOID_P, K_VOID_P, K_VOID_P,
 										   K_INT);

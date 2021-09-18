@@ -8,7 +8,6 @@
 int main(int arg, char **args) {
 	system("chcp 65001");
 	showVersion();
-//	char *file= "D:\\Henrique\\treino_ia\\treino_numero_0_9\\config_09.lua";
 	if (arg != 2) {
 		fprintf(stderr, "É esperado um arquivo lua para executar o programa\n");
 		return -1;

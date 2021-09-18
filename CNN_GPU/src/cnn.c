@@ -57,6 +57,8 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	}
+	c->len_input = inx * iny * inz;
+	c->len_output = 0;
 	return c;
 }
 
@@ -147,6 +149,7 @@ int __CnnCheckNewLayer__(Cnn c) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 		return c->error.error;
 	}
+	c->len_output = c->target->x * c->target->y * c->target->z;
 	return 0;
 
 }
@@ -165,7 +168,7 @@ void CnnRemoveLastLayer(Cnn c) {
 	__CnnCheckNewLayer__(c);
 }
 
-int Convolucao(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros) {
+int Convolucao(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros, RandomParam randomParam) {
 	if (c->error.error)return c->error.error;
 	Ponto sizeIn = __CnnaddLayer__(c);
 	if (!CHECKDIN(sizeIn.x, filtrox, 1, passox) || !CHECKDIN(sizeIn.x, filtroy, 1, passoy)) {
@@ -179,13 +182,13 @@ int Convolucao(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passox, passoy, filtrox, filtroy, numeroDeFiltros, sizeIn.x,
-										 sizeIn.y, sizeIn.z, entrada, c->parametros, &c->error, 1);
+										 sizeIn.y, sizeIn.z, entrada, c->parametros, randomParam, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
 int
 ConvolucaoNcausal(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT largx, UINT largy,
-				  UINT numeroDeFiltros) {
+				  UINT numeroDeFiltros, RandomParam randomParam) {
 
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "ConvolucaoNcausal");
@@ -209,7 +212,7 @@ ConvolucaoNcausal(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, U
 										   numeroDeFiltros, sizeIn.x, sizeIn.y,
 										   sizeIn.z,
 										   entrada,
-										   c->parametros, &c->error, 1);
+										   c->parametros, randomParam, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -254,13 +257,13 @@ int PoolingAv(Cnn c, UINT passox, UINT pasoy,
 	return __CnnCheckNewLayer__(c);
 }
 
-int BatchNorm(Cnn c, double epsilon) {
+int BatchNorm(Cnn c, double epsilon, RandomParam randomParamY, RandomParam randomParamB) {
 	if (c->error.error)return c->error.error;
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-											  epsilon, 1,
+											  epsilon, randomParamY, randomParamB,
 											  &c->error);
 	return __CnnCheckNewLayer__(c);
 }
@@ -277,14 +280,14 @@ int Relu(Cnn c) {
 
 }
 
-int PRelu(Cnn c) {
+int PRelu(Cnn c, RandomParam randomParam) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "Relu");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createPRelu(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z,
-										  entrada, c->parametros, 1, &c->error);
+										  entrada, c->parametros, randomParam, &c->error);
 	return __CnnCheckNewLayer__(c);
 
 }
@@ -325,7 +328,7 @@ int Dropout(Cnn c, double pontoAtivacao, long long int seed) {
 	return __CnnCheckNewLayer__(c);
 }
 
-int FullConnect(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
+int FullConnect(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao, RandomParam randomParam) {
 	if (c->error.error)return c->error.error;
 	//int len = sprintf(c->error.context, "%s", "FullConnect");
 	Ponto sizeIn = __CnnaddLayer__(c);
@@ -333,15 +336,15 @@ int FullConnect(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao) {
 
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
 	c->camadas[c->size - 1] = createFullConnect(c->cl, c->queue, sizeIn.x, sizeIn.y, sizeIn.z, tamanhoDaSaida, entrada,
-												c->parametros, funcaoDeAtivacao, 1, &c->error);
+												c->parametros, funcaoDeAtivacao, randomParam, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
 int CnnCall(Cnn c, double *input) {
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "CnnCall");
-	if (input)
+	if (input) {
 		c->error.error = TensorPutValues(c->queue, c->camadas[0]->entrada, input);
+	}
 	if (c->error.error)getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	int i;
 	for (i = 0; i < c->size && !c->error.error; ++i) {
@@ -518,9 +521,11 @@ int cnnCarregar(Cnn c, FILE *src) {
 		if (c->error.error < 0)break;
 	}
 	if (c->size > 0) {
-		c->sizeIn.x = (int) c->camadas[0]->entrada->x;
-		c->sizeIn.y = (int) c->camadas[0]->entrada->y;
-		c->sizeIn.z = (int) c->camadas[0]->entrada->z;
+		c->sizeIn.x = (int) c->camadas[c->size-1]->entrada->x;
+		c->sizeIn.y = (int) c->camadas[c->size-1]->entrada->y;
+		c->sizeIn.z = (int) c->camadas[c->size-1]->entrada->z;
+		c->len_input = c->camadas[0]->entrada->x*c->camadas[0]->entrada->y*c->camadas[0]->entrada->z;
+		c->len_output = c->camadas[c->size-1]->saida->x*c->camadas[c->size-1]->saida->y*c->camadas[c->size-1]->saida->z;
 	}
 	return c->error.error;
 }

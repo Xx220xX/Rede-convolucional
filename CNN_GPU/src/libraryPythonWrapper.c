@@ -9,7 +9,6 @@ void PY_createCnn(Cnn c, double hitLearn, double momento, double decaimentoDePes
 	WrapperCl_init(cl, default_kernel);
 	Cnn tmp = createCnn(cl, pr, inx, iny, inz);
 	memcpy(c, tmp, sizeof(Cnn_t));
-	printf("C: 0x%llX\n",(uint64_t)c);
 	c->releaseCL = 1;
 	c->release_self = 0;
 	free_mem(tmp);

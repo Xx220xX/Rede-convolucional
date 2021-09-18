@@ -96,11 +96,11 @@ Camada carregarPRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor en
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createPRelu(cl, queue, inx, iny, inz, entrada,  params, 0,error);
+	return createPRelu(cl, queue, inx, iny, inz, entrada, params, (RandomParam){-1}, error);
 }
 
 Camada createPRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsigned int iny,
-				   unsigned int inz, Tensor entrada, Params params, int randomize, CNN_ERROR *error) {
+				   unsigned int inz, Tensor entrada, Params params, RandomParam  randomParams, CNN_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaPRelu c = (CamadaPRelu) alloc_mem(1, sizeof(TypecamadaPRelu));
@@ -117,8 +117,12 @@ Camada createPRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsi
 	c->dA = new_Tensor(cl->context, queue, 0, c->super.entrada->x, c->super.entrada->y, c->super.entrada->z, 1,
 					   error, NULL);
 
-	if (randomize)
-		TensorRandomize(queue, c->A, "normal", 1, 0);
+	if (randomParams.type!=-1) {
+		if(randomParams.type == 0)
+		TensorRandomize(queue, c->A, LCG_NORMAL, 1, 0);
+		else
+		TensorRandomize(queue, c->A, randomParams.type,randomParams.a,randomParams.b);
+	}
 	c->kernelPReluAtiva = new_Kernel(cl->program, error, preluativa, 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
 
 	c->kernelPReluCalcGrads = new_Kernel(cl->program, error, prelucalcgrad, 10,

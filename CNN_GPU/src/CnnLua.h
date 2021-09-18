@@ -97,6 +97,7 @@ static int l_convolution(lua_State *L) {
 	int px, py, fx, fy;
 	int nfiltros;
 	int arg = 1;
+	RandomParam randomParam = {0};
 	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	switch (nArgs) {
 		case 3:// px=py, fx=fy,nfilters
@@ -111,14 +112,25 @@ static int l_convolution(lua_State *L) {
 			fy = luaL_checkinteger(L, arg++);
 			nfiltros = luaL_checkinteger(L, arg++);
 			break;
+		case 8:// px,py, fx,fy,nfilters,typeRand,a,m
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			randomParam.type = luaL_checkinteger(L, arg++);
+			randomParam.a = luaL_checknumber(L, arg++);
+			randomParam.b = luaL_checknumber(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize,nfilters)\n"
 						  " "L_CONVOLUTION_NAME"(step,filterSize,nfilters)\n"
 						  " "L_CONVOLUTION_NAME"(stepx,stepy,filterx,filtery,nfilters)\n"
+						  " "L_CONVOLUTION_NAME"(stepx,stepy,filterx,filtery,nfilters,PDF,a,b)\n"
 			);
 
 	}
-	c->error.error = Convolucao(c, px, py, fx, fy, nfiltros);
+	c->error.error = Convolucao(c, px, py, fx, fy, nfiltros,randomParam);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", c->error.error, c->error.msg);
@@ -134,6 +146,7 @@ static int l_convolution_non_causal(lua_State *L) {
 	int px, py, ax, ay, fx, fy, flag = 0;
 	int nfiltros;
 	int arg = 1;
+	RandomParam randomParam = {0};
 	switch (nArgs) {
 		case 4:// px=py, fx=fy,ax=ay,nfilters
 			py = px = luaL_checkinteger(L, arg++);
@@ -150,14 +163,27 @@ static int l_convolution_non_causal(lua_State *L) {
 			fy = luaL_checkinteger(L, arg++);
 			nfiltros = luaL_checkinteger(L, arg++);
 			break;
+		case 10:// px,py, fx,fy,ax,ay,nfilters
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			ax = luaL_checkinteger(L, arg++);
+			ay = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			randomParam.type = luaL_checkinteger(L, arg++);
+			randomParam.a = luaL_checknumber(L, arg++);
+			randomParam.b = luaL_checknumber(L, arg++);
+			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
 						  " "L_CONVOLUTIONNC_NAME"(step,filterSize,aperture,nfilters,memory_flag)\n"
 						  " "L_CONVOLUTIONNC_NAME"(stepx,stepy,filterx,filtery,aperturex,aperturey,nfilters)\n"
+						  " "L_CONVOLUTIONNC_NAME"(stepx,stepy,filterx,filtery,aperturex,aperturey,nfilters,PDF,a,b)\n"
 			);
 			return 0;
 	}
-	c->error.error = ConvolucaoNcausal(c, px, py, fx, fy, ax, ay, nfiltros);
+	c->error.error = ConvolucaoNcausal(c, px, py, fx, fy, ax, ay, nfiltros, randomParam);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", c->error.error, c->error.msg);
@@ -171,6 +197,7 @@ static int l_pooling(lua_State *L) {
 	Cnn c = lua_touserdata(L, -1);
 	int px, py, fx, fy, flag = 0;
 	int arg = 1;
+	RandomParam randomParam = {0};
 	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	switch (nArgs) {
 		case 2:// px=py, fx=fy
@@ -183,10 +210,20 @@ static int l_pooling(lua_State *L) {
 			fx = luaL_checkinteger(L, arg++);
 			fy = luaL_checkinteger(L, arg++);
 			break;
+		case 7:// px,py, fx,fy
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			randomParam.type = luaL_checkinteger(L, arg++);
+			randomParam.a = luaL_checknumber(L, arg++);
+			randomParam.b = luaL_checknumber(L, arg++);
+			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
 						  " "L_POOLING_NAME"(step,filterSize,memory_flag)\n"
 						  " "L_POOLING_NAME"(stepx,stepy,filtrox,filtroy)\n"
+						  " "L_POOLING_NAME"(stepx,stepy,filtrox,filtroy,PDF,a,b)\n"
 			);
 			return 2;
 	}
@@ -236,14 +273,11 @@ static int l_relu(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	char usehost = 0;
 	int arg = 1;
 	switch (nArgs) {
 		case 0:
 			break;
-		case 1:
-			usehost = luaL_checkinteger(L, arg++);
-			break;
+
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
 						  " Relu()\n"
@@ -265,22 +299,24 @@ static int l_prelu(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	char usehost = 0;
 	int arg = 1;
+	RandomParam randomParam = {0};
 	switch (nArgs) {
 		case 0:
 			break;
-		case 1:
-			usehost = luaL_checkinteger(L, arg++);
-			break;
+		case 3:
+			randomParam.type = luaL_checkinteger(L, arg++);
+			randomParam.a = luaL_checknumber(L, arg++);
+			randomParam.b = luaL_checknumber(L, arg++);
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
 						  " PRelu()\n"
+						  " PRelu(PDF,a,b)\n"
 			);
 			return 0;
 	}
 
-	int erro = PRelu(c);
+	int erro = PRelu(c, randomParam);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -345,10 +381,35 @@ static int l_fullConnect(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	int neuros = luaL_checkinteger(L, 1);
-	int func = luaL_checkinteger(L, 2);
+	int arg = 1;
+	int neuros;
+	int func = FTANH;
+	RandomParam randomParam = {0};
+	switch (nArgs) {
+		case 1:
+			neuros = luaL_checkinteger(L, arg++);
+			break;
+		case 2:
+			neuros = luaL_checkinteger(L, arg++);
+			func = luaL_checkinteger(L, arg++);
+			break;
+		case 5:
+			neuros = luaL_checkinteger(L, arg++);
+			func = luaL_checkinteger(L, arg++);
+			randomParam.type = luaL_checkinteger(L, arg++);
+			randomParam.a = luaL_checknumber(L, arg++);
+			randomParam.b = luaL_checknumber(L, arg++);
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n"
+						  " FullConnect(out_size)\n"
+						  " FullConnect(out_size,func)\n"
+						  " FullConnect(out_size,func,PDF,a,b)\n");
+			return 0;
+	}
+
 	checkLua(func == FTANH || func == FSIGMOID || func == FRELU, "FUNCAO DE ATIVACAO INVALIDA");
-	FullConnect(c, neuros, func);
+	FullConnect(c, neuros, func, randomParam);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", c->error.error, c->error.msg);
@@ -361,11 +422,40 @@ static int l_batchnorm(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	char usehost = 0;
-	if (!lua_isnoneornil(L, 1)) {
-		usehost = luaL_checkinteger(L, 1);
+	RandomParam randomY = {0};
+	RandomParam randomB = {0};
+	int arg = 1;
+	double epsilon = 1e-12;
+
+	switch (nArgs) {
+		case 0:
+			break;
+		case 1:
+			epsilon = luaL_checknumber(L, arg++);
+			break;
+		case 4:
+			epsilon = luaL_checknumber(L, arg++);
+			randomY.type = luaL_checkinteger(L, arg++);
+			randomY.a = luaL_checknumber(L, arg++);
+			randomY.b = luaL_checknumber(L, arg++);
+			break;
+		case 7:
+			epsilon = luaL_checknumber(L, arg++);
+			randomY.type = luaL_checkinteger(L, arg++);
+			randomY.a = luaL_checknumber(L, arg++);
+			randomY.b = luaL_checknumber(L, arg++);
+			randomB.type = luaL_checkinteger(L, arg++);
+			randomB.a = luaL_checknumber(L, arg++);
+			randomB.b = luaL_checknumber(L, arg++);
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n"
+						  " BatchNorm()\n"
+						  " BatchNorm(epsilon)\n"
+						  " BatchNorm(epsilon,PDFY,aY,bY,PDFB,aB,bB)\n");
+			return 0;
 	}
-	BatchNorm(c, 1e-12);
+	BatchNorm(c, epsilon, randomY, randomB);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", c->error.error, c->error.msg);
@@ -552,10 +642,10 @@ static int l_helpCnn(lua_State *L) {
 	printf("Functions:\n");
 	for (int i = 0; globalFunctions[i].f; i++) {
 		printf("\t%s\n", globalFunctions[i].name);
-		if(globalFunctions[i].description){
+		if (globalFunctions[i].description) {
 			printf("\t\t%s\n", globalFunctions[i].description);
 		}
-		if(globalFunctions[i].sintaxe){
+		if (globalFunctions[i].sintaxe) {
 			printf("\t\t%s\n", globalFunctions[i].sintaxe);
 		}
 	}

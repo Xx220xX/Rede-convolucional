@@ -69,6 +69,8 @@ CPYTYPES_P = {
 	'wchar': '{ctypes}.c_wchar_p',
 	'WrapperCL': '{ctypes}.c_void_p',
 	'pthread_t': '{ctypes}.c_void_p',
+	'Camada': 'c.POINTER(TOPOINTER(Camada))',
+
 
 }
 
@@ -109,6 +111,7 @@ CPYFUNCTYPES = {
 	'cl_command_queue': '{ctype}.c_void_p',
 	'unsigned int': '{ctype}.c_uint',
 	'uint64_t': '{ctype}.c_uint64',
+	'RandomParam': 'RandomParam',
 
 }
 

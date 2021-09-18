@@ -446,7 +446,6 @@ int ManageTrainloadImages(ManageTrain *t, int runBackground) {
 		t->process = newThread(loadData, t, NULL);
 		return t->process != NULL;
 	}
-
 	loadData(t);
 	return 0;
 }

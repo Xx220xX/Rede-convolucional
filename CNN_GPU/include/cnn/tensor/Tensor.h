@@ -59,6 +59,7 @@
 #define TENSOR_MASK_CPY         0b00010000
 #define TENSOR_MASK_TYPE        0b01100000
 
+
 typedef unsigned int UINT;
 typedef unsigned int flag_t;
 #define Ptr
@@ -73,6 +74,12 @@ typedef unsigned int flag_t;
 typedef struct Ponto {
 	size_t x, y, z;
 } Ponto;
+typedef struct {
+	int type;// -1 disable random,0 default, 1 uniform, 2 normal
+	// y = X * a + b
+	double a;
+	double b;
+} RandomParam;
 
 /***
  * Tensor armazena uma matriz 4D juntamente com os parametros dela
@@ -144,7 +151,7 @@ int TensorCpy(QUEUE queue, Tensor tdst, Tensor tsrc, size_t wsrc);
  * @param b  soma, para distribuição normal é a média
  * @return se falhar retorna um valor diferente de 0
  */
-int TensorRandomize(QUEUE queue, Tensor t, const char *distribuicao, double a, double b);
+int TensorRandomize(QUEUE queue, Tensor t, int distribuicao, double a, double b);
 
 void releaseTensor(Tensor *t);
 

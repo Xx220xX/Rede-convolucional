@@ -1,8 +1,11 @@
 import time
 
 from gab_wrapper_load_dll import *
+from gab_wrapper_functionspy import *
 import numpy as np
 import inspect
+
+clib: LIBCNN
 
 
 class CStruct(c.Structure):
@@ -23,13 +26,47 @@ class Pointer(CStruct):
 	pass
 
 
+class RandomParam(CStruct):
+	# ${RandomParam}
+	pass
+
+
 class Tensor(CStruct):
 	# ${Tensor}
-	def getvalues(self, ):
-		pass
+	def getValues(self, queue):
+		tp = self.getType()
+		t = (tp * len(self))(0)
+		clib.TensorGetValuesMem(queue, self.address(), t, c.sizeof(t))
+		return list(t)
 
-	def getvalues_np(self):
-		pass
+	def getType(self):
+		if (self.flag & 0b01100000) == 0b00100000:
+			return c.c_char
+		if (self.flag & 0b01100000) == 0b01000000:
+			return c.c_int
+		return c.c_double
+
+	def getValues_np(self, queue):
+		if self.w == 1:
+			if self.z == 1:
+				shape = (self.x, self.y)
+			else:
+				shape = (self.z, self.x, self.y)
+		else:
+			shape = (self.x, self.y, self.z, self.w)
+		return np.array(self.getValues(queue)).reshape(shape)
+
+	def __len__(self):
+		return self.x * self.y * self.z * self.w
+
+	def shape(self):
+		return self.x, self.y, self.z, self.w
+
+	def norm(self, queue):
+		norm = c.c_double(0)
+		erro = clib.TensorGetNorm(queue, self.address(), c.addressof(norm))
+		if erro: raise Exception(f"Error code:{erro}")
+		return norm.value
 
 
 class String(CStruct):
@@ -42,8 +79,8 @@ class Dbchar_p(CStruct):
 	pass
 
 
-class List_args(CStruct):
-	# ${List_args}
+class Dictionary(CStruct):
+	# ${Dictionary}
 	pass
 
 
@@ -71,7 +108,7 @@ class Camada(CStruct):
 	# ${Camada}
 	def __repr__(self):
 		t = self.toString(c.addressof(self))
-		t = t.value.decode('utf-8')
+		t = t.decode('utf-8')
 		return t
 
 
@@ -152,18 +189,18 @@ class Cnn(CStruct):
 		self.__released__ = True
 		clib.PY_releaseCnn(self.address())
 
-	def convolucao(self, passo, filtro, numeroFiltros):
+	def convolucao(self, passo, filtro, numeroFiltros, randomParam=[0, 0, 0]):
 		if isinstance(passo, int): passo = [passo, passo]
 		if isinstance(filtro, int): filtro = [filtro, filtro]
-		erro = clib.Convolucao(self.address(), passo[0], passo[1], filtro[0], filtro[1], numeroFiltros)
+		erro = clib.Convolucao(self.address(), passo[0], passo[1], filtro[0], filtro[1], numeroFiltros, RandomParam(*randomParam))
 		if erro: raise Exception(f"Falha ao adicionar camada:{inspect.stack()[0][3]}")
 		return self.camadas[self.size - 1]
 
-	def convolucaoNc(self, passo, filtro, larg, numeroFiltros):
+	def convolucaoNc(self, passo, filtro, larg, numeroFiltros, randomParam=[0, 0, 0]):
 		if isinstance(passo, int): passo = [passo, passo]
 		if isinstance(filtro, int): filtro = [filtro, filtro]
 		if isinstance(larg, int): larg = [larg, larg]
-		erro = clib.ConvolucaoNcausal(self.address(), passo[0], passo[1], filtro[0], filtro[1], larg[0], larg[1], numeroFiltros)
+		erro = clib.ConvolucaoNcausal(self.address(), passo[0], passo[1], filtro[0], filtro[1], larg[0], larg[1], numeroFiltros, RandomParam(*randomParam))
 		if erro: raise Exception(f"Falha ao adicionar camada:{inspect.stack()[0][3]}")
 		return self.camadas[self.size - 1]
 
@@ -186,13 +223,26 @@ class Cnn(CStruct):
 		if erro: raise Exception(f"Falha ao adicionar camada:{inspect.stack()[0][3]}")
 		return self.camadas[self.size - 1]
 
+	def PRelu(self, PDF="default", a=0, b=0):
+		PDF = PDF.lower()
+		if PDF == "default":
+			PDF = 0
+		elif PDF == "normal":
+			PDF = 1
+		else:
+			PDF = 2
+		erro = clib.PRelu(self.address(), RandomParam(PDF, a, b))
+
+		if erro: raise Exception(f"Falha ao adicionar camada:{inspect.stack()[0][3]}")
+		return self.camadas[self.size - 1]
+
 	def Padding(self, top, bottom, left, right):
 		erro = clib.Padding(self.address(), top, bottom, left, right)
 		if erro: raise Exception(f"Falha ao adicionar camada:{inspect.stack()[0][3]}")
 		return self.camadas[self.size - 1]
 
-	def BatchNorm(self, epsilom=1e-13):
-		erro = clib.BatchNorm(self.address(), epsilom)
+	def BatchNorm(self, epsilom=1e-13, randY=[0, 0, 0], randB=[0, 0, 0]):
+		erro = clib.BatchNorm(self.address(), epsilom, RandomParam(*randY), RandomParam(*randB))
 		if erro: raise Exception(f"Falha ao adicionar camada:{inspect.stack()[0][3]}")
 		return self.camadas[self.size - 1]
 
@@ -204,48 +254,85 @@ class Cnn(CStruct):
 	def Dropout(self, limiarSaida, seed=None):
 		if not seed:
 			seed = time.time()
-		erro = clib.Dropout(self.address(), limiarSaida, seed)
+		erro = clib.Dropout(self.address(), limiarSaida, int(seed))
 		if erro: raise Exception(f"Falha ao adicionar camada:{inspect.stack()[0][3]}")
 		return self.camadas[self.size - 1]
 
-	def FullConnect(self, saida, func_ativacao='TANH'):
-		func_ativacao = 0
-		erro = clib.FullConnect(self.address(), saida, func_ativacao)
+	def FullConnect(self, saida, func_ativacao='TANH', randomParam=[0, 0, 0]):
+		func_ativacao = func_ativacao.lower()
+		if func_ativacao == 'tanh':
+			func_ativacao = 2
+		elif func_ativacao == 'sigmoid':
+			func_ativacao = 0
+		elif func_ativacao == 'relu':
+			func_ativacao = 4
+		else:
+			raise Exception('Função de ativação invalida')
+		erro = clib.FullConnect(self.address(), saida, func_ativacao, RandomParam(*randomParam))
 		if erro: raise Exception(f"Falha ao adicionar camada:{inspect.stack()[0][3]}")
 		return self.camadas[self.size - 1]
 
-	class ManageTrain(CStruct):
-		# ${ManageTrain}
-		def chose2WorkDir(self):
-			clib.manage2WorkDir(c.addressof(self))
+	def call(self, inputv):
+		return clib.CnnCall(self.address(), self.toInput(inputv))
 
-		def __del__(self):
-			clib.releaseManageTrain(c.addressof(self))
+	def learn(self, target):
+		return clib.CnnLearn(self.address(), self.toInput(target))
 
-		def setEvent(self, self_event, event):
-			clib.manageTrainSetEvent(c.addressof(self_event), event)
+	def toInput(self, inputv):
+		return (c.c_double * self.len_input)(*inputv)
 
-		def setRun(self, can_run):
-			can_run = int(can_run)
-			clib.manageTrainSetRun(c.addressof(self), can_run)
+	def toOutput(self, ot):
+		return (c.c_double * self.len_input)(*ot)
 
-		def __init__(self, luafile, taxa_aprendizado=0.1, momento=0, decaimento_peso=0):
-			super().__init__()
-			clib.createManageTrainPy(c.addressof(self), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
+	def save(self, file: str):
+		file = file.encode('utf-8')
+		return clib.CnnSaveInFile(self.address(), file)
 
-		def loadImageStart(self):
-			clib.ManageTrainloadImages(c.addressof(self))
+	@staticmethod
+	def load(file):
+		cnn = Cnn(0, 0, 0)
+		file = file.encode('utf-8')
+		erro = clib.CnnLoadByFile(cnn.address(), file)
+		if (erro): raise Exception(f'Error code {erro}')
+		return cnn
 
-		def trainStart(self):
-			clib.ManageTraintrain(c.addressof(self))
 
-		def fitnesStart(self):
-			clib.ManageTrainfitnes(c.addressof(self))
+class ManageTrain(CStruct):
+	# ${ManageTrain}
+	def chose2WorkDir(self):
+		clib.manage2WorkDir(c.addressof(self))
 
-		def startLoop(self, anotherThread=True):
-			anotherThread = int(anotherThread)
-			clib.manageTrainLoop(c.addressof(self), anotherThread)
+	def __del__(self):
+		clib.releaseManageTrain(c.addressof(self))
 
-		def save(self, file_name):
-			file_name = file_name.encode('utf-8')
-			return clib.CnnSaveInFile(c.addressof(self), file_name)
+	def setEvent(self, self_event, event):
+		clib.manageTrainSetEvent(c.addressof(self_event), event)
+
+	def setRun(self, can_run):
+		can_run = int(can_run)
+		clib.manageTrainSetRun(c.addressof(self), can_run)
+
+	def __init__(self, luafile, taxa_aprendizado=0.1, momento=0, decaimento_peso=0):
+		super().__init__()
+		clib.createManageTrainPy(c.addressof(self), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
+
+	def loadImageStart(self):
+		clib.ManageTrainloadImages(c.addressof(self))
+
+	def trainStart(self):
+		clib.ManageTraintrain(c.addressof(self))
+
+	def fitnesStart(self):
+		clib.ManageTrainfitnes(c.addressof(self))
+
+	def startLoop(self, anotherThread=True):
+		anotherThread = int(anotherThread)
+		clib.manageTrainLoop(c.addressof(self), anotherThread)
+
+	def save(self, file_name):
+		file_name = file_name.encode('utf-8')
+		return clib.CnnSaveInFile(c.addressof(self), file_name)
+
+
+def SetSeed(seed):
+	clib.initRandom(int(seed))

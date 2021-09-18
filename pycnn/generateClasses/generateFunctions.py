@@ -72,15 +72,18 @@ def getProtoFromCode(code):
 	return proto
 
 
-def putFunctionInFile(hfile, outFile, clib='clib', ctypes='c'):
+def putFunctionInFile(hfile, outFile,filefuncs=None, clib='clib', ctypes='c'):
 	proto = getProtoFromCode(open(hfile, 'r').read())
 
 	for retorno, nome, argumentos in proto:
 		ag = []
 		for a in argumentos:
 			ag.append(CPYFUNCTYPES[a])
+
 		print(f'{clib}.{nome}.argtypes = [{",".join(ag)}]'.replace("{ctype}", ctypes), file=outFile)
 		print(f'{clib}.{nome}.restype = {CPYFUNCTYPES[retorno]}'.replace("{ctype}", ctypes), file=outFile)
+		if filefuncs:
+			print(f'\tdef {nome}({", ".join(["self"]+["v%d"%(_,)for _ in range(len(ag))])}): pass\n', file = filefuncs)
 
 
 if __name__ == '__main__':

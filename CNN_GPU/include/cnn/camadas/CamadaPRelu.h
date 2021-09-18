@@ -22,7 +22,7 @@ typedef struct {
 Camada createPRelu(WrapperCL *cl, QUEUE queue, unsigned int inx, unsigned int iny,
 				   unsigned int inz, Tensor entrada,
 				   Params params,
-				   int randomize, CNN_ERROR *error);
+				   RandomParam  randomParams, CNN_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADA_PRelu_H

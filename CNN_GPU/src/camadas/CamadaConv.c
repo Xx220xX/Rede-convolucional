@@ -9,6 +9,8 @@
 #include "../../../kernels/camadas/conv.h"
 #endif
 
+const int convVersion = 1000114;
+
 const char *getCreateParamsConv(CamadaConv c) {
 	if (c->super.__string__ != NULL)free_mem(c->super.__string__);
 	c->super.__string__ = (char *) alloc_mem(1000, sizeof(char));
@@ -109,23 +111,20 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
+	fwrite(&convVersion, sizeof(int), 1, dst);
+	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
+	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
+	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+
 	fwrite(&c->passox, sizeof(UINT), 1, dst);
 	fwrite(&c->passoy, sizeof(UINT), 1, dst);
 	fwrite(&c->filtros->x, sizeof(UINT), 1, dst);
 	fwrite(&c->filtros->y, sizeof(UINT), 1, dst);
 	fwrite(&c->filtros->w, sizeof(UINT), 1, dst);
-	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
-	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
-	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
-	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->super.entrada->z, sizeof(double));
-	for (int a = 0; a < c->filtros->w; a++) {
-		error->error = TensorGetValuesOffSet(c->super.queue, c->filtros, data, a * c->filtros->bytes);
-		if (error->error) {
-			getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
-			break;
-		}
-		fwrite(data, 1, c->filtros->bytes, dst);
-	}
+
+	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->filtros->z * c->filtros->w, sizeof(double));
+	TensorGetValuesMem(c->super.queue, c->filtros, data, c->filtros->bytes * c->filtros->w);
+	fwrite(data, 1, c->filtros->bytes * c->filtros->w, dst);
 	free_mem(data);
 }
 
@@ -133,31 +132,33 @@ Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 					Params params, CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
+	UINT fx, fy, fw, px, py, inx, iny, inz;
+	int version;
+
 	fread(&flag, sizeof(char), 1, src);
-	if (flag != '#')
+	if (flag != '#') {
 		fread(&flag, sizeof(char), 1, src);
-	UINT passox, passoy, tamanhoFiltrox, tamanhoFiltroy, numeroFiltros, inx, iny, inz;
-	char flag_usehost = 0;
-	fread(&flag_usehost, sizeof(char), 1, src);
-	fread(&passox, sizeof(UINT), 1, src);
-	fread(&passoy, sizeof(UINT), 1, src);
-	fread(&tamanhoFiltrox, sizeof(UINT), 1, src);
-	fread(&tamanhoFiltroy, sizeof(UINT), 1, src);
-	fread(&numeroFiltros, sizeof(UINT), 1, src);
+	}
+	fread(&version, sizeof(int), 1, src);
+	if (version != convVersion)return NULL;
+
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	CamadaConv c = (CamadaConv) createConv(cl, queue, passox, passoy, tamanhoFiltrox, tamanhoFiltroy, numeroFiltros, inx, iny, inz, entrada,
-										   params, error, 0);
-	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->super.entrada->z, sizeof(double));
-	for (int a = 0; a < c->filtros->w; a++) {
-		fread(data, 1, c->filtros->bytes, src);
-		error->error = TensorPutValuesOffSet(queue, c->filtros, data, a * c->filtros->bytes);
-		if (error->error) {
-			getClError(error->error, error->msg, EXCEPTION_MAX_MSG_SIZE);
-			break;
-		}
+
+	fread(&px, sizeof(UINT), 1, src);
+	fread(&py, sizeof(UINT), 1, src);
+	fread(&fx, sizeof(UINT), 1, src);
+	fread(&fy, sizeof(UINT), 1, src);
+	fread(&fw, sizeof(UINT), 1, src);
+	CamadaConv c = (CamadaConv) createConv(cl, queue, px, py, fx, fy, fw, inx, iny, inz, entrada,params, (RandomParam) {-1}, error);
+	if(error->error){
+		c->super.release(c);
+		return NULL;
 	}
+	double *data = (double *) alloc_mem(fx * fy * inz * fw, sizeof(double));
+	fread(data, 1, fx * fy * inz * fw * sizeof(double), src);
+	error->error = TensorPutValuesMem(queue, c->filtros, data, c->filtros->bytes * c->filtros->w);
 	free_mem(data);
 	return (Camada) c;
 }
@@ -176,7 +177,7 @@ void releaseConv(CamadaConv *pc) {
 
 Camada createConv(WrapperCL *cl, QUEUE queue, UINT passox, UINT passoy, UINT lenFilterx, UINT lenFiltery,
 				  UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-				  Tensor entrada, Params params, CNN_ERROR *error, int randomize) {
+				  Tensor entrada, Params params, RandomParam randomParams, CNN_ERROR *error) {
 	if (error->error)return NULL;
 	CamadaConv c = (CamadaConv) alloc_mem(1, sizeof(Typecamadaconv));
 	__newCamada__(&c->super, cl, CONV, entrada, queue, params,
@@ -214,8 +215,15 @@ Camada createConv(WrapperCL *cl, QUEUE queue, UINT passox, UINT passoy, UINT len
 	}
 
 
-	if (randomize) {
-		TensorRandomize(queue, c->filtros, "uniform", 2.0 / (c->filtros->x * c->filtros->y * c->filtros->z), -1.0 / (c->filtros->x * c->filtros->y * c->filtros->z));
+	if (randomParams.type != -1) {
+		if (randomParams.type == 0)
+			TensorRandomize(queue, c->filtros, LCG_UNIFORM,
+							2.0 / (c->filtros->x * c->filtros->y * c->filtros->z),
+							-1.0 / (c->filtros->x * c->filtros->y * c->filtros->z));
+		else
+			TensorRandomize(queue, c->filtros, randomParams.type,
+							randomParams.a,
+							randomParams.b);
 	}
 	if (error->error) {
 		c->super.release(&c);

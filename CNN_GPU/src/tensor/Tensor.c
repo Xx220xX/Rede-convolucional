@@ -365,15 +365,15 @@ int TensorCpy(QUEUE queue, Tensor tdst, Tensor tsrc, size_t wsrc) {
 	return 0;
 }
 
-int TensorRandomize(QUEUE queue, Tensor t, const char *distribuicao, double a, double b) {
+int TensorRandomize(QUEUE queue, Tensor t, int distribuicao, double a, double b) {
 	double *values;
 	int length;
 	int erro;
 	if (!t)return NULL_PARAM;
 	values = alloc_mem(t->bytes, t->w);
-	length = t->bytes / sizeof(double);
+	length = (t->bytes *t->w)/ sizeof(double) ;
 	double (*X)() = LCG_randD;
-	if (distribuicao && (!strcmp(distribuicao, "normal"))) {
+	if (distribuicao == LCG_NORMAL) {
 		X = LCG_randn;
 	}
 	for (int i = 0; i < length; ++i) {
@@ -383,4 +383,5 @@ int TensorRandomize(QUEUE queue, Tensor t, const char *distribuicao, double a, d
 	free_mem(values);
 	return erro;
 }
+
 

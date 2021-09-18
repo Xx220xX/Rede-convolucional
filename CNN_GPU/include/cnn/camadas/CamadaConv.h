@@ -29,10 +29,9 @@ typedef struct {
 
 Camada createConv(WrapperCL *cl, QUEUE queue, UINT passox, UINT passoy, UINT lenFilterx, UINT lenFiltery,
 				  UINT numeroFiltros, UINT inx, UINT iny, UINT inz,
-				  Tensor entrada, Params params, CNN_ERROR *error, int randomize);
+				  Tensor entrada, Params params, RandomParam randomParams, CNN_ERROR *error);
 
 void releaseConv(CamadaConv *pc);
-
 
 
 #endif //CNN_GPU_CAMADACONV_H
