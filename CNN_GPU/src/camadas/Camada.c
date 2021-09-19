@@ -16,6 +16,8 @@ Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 			return carregarPool(cl, src, queue, entrada, param, error);
 		case RELU:
 			return carregarRelu(cl, src, queue, entrada, param, error);
+		case PRELU:
+			return carregarPRelu(cl, src, queue, entrada, param, error);
 		case DROPOUT:
 			return carregarDropOut(cl, src, queue, entrada, param, error);
 		case FULLCONNECT:

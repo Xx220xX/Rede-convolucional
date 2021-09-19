@@ -77,7 +77,11 @@ void OnInitTrain(ManageTrain *t) {
 
 void OnfinishFitnes(ManageTrain *t) {
 	FILE *f = fopen("fitnes.csv", "w");
-	fprintf(f, "Classe,Casos,Número de acertos,Taxa de acerto,Erro médio\n");
+	fprintf(f, "Classe,Casos,Número de acertos,Taxa de acerto,Erro médio");
+	for (int k = 0; k < t->n_classes; k++) {
+		fprintf(f, ",classe %d", k + 1);
+	}
+	fprintf(f, "\n");
 	char *msg = t->class_names.d;
 	int i = 0;
 	char sep = t->character_sep;
@@ -89,11 +93,20 @@ void OnfinishFitnes(ManageTrain *t) {
 			fprintf(f, "%c", msg[i]);
 		}
 		fprintf(f, ",");
-		fprintf(f, "%d,%d,%lf,%lf\n", (int) t->et.ft_info[0 + j * 3], (int) t->et.ft_info[1 + j * 3], 100 * t->et.ft_info[1 + j * 3] / (t->et.ft_info[0 + j * 3] + 1e-14), t->et.ft_info[2 + j * 3] / (t->et.ft_info[0 + j * 3] + 1e-14));
-		media += t->et.ft_info[1 + j * 3];
+		fprintf(f, "%d,%d,%lf,%lf", (int) t->et.ft_info[0 + j  * t->et.ft_info_coluns], (int) t->et.ft_info[1 + j * t->et.ft_info_coluns],
+				100 * t->et.ft_info[1 + j * t->et.ft_info_coluns] / (t->et.ft_info[0 + j * t->et.ft_info_coluns] + 1e-14),
+				t->et.ft_info[2 + j * t->et.ft_info_coluns] / (t->et.ft_info[0 + j * t->et.ft_info_coluns] + 1e-14));
+		for (int k = 0; k < t->n_classes; k++) {
+			if (k == j)
+				fprintf(f, ",-");
+			else
+				fprintf(f, ",%d", (int)t->et.ft_info[3+k + j * t->et.ft_info_coluns]);
+		}
+		fprintf(f, "\n");
+		media += t->et.ft_info[1 + j * t->et.ft_info_coluns];
 		i++;
 	}
-	fprintf(f,"Media de acerto,%lf,null,null\n" ,100*media/t->et.ft_imagem_atual);
+	fprintf(f, "Media de acerto,%lf\n", 100 * media / t->et.ft_imagem_atual);
 	fclose(f);
 	f = fopen("showGraphic.py", "w");
 	{
@@ -210,21 +223,25 @@ void UpdateFitnes(ManageTrain *t) {
 		   (tmp % 3600) / 60,
 
 		   (tmp % 3600) % 60);
-//	char c = 0;
-//	if (kbhit()) {
-//		c = getche();
-//		if (c == 'q') {
-//			manageTrainSetRun((ManageTrain *) t, 0);
-//		}
-//	}
+	char c = 0;
+	if (kbhit()) {
+		c = getche();
+		if (c == 'q') {
+			manageTrainSetRun((ManageTrain *) t, 0);
+		}
+	}
 }
 
 void UpdateLoad(ManageTrain *t) {
 	static int y = -1;
 	if (y == -1) {
 		y = wherey() + 1;
+		gotoxy(1, y);
+		printf("Imagem: \n");
+		printf("Label: ");
 	}
-	gotoxy(1, y);
-	printf("Imagem: %lld   %lf%%      \n", t->et.ld_imagem_atual + 1, 100.0 * (t->et.ld_imagem_atual + 1.0) / t->n_images);
-	printf("Label: %lld    %lf%%        ", t->et.ll_imagem_atual + 1, 100.0 * (t->et.ll_imagem_atual + 1.0) / t->n_images);
+	gotoxy(8, y);
+	printf("%lld    %.3lf%%        ", t->et.ld_imagem_atual + 1, 100.0 * (t->et.ld_imagem_atual + 1.0) / t->n_images);
+	gotoxy(7, y+1);
+	printf("%lld     %.3lf%%        ", t->et.ll_imagem_atual + 1, 100.0 * (t->et.ll_imagem_atual + 1.0) / t->n_images);
 }

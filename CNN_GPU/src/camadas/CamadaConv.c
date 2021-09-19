@@ -9,7 +9,6 @@
 #include "../../../kernels/camadas/conv.h"
 #endif
 
-const int convVersion = 1000114;
 
 const char *getCreateParamsConv(CamadaConv c) {
 	if (c->super.__string__ != NULL)free_mem(c->super.__string__);
@@ -111,7 +110,6 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, CNN_ERROR *error) {
 	char flag = '#';
 	fwrite(&c->super.type, sizeof(char), 1, dst);
 	fwrite(&flag, sizeof(char), 1, dst);
-	fwrite(&convVersion, sizeof(int), 1, dst);
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
@@ -133,15 +131,11 @@ Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 	if (error->error)return NULL;
 	char flag = 0;
 	UINT fx, fy, fw, px, py, inx, iny, inz;
-	int version;
 
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#') {
 		fread(&flag, sizeof(char), 1, src);
 	}
-	fread(&version, sizeof(int), 1, src);
-	if (version != convVersion)return NULL;
-
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);

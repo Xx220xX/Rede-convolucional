@@ -27,8 +27,8 @@ int main(int arg, char **args) {
 	ManageTrainloadImages(&manageTrain, 1);
 	manageTrainLoop(&manageTrain, 0);
 	// Treinar
-	ManageTraintrain(&manageTrain, 1);
-	manageTrainLoop(&manageTrain, 0);
+//	ManageTraintrain(&manageTrain, 1);
+//	manageTrainLoop(&manageTrain, 0);
 	printf("treinou \n");
 	manageTrainSetRun(&manageTrain, 1);
 	// Fitness
@@ -36,9 +36,9 @@ int main(int arg, char **args) {
 	manageTrainLoop(&manageTrain, 0);
 
 
-	FILE *f = fopen("t1.cnn", "wb");
-	cnnSave(manageTrain.cnn, f);
-	fclose(f);
+//	FILE *f = fopen("t1.cnn", "wb");
+//	cnnSave(manageTrain.cnn, f);
+//	fclose(f);
 	end:
 	getClError(manageTrain.cnn->error.error, manageTrain.cnn->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	printf("%d %s\n", manageTrain.cnn->error.error, manageTrain.cnn->error.msg);

@@ -4,6 +4,8 @@ Versão 2.2.015
 
 | Versão | Mudanças |
 | ---- | :---- |
+|2.2.017 | Corrigido salvar camadas | 
+|2.2.016 | Corrigido bugs de não incialização dos tensores | 
 |2.2.015 | Corrigido bugs de sincronização de threads  | 
 |2.2.014 | Adicionado camada PRelu  | 
 |2.2.013 | Removido metódo corrige_peso das camadas, agora o metodo backpropagation faz a correção dos pesos caso learnable ==1   | 

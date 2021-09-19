@@ -28,6 +28,7 @@ typedef struct {
 	UINT ft_imagem_atual;
 	UINT ft_numero_imagens;
 	double *ft_info; // Acerto, acerto medio, erro medio
+	int ft_info_coluns;
 	UINT ft_numero_classes;
 	size_t ft_time;
     size_t ll_imagem_atual;

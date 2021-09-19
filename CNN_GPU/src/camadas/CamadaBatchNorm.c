@@ -154,7 +154,8 @@ Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tenso
 	fread(&inz, sizeof(UINT), 1, src);
 	double epsilon = 1e-10;
 	CamadaBatchNorm cm = (CamadaBatchNorm) createBatchNorm(cl, queue, params, inx, iny, inz, entrada,
-														   epsilon, (RandomParam) {-1}, (RandomParam) {-1}, error);
+														   epsilon, (RandomParam) {-1},
+														   (RandomParam) {-1},error);
 	double *data = (double *) alloc_mem(cm->Y->z, sizeof(double));
 	fread(data, cm->Y->bytes, 1, src);
 	TensorPutValues(cm->super.queue, cm->Y, data);

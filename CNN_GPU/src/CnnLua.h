@@ -12,6 +12,7 @@
 #include "windows.h"
 #include "conio.h"
 #include<time.h>
+#include <utils/dir.h>
 
 #define LCNN "Cnn"
 #define checkLua(cond, format, ...) if(!(cond)){ \
@@ -83,8 +84,16 @@ static int l_loadCnn(lua_State *L) {
 	Params p = {0.1, 0.0, 0.0};
 	char *file;
 	file = (char *) lua_tostring(L, 1);
+	lua_getglobal(L, "home");
+	if(lua_isnoneornil(L,-1)){
+		luaL_error(L,"diretorio home não foi definido\n",file);
+		return 0;
+	}
+	const char *path = lua_tostring(L, -1);
+
+	SetDir((char *)path);
 	FILE *f = fopen(file, "rb");
-	checkLua(f, "arquivo %s nao foi encontrado\n", file);
+	checkLua(f, "arquivo %s/%s nao foi encontrado\n",path, file);
 	cnnCarregar(c, f);
 	fclose(f);
 	RETURN_LUA_STATUS_FUNCTION();
@@ -130,7 +139,7 @@ static int l_convolution(lua_State *L) {
 			);
 
 	}
-	c->error.error = Convolucao(c, px, py, fx, fy, nfiltros,randomParam);
+	c->error.error = Convolucao(c, px, py, fx, fy, nfiltros, randomParam);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", c->error.error, c->error.msg);

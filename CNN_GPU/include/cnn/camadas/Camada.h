@@ -82,6 +82,8 @@ Camada carregarPool(WrapperCL *cl, FILE *src, QUEUE queue,
 
 Camada carregarRelu(WrapperCL *cl, FILE *src, QUEUE queue,
 					Tensor entrada, Params param, CNN_ERROR *error);
+Camada carregarPRelu(WrapperCL *cl, FILE *src, QUEUE queue,
+					Tensor entrada, Params param, CNN_ERROR *error);
 
 Camada carregarDropOut(WrapperCL *cl, FILE *src, QUEUE queue,
 					   Tensor entrada, Params param, CNN_ERROR *error);

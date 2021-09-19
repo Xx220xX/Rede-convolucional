@@ -83,6 +83,10 @@ void salvarPRelu(WrapperCL *cl, CamadaPRelu c, FILE *dst, CNN_ERROR *error) {
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+	double *data = alloc_mem(c->A->bytes, 1);
+	TensorGetValuesMem(c->super.queue, c->A, data, c->A->bytes);
+	fwrite(data, c->A->bytes, 1, dst);
+	free_mem(data);
 
 }
 
@@ -96,16 +100,21 @@ Camada carregarPRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor en
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createPRelu(cl, queue, inx, iny, inz, entrada, params, (RandomParam){-1}, error);
+	CamadaPRelu c = (CamadaPRelu) createPRelu(cl, queue, inx, iny, inz, entrada, params, (RandomParam) {-1}, error);
+	double *data = alloc_mem(c->A->bytes, 1);
+	fread(data, c->A->bytes, 1, src);
+	TensorPutValuesMem(c->super.queue, c->A, data, c->A->bytes);
+	free_mem(data);
+	return (Camada) c;
 }
 
 Camada createPRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsigned int iny,
-				   unsigned int inz, Tensor entrada, Params params, RandomParam  randomParams, CNN_ERROR *error) {
+				   unsigned int inz, Tensor entrada, Params params, RandomParam randomParams, CNN_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaPRelu c = (CamadaPRelu) alloc_mem(1, sizeof(TypecamadaPRelu));
 
-	__newCamada__((Camada) c, cl, PRELU, entrada, queue,params, inx, iny, inz, inx, iny, inz, error);
+	__newCamada__((Camada) c, cl, PRELU, entrada, queue, params, inx, iny, inz, inx, iny, inz, error);
 	c->super.toString = (cfv) tostringPRelu;
 	c->super.getCreateParams = (cfv) getCreateParamsPRelu;
 	c->super.release = (fv) realeasePRelu;
@@ -117,11 +126,11 @@ Camada createPRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsi
 	c->dA = new_Tensor(cl->context, queue, 0, c->super.entrada->x, c->super.entrada->y, c->super.entrada->z, 1,
 					   error, NULL);
 
-	if (randomParams.type!=-1) {
-		if(randomParams.type == 0)
-		TensorRandomize(queue, c->A, LCG_NORMAL, 1, 0);
+	if (randomParams.type != -1) {
+		if (randomParams.type == 0)
+			TensorRandomize(queue, c->A, LCG_NORMAL, 1, 0);
 		else
-		TensorRandomize(queue, c->A, randomParams.type,randomParams.a,randomParams.b);
+			TensorRandomize(queue, c->A, randomParams.type, randomParams.a, randomParams.b);
 	}
 	c->kernelPReluAtiva = new_Kernel(cl->program, error, preluativa, 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
 

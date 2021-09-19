@@ -9,7 +9,12 @@
 #include "../kernels/camadas/utils.h"
 #include "../kernels/camadas/cnnutils.h"
 #endif
-char __version__[] = "2.2.015"
+#define VERSION(base,v,release) \
+	int __version__ = base*10000+ v*100+ release;\
+	char __strversion__[] =#base "."#v "."#release;
+
+VERSION(2,2,17)
+
 #if (RUN_KERNEL_USING_GPU != 1)
 "host mode"
 #endif
@@ -17,7 +22,7 @@ char __version__[] = "2.2.015"
 
 
 const char *getVersion() {
-	return __version__;
+	return __strversion__;
 }
 
 
@@ -517,8 +522,9 @@ int cnnCarregar(Cnn c, FILE *src) {
 		entrada = cm->saida;
 		__CnnaddLayer__(c);
 		c->camadas[c->size - 1] = cm;
-		cm->queue = c->queue;
+		__CnnCheckNewLayer__(c);
 		if (c->error.error < 0)break;
+		cm = NULL;
 	}
 	if (c->size > 0) {
 		c->sizeIn.x = (int) c->camadas[c->size-1]->entrada->x;
