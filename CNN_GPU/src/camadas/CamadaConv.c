@@ -119,6 +119,7 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, CNN_ERROR *error) {
 	fwrite(&c->filtros->x, sizeof(UINT), 1, dst);
 	fwrite(&c->filtros->y, sizeof(UINT), 1, dst);
 	fwrite(&c->filtros->w, sizeof(UINT), 1, dst);
+	fwrite(&c->super.parametros, sizeof(Params), 1, dst);
 
 	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->filtros->z * c->filtros->w, sizeof(double));
 	TensorGetValuesMem(c->super.queue, c->filtros, data, c->filtros->bytes * c->filtros->w);
@@ -127,7 +128,7 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, CNN_ERROR *error) {
 }
 
 Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
-					Params params, CNN_ERROR *error) {
+					 CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	UINT fx, fy, fw, px, py, inx, iny, inz;
@@ -136,6 +137,7 @@ Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 	if (flag != '#') {
 		fread(&flag, sizeof(char), 1, src);
 	}
+	Params params;
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
@@ -145,6 +147,8 @@ Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 	fread(&fx, sizeof(UINT), 1, src);
 	fread(&fy, sizeof(UINT), 1, src);
 	fread(&fw, sizeof(UINT), 1, src);
+	fread(&params, sizeof(Params), 1, src);
+
 	CamadaConv c = (CamadaConv) createConv(cl, queue, px, py, fx, fy, fw, inx, iny, inz, entrada,params, (RandomParam) {-1}, error);
 	if(error->error){
 		c->super.release(c);

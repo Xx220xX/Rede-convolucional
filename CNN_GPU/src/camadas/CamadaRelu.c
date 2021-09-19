@@ -74,7 +74,7 @@ void salvarRelu(WrapperCL *cl, CamadaRelu c, FILE *dst, CNN_ERROR *error) {
 
 }
 
-Camada carregarRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params params, CNN_ERROR *error) {
+Camada carregarRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,  CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);

@@ -122,6 +122,8 @@ void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, CNN_ERROR 
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
 	fwrite(&c->super.saida->x, sizeof(UINT), 1, dst);
+	fwrite(&c->super.parametros, sizeof(Params), 1, dst);
+
 	double *data = (double *) alloc_mem(c->pesos->x * c->pesos->y * c->pesos->z, sizeof(double));
 	cl_command_queue queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error->error);
 
@@ -131,10 +133,11 @@ void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, CNN_ERROR 
 }
 
 Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-						   Params params,
+
 						   CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
+	Params params;
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
@@ -145,6 +148,8 @@ Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Ten
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
 	fread(&tamanhoSaida, sizeof(UINT), 1, src);
+	fread(&params, sizeof(Params), 1, src);
+
 	CamadaFullConnect c = (CamadaFullConnect) createFullConnect(cl, queue, inx, iny, inz, tamanhoSaida,
 																entrada, params,
 																fa, (RandomParam) {-1}, error);

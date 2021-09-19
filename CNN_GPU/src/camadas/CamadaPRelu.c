@@ -83,6 +83,8 @@ void salvarPRelu(WrapperCL *cl, CamadaPRelu c, FILE *dst, CNN_ERROR *error) {
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+	fwrite(&c->super.parametros, sizeof(Params), 1, dst);
+
 	double *data = alloc_mem(c->A->bytes, 1);
 	TensorGetValuesMem(c->super.queue, c->A, data, c->A->bytes);
 	fwrite(data, c->A->bytes, 1, dst);
@@ -90,17 +92,21 @@ void salvarPRelu(WrapperCL *cl, CamadaPRelu c, FILE *dst, CNN_ERROR *error) {
 
 }
 
-Camada carregarPRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, Params params, CNN_ERROR *error) {
+Camada carregarPRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
+	Params params;
 	fread(&flag, sizeof(char), 1, src);
-	if (flag != '#')
+	if (flag != '#') {
 		fread(&flag, sizeof(char), 1, src);
+	}
 	UINT inx, iny, inz;
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	CamadaPRelu c = (CamadaPRelu) createPRelu(cl, queue, inx, iny, inz, entrada, params, (RandomParam) {-1}, error);
+	fread(&params, sizeof(Params), 1, src);
+
+	CamadaPRelu c = (CamadaPRelu) createPRelu(cl, queue, inx, iny, inz, entrada, params,(RandomParam) {-1}, error);
 	double *data = alloc_mem(c->A->bytes, 1);
 	fread(data, c->A->bytes, 1, src);
 	TensorPutValuesMem(c->super.queue, c->A, data, c->A->bytes);
@@ -109,7 +115,7 @@ Camada carregarPRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor en
 }
 
 Camada createPRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsigned int iny,
-				   unsigned int inz, Tensor entrada, Params params, RandomParam randomParams, CNN_ERROR *error) {
+				   unsigned int inz, Tensor entrada,Params params,RandomParam randomParams, CNN_ERROR *error) {
 	if (error->error)return NULL;
 
 	CamadaPRelu c = (CamadaPRelu) alloc_mem(1, sizeof(TypecamadaPRelu));

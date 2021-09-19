@@ -88,7 +88,7 @@ void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, CNN_ERROR *error) 
 }
 
 Camada carregarDropOut(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-					   Params params, CNN_ERROR *error) {
+					    CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);

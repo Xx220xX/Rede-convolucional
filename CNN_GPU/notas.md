@@ -1,9 +1,10 @@
 Gabriela IA
 email: gab.cnn.ia@gmail.com
-Versão 2.2.015
+Versão 2.2.018
 
 | Versão | Mudanças |
 | ---- | :---- |
+|2.2.018 | Corrigido salvar cnn | 
 |2.2.017 | Corrigido salvar camadas | 
 |2.2.016 | Corrigido bugs de não incialização dos tensores | 
 |2.2.015 | Corrigido bugs de sincronização de threads  | 

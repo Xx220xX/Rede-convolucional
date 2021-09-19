@@ -19,10 +19,7 @@ typedef struct {
 } *CamadaPRelu, TypecamadaPRelu;
 
 
-Camada createPRelu(WrapperCL *cl, QUEUE queue, unsigned int inx, unsigned int iny,
-				   unsigned int inz, Tensor entrada,
-				   Params params,
-				   RandomParam  randomParams, CNN_ERROR *error);
+Camada createPRelu(WrapperCL *cl, QUEUE queue, unsigned int inx, unsigned int iny, unsigned int inz, Tensor entrada, Params params,RandomParam randomParams, CNN_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADA_PRelu_H

@@ -146,6 +146,8 @@ void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, CNN_ERROR *error) {
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+	fwrite(&c->super.parametros, sizeof(Params), 1, dst);
+
 	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->filtros->z, sizeof(double));
 	for (int a = 0; a < c->numeroFiltros; a++) {
 		TensorGetValuesOffSet(c->super.queue, c->filtros, data, a * c->filtros->bytes);
@@ -155,9 +157,10 @@ void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, CNN_ERROR *error) {
 }
 
 Camada carregarConvNc(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
-					  Params params, CNN_ERROR *error) {
+					   CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
+	Params params;
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')
 		fread(&flag, sizeof(char), 1, src);
@@ -172,6 +175,8 @@ Camada carregarConvNc(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
+	fread(&params, sizeof(Params), 1, src);
+
 	CamadaConvNc c = (CamadaConvNc) createConvNc(cl, queue, passox, passoy, largx, largy, fx, fy, numeroFiltros, inx,
 												 iny, inz,
 												 entrada, params, (RandomParam){-1}, error);

@@ -4,34 +4,33 @@
 
 #include "camadas/Camada.h"
 
-Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
-					  Params param, CNN_ERROR *error) {
+Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada, CNN_ERROR *error) {
 	char identify = 0;
 	fread(&identify, sizeof(char), 1, src);
 	if (feof(src))return NULL;
 	switch (identify) {
 		case CONV:
-			return carregarConv(cl, src, queue, entrada, param, error);
+			return carregarConv(cl, src, queue, entrada,  error);
 		case POOL:
-			return carregarPool(cl, src, queue, entrada, param, error);
+			return carregarPool(cl, src, queue, entrada,  error);
 		case RELU:
-			return carregarRelu(cl, src, queue, entrada, param, error);
+			return carregarRelu(cl, src, queue, entrada,  error);
 		case PRELU:
-			return carregarPRelu(cl, src, queue, entrada, param, error);
+			return carregarPRelu(cl, src, queue, entrada,  error);
 		case DROPOUT:
-			return carregarDropOut(cl, src, queue, entrada, param, error);
+			return carregarDropOut(cl, src, queue, entrada,  error);
 		case FULLCONNECT:
-			return carregarFullConnect(cl, src, queue, entrada, param, error);
+			return carregarFullConnect(cl, src, queue, entrada,  error);
 		case BATCHNORM:
-			return carregarBatchNorm(cl, src, queue, entrada, param, error);
+			return carregarBatchNorm(cl, src, queue, entrada,  error);
 		case SOFTMAX:
-			return carregarSoftMax(cl, src, queue, entrada, param, error);
+			return carregarSoftMax(cl, src, queue, entrada,  error);
 		case POOLAV:
-			return carregarPoolAv(cl, src, queue, entrada, param, error);
+			return carregarPoolAv(cl, src, queue, entrada,  error);
 		case PADDING:
-			return carregarPadding(cl, src, queue, entrada, param, error);
+			return carregarPadding(cl, src, queue, entrada,  error);
 		case CONVNC:
-			return carregarConvNc(cl, src, queue, entrada, param, error);
+			return carregarConvNc(cl, src, queue, entrada,  error);
 		default:
 			return NULL;
 	}
@@ -51,7 +50,7 @@ void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE que
 		c->entrada = newTensor(context, c->queue, xi, yi, zi, 0, error);
 		c->flag_releaseInput = 1;
 	} else {
-		c->gradsEntrada = newTensor(context, queue, xi, yi, zi, 0, error);
+ 		c->gradsEntrada = newTensor(context, queue, xi, yi, zi, 0, error);
 	}
 	c->saida = newTensor(context, queue, xo, yo, zo, 0, error);
 	c->parametros = params;

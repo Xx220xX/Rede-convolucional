@@ -25,11 +25,7 @@ typedef struct {
 } *CamadaPoolAv, TypecamadaPoolAv;
 
 
-Camada createPoolAv(WrapperCL *cl, QUEUE queue, UINT px, UINT py, UINT fx, UINT fy,
-					UINT inx, UINT iny, UINT inz,
-					Tensor entrada, Params params,
-					 CNN_ERROR *error);
-
+Camada createPoolAv(WrapperCL *cl, QUEUE queue, UINT px, UINT py, UINT fx, UINT fy, UINT inx, UINT iny, UINT inz, Tensor entrada, CNN_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADAPoolAv_H

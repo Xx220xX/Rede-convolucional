@@ -9,11 +9,11 @@
 #include "../kernels/camadas/utils.h"
 #include "../kernels/camadas/cnnutils.h"
 #endif
-#define VERSION(base,v,release) \
-	int __version__ = base*10000+ v*100+ release;\
-	char __strversion__[] =#base "."#v "."#release;
+#define VERSION(base, v, release) \
+    int __version__ = base*10000+ v*100+ release;\
+    char __strversion__[] =#base "."#v "."#release;
 
-VERSION(2,2,17)
+VERSION(2, 2, 18)
 
 #if (RUN_KERNEL_USING_GPU != 1)
 "host mode"
@@ -168,7 +168,7 @@ void CnnRemoveLastLayer(Cnn c) {
 	c->sizeIn.x = entrada->x;
 	c->sizeIn.y = entrada->y;
 	c->sizeIn.z = entrada->z;
-	c->camadas[c->size]->release(c->camadas[c->size]);
+	c->camadas[c->size]->release(&c->camadas[c->size]);
 	c->camadas = (Camada *) realloc(c->camadas, c->size * sizeof(Camada));
 	__CnnCheckNewLayer__(c);
 }
@@ -186,8 +186,7 @@ int Convolucao(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT
 
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passox, passoy, filtrox, filtroy, numeroDeFiltros, sizeIn.x,
-										 sizeIn.y, sizeIn.z, entrada, c->parametros, randomParam, &c->error);
+	c->camadas[c->size - 1] = createConv(c->cl, c->queue, passox, passoy, filtrox, filtroy, numeroDeFiltros, sizeIn.x,									 sizeIn.y, sizeIn.z, entrada, c->parametros, randomParam, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -236,9 +235,7 @@ int Pooling(Cnn c, UINT passox, UINT passoy,
 	}
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passox, passoy, filtrox, filtroy, sizeIn.x, sizeIn.y,
-										 sizeIn.z, entrada,
-										 c->parametros, &c->error);
+	c->camadas[c->size - 1] = createPool(c->cl, c->queue, passox, passoy, filtrox, filtroy, sizeIn.x, sizeIn.y, sizeIn.z, entrada, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -257,8 +254,7 @@ int PoolingAv(Cnn c, UINT passox, UINT pasoy,
 	}
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passox, pasoy, fx, fy, sizeIn.x, sizeIn.y, sizeIn.z,
-										   entrada, c->parametros, &c->error);
+	c->camadas[c->size - 1] = createPoolAv(c->cl, c->queue, passox, pasoy, fx, fy, sizeIn.x, sizeIn.y, sizeIn.z, entrada, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -267,9 +263,7 @@ int BatchNorm(Cnn c, double epsilon, RandomParam randomParamY, RandomParam rando
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;
-	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada,
-											  epsilon, randomParamY, randomParamB,
-											  &c->error);
+	c->camadas[c->size - 1] = createBatchNorm(c->cl, c->queue, c->parametros, sizeIn.x, sizeIn.y, sizeIn.z, entrada, epsilon, randomParamY, randomParamB, &c->error);
 	return __CnnCheckNewLayer__(c);
 }
 
@@ -481,7 +475,6 @@ int CnnGetIndexMax(Cnn c) {
 	int indice = 0;
 	double *values = alloc_mem(saida->bytes, 1);
 	c->error.error = TensorGetValues(c->queue, saida, values);
-
 	if (c->error.error) {
 		getClErrorWithContext(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE, "CnnGetIndexMax/TensorGetValues ");
 		free_mem(values);
@@ -508,6 +501,7 @@ void cnnSave(Cnn c, FILE *dst) {
 		if (!c->error.error) {
 			c->error.error = -10;
 			snprintf(c->error.msg, 255, "falha ao salvar camadas\n");
+
 		}
 	}
 }
@@ -517,7 +511,7 @@ int cnnCarregar(Cnn c, FILE *src) {
 	Camada cm;
 	Tensor entrada = NULL;
 	while (1) {
-		cm = carregarCamada(c->cl, src, c->queue, entrada, c->parametros, &c->error);
+		cm = carregarCamada(c->cl, src, c->queue, entrada,  &c->error);
 		if (cm == NULL) { break; }
 		entrada = cm->saida;
 		__CnnaddLayer__(c);
@@ -527,11 +521,11 @@ int cnnCarregar(Cnn c, FILE *src) {
 		cm = NULL;
 	}
 	if (c->size > 0) {
-		c->sizeIn.x = (int) c->camadas[c->size-1]->entrada->x;
-		c->sizeIn.y = (int) c->camadas[c->size-1]->entrada->y;
-		c->sizeIn.z = (int) c->camadas[c->size-1]->entrada->z;
-		c->len_input = c->camadas[0]->entrada->x*c->camadas[0]->entrada->y*c->camadas[0]->entrada->z;
-		c->len_output = c->camadas[c->size-1]->saida->x*c->camadas[c->size-1]->saida->y*c->camadas[c->size-1]->saida->z;
+		c->sizeIn.x = (int) c->camadas[c->size - 1]->entrada->x;
+		c->sizeIn.y = (int) c->camadas[c->size - 1]->entrada->y;
+		c->sizeIn.z = (int) c->camadas[c->size - 1]->entrada->z;
+		c->len_input = c->camadas[0]->entrada->x * c->camadas[0]->entrada->y * c->camadas[0]->entrada->z;
+		c->len_output = c->camadas[c->size - 1]->saida->x * c->camadas[c->size - 1]->saida->y * c->camadas[c->size - 1]->saida->z;
 	}
 	return c->error.error;
 }

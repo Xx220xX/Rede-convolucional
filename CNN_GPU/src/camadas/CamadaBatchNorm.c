@@ -132,6 +132,9 @@ void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, CNN_ERROR *err
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
+	fwrite(&c->super.parametros, sizeof(Params), 1, dst);
+
+
 	double *data = (double *) alloc_mem(c->Y->z, sizeof(double));
 	TensorGetValues(c->super.queue, c->Y, data);
 	fwrite(data, c->Y->bytes, 1, dst);
@@ -142,20 +145,24 @@ void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, CNN_ERROR *err
 }
 
 Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-						 Params params, CNN_ERROR *error) {
+						 CNN_ERROR *error) {
 	if (error->error)return NULL;
 	char flag = 0;
+	Params params;
 	fread(&flag, sizeof(char), 1, src);
-	if (flag != '#')
+	if (flag != '#') {
 		fread(&flag, sizeof(char), 1, src);
+	}
 	UINT inx, iny, inz;
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
+	fread(&params, sizeof(Params), 1, src);
+
 	double epsilon = 1e-10;
 	CamadaBatchNorm cm = (CamadaBatchNorm) createBatchNorm(cl, queue, params, inx, iny, inz, entrada,
 														   epsilon, (RandomParam) {-1},
-														   (RandomParam) {-1},error);
+														   (RandomParam) {-1}, error);
 	double *data = (double *) alloc_mem(cm->Y->z, sizeof(double));
 	fread(data, cm->Y->bytes, 1, src);
 	TensorPutValues(cm->super.queue, cm->Y, data);

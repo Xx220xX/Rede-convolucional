@@ -9,4 +9,5 @@ void GetCurrentDir(char *buff_dest,size_t size_buff);
 int SetDir(char *path);
 int DirectoryExists(const char * szPath) ;
 void createDir(const char * dirName);
+void resetDir(const char *dirName);
 #endif //CNN_GPU_DIR_H

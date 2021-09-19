@@ -85,17 +85,32 @@ static int l_loadCnn(lua_State *L) {
 	char *file;
 	file = (char *) lua_tostring(L, 1);
 	lua_getglobal(L, "home");
-	if(lua_isnoneornil(L,-1)){
-		luaL_error(L,"diretorio home não foi definido\n",file);
+	if (lua_isnoneornil(L, -1)) {
+		luaL_error(L, "diretorio home não foi definido\n", file);
 		return 0;
 	}
 	const char *path = lua_tostring(L, -1);
 
-	SetDir((char *)path);
+	SetDir((char *) path);
 	FILE *f = fopen(file, "rb");
-	checkLua(f, "arquivo %s/%s nao foi encontrado\n",path, file);
+	if (!(f)) {
+		c->error.error = -3 + -100;
+		lua_pushinteger(L, c->error.error);
+		char buf[250];
+		snprintf(buf, 250, "arquivo %s/%s nao foi encontrado\n", path, file);
+		lua_pushstring(L, buf);
+		c->error.error = 0;
+		return 2;
+	}
 	cnnCarregar(c, f);
 	fclose(f);
+	if (c->error.error) {
+//		luaL_error(L,"%s\n",c->error.msg);
+		lua_pushinteger(L, c->error.error);
+		lua_pushstring(L, c->error.msg);
+		c->error.error = 0;
+		return 2;
+	}
 	RETURN_LUA_STATUS_FUNCTION();
 }
 
@@ -552,22 +567,33 @@ static int l_putlua_arg(lua_State *L) {
 
 static int l_CamadasetParam(lua_State *L) {
 	int nArgs = lua_gettop(L);
-	if (nArgs != 4) {
-		luaL_error(L, "Expected camada:int,hitlearn:float,momento:float,decaimentoPeso:float\n");
-		return 0;
-	}
+	double ht, mm, dc;
+	int cm ;
+	int arg = 1;
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	double ht, mm, dc;
-	int cm = lua_tointeger(L, 1) - 1;
+	cm = c->size-1;
+	switch (nArgs) {
+		case 4:
+			cm = lua_tointeger(L, arg++) - 1;
+		case 3:
+			ht = lua_tonumber(L, arg++);
+			mm = lua_tonumber(L, arg++);
+			dc = lua_tonumber(L, arg++);
+			break;
+		default:
+			luaL_error(L, "Expected camada:int,hitlearn:float,momento:float,decaimentoPeso:float or \n"
+						  "hitlearn:float,momento:float,decaimentoPeso:float");
+
+			return 0;
+	}
+
 	if (cm < 0 || cm >= c->size) {
 		luaL_error(L, "Violação de memória, acesso a posição %d  de %d.\nA posição válida é 1<= i <= %d\n", cm + 1,
 				   c->size, c->size);
 		return 0;
 	}
-	ht = lua_tonumber(L, 2);
-	mm = lua_tonumber(L, 3);
-	dc = lua_tonumber(L, 4);
+
 	c->camadas[cm]->setParams(c->camadas[cm], ht, mm, dc);
 	RETURN_LUA_STATUS_FUNCTION();
 }
@@ -625,7 +651,7 @@ Luac_function globalFunctions[] = {
 		{l_callCnn,            "Call",                 "Faz a propagação",                      "Call(input:table)"},
 		{l_learnCnn,           "Learn",                "Faz a retro propagação",                "Learn(target:table)"},
 		{l_helpCnn,            "helpCnn",              "Mostra detalhes sobre todas funções",   "helpCnn()"},
-		{l_convolution,            L_CONVOLUTION_NAME, "Adiciona camada Convolucional", L_CONVOLUTION_NAME"(step,filterSize,nfilters)\n"L_CONVOLUTION_NAME"(stepx,stepy,filterx,filtery,nfilters)\n"},
+		{l_convolution,            L_CONVOLUTION_NAME, "Adiciona camada Convolucional", L_CONVOLUTION_NAME"(step[x,y],filterSize[x,y],nfilters,randomParanm[pdf,a,bq])"},
 		{l_convolution_non_causal, L_CONVOLUTIONNC_NAME},
 		{l_pooling,                L_POOLING_NAME},
 		{l_poolingav,              L_POOLINGAV_NAME},
@@ -662,8 +688,8 @@ static int l_helpCnn(lua_State *L) {
 	for (int i = 0; globalConstantes[i].name; i++) {
 		printf("\t%s\n", globalConstantes[i].name);
 	}
-	if (globalFunctionHelpArgs)
-		globalFunctionHelpArgs();
+//	if (globalFunctionHelpArgs)
+//		globalFunctionHelpArgs();
 	return 0;
 }
 
@@ -690,6 +716,7 @@ int CnnLuaConsole(Cnn c) {
 	global_close = 0;
 	cmd.str = alloc_mem(1, 0);
 	cmd.len = 1;
+	printf("console commands:\ncls : clear screen\nclear : remove all layers\nshow : show cnn\nexit : close console\nhelp : call helpCnn()\n");
 	while (!global_close) {
 		printf(INDICADOR);
 		cmd.n = 0;
@@ -727,6 +754,26 @@ int CnnLuaConsole(Cnn c) {
 		}
 		if (!cmd.str[0])continue;
 		fflush(stdout);
+		if (!strcmp(cmd.str, "exit"))break;
+		if (!strcmp(cmd.str, "cls")){
+			system("cls");
+			continue;
+		}
+		if (!strcmp(cmd.str, "show")){
+			printCnn(c);
+			continue;
+		}
+		if (!strcmp(cmd.str, "clear")){
+			while(c->size>0){
+				CnnRemoveLastLayer(c);
+			}
+			continue;
+		}
+
+		if (!strcmp(cmd.str, "help")) {
+			luaL_dostring(c->L, "helpCnn()");
+			continue;
+		}
 		int error = luaL_dostring(c->L, cmd.str);
 		if (error) {
 			fflush(stdout);
@@ -744,13 +791,19 @@ int CnnLuaLoadFile(Cnn c, const char *file_name) {
 
 
 	int error = luaL_dofile(c->L, file_name);
-	c->error.error = error;
+
 	if (error) {
 		fflush(stdout);
 		fprintf(stderr, "\nError: %d %d %s\n", lua_gettop(c->L), error, lua_tostring(c->L, -1));
 		fflush(stderr);
+		c->error.error = error;
 		return error;
 	}
+	if (c->error.error) {
+
+		return c->error.error;
+	}
+
 	// retro compatibilidade
 	{
 		luaL_dostring(c->L,

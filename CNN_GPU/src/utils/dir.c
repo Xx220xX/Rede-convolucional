@@ -16,7 +16,6 @@ int SetDir(char *path) {
 
 int DirectoryExists(const char * szPath) {
 	DWORD dwAttrib = GetFileAttributes(szPath);
-
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
 			(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
@@ -25,4 +24,10 @@ void createDir(const char *dirName) {
 	if(!DirectoryExists(dirName)){
 		mkdir(dirName);
 	}
+}
+void resetDir(const char *dirName){
+	if(DirectoryExists(dirName)){
+		remove(dirName);
+	}
+	mkdir(dirName);
 }

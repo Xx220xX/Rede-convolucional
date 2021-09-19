@@ -56,7 +56,7 @@ int saveAsGraphic(DVector *a) {
 void OnfinishEpic(ManageTrain *t) {
 //	printf("Epoca: \n");
 	DVector *v = alloc_mem(sizeof(DVector), 1);
-	createDir("statistic");
+
 	snprintf(v->file, 250, "statistic/%d.bin", t->epic);
 	v->self_release = 1;
 	v->releasex_y = 1;
@@ -76,7 +76,7 @@ void OnInitTrain(ManageTrain *t) {
 }
 
 void OnfinishFitnes(ManageTrain *t) {
-	FILE *f = fopen("fitnes.csv", "w");
+	FILE *f = fopen("tabela/fitnes.csv", "w");
 	fprintf(f, "Classe,Casos,Número de acertos,Taxa de acerto,Erro médio");
 	for (int k = 0; k < t->n_classes; k++) {
 		fprintf(f, ",classe %d", k + 1);
@@ -110,7 +110,7 @@ void OnfinishFitnes(ManageTrain *t) {
 	fclose(f);
 	f = fopen("showGraphic.py", "w");
 	{
-		fprintf(f, "dir = './statistic'\n"
+		fprintf(f, "dir = './statistic/'\n"
 				   "import os, ctypes as c\n"
 				   "import matplotlib.pyplot as plt\n"
 				   "import numpy as np\n"

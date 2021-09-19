@@ -102,8 +102,7 @@ void salvarPoolAv(WrapperCL *cl, CamadaPoolAv c, FILE *dst, CNN_ERROR *error) {
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
 }
 
-Camada carregarPoolAv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada,
-					  Params params, CNN_ERROR *error) {
+Camada carregarPoolAv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor entrada, CNN_ERROR *error) {
 	char flag = 0;
 	fread(&flag, sizeof(char), 1, src);
 	if (flag != '#')
@@ -116,19 +115,19 @@ Camada carregarPoolAv(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor e
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	return createPoolAv(cl, queue, px, py, fx, fy, inx, iny, inz, entrada, params, error);
+	return createPoolAv(cl, queue, px, py, fx, fy, inx, iny, inz, entrada, error);
 }
 
 Camada createPoolAv(WrapperCL *cl, QUEUE queue, UINT px, UINT py, UINT fx, UINT fy,
 					UINT inx, UINT iny, UINT inz,
-					Tensor entrada, Params params,
+					Tensor entrada,
 					 CNN_ERROR *error) {
 	CamadaPoolAv c = (CamadaPoolAv) alloc_mem(1, sizeof(TypecamadaPoolAv));
 	c->passox = px;
 	c->passoy = py;
 	c->fx = fx;
 	c->fy = fy;
-	__newCamada__((Camada) c, cl, POOLAV, entrada, queue, params, inx, iny, inz,
+	__newCamada__((Camada) c, cl, POOLAV, entrada, queue, (Params){0}, inx, iny, inz,
 				  (inx - fx) / px + 1,
 				  (iny - fy) / px + 1, inz,
 				 error);
@@ -137,7 +136,6 @@ Camada createPoolAv(WrapperCL *cl, QUEUE queue, UINT px, UINT py, UINT fx, UINT 
 	c->super.release = (fv) releasePoolAv;
 	c->super.propagation = (fv) ativaPoolAv;
 	c->super.backpropagation = (f2v) calc_gradsPoolAv;
-	c->super.parametros = params;
 	c->super.salvar = (f4v) salvarPoolAv;
 
 	c->kernelPoolAvAtiva = new_Kernel(cl->program, error, PoolAvativa, 11,
