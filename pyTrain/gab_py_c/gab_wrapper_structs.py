@@ -19,7 +19,8 @@ def TOPOINTER(c_type):
 	tp.__setattr__ = set
 	tp.__repr__ = rep
 	return tp
-    
+
+
 import time
 
 from gab_wrapper_load_dll import *
@@ -38,8 +39,7 @@ class CStruct(c.Structure):
 		return str(type(self))
 
 	def address(self):
-		P = c.cast(c.addressof(self), c.POINTER(Cnn))
-		P.size = c.sizeof(self.__class__)
+		P = c.addressof(self)
 		return P
 
 
@@ -48,7 +48,7 @@ class Pointer(CStruct):
 	_fields_ = [
 		('p', c.c_void_p),
 	]
-	
+
 	pass
 
 
@@ -61,7 +61,7 @@ class RandomParam(CStruct):
 		('a', c.c_double),
 		('b', c.c_double),
 	]
-	
+
 	pass
 
 
@@ -86,7 +86,7 @@ class Tensor(CStruct):
 		('flag', c.c_uint8),
 		('context', c.c_void_p),
 	]
-	
+
 	def getValues(self, queue):
 		tp = self.getType()
 		t = (tp * len(self))(0)
@@ -132,7 +132,7 @@ class String(CStruct):
 		('size', c.c_size_t),
 		('release', c.c_char),
 	]
-	
+
 	pass
 
 
@@ -143,7 +143,7 @@ class Dbchar_p(CStruct):
 		('name', c.c_char_p),
 		('value', c.c_char_p),
 	]
-	
+
 	pass
 
 
@@ -156,7 +156,7 @@ class Dictionary(CStruct):
 		('size', c.c_int),
 		('self_release', c.c_char),
 	]
-	
+
 	pass
 
 
@@ -169,7 +169,7 @@ class Ponto(CStruct):
 		('y', c.c_size_t),
 		('z', c.c_size_t),
 	]
-	
+
 	pass
 
 
@@ -184,18 +184,18 @@ class Kernel(CStruct):
 		('nArgs', c.c_int),
 		('l_args', c.POINTER(c.c_size_t)),
 	]
-	
+
 	pass
 
 
 class CNN_ERROR(CStruct):
 	error: c.c_int
-	msg: c.c_char_p*EXCEPTION_MAX_MSG_SIZE
+	msg: c.c_char_p * EXCEPTION_MAX_MSG_SIZE
 	_fields_ = [
 		('error', c.c_int),
-		('msg', c.c_char_p*EXCEPTION_MAX_MSG_SIZE),
+		('msg', c.c_char_p * EXCEPTION_MAX_MSG_SIZE),
 	]
-	
+
 	pass
 
 
@@ -208,7 +208,7 @@ class Params(CStruct):
 		('momento', c.c_double),
 		('decaimentoDePeso', c.c_double),
 	]
-	
+
 	pass
 
 
@@ -223,14 +223,14 @@ class Camada(CStruct):
 	queue: c.c_void_p
 	context: c.c_void_p
 	max_works: c.POINTER(c.c_size_t)
-	backpropagation: c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_void_p)
-	propagation: c.CFUNCTYPE(c.c_int,c.c_void_p)
-	release: c.CFUNCTYPE(c.c_int,c.c_void_p)
-	salvar: c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_void_p,c.c_void_p,c.c_void_p)
-	toString: c.CFUNCTYPE(c.c_char_p,c.c_void_p)
-	getCreateParams: c.CFUNCTYPE(c.c_char_p,c.c_void_p)
-	setLearn: c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_char)
-	setParams: c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_double,c.c_double,c.c_double)
+	backpropagation: c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_void_p)
+	propagation: c.CFUNCTYPE(c.c_int, c.c_void_p)
+	release: c.CFUNCTYPE(c.c_int, c.c_void_p)
+	salvar: c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_void_p, c.c_void_p, c.c_void_p)
+	toString: c.CFUNCTYPE(c.c_char_p, c.c_void_p)
+	getCreateParams: c.CFUNCTYPE(c.c_char_p, c.c_void_p)
+	setLearn: c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_char)
+	setParams: c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_double, c.c_double, c.c_double)
 	__string__: c.c_char_p
 	_fields_ = [
 		('type', c.c_char),
@@ -243,17 +243,17 @@ class Camada(CStruct):
 		('queue', c.c_void_p),
 		('context', c.c_void_p),
 		('max_works', c.POINTER(c.c_size_t)),
-		('backpropagation', c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_void_p)),
-		('propagation', c.CFUNCTYPE(c.c_int,c.c_void_p)),
-		('release', c.CFUNCTYPE(c.c_int,c.c_void_p)),
-		('salvar', c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_void_p,c.c_void_p,c.c_void_p)),
-		('toString', c.CFUNCTYPE(c.c_char_p,c.c_void_p)),
-		('getCreateParams', c.CFUNCTYPE(c.c_char_p,c.c_void_p)),
-		('setLearn', c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_char)),
-		('setParams', c.CFUNCTYPE(c.c_int,c.c_void_p,c.c_double,c.c_double,c.c_double)),
+		('backpropagation', c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_void_p)),
+		('propagation', c.CFUNCTYPE(c.c_int, c.c_void_p)),
+		('release', c.CFUNCTYPE(c.c_int, c.c_void_p)),
+		('salvar', c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_void_p, c.c_void_p, c.c_void_p)),
+		('toString', c.CFUNCTYPE(c.c_char_p, c.c_void_p)),
+		('getCreateParams', c.CFUNCTYPE(c.c_char_p, c.c_void_p)),
+		('setLearn', c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_char)),
+		('setParams', c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_double, c.c_double, c.c_double)),
 		('__string__', c.c_char_p),
 	]
-	
+
 	def __repr__(self):
 		t = self.toString(c.addressof(self))
 		t = t.decode('utf-8')
@@ -303,7 +303,7 @@ class CamadaBatchNorm(CStruct):
 		('kernelBatchNormCalcGrads2', c.c_void_p),
 		('kernelBatchNormCorrige', c.c_void_p),
 	]
-	
+
 	pass
 
 
@@ -328,7 +328,7 @@ class CamadaConv(CStruct):
 		('kernelConvFixWeight', c.c_void_p),
 		('kernelConvCalcGrads', c.c_void_p),
 	]
-	
+
 	pass
 
 
@@ -361,7 +361,7 @@ class CamadaConvNc(CStruct):
 		('kernelConvNcCalcGradsFiltro', c.c_void_p),
 		('kernelConvNcCalcGrads', c.c_void_p),
 	]
-	
+
 	pass
 
 
@@ -382,7 +382,7 @@ class CamadaDropOut(CStruct):
 		('kerneldropativa', c.c_void_p),
 		('kerneldropcalcgrad', c.c_void_p),
 	]
-	
+
 	pass
 
 
@@ -411,7 +411,7 @@ class CamadaFullConnect(CStruct):
 		('kernelfullcalcgrad1', c.c_void_p),
 		('kernelfullcalcgrad2', c.c_void_p),
 	]
-	
+
 	pass
 
 
@@ -432,7 +432,7 @@ class CamadaPadding(CStruct):
 		('ativa', c.c_void_p),
 		('calcGrad', c.c_void_p),
 	]
-	
+
 	pass
 
 
@@ -453,7 +453,7 @@ class CamadaPool(CStruct):
 		('kernelPoolAtiva', c.c_void_p),
 		('kernelPoolCalcGrads', c.c_void_p),
 	]
-	
+
 	pass
 
 
@@ -474,7 +474,7 @@ class CamadaPoolAv(CStruct):
 		('kernelPoolAvAtiva', c.c_void_p),
 		('kernelPoolAvCalcGrads', c.c_void_p),
 	]
-	
+
 	pass
 
 
@@ -487,7 +487,7 @@ class CamadaRelu(CStruct):
 		('kernelReluAtiva', c.c_void_p),
 		('kernelReluCalcGrads', c.c_void_p),
 	]
-	
+
 	pass
 
 
@@ -508,7 +508,7 @@ class CamadaSoftMax(CStruct):
 		('soma', TOPOINTER(Tensor)),
 		('exponent', TOPOINTER(Tensor)),
 	]
-	
+
 	pass
 
 
@@ -525,6 +525,7 @@ class Estatistica(CStruct):
 	ft_imagem_atual: c.c_uint
 	ft_numero_imagens: c.c_uint
 	ft_info: c.POINTER(c.c_double)
+	ft_info_coluns: c.c_int
 	ft_numero_classes: c.c_uint
 	ft_time: c.c_size_t
 	ll_imagem_atual: c.c_size_t
@@ -542,12 +543,13 @@ class Estatistica(CStruct):
 		('ft_imagem_atual', c.c_uint),
 		('ft_numero_imagens', c.c_uint),
 		('ft_info', c.POINTER(c.c_double)),
+		('ft_info_coluns', c.c_int),
 		('ft_numero_classes', c.c_uint),
 		('ft_time', c.c_size_t),
 		('ll_imagem_atual', c.c_size_t),
 		('ld_imagem_atual', c.c_size_t),
 	]
-	
+
 	pass
 
 
@@ -571,7 +573,7 @@ class Cnn(CStruct):
 	kernelcreateIMG: c.c_void_p
 	L: c.c_void_p
 	luaArgs: Dictionary
-	releaseL: c.CFUNCTYPE(c.c_int,c.c_void_p)
+	releaseL: c.CFUNCTYPE(c.c_int, c.c_void_p)
 	error: CNN_ERROR
 	release_self: c.c_char
 	_fields_ = [
@@ -594,11 +596,11 @@ class Cnn(CStruct):
 		('kernelcreateIMG', c.c_void_p),
 		('L', c.c_void_p),
 		('luaArgs', Dictionary),
-		('releaseL', c.CFUNCTYPE(c.c_int,c.c_void_p)),
+		('releaseL', c.CFUNCTYPE(c.c_int, c.c_void_p)),
 		('error', CNN_ERROR),
 		('release_self', c.c_char),
 	]
-	
+
 	def __repr__(self):
 
 		t = [f'CNN {c.addressof(self)} size {self.size}']
@@ -615,9 +617,12 @@ class Cnn(CStruct):
 		clib.PY_createCnn(self.address(), hitlearn, momento, decaimento, x, y, z)
 
 	def __del__(self):
-		if self.__released__: return
-		self.__released__ = True
-		clib.PY_releaseCnn(self.address())
+		try:
+			if self.__released__: return
+			self.__released__ = True
+			clib.PY_releaseCnn(self.address())
+		except:
+			pass
 
 	def convolucao(self, passo, filtro, numeroFiltros, randomParam=[0, 0, 0]):
 		if isinstance(passo, int): passo = [passo, passo]
@@ -724,13 +729,12 @@ class Cnn(CStruct):
 		file = file.encode('utf-8')
 		erro = clib.CnnLoadByFile(cnn.address(), file)
 		if (erro): raise Exception(f'Error code {erro}')
-
 		return cnn
 
 
 class ManageTrain(CStruct):
 	et: Estatistica
-	cnn: Cnn
+	cnn: TOPOINTER(Cnn)
 	homePath: String
 	file_images: String
 	file_labels: String
@@ -751,15 +755,15 @@ class ManageTrain(CStruct):
 	sum_erro: c.c_double
 	sum_acerto: c.c_int
 	current_time: c.c_double
-	OnloadedImages: c.CFUNCTYPE(None,c.c_void_p)
-	OnfinishEpic: c.CFUNCTYPE(None,c.c_void_p)
-	OnInitTrain: c.CFUNCTYPE(None,c.c_void_p)
-	OnfinishTrain: c.CFUNCTYPE(None,c.c_void_p)
-	OnInitFitnes: c.CFUNCTYPE(None,c.c_void_p)
-	OnfinishFitnes: c.CFUNCTYPE(None,c.c_void_p)
-	UpdateTrain: c.CFUNCTYPE(None,c.c_void_p)
-	UpdateFitnes: c.CFUNCTYPE(None,c.c_void_p)
-	UpdateLoad: c.CFUNCTYPE(None,c.c_void_p)
+	OnloadedImages: c.CFUNCTYPE(None, c.c_void_p)
+	OnfinishEpic: c.CFUNCTYPE(None, c.c_void_p)
+	OnInitTrain: c.CFUNCTYPE(None, c.c_void_p)
+	OnfinishTrain: c.CFUNCTYPE(None, c.c_void_p)
+	OnInitFitnes: c.CFUNCTYPE(None, c.c_void_p)
+	OnfinishFitnes: c.CFUNCTYPE(None, c.c_void_p)
+	UpdateTrain: c.CFUNCTYPE(None, c.c_void_p)
+	UpdateFitnes: c.CFUNCTYPE(None, c.c_void_p)
+	UpdateLoad: c.CFUNCTYPE(None, c.c_void_p)
 	self_release: c.c_char
 	real_time: c.c_char
 	process: c.c_void_p
@@ -768,7 +772,7 @@ class ManageTrain(CStruct):
 	process_id: c.c_uint
 	_fields_ = [
 		('et', Estatistica),
-		('cnn', Cnn),
+		('cnn', TOPOINTER(Cnn)),
 		('homePath', String),
 		('file_images', String),
 		('file_labels', String),
@@ -789,15 +793,15 @@ class ManageTrain(CStruct):
 		('sum_erro', c.c_double),
 		('sum_acerto', c.c_int),
 		('current_time', c.c_double),
-		('OnloadedImages', c.CFUNCTYPE(None,c.c_void_p)),
-		('OnfinishEpic', c.CFUNCTYPE(None,c.c_void_p)),
-		('OnInitTrain', c.CFUNCTYPE(None,c.c_void_p)),
-		('OnfinishTrain', c.CFUNCTYPE(None,c.c_void_p)),
-		('OnInitFitnes', c.CFUNCTYPE(None,c.c_void_p)),
-		('OnfinishFitnes', c.CFUNCTYPE(None,c.c_void_p)),
-		('UpdateTrain', c.CFUNCTYPE(None,c.c_void_p)),
-		('UpdateFitnes', c.CFUNCTYPE(None,c.c_void_p)),
-		('UpdateLoad', c.CFUNCTYPE(None,c.c_void_p)),
+		('OnloadedImages', c.CFUNCTYPE(None, c.c_void_p)),
+		('OnfinishEpic', c.CFUNCTYPE(None, c.c_void_p)),
+		('OnInitTrain', c.CFUNCTYPE(None, c.c_void_p)),
+		('OnfinishTrain', c.CFUNCTYPE(None, c.c_void_p)),
+		('OnInitFitnes', c.CFUNCTYPE(None, c.c_void_p)),
+		('OnfinishFitnes', c.CFUNCTYPE(None, c.c_void_p)),
+		('UpdateTrain', c.CFUNCTYPE(None, c.c_void_p)),
+		('UpdateFitnes', c.CFUNCTYPE(None, c.c_void_p)),
+		('UpdateLoad', c.CFUNCTYPE(None, c.c_void_p)),
 		('self_release', c.c_char),
 		('real_time', c.c_char),
 		('process', c.c_void_p),
@@ -805,11 +809,13 @@ class ManageTrain(CStruct):
 		('can_run', c.c_uint),
 		('process_id', c.c_uint),
 	]
-	
+
 	def chose2WorkDir(self):
 		clib.manage2WorkDir(c.addressof(self))
 
 	def __del__(self):
+		if self.release: return
+		self.release = True
 		clib.releaseManageTrain(c.addressof(self))
 
 	def setEvent(self, self_event, event):
@@ -819,20 +825,25 @@ class ManageTrain(CStruct):
 		can_run = int(can_run)
 		clib.manageTrainSetRun(c.addressof(self), can_run)
 
-	def __init__(self, luafile, taxa_aprendizado=0.1, momento=0, decaimento_peso=0):
+	def __init__(self, luafile, taxa_aprendizado=0.1, momento=0, decaimento_peso=0, luaisFile=True):
 		super().__init__()
-		clib.createManageTrainPy(c.addressof(self), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
+		self.release = False
+		if luaisFile:
+			clib.createManageTrainPy(c.addressof(self), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
+		else:
+			clib.createManageTrainPyStr(c.addressof(self), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
+		clib.manage2WorkDir(self.address())
 
-	def loadImageStart(self):
-		clib.ManageTrainloadImages(c.addressof(self))
+	def loadImageStart(self, runBackground=True):
+		clib.ManageTrainloadImages(self.address(), int(runBackground))
 
-	def trainStart(self):
-		clib.ManageTraintrain(c.addressof(self))
+	def trainStart(self, runBackGround=True):
+		clib.ManageTraintrain(self.address(), int(runBackGround))
 
 	def fitnesStart(self):
 		clib.ManageTrainfitnes(c.addressof(self))
 
-	def startLoop(self, anotherThread=True):
+	def startLoop(self, anotherThread=False):
 		anotherThread = int(anotherThread)
 		clib.manageTrainLoop(c.addressof(self), anotherThread)
 
@@ -843,3 +854,7 @@ class ManageTrain(CStruct):
 
 def SetSeed(seed):
 	clib.initRandom(int(seed))
+
+
+EVENT = c.CFUNCTYPE(None, TOPOINTER(ManageTrain))
+Manage_p = TOPOINTER(ManageTrain)

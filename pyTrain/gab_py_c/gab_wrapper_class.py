@@ -16,8 +16,7 @@ class CStruct(c.Structure):
 		return str(type(self))
 
 	def address(self):
-		P = c.cast(c.addressof(self), c.POINTER(Cnn))
-		P.size = c.sizeof(self.__class__)
+		P = c.addressof(self)
 		return P
 
 
@@ -185,9 +184,12 @@ class Cnn(CStruct):
 		clib.PY_createCnn(self.address(), hitlearn, momento, decaimento, x, y, z)
 
 	def __del__(self):
-		if self.__released__: return
-		self.__released__ = True
-		clib.PY_releaseCnn(self.address())
+		try:
+			if self.__released__: return
+			self.__released__ = True
+			clib.PY_releaseCnn(self.address())
+		except:
+			pass
 
 	def convolucao(self, passo, filtro, numeroFiltros, randomParam=[0, 0, 0]):
 		if isinstance(passo, int): passo = [passo, passo]
@@ -303,6 +305,8 @@ class ManageTrain(CStruct):
 		clib.manage2WorkDir(c.addressof(self))
 
 	def __del__(self):
+		if self.release: return
+		self.release = True
 		clib.releaseManageTrain(c.addressof(self))
 
 	def setEvent(self, self_event, event):
@@ -312,20 +316,25 @@ class ManageTrain(CStruct):
 		can_run = int(can_run)
 		clib.manageTrainSetRun(c.addressof(self), can_run)
 
-	def __init__(self, luafile, taxa_aprendizado=0.1, momento=0, decaimento_peso=0):
+	def __init__(self, luafile, taxa_aprendizado=0.1, momento=0, decaimento_peso=0,luaisFile=True):
 		super().__init__()
-		clib.createManageTrainPy(c.addressof(self), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
+		self.release = False
+		if luaisFile:
+			clib.createManageTrainPy(c.addressof(self), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
+		else:
+			clib.createManageTrainPyStr(c.addressof(self), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
+		clib.manage2WorkDir(self.address())
 
-	def loadImageStart(self):
-		clib.ManageTrainloadImages(c.addressof(self))
+	def loadImageStart(self, runBackground=True):
+		clib.ManageTrainloadImages(self.address(), int(runBackground))
 
 	def trainStart(self):
 		clib.ManageTraintrain(c.addressof(self))
 
-	def fitnesStart(self):
-		clib.ManageTrainfitnes(c.addressof(self))
+	def trainStart(self, runBackGround=True):
+		clib.ManageTraintrain(self.address(), int(runBackGround))
 
-	def startLoop(self, anotherThread=True):
+	def startLoop(self, anotherThread=False):
 		anotherThread = int(anotherThread)
 		clib.manageTrainLoop(c.addressof(self), anotherThread)
 
@@ -336,3 +345,7 @@ class ManageTrain(CStruct):
 
 def SetSeed(seed):
 	clib.initRandom(int(seed))
+
+
+EVENT = c.CFUNCTYPE(None, TOPOINTER(ManageTrain))
+Manage_p = TOPOINTER(ManageTrain)

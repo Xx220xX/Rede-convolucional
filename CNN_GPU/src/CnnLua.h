@@ -69,11 +69,15 @@ static int l_createCnn(lua_State *L) {
 	x = luaL_checkinteger(L, 1);
 	y = luaL_checkinteger(L, 2);
 	z = luaL_checkinteger(L, 3);
-	c->sizeIn = (Ponto) {x, y, z};
+	static int count = 0;
+	count++;
 	if (c->size != 0) {
-		luaL_error(L, "O tamanho da rede não pode ser alterado");
+
+		luaL_error(L, "O tamanho da rede não pode ser alterado (%d,%d)",count,c->size);
 		return 0;
 	}
+
+	c->sizeIn = (Ponto) {x, y, z};
 	return 0;
 }
 
@@ -784,7 +788,53 @@ int CnnLuaConsole(Cnn c) {
 	}
 	free_mem(cmd.str);
 }
+int CnnLuaLoadString(Cnn c, const char *lua_program){
+	if (!c)return NULL_PARAM;
+	if (!c->L)CnnInitLuaVm(c);
+	int error = luaL_dostring(c->L, lua_program);
 
+	if (error) {
+		fflush(stdout);
+		fprintf(stderr, "\nError: %d %d %s\n", lua_gettop(c->L), error, lua_tostring(c->L, -1));
+		fflush(stderr);
+		c->error.error = error;
+		return error;
+	}
+	if (c->error.error) {
+
+		return c->error.error;
+	}
+
+	// retro compatibilidade
+	{
+		luaL_dostring(c->L,
+					  "Args('work_path', home)\n"
+					  "Args('file_image', arquivoContendoImagens)\n"
+					  "Args('file_label', arquivoContendoRespostas)\n"
+					  "Args('header_image', bytes_remanessentes_imagem)\n"
+					  "Args('header_label', bytes_remanessentes_classes)\n"
+					  "Args('numero_epocas', Numero_epocas)\n"
+					  "Args('numero_imagens', Numero_Imagens)\n"
+					  "Args('numero_treino', Numero_ImagensTreino)\n"
+					  "Args('numero_fitnes', Numero_ImagensAvaliacao)\n"
+					  "Args('numero_classes', Numero_Classes)\n"
+					  "Args('sep', 32)\n"
+					  "local nome_classes_lua\n"
+					  "local sep_lua\n"
+					  "sep_lua = ' '\n"
+					  "if sep ~= nil then\n"
+					  "    sep_lua = sep\n"
+					  "end\n"
+					  "for _, v in pairs(classes) do\n"
+					  "    if nome_classes_lua == nil then\n"
+					  "        nome_classes_lua = v\n"
+					  "    else\n"
+					  "        nome_classes_lua = nome_classes_lua .. sep_lua .. v\n"
+					  "    end\n"
+					  "end\n"
+					  "Args('nome_classes', nome_classes_lua)");
+	}
+}
 int CnnLuaLoadFile(Cnn c, const char *file_name) {
 	if (!c)return NULL_PARAM;
 	if (!c->L)CnnInitLuaVm(c);

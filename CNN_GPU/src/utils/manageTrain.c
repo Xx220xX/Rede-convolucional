@@ -153,7 +153,7 @@ void fitnes(ManageTrain *t) {
 		t->image = 0;
 	}
 	for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2fitness; t->image++) {
-		localimage = t->image+t->n_images2train;
+		localimage = t->image + t->n_images2train;
 		time_init_train = getms();
 		input = t->imagens[localimage];
 		output = t->targets[localimage];
@@ -170,7 +170,7 @@ void fitnes(ManageTrain *t) {
 		}
 		t->et.ft_info[label * t->et.ft_info_coluns + MSE] += local_mse;
 
-		t->et.ft_imagem_atual = t->image ;
+		t->et.ft_imagem_atual = t->image;
 
 		internal_time += getms() - time_init_train;
 		t->current_time = internal_time;
@@ -327,19 +327,26 @@ void releaseManageTrain(ManageTrain *t) {
 	t->can_run = 0;
 	releaseProcess(&t->process);
 	releaseCnn(&t->cnn);
-	for (int i = 0; i < t->n_images; i++) {
-		releaseTensor(&t->imagens[i]);
-		releaseTensor(&t->targets[i]);
+	if (t->imagens) {
+		for (int i = 0; i < t->n_images; i++) {
+			releaseTensor(&t->imagens[i]);
+		}
+		free_mem(t->imagens);
+	}
+	if (t->targets) {
+		for (int i = 0; i < t->n_images; i++) {
+			releaseTensor(&t->targets[i]);
+		}
+		free_mem(t->targets);
 	}
 
-	if (t->imagens)
-		free_mem(t->imagens);
-	if (t->targets)
-		free_mem(t->targets);
 
 	releaseTensor(&t->labels);
 	releaseEstatitica(&t->et);
 	releaseStringsManageTrain(t);
+	*t = (ManageTrain) {0};
+	if (t->self_release)
+		free_mem(t);
 
 }
 
@@ -435,13 +442,15 @@ void loadArgsLuaManageTrain(ManageTrain *t, Dictionary *args) {
 	}
 }
 
-ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momento, double decaimento) {
+ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momento, double decaimento,int luaIsProgram) {
 	ManageTrain result = {0};
-
-	result.cnn = createCnnWithWrapperProgram(default_kernel, (Params) {tx_aprendizado, momento, decaimento},
-											 0, 0, 0, CL_DEVICE_TYPE_GPU);
+	result.cnn = createCnnWithWrapperProgram(default_kernel, (Params) {tx_aprendizado, momento, decaimento}, 0, 0, 0, CL_DEVICE_TYPE_GPU);
 	LuaputHelpFunctionArgs(helpArgumentsManageTrain);
-	CnnLuaLoadFile(result.cnn, luafile);
+	if (!luaIsProgram)
+		CnnLuaLoadFile(result.cnn, luafile);
+	else
+		CnnLuaLoadString(result.cnn, luafile);
+
 	loadArgsLuaManageTrain(&result, &result.cnn->luaArgs);
 
 	return result;
@@ -457,6 +466,7 @@ int ManageTrainloadImages(ManageTrain *t, int runBackground) {
 		t->process = newThread(loadData, t, NULL);
 		return t->process != NULL;
 	}
+	printf("here\n");
 	loadData(t);
 	return 0;
 }

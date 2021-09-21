@@ -102,7 +102,7 @@ void manageTrainSetEvent(ManageEvent *dst, ManageEvent src);
 
 void manageTrainSetRun(ManageTrain *t, int run);
 
-ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momento, double decaimento);
+ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momento, double decaimento,int luaIsProgram);
 
 int ManageTrainloadImages(ManageTrain *t,int runBackground);
 

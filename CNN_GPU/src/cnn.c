@@ -682,6 +682,7 @@ char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {
 }
 
 void printCnn(Cnn c) {
+	printf("CNN:\n");
 	for (int i = 0; i < c->size; ++i) {
 		printf("%s\n", c->camadas[i]->toString(c->camadas[i]));
 	}

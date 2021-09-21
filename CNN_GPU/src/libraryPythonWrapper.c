@@ -29,6 +29,7 @@ int CnnSaveInFile(Cnn c, char *fileName) {
 }
 
 int CnnLoadByFile(Cnn c, char *fileName) {
+	if (!c)return NULL_PARAM;
 	FILE *f = fopen(fileName, "rb");
 	if (f == NULL)return -1;
 	int err = cnnCarregar(c, f);
@@ -45,11 +46,17 @@ void initRandom(long long int seed) {
 void Py_getCnnOutPutAsPPM(Cnn c, String *p, size_t *h, size_t *w) {
 	releaseStr(p);
 	p->d = salveCnnOutAsPPMGPU(c, h, w);
-	p->size =*w**h;
-	p->release=1;
+	p->size = *w * *h;
+	p->release = 1;
 }
 
 
 void createManageTrainPy(ManageTrain *self, char *luafile, double tx_aprendizado, double momento, double decaimento) {
-	*self = createManageTrain(luafile, tx_aprendizado, momento, decaimento);
+	*self = createManageTrain(luafile, tx_aprendizado, momento, decaimento,0);
+	self->self_release = 0;
+}
+
+void createManageTrainPyStr(ManageTrain *self, char *lua_data, double tx_aprendizado, double momento, double decaimento) {
+	*self = createManageTrain(lua_data, tx_aprendizado, momento, decaimento,1);
+	self->self_release = 0;
 }

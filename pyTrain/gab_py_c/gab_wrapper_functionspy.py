@@ -130,6 +130,8 @@ class LIBCNN:
 
 	def createManageTrainPy(self, v0, v1, v2, v3, v4): pass
 
+	def createManageTrainPyStr(self, v0, v1, v2, v3, v4): pass
+
 	def PY_createCnn(self, v0, v1, v2, v3, v4, v5, v6): pass
 
 	def PY_releaseCnn(self, v0): pass

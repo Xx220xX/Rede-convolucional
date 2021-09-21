@@ -108,6 +108,8 @@ int CnnLuaConsole(Cnn c);
 
 void LuaputHelpFunctionArgs(void (*myf)());
 
+int CnnLuaLoadString(Cnn c, const char *lua_program);
+
 int CnnLuaLoadFile(Cnn c, const char *file_name);
 
 void cnnSave(Cnn c, FILE *dst);
