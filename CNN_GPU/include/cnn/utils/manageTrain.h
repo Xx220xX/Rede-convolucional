@@ -81,13 +81,15 @@ typedef struct {
 	ManageEvent UpdateTrain;
 	ManageEvent UpdateFitnes;
 	ManageEvent UpdateLoad;
+	ManageEvent OnFinishLoop;
+
 	// controle de memoria
 	char self_release;
 
 	// id para thread processo (ler imagens, treinar e avaliar rede)
 	char real_time;
-	Thread process;
-	Thread update_loop;
+	HANDLE process;
+	HANDLE update_loop;
 	// controle do processo
 	atomic_int can_run;
 	atomic_int process_id;

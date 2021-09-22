@@ -36,7 +36,8 @@ h_functions = [
 	"tensor/Tensor.h",
 	'cnn.h',
 	"utils/manageTrain.h",
-	"libraryPythonWrapper.h"
+	"libraryPythonWrapper.h",
+	"utils/Thread.h"
 ]
 
 # gerar leitura da dll
@@ -122,7 +123,6 @@ from {file_functions}py import *
 print('class LIBCNN:\n',file=filefuncs)
 
 from generateFunctions import *
-
 for h in h_functions:
 	putFunctionInFile(pathInclude_h + h, file,filefuncs, dll_var_name, ctypes_name)
 print(f'clib:LIBCNN\n',file=filefuncs)

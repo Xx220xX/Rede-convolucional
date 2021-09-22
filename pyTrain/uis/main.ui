@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1064</width>
-    <height>874</height>
+    <width>1102</width>
+    <height>712</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,7 +56,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1064</width>
+     <width>1102</width>
      <height>26</height>
     </rect>
    </property>
@@ -397,8 +397,8 @@
   <widget class="QDockWidget" name="windowCNN">
    <property name="minimumSize">
     <size>
-     <width>1064</width>
-     <height>386</height>
+     <width>222</width>
+     <height>174</height>
     </size>
    </property>
    <property name="floating">

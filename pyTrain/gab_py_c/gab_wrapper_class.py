@@ -305,9 +305,12 @@ class ManageTrain(CStruct):
 		clib.manage2WorkDir(c.addressof(self))
 
 	def __del__(self):
-		if self.release: return
-		self.release = True
-		clib.releaseManageTrain(c.addressof(self))
+		try:
+			if self.release: return
+			self.release = True
+			clib.releaseManageTrain(c.addressof(self))
+		except Exception:
+			return
 
 	def setEvent(self, self_event, event):
 		clib.manageTrainSetEvent(c.addressof(self_event), event)
@@ -316,7 +319,7 @@ class ManageTrain(CStruct):
 		can_run = int(can_run)
 		clib.manageTrainSetRun(c.addressof(self), can_run)
 
-	def __init__(self, luafile, taxa_aprendizado=0.1, momento=0, decaimento_peso=0,luaisFile=True):
+	def __init__(self, luafile, taxa_aprendizado=0.1, momento=0, decaimento_peso=0, luaisFile=True):
 		super().__init__()
 		self.release = False
 		if luaisFile:
@@ -349,3 +352,42 @@ def SetSeed(seed):
 
 EVENT = c.CFUNCTYPE(None, TOPOINTER(ManageTrain))
 Manage_p = TOPOINTER(ManageTrain)
+
+from threading import Thread
+
+id = 0
+threads = {}
+
+
+@c.CFUNCTYPE(c.c_void_p, c.c_void_p, c.c_void_p)
+def ManageThread_newThread(func, arg) -> c.c_void_p:
+	global id
+	func = c.cast(func, c.CFUNCTYPE(c.c_void_p, c.c_void_p))
+
+	def target():
+		func(arg)
+
+	id += 1
+	th = Thread(target=target, daemon=True)
+	threads[id] = th
+	th.start()
+	return c.c_void_p(id)
+
+
+@c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_int)
+def ManageThread_killThread(arg: c.c_void_p, error) -> c.c_int:
+	return False
+
+
+@c.CFUNCTYPE(c.c_int, c.c_void_p)
+def ManageThread_releaseThread(arg: c.c_void_p) -> c.c_int:
+	try:
+		if arg.value in threads:
+			del threads[arg.value]
+	except Exception as e:
+		print(e)
+	return True
+
+
+def usePythread():
+	clib.setManageThread(ManageThread_newThread, ManageThread_killThread, ManageThread_releaseThread)

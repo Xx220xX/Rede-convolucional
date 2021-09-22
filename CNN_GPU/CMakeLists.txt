@@ -46,7 +46,7 @@ set(list_util src/utils/list_args.c include/cnn/utils/list_args.h)
 set(dir_util src/utils/dir.c include/cnn/utils/dir.h)
 set(string_util src/utils/String.c include/cnn/utils/String.h)
 set(default_kernel_util src/utils/defaultkernel.c include/cnn/utils/defaultkernel.h)
-set(thread_util include/cnn/utils/Thread.h)
+set(thread_util include/cnn/utils/Thread.h src/utils/Thread.c)
 set(memory_util include/cnn/utils/memory_utils.h src/utils/memory_utils.c)
 set(tensor include/cnn/tensor/Tensor.h src/tensor/Tensor.c)
 

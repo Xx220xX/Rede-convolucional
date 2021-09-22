@@ -54,16 +54,19 @@ def getFunctionPrototype(func: str):
 
 def getProtoFromCode(code):
 	code = removeComents(code)
-
 	code = removePrecptor(code)
 	code = removeTypedef(code)
+
 	code = removeExcessSpaces(code)
+
 	code = putLines(code)
 	funcs = getFunctions(code)
 	# print('\n'.join(funcs))
 	# input()
 	proto = []
 	for f in funcs:
+		if 'extern ' in f:
+			continue
 		ff = getFunctionPrototype(f)
 		if ff is None:
 			continue
@@ -74,7 +77,6 @@ def getProtoFromCode(code):
 
 def putFunctionInFile(hfile, outFile,filefuncs=None, clib='clib', ctypes='c'):
 	proto = getProtoFromCode(open(hfile, 'r').read())
-
 	for retorno, nome, argumentos in proto:
 		ag = []
 		for a in argumentos:

@@ -59,6 +59,7 @@ CPYTYPES = {'bool': '{ctypes}.c_bool',
 			'Thread': '{ctypes}.c_void_p',
 			'atomic_int': '{ctypes}.c_uint',
 			'pthread_cond_t': '{ctypes}.c_void_p',
+			'HANDLE': '{ctypes}.c_void_p',
 			'Ptr': '{ctypes}.c_void_p',
 			'char_500': '{ctypes}.c_char_p*EXCEPTION_MAX_MSG_SIZE',
 			# 'Kernel':'TOPOINTER(Kernel)',
@@ -113,6 +114,9 @@ CPYFUNCTYPES = {
 	'unsigned int': '{ctype}.c_uint',
 	'uint64_t': '{ctype}.c_uint64',
 	'RandomParam': 'RandomParam',
+	'vfvv': '{ctype}.CFUNCTYPE({ctype}.c_void_p,{ctype}.c_void_p,{ctype}.c_void_p)',
+	'ifvi': '{ctype}.CFUNCTYPE({ctype}.c_int,{ctype}.c_void_p,{ctype}.c_int)',
+	'ifv': '{ctype}.CFUNCTYPE({ctype}.c_int,{ctype}.c_void_p)',
 
 }
 

@@ -55,9 +55,11 @@ void loadData(ManageTrain *t) {
 	t->targets = alloc_mem(t->n_images, sizeof(struct Tensor_t));
 	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_RAM | TENSOR_CHAR, t->n_images, 1,
 						   1, 1, &t->cnn->error, NULL);
-	loadImage(t);
+	loadImage(t);///
+//	printf("cload\n");
+//
 	loadLabels(t);
-
+//
 	EVENT(t->OnloadedImages, t);
 	t->process_id = PROCESS_ID_END;
 
@@ -313,9 +315,9 @@ void releaseEstatitica(Estatistica *et) {
 	if (et->ft_info)free_mem(et->ft_info);
 }
 
-int releaseProcess(Thread *p_th) {
+int releaseProcess(HANDLE *p_th) {
 	if (!p_th)return 1;
-	Thread process = *p_th;
+	HANDLE process = *p_th;
 	if (!process)return 2;
 	ThreadKill(process, -1);
 	ThreadClose(process);
@@ -456,17 +458,15 @@ ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momen
 	return result;
 }
 
-
 int ManageTrainloadImages(ManageTrain *t, int runBackground) {
 	t->can_run = 1;
 	t->real_time = 1;
 	t->process_id = PROCESS_ID_LOAD;
 	releaseProcess(&t->process);
 	if (runBackground) {
-		t->process = newThread(loadData, t, NULL);
+		t->process = newThread(loadData, t);
 		return t->process != NULL;
 	}
-	printf("here\n");
 	loadData(t);
 	return 0;
 }
@@ -477,7 +477,7 @@ int ManageTraintrain(ManageTrain *t, int runBackground) {
 	t->process_id = PROCESS_ID_TRAIN;
 	releaseProcess(&t->process);
 	if (runBackground) {
-		t->process = newThread(train, t, NULL);
+		t->process = newThread(train, t);
 		return t->process != NULL;
 	}
 	train(t);
@@ -490,7 +490,7 @@ int ManageTrainfitnes(ManageTrain *t, int runBackground) {
 	t->process_id = PROCESS_ID_FITNES;
 	releaseProcess(&t->process);
 	if (runBackground) {
-		t->process = newThread(fitnes, t, NULL);
+		t->process = newThread(fitnes, t);
 		return t->process != NULL;
 	}
 	fitnes(t);
@@ -521,15 +521,17 @@ void __manageTrainloop__(ManageTrain *t) {
 			ev = (ManageEvent) waitEndProces;
 			break;
 		default:
+			printf("Evento nao encontrado\n");
 			exit(-1);
 
 	}
 	if (!ev)return;
 	while (t->process_id != PROCESS_ID_END) {
 		EVENT(ev, t);
-		Sleep(1);
+		Sleep(10);
 	}
 	EVENT(ev, t);
+	EVENT(t->OnFinishLoop,t);
 }
 
 void manageTrainLoop(ManageTrain *t, int run_background) {
@@ -539,7 +541,7 @@ void manageTrainLoop(ManageTrain *t, int run_background) {
 			ThreadKill(t->update_loop, -1);
 			ThreadClose(t->update_loop);
 		}
-		t->update_loop = newThread(__manageTrainloop__, t, NULL);
+		t->update_loop = newThread(__manageTrainloop__, t);
 		return;
 	}
 	__manageTrainloop__(t);

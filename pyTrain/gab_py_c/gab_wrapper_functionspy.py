@@ -92,6 +92,8 @@ class LIBCNN:
 
 	def LuaputHelpFunctionArgs(self, v0): pass
 
+	def CnnLuaLoadString(self, v0, v1): pass
+
 	def CnnLuaLoadFile(self, v0, v1): pass
 
 	def cnnSave(self, v0, v1): pass
@@ -118,7 +120,7 @@ class LIBCNN:
 
 	def manageTrainSetRun(self, v0, v1): pass
 
-	def createManageTrain(self, v0, v1, v2, v3): pass
+	def createManageTrain(self, v0, v1, v2, v3, v4): pass
 
 	def ManageTrainloadImages(self, v0, v1): pass
 
@@ -143,6 +145,10 @@ class LIBCNN:
 	def initRandom(self, v0): pass
 
 	def Py_getCnnOutPutAsPPM(self, v0, v1, v2, v3): pass
+
+	def setDefaultManageThread(self): pass
+
+	def setManageThread(self, v0, v1, v2): pass
 
 clib:LIBCNN
 
