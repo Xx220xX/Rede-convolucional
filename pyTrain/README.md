@@ -1,4 +1,4 @@
-##Interface grafica para auxiliar no treinamento da rede neural
+## Interface grafica para auxiliar no treinamento da rede neural
 
 #### Janelas
 * Edit text 
