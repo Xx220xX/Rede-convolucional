@@ -128,7 +128,7 @@ int TensorFillOffSet(QUEUE queue, Tensor t, char pattern, size_t offset) {
 		case TENSOR_SVM:
 			memset(t->host + offset, pattern, t->bytes);
 			return erro;
-			break;
+
 		case TENSOR_GPU:
 			erro = clEnqueueFillBuffer(queue, t->data, &pattern, sizeof(char), offset, t->bytes, 0, NULL, NULL);
 			PERR(erro, "TensorFillOffSet/clEnqueueWriteBuffer ");

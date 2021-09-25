@@ -4,8 +4,8 @@
 #include "camadas/CamadaPRelu.h"
 
 #if (RUN_KERNEL_USING_GPU != 1)
-#include "../../../kernels/camadas/utils.h"
-#include "../../../kernels/camadas/prelu.h"
+#include "../../kernels/camadas/utils.h"
+#include "../../kernels/camadas/prelu.h"
 #endif
 
 const char *getCreateParamsPRelu(CamadaPRelu c) {

@@ -5,8 +5,8 @@
 #include "camadas/CamadaConvNC.h"
 
 #if (RUN_KERNEL_USING_GPU != 1)
-#include "../../../kernels/camadas/utils.h"
-#include "../../../kernels/camadas/convNc.h"
+#include "../../kernels/camadas/utils.h"
+#include "../../kernels/camadas/convNc.h"
 #endif
 
 const char *getCreateParamsConvNc(CamadaConvNc c) {

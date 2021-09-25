@@ -4,8 +4,8 @@
 #include "camadas/CamadaPoolAv.h"
 
 #if (RUN_KERNEL_USING_GPU != 1)
-#include "../../../kernels/camadas/utils.h"
-#include "../../../kernels/camadas/poolav.h"
+#include "../../kernels/camadas/utils.h"
+#include "../../kernels/camadas/poolav.h"
 #endif
 
 const char *getCreateParamsPoolAv(CamadaPoolAv c) {

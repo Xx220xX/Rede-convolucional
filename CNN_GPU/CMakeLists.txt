@@ -95,4 +95,25 @@ add_executable(CNN_GPU main.c  mainui.h ${lua}
         ${tensor}
         ${conio2} include/cnn/config.h)
 
-#include(${CMAKE_CURRENT_SOURCE_DIR}/teste/CMakeTensor.txt)
+
+add_executable(svm_teste teste/testeTensor.c
+        ${tensor}
+        ${gpu}
+        ${memory_util}
+        ${time_util}
+        ${LCG_RANDOM}
+        )
+add_executable(sum_teste teste/sum.c
+        ${tensor}
+        ${gpu}
+        ${memory_util}
+        ${time_util}
+        ${LCG_RANDOM}
+        )
+add_executable(mult_teste teste/mult.c
+        ${tensor}
+        ${gpu}
+        ${memory_util}
+        ${time_util}
+        ${LCG_RANDOM}
+        )

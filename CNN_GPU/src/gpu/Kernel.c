@@ -78,7 +78,8 @@ int __kernel_run_recursive(Kernel self, cl_command_queue queue, size_t globals, 
 	int id = 0;
 
 	va_start(vaList, max_works);
-	for (i = 0; i < self->nArgs - 1; i++) {error = clSetKernelArg(self->kernel, i, self->l_args[i], va_arg(vaList, void *));
+	for (i = 0; i < self->nArgs - 1; i++) {
+		error = clSetKernelArg(self->kernel, i, self->l_args[i], va_arg(vaList, void *));
 		PERR(error, "%s: %zu For i = %d arg kernel", self->kernel_name, self->l_args[i], i);
 	}
 	va_end(vaList);
@@ -93,7 +94,7 @@ int __kernel_run_recursive(Kernel self, cl_command_queue queue, size_t globals, 
 		size_t resto = globals % max_works;
 		globals = (globals / max_works) * max_works;
 		locals = max_works;
-		error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
+//		error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
 		PERR(error, "erro ao rodar kernel %s", self->kernel_name);
 		if (resto) {
 			id = globals;

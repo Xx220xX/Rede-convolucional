@@ -3,8 +3,8 @@
 //
 #include "camadas/CamadaRelu.h"
 #if (RUN_KERNEL_USING_GPU != 1)
-#include "../../../kernels/camadas/utils.h"
-#include "../../../kernels/camadas/relu.h"
+#include "../../kernels/camadas/utils.h"
+#include "../../kernels/camadas/relu.h"
 #endif
 const char *getCreateParamsRelu(CamadaRelu c) {
 	if (c->super.__string__ != NULL)free_mem(c->super.__string__);

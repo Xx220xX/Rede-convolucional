@@ -4,8 +4,8 @@
 #include "camadas/CamadaSoftMax.h"
 
 #if (RUN_KERNEL_USING_GPU != 1)
-#include "../../../kernels/camadas/utils.h"
-#include "../../../kernels/camadas/softmax.h"
+#include "../../kernels/camadas/utils.h"
+#include "../../kernels/camadas/softmax.h"
 #endif
 
 const char *getCreateParamsSoftMax(CamadaSoftMax c) {

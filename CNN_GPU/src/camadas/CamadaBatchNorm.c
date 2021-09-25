@@ -4,8 +4,8 @@
 #include "camadas/CamadaBatchNorm.h"
 
 #if (RUN_KERNEL_USING_GPU != 1)
-#include "../../../kernels/camadas/utils.h"
-#include "../../../kernels/camadas/bathnorm.h"
+#include "../../kernels/camadas/utils.h"
+#include "../../kernels/camadas/bathnorm.h"
 #endif
 
 const char *getCreateParamsBatchNorm(CamadaBatchNorm c) {

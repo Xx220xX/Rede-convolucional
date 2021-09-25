@@ -6,19 +6,19 @@
 #include "utils/defaultkernel.h"
 
 #if  (RUN_KERNEL_USING_GPU != 1)
+#define TAG_HOST "Host mode"
 #include "../kernels/camadas/utils.h"
 #include "../kernels/camadas/cnnutils.h"
+#else
+#define TAG_HOST
 #endif
 #define VERSION(base, v, release) \
     int __version__ = base*10000+ v*100+ release;\
-    char __strversion__[] =#base "."#v "."#release;
+    char __strversion__[] =#base "."#v "."#release "" TAG_HOST ;
 
 VERSION(2, 2, 18)
 
-#if (RUN_KERNEL_USING_GPU != 1)
-"host mode"
-#endif
-;
+
 
 
 const char *getVersion() {

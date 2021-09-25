@@ -4,8 +4,8 @@
 #include "camadas/CamadaFullConnect.h"
 
 #if (RUN_KERNEL_USING_GPU != 1)
-#include "../../../kernels/camadas/utils.h"
-#include "../../../kernels/camadas/fullconnect.h"
+#include "../../kernels/camadas/utils.h"
+#include "../../kernels/camadas/fullconnect.h"
 #endif
 
 const char *getCreateParamsFullConnect(CamadaFullConnect c) {

@@ -15,7 +15,7 @@ int main(int arg, char **args) {
 	}
 	unsigned int escolha;
 	char *file = args[1];
-	ManageTrain manageTrain = createManageTrain(file, 0.1, 0.0, 0.0);
+	ManageTrain manageTrain = createManageTrain(file, 0.1, 0.0, 0.0,0);
 	if (manageTrain.cnn->error.error)goto end;
 	manage2WorkDir(&manageTrain);
 

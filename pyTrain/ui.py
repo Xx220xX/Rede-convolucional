@@ -59,7 +59,7 @@ class Ui(QtWidgets.QMainWindow):
 
 	def call(self, fn, *args, **kwargs):
 		"""Schedule a function to be called on the main thread."""
-		self.queue.put((fn, args, kwargs))
+		self.queue.putWIn((fn, args, kwargs))
 		self.sig.emit()
 
 	def checkWindow(self):

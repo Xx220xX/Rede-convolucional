@@ -3,8 +3,8 @@
 //
 #include "camadas/CamadaPadding.h"
 #if (RUN_KERNEL_USING_GPU != 1)
-#include "../../../kernels/camadas/utils.h"
-#include "../../../kernels/camadas/padding.h"
+#include "../../kernels/camadas/utils.h"
+#include "../../kernels/camadas/padding.h"
 #endif
 const char *getCreateParamsPadding(CamadaPadding c) {
 	if (c->super.__string__ != NULL)free_mem(c->super.__string__);

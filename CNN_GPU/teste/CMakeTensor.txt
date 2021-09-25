@@ -1,7 +1,0 @@
-add_executable(svm_teste teste/testeTensor.c
-        ${tensor}
-        ${gpu}
-        ${memory_util}
-        ${time_util}
-        ${LCG_RANDOM}
-        )

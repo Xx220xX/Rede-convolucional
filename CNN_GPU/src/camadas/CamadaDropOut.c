@@ -4,8 +4,8 @@
 #include "camadas/CamadaDropOut.h"
 #include <time.h>
 #if (RUN_KERNEL_USING_GPU != 1)
-#include "../../../kernels/camadas/utils.h"
-#include "../../../kernels/camadas/dropout.h"
+#include "../../kernels/camadas/utils.h"
+#include "../../kernels/camadas/dropout.h"
 #endif
 const char *getCreateParamsDropOut(CamadaDropOut c) {
 	if (c->super.__string__ != NULL)free_mem(c->super.__string__);

@@ -66,7 +66,7 @@ void OnfinishEpic(ManageTrain *t) {
 	t->et.tr_mse_vector = alloc_mem(t->n_images, sizeof(double));
 	t->et.tr_acertos_vector = alloc_mem(t->n_images, sizeof(double));
 
-	Thread th = newThread(saveAsGraphic, v, NULL);
+	HANDLE th = newThread(saveAsGraphic, v);
 	ThreadClose(th);
 }
 

@@ -4,41 +4,10 @@ from tkinter import ttk
 from tkinter import filedialog
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import ctypes as c
-
-double_p = c.POINTER(c.c_double)
-
-
-class Estatistica(c.Structure):
-	_fields_ = [
-		('erros', double_p),
-		('acertos', double_p),
-		('fitness_hit_rate', c.c_void_p),
-		('image_fitnes', c.c_uint),
-		('max_size', c.c_uint),
-		('image', c.c_uint),
-		('epic', c.c_uint),
-		('mean_error', c.c_double),
-		('hit_rate', c.c_double),
-	]
-
-
-@c.CFUNCTYPE(None, c.POINTER(Estatistica))
-def OnUpdateTrain(estatistica: c.POINTER(Estatistica)):
-	act: Activity
-	est = estatistica[0]
-	act = globals_var['ui']
-	args = (est.image, est.max_size, est.epic, est.mean_error, est.hit_rate, est.erros[est.image - 1],
-			est.erros[est.acertos - 1])
-	act.root.after(1, act.extras['OnUpdateTrain'], *args)
-
-
-globals_var = {}
 
 
 class Activity(Thread):
 	def __init__(self, root: tk.Tk, name, screen, x=0, y=0, width=500, height=500):
-		globals_var['ui'] = self
 		self.screen = screen
 		self.root = root
 		self.frame = tk.Frame(self.root)
@@ -203,7 +172,7 @@ class Activity(Thread):
 		return filedialog.askopenfilename(defaultextension=types, filetypes=types)
 
 	def putGraphics(self, frame=None, x=None, y=None, width=None, height=None, title='', xlabel=None, data=1,
-					legend=['Tensão(V)'],ylim=[-15,15]):
+					legend=['Tensão(V)'], ylim=[-15, 15]):
 		if frame is None: frame = self.frame
 		figure = plt.Figure(figsize=(6, 6), dpi=100)
 		ax = figure.add_subplot(111)
@@ -214,7 +183,7 @@ class Activity(Thread):
 		else:
 			gp, gp2 = ax.plot([0], [0], [0], [0])
 		ax.set_title(title)
-		ax.set_ylim(ylim[0],ylim[1])
+		ax.set_ylim(ylim[0], ylim[1])
 		ax.grid()
 		ax.legend(legend)
 		if xlabel != None:
@@ -293,3 +262,11 @@ class Func:
 
 	def __call__(self, *args, **kwargs):
 		self.f(*self.args, **self.kwargs)
+
+
+def App(mainActivityUi, name='', *args, **kw):
+	root = tk.Tk()
+	root.geometry('%dx%d' % (root.winfo_screenwidth(), root.winfo_screenheight()))
+	root.state('zoomed')
+	Activity(root, name, mainActivityUi, *args, width=root.winfo_screenwidth(), height=root.winfo_screenheight(), **kw).start()
+	root.mainloop()
