@@ -242,7 +242,6 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 	} v;
 	v.d = alloc_mem(t->bytes, 1);
 	int error = 0;
-//	fprintf(f, "%u %u %u %u (%s)\n", t->x, t->y, t->z, t->w, printBytes(t->bytes * t->w, buff));
 	for (int l = 0; l < t->w; l++) {
 		error = TensorGetValuesOffSet(q, t, v.d, l * t->bytes);
 		if (error)break;
@@ -252,7 +251,7 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 				for (int j = 0; j < t->y; j++)
 					switch (t->flag & TENSOR_MASK_TYPE) {
 						case TENSOR_DOUBLE:
-							fprintf(f, "%.2g ", v.d[Tensor_Map(t, i, j, z)]);
+							fprintf(f, "%.2lf ", v.d[Tensor_Map(t, i, j, z)]);
 							break;
 						case TENSOR_INT:
 							fprintf(f, "%d ", v.i[Tensor_Map(t, i, j, z)]);
@@ -292,20 +291,19 @@ int TensorGetNorm(QUEUE queue, Tensor t, double *norm) {
 		return -93;
 	}
 	double *v = alloc_mem(t->bytes, t->w);
-	int a;
-	for (a = 0; a < t->w && !error; ++a) {
-		error = TensorGetValuesOffSet(queue, t, v + a * t->bytes, a * t->bytes);
-	}
+	error = TensorGetValuesMem(queue, t, v, t->bytes*t->w);
 	if (error) {
-		fprintf(stderr, "TensorGetNorm/TensorGetValuesOffSet(%d of %d):", a, t->w);
-//		showError(error);
+		fprintf(stderr, "TensorGetNorm/TensorGetValuesMem:");
 		free_mem(v);
 		return error;
 	}
 	double sum = 0;
+
 	for (int i = t->x * t->y * t->z * t->w - 1; i >= 0; i--) {
+
 		sum += v[i] * v[i];
 	}
+
 	*norm = sqrt(sum);
 	free_mem(v);
 	return error;
@@ -371,7 +369,7 @@ int TensorRandomize(QUEUE queue, Tensor t, int distribuicao, double a, double b)
 	int erro;
 	if (!t)return NULL_PARAM;
 	values = alloc_mem(t->bytes, t->w);
-	length = (t->bytes *t->w)/ sizeof(double) ;
+	length = (t->bytes * t->w) / sizeof(double);
 	double (*X)() = LCG_randD;
 	if (distribuicao == LCG_NORMAL) {
 		X = LCG_randn;

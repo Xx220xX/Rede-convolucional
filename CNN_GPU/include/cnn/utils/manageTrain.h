@@ -22,6 +22,7 @@ typedef struct {
 	UINT tr_numero_epocas;
 	double tr_erro_medio;
 	double tr_acerto_medio;
+	double  tr_imps;
 	size_t tr_time;
 
 
@@ -65,27 +66,25 @@ typedef struct {
 
 	// estatisticas de treino
 	double sum_erro;
+	char use_gpu_mem;
+
+
 	int sum_acerto;
 
-
 	double current_time;
-
 	// eventos
-	ManageEvent OnloadedImages;
 	ManageEvent OnfinishEpic;
 	ManageEvent OnInitTrain;
-	ManageEvent OnfinishTrain;
-	ManageEvent OnInitFitnes;
-	ManageEvent OnfinishFitnes;
 
+
+	ManageEvent OnInitFitnes;
 	ManageEvent UpdateTrain;
 	ManageEvent UpdateFitnes;
 	ManageEvent UpdateLoad;
-	ManageEvent OnFinishLoop;
 
+	ManageEvent OnFinishLoop;
 	// controle de memoria
 	char self_release;
-
 	// id para thread processo (ler imagens, treinar e avaliar rede)
 	char real_time;
 	HANDLE process;

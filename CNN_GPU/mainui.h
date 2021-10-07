@@ -164,8 +164,9 @@ void OnfinishFitnes(ManageTrain *t) {
 void UpdateTrain(ManageTrain *mt) {
 	double imps = 0;
 	Estatistica *t = (Estatistica *) mt;
-	if (t->tr_time)
-		imps = (t->tr_epoca_atual * t->tr_numero_imagens + t->tr_imagem_atual) / (double) t->tr_time * 1000.0;
+//	if (t->tr_time)
+//		imps = (t->tr_epoca_atual * t->tr_numero_imagens + t->tr_imagem_atual) / (double) t->tr_time * 1000.0;
+	imps = t->tr_imps;
 	size_t tmp_restante_epoca = round((t->tr_numero_imagens - t->tr_imagem_atual - 1) / imps);
 	size_t tmp_restante_treino =
 			round(((t->tr_numero_epocas - t->tr_epoca_atual - 1) * t->tr_numero_imagens + t->tr_numero_imagens -
@@ -199,7 +200,7 @@ void UpdateTrain(ManageTrain *mt) {
 			manageTrainSetRun((ManageTrain *) t, 0);
 		}
 	}
-	Sleep(1);
+	Sleep(10);
 //	system("cls");
 }
 
@@ -216,7 +217,7 @@ void UpdateFitnes(ManageTrain *t) {
 		imps = (t->et.ft_imagem_atual + 1) / tm;
 	size_t tmp = (t->et.ft_numero_imagens - t->et.ft_imagem_atual - 1.0) / imps;
 //		printf("Tempo estimado final da avaliação --:--:--     \n");
-	printf("\n%lf imps     ", imps);
+	printf("\n%lf tr_imps     ", imps);
 //	printf("\n%lf temp     ",tm);
 	printf("\nTempo estimado final da avaliação %lld:%02lld:%02lld     \n",
 		   tmp / 3600,

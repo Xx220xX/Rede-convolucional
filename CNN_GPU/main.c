@@ -20,7 +20,6 @@ int main(int arg, char **args) {
 	manage2WorkDir(&manageTrain);
 
 	ManageTrainSetEvent(manageTrain.OnfinishEpic, OnfinishEpic);
-	ManageTrainSetEvent(manageTrain.OnfinishFitnes, OnfinishFitnes);
 	ManageTrainSetEvent(manageTrain.UpdateTrain, UpdateTrain);
 	ManageTrainSetEvent(manageTrain.UpdateFitnes, UpdateFitnes);
 	ManageTrainSetEvent(manageTrain.UpdateLoad, UpdateLoad);

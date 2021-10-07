@@ -65,7 +65,11 @@ static int l_createCnn(lua_State *L) {
 	}
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
+	while(c->size>0){
+		CnnRemoveLastLayer(c);
+	}
 	size_t x, y, z;
+
 	x = luaL_checkinteger(L, 1);
 	y = luaL_checkinteger(L, 2);
 	z = luaL_checkinteger(L, 3);
@@ -923,6 +927,7 @@ int CnnLearnT(Cnn c, Tensor target) {
 			c->target = aux;
 			return erro;
 		default:
+			c->error.error = TENSOR_INVALID_FLAG_MEM;
 			return TENSOR_INVALID_FLAG_MEM;
 	}
 }

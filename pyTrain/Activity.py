@@ -66,10 +66,10 @@ class Activity(Thread):
 		if y < ymin: return ymin
 		return y
 
-	def text(self, text: str, x=0, y=0, width=None, height=None, frame=None, **kwargs):
+	def text(self, text: str, x=0, y=0, width=None, height=None, frame=None, **kwargs) -> tk.Label:
 		if frame is None: frame = self.frame
-		label = tk.Label(frame, text=text, **kwargs). \
-			place(x=x, y=y, width=width, height=height)
+		label = tk.Label(frame, text=text, **kwargs)
+		label.place(x=x, y=y, width=width, height=height)
 		return label
 
 	def label(self, id, value, gtipo=str, x=0, y=0, width=None, height=None, frame=None, **kwargs):
@@ -137,18 +137,25 @@ class Activity(Thread):
 		listb.place(x=x, y=y, width=width, height=height)
 		return listb
 
-	def Frame(self, frameParente=None, width=None, height=None, *args, **kwargs):
+	def Frame(self, frameParente=None, width=None, height=None, frameCond=bool, *args, **kwargs):
 		if frameParente is None: frameParente = self.frame
 		if width is None: width = self.w
 		if height is None: height = self.h
 		frame = tk.Frame(frameParente, *args, **kwargs)
 		frame.__dict__['w'] = width
 		frame.__dict__['h'] = height
+		frame.__dict__['x'] = 0
+		frame.__dict__['y'] = 0
 
-		def put(*args, width=None, height=None, **kwargs):
+		frame.cond = frameCond
+
+		def put(*args, x=None, y=None, width=None, height=None, **kwargs):
 			if width is None: width = frame.w
 			if height is None: height = frame.h
-			frame.place(*args, width=width, height=height, **kwargs)
+			if x is None: x = frame.x
+			if y is None: y = frame.y
+			frame.place_forget()
+			frame.place(*args, x=x, y=y, width=width, height=height, **kwargs)
 
 		def px(*args, **kw):
 			return Activity.px(frame, *args, **kw)
@@ -156,7 +163,24 @@ class Activity(Thread):
 		def py(*args, **kw):
 			return Activity.py(frame, *args, **kw)
 
+		def setShow(*args):
+			cmd = frame.cond()
+			if cmd:
+				frame.actplace()
+			else:
+				frame.place_forget()
+
+		def setPlace(x=None, y=None, width=None, height=None):
+			if x: frame.x = x
+			if y: frame.y = y
+			if width: frame.w = width
+			if height: frame.h = height
+			frame.place_forget()
+			frame.actplace()
+
 		frame.__dict__['actplace'] = put
+		frame.__dict__['setPlace'] = setPlace
+		frame.__dict__['setShow'] = setShow
 		frame.__dict__['px'] = px
 		frame.__dict__['py'] = py
 		return frame

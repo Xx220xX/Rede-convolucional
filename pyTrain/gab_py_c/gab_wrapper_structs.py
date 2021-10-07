@@ -20,6 +20,7 @@ def TOPOINTER(c_type):
 	tp.__repr__ = rep
 	return tp
     
+import threading
 import time
 
 from gab_wrapper_load_dll import *
@@ -253,11 +254,17 @@ class Camada(CStruct):
 		('__string__', c.c_char_p),
 	]
 	
+	ALL_NAME = ['????', 'Convolution', 'Pooling', 'Relu', 'Dropout', 'Fullconnect', 'Softmax', 'BatchNorm', 'Padding',
+				'Average Pooling', 'Convolution Non causal', 'Prelu']
+
 	def __repr__(self):
 		t = self.toString(c.addressof(self))
 		t = t.decode('utf-8')
 		return t
 
+	def name(self):
+		v = self.type[0]
+		return Camada.ALL_NAME[v]
 
 class CamadaBatchNorm(CStruct):
 	super: Camada
@@ -520,6 +527,7 @@ class Estatistica(CStruct):
 	tr_numero_epocas: c.c_uint
 	tr_erro_medio: c.c_double
 	tr_acerto_medio: c.c_double
+	tr_imps: c.c_double
 	tr_time: c.c_size_t
 	ft_imagem_atual: c.c_uint
 	ft_numero_imagens: c.c_uint
@@ -538,6 +546,7 @@ class Estatistica(CStruct):
 		('tr_numero_epocas', c.c_uint),
 		('tr_erro_medio', c.c_double),
 		('tr_acerto_medio', c.c_double),
+		('tr_imps', c.c_double),
 		('tr_time', c.c_size_t),
 		('ft_imagem_atual', c.c_uint),
 		('ft_numero_imagens', c.c_uint),
@@ -730,6 +739,9 @@ class Cnn(CStruct):
 		if (erro): raise Exception(f'Error code {erro}')
 		return cnn
 
+	def luaExecute(self, luaScript: str):
+		return clib.CnnLuaLoadString(self.address(), luaScript.encode('utf-8'))
+
 
 class ManageTrain(CStruct):
 	et: Estatistica
@@ -754,12 +766,9 @@ class ManageTrain(CStruct):
 	sum_erro: c.c_double
 	sum_acerto: c.c_int
 	current_time: c.c_double
-	OnloadedImages: c.CFUNCTYPE(None,c.c_void_p)
 	OnfinishEpic: c.CFUNCTYPE(None,c.c_void_p)
 	OnInitTrain: c.CFUNCTYPE(None,c.c_void_p)
-	OnfinishTrain: c.CFUNCTYPE(None,c.c_void_p)
 	OnInitFitnes: c.CFUNCTYPE(None,c.c_void_p)
-	OnfinishFitnes: c.CFUNCTYPE(None,c.c_void_p)
 	UpdateTrain: c.CFUNCTYPE(None,c.c_void_p)
 	UpdateFitnes: c.CFUNCTYPE(None,c.c_void_p)
 	UpdateLoad: c.CFUNCTYPE(None,c.c_void_p)
@@ -793,12 +802,9 @@ class ManageTrain(CStruct):
 		('sum_erro', c.c_double),
 		('sum_acerto', c.c_int),
 		('current_time', c.c_double),
-		('OnloadedImages', c.CFUNCTYPE(None,c.c_void_p)),
 		('OnfinishEpic', c.CFUNCTYPE(None,c.c_void_p)),
 		('OnInitTrain', c.CFUNCTYPE(None,c.c_void_p)),
-		('OnfinishTrain', c.CFUNCTYPE(None,c.c_void_p)),
 		('OnInitFitnes', c.CFUNCTYPE(None,c.c_void_p)),
-		('OnfinishFitnes', c.CFUNCTYPE(None,c.c_void_p)),
 		('UpdateTrain', c.CFUNCTYPE(None,c.c_void_p)),
 		('UpdateFitnes', c.CFUNCTYPE(None,c.c_void_p)),
 		('UpdateLoad', c.CFUNCTYPE(None,c.c_void_p)),
@@ -812,13 +818,13 @@ class ManageTrain(CStruct):
 	]
 	
 	def chose2WorkDir(self):
-		clib.manage2WorkDir(c.addressof(self))
+		clib.manage2WorkDir(self.address())
 
 	def __del__(self):
 		try:
 			if self.release: return
 			self.release = True
-			clib.releaseManageTrain(c.addressof(self))
+			clib.releaseManageTrain(self.address())
 		except Exception:
 			return
 
@@ -827,40 +833,39 @@ class ManageTrain(CStruct):
 
 	def setRun(self, can_run):
 		can_run = int(can_run)
-		clib.manageTrainSetRun(c.addressof(self), can_run)
+		clib.manageTrainSetRun(self.address(), can_run)
 
 	def __init__(self, luafile, taxa_aprendizado=0.1, momento=0, decaimento_peso=0, luaisFile=True):
 		super().__init__()
 		self.release = False
 		if luaisFile:
-			clib.createManageTrainPy(c.addressof(self), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
+			clib.createManageTrainPy(self.address(), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
 		else:
-			clib.createManageTrainPyStr(c.addressof(self), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
+			clib.createManageTrainPyStr(self.address(), luafile.encode('utf-8'), taxa_aprendizado, momento, decaimento_peso)
 		clib.manage2WorkDir(self.address())
 
 	def loadImageStart(self, runBackground=True):
-		clib.ManageTrainloadImages(self.address(), int(runBackground))
+		clib.ManageTrainloadImages(self.address(), c.c_int(runBackground))
 
 	def trainStart(self):
-		clib.ManageTraintrain(c.addressof(self))
+		clib.ManageTraintrain(self.address())
 
 	def trainStart(self, runBackGround=True):
-		clib.ManageTraintrain(self.address(), int(runBackGround))
+		clib.ManageTraintrain(self.address(), c.c_int(runBackGround))
 
 	def startLoop(self, anotherThread=False):
-		anotherThread = int(anotherThread)
-		clib.manageTrainLoop(c.addressof(self), anotherThread)
+		clib.manageTrainLoop(self.address(), c.c_int(anotherThread))
 
 	def save(self, file_name):
 		file_name = file_name.encode('utf-8')
-		return clib.CnnSaveInFile(c.addressof(self), file_name)
+		return clib.CnnSaveInFile(self.address(), file_name)
 
 
 def SetSeed(seed):
 	clib.initRandom(int(seed))
 
 
-EVENT = c.CFUNCTYPE(None, TOPOINTER(ManageTrain))
+EVENT = c.CFUNCTYPE(None, c.c_void_p)
 Manage_p = TOPOINTER(ManageTrain)
 
 from threading import Thread
@@ -875,7 +880,12 @@ def ManageThread_newThread(func, arg) -> c.c_void_p:
 	func = c.cast(func, c.CFUNCTYPE(c.c_void_p, c.c_void_p))
 
 	def target():
-		func(arg)
+		try:
+			func(arg)
+		except Exception as e:
+			print("EXCEPTION INSIDE DLL: Thread ", threading.current_thread().name)
+			print(e)
+			print()
 
 	id += 1
 	th = Thread(target=target, daemon=True)
@@ -892,8 +902,8 @@ def ManageThread_killThread(arg: c.c_void_p, error) -> c.c_int:
 @c.CFUNCTYPE(c.c_int, c.c_void_p)
 def ManageThread_releaseThread(arg: c.c_void_p) -> c.c_int:
 	try:
-		if arg.value in threads:
-			del threads[arg.value]
+		if arg in threads:
+			del threads[arg]
 	except Exception as e:
 		print(e)
 	return True

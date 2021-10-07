@@ -59,19 +59,19 @@ int calc(int g, double *tcpu, double *tgpu) {
 	Tensor c;
 
 	//	CPU
-//	a = new_Tensor(cl.context, queue, TENSOR_RAM, ma, na, 1, 1, &e, NULL);
-//	b = new_Tensor(cl.context, queue, TENSOR_RAM, na, nb, 1, 1, &e, NULL);
-//	c = new_Tensor(cl.context, queue, TENSOR_RAM, ma, nb, 1, 1, &e, NULL);
-//	tic();
-//	if (e.error) {
-//		printf("%s\n", e.msg);
-//		exit(e.error);
-//	}
-//	multCpu(a, b, c);
-//	*tcpu = tac("CPU mult");
-//	releaseTensor(&a);
-//	releaseTensor(&b);
-//	releaseTensor(&c);
+	a = new_Tensor(cl.context, queue, TENSOR_RAM, ma, na, 1, 1, &e, NULL);
+	b = new_Tensor(cl.context, queue, TENSOR_RAM, na, nb, 1, 1, &e, NULL);
+	c = new_Tensor(cl.context, queue, TENSOR_RAM, ma, nb, 1, 1, &e, NULL);
+	tic();
+	if (e.error) {
+		printf("%s\n", e.msg);
+		exit(e.error);
+	}
+	multCpu(a, b, c);
+	*tcpu = tac("CPU mult");
+	releaseTensor(&a);
+	releaseTensor(&b);
+	releaseTensor(&c);
 
 	//	GPU
 	a = new_Tensor(cl.context, queue, 0, ma, na, 1, 1, &e, NULL);
@@ -100,7 +100,7 @@ int main() {
 	double cpu = 0, gpu = 0;
 	fprintf(f, "clc;clear all;close all;");
 	fprintf(f, "tm = [");
-	for (int i = 1200; i <= 1600; i+=30) {
+	for (int i = 1; i <= 800; i+=1) {
 		calc(i, &cpu, &gpu);
 		fprintf(f, "%.3lf,%.3lf\n", cpu, gpu);
 		printf("%d\n", i);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1102</width>
-    <height>712</height>
+    <height>738</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,6 +21,13 @@
        <widget class="QLabel" name="label">
         <property name="text">
          <string>Gabriela IA Version 2.0.17</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonReadImage">
+        <property name="text">
+         <string>Carregar imagens</string>
         </property>
        </widget>
       </item>
@@ -47,7 +54,14 @@
      </widget>
     </item>
     <item>
-     <widget class="QGraphicsView" name="graphicsView"/>
+     <widget class="QWidget" name="widget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>4</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -71,7 +85,7 @@
      <property name="title">
       <string>Open</string>
      </property>
-     <addaction name="actionProject"/>
+     <addaction name="actionOpenProject"/>
      <addaction name="actionCnn"/>
     </widget>
     <widget class="QMenu" name="menuSave">
@@ -115,13 +129,22 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <addaction name="actionSobre"/>
    </widget>
    <widget class="QMenu" name="menuTrain">
     <property name="title">
      <string>&amp;Train</string>
     </property>
+    <widget class="QMenu" name="menuOp_es">
+     <property name="title">
+      <string>Opções</string>
+     </property>
+     <addaction name="actionExecu_o_Autom_tica"/>
+    </widget>
     <addaction name="actionStart_Train"/>
     <addaction name="actionStop_Train"/>
+    <addaction name="separator"/>
+    <addaction name="menuOp_es"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuedit"/>
@@ -138,7 +161,7 @@
     <set>QDockWidget::DockWidgetClosable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
-    <string>Image</string>
+    <string>Imagem</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -147,6 +170,13 @@
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="label_imagens_carregadas">
+         <property name="text">
+          <string>Imagens carregadas 0</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QLabel" name="label_3">
          <property name="sizePolicy">
@@ -191,15 +221,15 @@
   <widget class="QDockWidget" name="windowTrain">
    <property name="minimumSize">
     <size>
-     <width>179</width>
-     <height>326</height>
+     <width>219</width>
+     <height>356</height>
     </size>
    </property>
    <property name="features">
     <set>QDockWidget::DockWidgetClosable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
-    <string>Train</string>
+    <string>Treino</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -220,12 +250,12 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Train</string>
+          <string>Treino</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QProgressBar" name="epoca">
+        <widget class="QProgressBar" name="train_train_progress">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -253,7 +283,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Epic</string>
+          <string>Epoca</string>
          </property>
         </widget>
        </item>
@@ -276,30 +306,47 @@
       </layout>
      </item>
      <item>
-      <widget class="QLabel" name="train_imps">
+      <widget class="QLabel" name="train_infomse">
        <property name="text">
         <string/>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="train_time">
+      <widget class="QLabel" name="train_infowin">
        <property name="text">
         <string/>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <layout class="QHBoxLayout" name="horizontalLayout_8">
+       <item>
+        <widget class="QLabel" name="train_imps">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Imagens por segundo</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonStartTrain">
        <property name="text">
-        <string>Start train</string>
+        <string>Iniciar treino</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="buttonEndTrain">
        <property name="text">
-        <string>Stop Train</string>
+        <string>Parar treino</string>
        </property>
       </widget>
      </item>
@@ -416,7 +463,7 @@
    <widget class="QWidget" name="dockWidgetContents_11">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QListView" name="listCnn"/>
+      <widget class="QListWidget" name="listCnn"/>
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -463,7 +510,7 @@
     <set>QDockWidget::DockWidgetClosable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
-    <string>Edit Text</string>
+    <string>Editor de Texto</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -565,7 +612,7 @@
     <string>settings</string>
    </property>
   </action>
-  <action name="actionProject">
+  <action name="actionOpenProject">
    <property name="text">
     <string>Project</string>
    </property>
@@ -595,6 +642,19 @@
    </property>
    <property name="text">
     <string>Edit Text</string>
+   </property>
+  </action>
+  <action name="actionSobre">
+   <property name="text">
+    <string>Sobre</string>
+   </property>
+  </action>
+  <action name="actionExecu_o_Autom_tica">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Execução Automática</string>
    </property>
   </action>
  </widget>

@@ -34,6 +34,7 @@ kV divKernel(Vector v, double value, int k0) {
 kV divIntDo(__global unsigned char *src, Vector v, double value, int k0) {
 	int k = get_global_id(0) + k0;
 	v[k] = ((double) src[k]) / value;
+
 }
 
 kV int2vector(__global unsigned char *ints, Vector v, int noptiobs, int k0) {

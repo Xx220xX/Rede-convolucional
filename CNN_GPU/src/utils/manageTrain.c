@@ -55,21 +55,14 @@ void loadData(ManageTrain *t) {
 	t->targets = alloc_mem(t->n_images, sizeof(struct Tensor_t));
 	t->labels = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR_RAM | TENSOR_CHAR, t->n_images, 1,
 						   1, 1, &t->cnn->error, NULL);
-	loadImage(t);///
-//	printf("cload\n");
-//
+	loadImage(t);
 	loadLabels(t);
-//
-	EVENT(t->OnloadedImages, t);
 	t->process_id = PROCESS_ID_END;
 
 }
 
 void train(ManageTrain *t) {
 	CHECK_REAL_TIME(t->real_time);
-//	printf("train epoca %d of %d\n", t->epic, t->n_epics);
-	int rn = t->can_run;
-//	printf("train can run %d , error %d\n", rn, t->cnn->error.error);
 	if (t->cnn->error.error) {
 		t->process_id = PROCESS_ID_END;
 		return;
@@ -90,9 +83,9 @@ void train(ManageTrain *t) {
 		t->et.tr_mse_vector = alloc_mem(t->n_images2train, sizeof(double));
 	}
 	t->et.tr_numero_epocas = t->n_epics;
-
+	time_init_train = getms();
+	long long int imgs = 0;
 	for (; t->can_run && !t->cnn->error.error && t->epic < t->n_epics; t->epic++) {
-		//		printf("imagem %d of %d\n", t->image, t->n_images);
 		if (t->image >= t->n_images2train) {
 			t->image = 0;
 			t->et.tr_imagem_atual = 0;
@@ -103,13 +96,15 @@ void train(ManageTrain *t) {
 
 		t->et.tr_epoca_atual = t->epic;
 		for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2train; t->image++) {
-			time_init_train = getms();
+			imgs++;
 			input = t->imagens[t->image];
 			output = t->targets[t->image];
 			label = t->labels->hostc[t->image];
+
 			CnnCallT(t->cnn, input);
 			CnnLearnT(t->cnn, output);
 			CnnCalculeError(t->cnn, &local_mse);
+
 
 			cnn_label = CnnGetIndexMax(t->cnn);
 
@@ -117,18 +112,16 @@ void train(ManageTrain *t) {
 
 			t->sum_erro += local_mse;
 			t->et.tr_acertos_vector[t->image] = t->sum_acerto / (t->image + 1.0);
-			t->et.tr_mse_vector[t->image] = t->sum_erro / (t->image + 1.0);
-			t->et.tr_erro_medio = t->et.tr_mse_vector[t->image];
+			t->et.tr_erro_medio = t->et.tr_mse_vector[t->image] = t->sum_erro / (t->image + 1.0);
+
 			t->et.tr_acerto_medio = t->et.tr_acertos_vector[t->image];
-			//			LOG_TRAIN("%lf %lf\n",local_mse,t->et.tr_erro_medio)
+			t->current_time = internal_time + getms() - time_init_train;
 			t->et.tr_imagem_atual = t->image;
-			internal_time += getms() - time_init_train;
-			t->current_time = internal_time;
 			t->et.tr_time = t->current_time;
+			t->et.tr_imps = imgs / (getms() - time_init_train) * 1000;
 		}
 		EVENT(t->OnfinishEpic, t);
 	}
-	EVENT(t->OnfinishTrain, t);
 	t->process_id = PROCESS_ID_END;
 }
 
@@ -178,7 +171,7 @@ void fitnes(ManageTrain *t) {
 		t->current_time = internal_time;
 		t->et.ft_time = t->current_time;
 	}
-	EVENT(t->OnfinishFitnes, t);
+//	EVENT(t->OnfinishFitnes, t);
 	t->process_id = PROCESS_ID_END;
 }
 
@@ -223,15 +216,16 @@ void loadImage(ManageTrain *t) {
 		return;
 	}
 
-
+	TensorFill(t->cnn->queue, imageInt, 255);
 	double value = 255;
-	kernel_run_recursive(t->cnn->error.error, t->cnn->kerneldivInt, t->cnn->queue, pixelsByImage * t->n_images,
+	kernel_run_recursive(t->cnn->error.error, t->cnn->kerneldivInt, t->cnn->queue, imageDouble->x * imageDouble->y * imageDouble->z * imageDouble->w,
 						 t->cnn->cl->maxworks,
 						 K_ARG imageInt->data,
 						 K_ARG imageDouble->data,
 						 K_ARG value
 	);
-	synchronizeKernel(t->cnn->queue);
+	t->cnn->error.error = synchronizeKernel(t->cnn->queue);
+
 
 	if (t->cnn->error.error) {
 		CNN_ERROR("Falha ao iniciar Kernel: ");
@@ -242,12 +236,13 @@ void loadImage(ManageTrain *t) {
 	releaseTensor(&imageInt);
 
 	for (int i = 0; i < t->n_images; ++i) {
-		t->imagens[i] = new_Tensor(t->cnn->cl->context, t->cnn->queue, 0,
+		t->imagens[i] = new_Tensor(t->cnn->cl->context, t->cnn->queue, t->use_gpu_mem ? 0 : TENSOR_RAM,
 								   imageDouble->x, imageDouble->y, imageDouble->z, 1,
 								   &t->cnn->error, NULL
 		);
 		t->et.ld_imagem_atual = i;
 		TensorCpy(t->cnn->queue, t->imagens[i], imageDouble, i);
+
 	}
 	releaseTensor(&imageDouble);
 	if (t->cnn->error.error) {
@@ -399,6 +394,7 @@ void helpArgumentsManageTrain() {
 			{"numero_classes", "int",    "número de de classes possivels no treinamento, deve ser menor que 255 (limite para 8 bits)"},
 			{"sep",            "char",   "por padrão é ' '"},
 			{"nome_classes",   "string", "nomeda das classes separados por 'sep'"},
+			{"gpu_mem",   "int", "Flag para utilizar a memoria da gpu para armazenar os dados de treino"},
 			{0}
 	};
 	printf("Argumentos :\n");
@@ -440,11 +436,13 @@ void loadArgsLuaManageTrain(ManageTrain *t, Dictionary *args) {
 			t->n_classes = atoi(arg.value);
 		} else if (STREQUALS(arg.name, "numero_epocas")) {
 			t->n_epics = atoi(arg.value);
+		}else if (STREQUALS(arg.name, "gpu_mem")) {
+			t->use_gpu_mem = atoi(arg.value);
 		}
 	}
 }
 
-ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momento, double decaimento,int luaIsProgram) {
+ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momento, double decaimento, int luaIsProgram) {
 	ManageTrain result = {0};
 	result.cnn = createCnnWithWrapperProgram(default_kernel, (Params) {tx_aprendizado, momento, decaimento}, 0, 0, 0, CL_DEVICE_TYPE_GPU);
 	LuaputHelpFunctionArgs(helpArgumentsManageTrain);
@@ -499,7 +497,7 @@ int ManageTrainfitnes(ManageTrain *t, int runBackground) {
 
 void waitEndProces(ManageTrain *t) {
 	while (t->process_id != PROCESS_ID_END) {
-		Sleep(100);
+		Sleep(1);
 		printf("wainting %d\n", t->process_id);
 	}
 }
@@ -525,13 +523,12 @@ void __manageTrainloop__(ManageTrain *t) {
 			exit(-1);
 
 	}
-	if (!ev)return;
 	while (t->process_id != PROCESS_ID_END) {
 		EVENT(ev, t);
-		Sleep(10);
+		Sleep(1);
 	}
 	EVENT(ev, t);
-	EVENT(t->OnFinishLoop,t);
+	EVENT(t->OnFinishLoop, t);
 }
 
 void manageTrainLoop(ManageTrain *t, int run_background) {
