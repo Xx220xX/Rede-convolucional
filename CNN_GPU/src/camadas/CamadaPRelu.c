@@ -68,6 +68,7 @@ int calc_gradsPRelu(CamadaPRelu c, Tensor GradNext) {
 						 K_ARG GradNext->data,
 						 K_ARG c->A->data,
 						 K_ARG c->dA->data,
+						 K_ARG c->super.learnable,
 						 K_ARG c->super.parametros.hitLearn,
 						 K_ARG c->super.parametros.momento,
 						 K_ARG c->super.parametros.decaimentoDePeso

@@ -4,6 +4,7 @@ Versão 2.2.018
 
 | Versão | Mudanças |
 | ---- | :---- |
+|2.2.019 | Corrigido PRelu e adicionado liberação segura | 
 |2.2.018 | Corrigido salvar cnn | 
 |2.2.017 | Corrigido salvar camadas | 
 |2.2.016 | Corrigido bugs de não incialização dos tensores | 

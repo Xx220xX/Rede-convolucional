@@ -5,6 +5,11 @@
 #include "conio2/conio2.h"
 #include "mainui.h"
 #include "utils/time_utils.h"
+atomic_int *run;
+int executing = 1;
+
+static BOOL WINAPI console_ctrl_handler(DWORD dwCtrlType);
+
 
 int main(int arg, char **args) {
 	system("chcp 65001");
@@ -16,6 +21,8 @@ int main(int arg, char **args) {
 	unsigned int escolha;
 	char *file = args[1];
 	ManageTrain manageTrain = createManageTrain(file, 0.1, 0.0, 0.0,0);
+	SetConsoleCtrlHandler((PHANDLER_ROUTINE)(console_ctrl_handler), TRUE);
+	run = &manageTrain.can_run;
 	if (manageTrain.cnn->error.error)goto end;
 	manage2WorkDir(&manageTrain);
 
@@ -32,15 +39,19 @@ int main(int arg, char **args) {
 	manageTrainLoop(&manageTrain, 0);
 
 	treinar:
-	manageTrainSetRun(&manageTrain, 1);
+
 	ManageTraintrain(&manageTrain, 1);
 	manageTrainLoop(&manageTrain, 0);
 
 	fitnes:
-	manageTrainSetRun(&manageTrain, 1);
+
 	// Fitness
 	ManageTrainfitnes(&manageTrain, 1);
 	manageTrainLoop(&manageTrain, 0);
+
+	if (!manageTrain.can_run){
+		goto end;
+	}
 	printf("\nO treinamento terminou:\n");
 	const char *tmpfile = "tmp.lua";
 	char buf[250] = "";
@@ -84,8 +95,10 @@ int main(int arg, char **args) {
 
 		switch (escolha) {
 			case 1:
+				manageTrainSetRun(&manageTrain, 1);
 				goto treinar;
 			case 2:
+				manageTrainSetRun(&manageTrain, 1);
 				goto fitnes;
 			case 3:
 				printf("nome :");
@@ -123,8 +136,47 @@ int main(int arg, char **args) {
 	getClError(manageTrain.cnn->error.error, manageTrain.cnn->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	printf("%d %s\n", manageTrain.cnn->error.error, manageTrain.cnn->error.msg);
 	releaseManageTrain(&manageTrain);
+	executing = 0;
 	return 0;
 }
 
 
+void onForceEnd(){
+	if (!run){
+		printf("Finalizando\n");
+		return;
+	}
+	*run = 0;
+	Sleep(100);
+	printf("Finalizando\n");
+	while (executing){
+		Sleep(10);
+	}
+	printf("Finalizado!!!\n");
+	return;
+}
+static BOOL WINAPI console_ctrl_handler(DWORD dwCtrlType)
+{
+	switch (dwCtrlType)
+	{
+		case CTRL_C_EVENT: // Ctrl+C
+		onForceEnd();
+		break;
+		case CTRL_BREAK_EVENT: // Ctrl+Break
 
+		break;
+		case CTRL_CLOSE_EVENT: // Closing the console window
+		onForceEnd();
+		break;
+		case CTRL_LOGOFF_EVENT: // User logs off. Passed only to services!
+		return TRUE;
+		break;
+		case CTRL_SHUTDOWN_EVENT: // System is shutting down. Passed only to services!
+		onForceEnd();
+		break;
+	}
+	// Return TRUE if handled this message, further handler functions won't be called.
+	// Return FALSE to pass this message to further handlers until default handler calls ExitProcess().
+	fclose(fopen("encerrou.txt","w"));
+	return FALSE;
+}

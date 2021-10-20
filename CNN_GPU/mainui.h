@@ -244,5 +244,7 @@ void UpdateLoad(ManageTrain *t) {
 	gotoxy(8, y);
 	printf("%lld    %.3lf%%        ", t->et.ld_imagem_atual + 1, 100.0 * (t->et.ld_imagem_atual + 1.0) / t->n_images);
 	gotoxy(7, y+1);
-	printf("%lld     %.3lf%%        ", t->et.ll_imagem_atual + 1, 100.0 * (t->et.ll_imagem_atual + 1.0) / t->n_images);
+	unsigned long  long  int im = t->et.ll_imagem_atual ;
+	if (im!=0)im+=1;
+	printf("%lld     %.3lf%%        ", im, 100.0 * (im) / t->n_images);
 }

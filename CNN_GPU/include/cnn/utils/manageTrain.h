@@ -92,6 +92,7 @@ typedef struct {
 	// controle do processo
 	atomic_int can_run;
 	atomic_int process_id;
+
 } ManageTrain;
 
 

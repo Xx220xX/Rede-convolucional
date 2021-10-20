@@ -44,7 +44,7 @@ typedef const char *(*cfv)(void *);
 typedef struct {
 	char type;
 	char flag_releaseInput;
-	char learnable;
+	int learnable;
 	Params parametros;
 	Tensor gradsEntrada;
 	Tensor entrada;

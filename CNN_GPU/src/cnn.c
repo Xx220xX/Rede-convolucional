@@ -16,7 +16,7 @@
     int __version__ = base*10000+ v*100+ release;\
     char __strversion__[] =#base "."#v "."#release "" TAG_HOST ;
 
-VERSION(2, 2, 18)
+VERSION(2, 2, 19)
 
 
 
@@ -307,7 +307,6 @@ int Padding(Cnn c, UINT top, UINT bottom, UINT left, UINT right) {
 
 int SoftMax(Cnn c) {
 	if (c->error.error)return c->error.error;
-	//int len = sprintf(c->error.context, "%s", "SoftMax");
 	Ponto sizeIn = __CnnaddLayer__(c);
 	Tensor entrada = NULL;
 	if (c->size > 1)entrada = c->camadas[c->size - 2]->saida;

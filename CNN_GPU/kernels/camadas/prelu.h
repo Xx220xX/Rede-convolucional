@@ -7,8 +7,7 @@ kV preluativa(Vector entrada, Vector saida, Vector A, int k0) {
 }
 
 kV prelucalcgrad(Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA,
-				 int learn,
-				 double hitlearn, double momento,
+				 int learn,double hitlearn, double momento,
 				 double decaimento,
 				 int k0) {
 	int k = get_global_id(0) + k0;

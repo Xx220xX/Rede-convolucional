@@ -235,7 +235,7 @@ void loadImage(ManageTrain *t) {
 	}
 	releaseTensor(&imageInt);
 
-	for (int i = 0; i < t->n_images; ++i) {
+	for (int i = 0; i < t->n_images && t->can_run; ++i) {
 		t->imagens[i] = new_Tensor(t->cnn->cl->context, t->cnn->queue, t->use_gpu_mem ? 0 : TENSOR_RAM,
 								   imageDouble->x, imageDouble->y, imageDouble->z, 1,
 								   &t->cnn->error, NULL
@@ -294,7 +294,7 @@ void loadLabels(ManageTrain *t) {
 		releaseTensor(&labelDouble);
 		return;
 	}
-	for (int i = 0; i < t->n_images; ++i) {
+	for (int i = 0; i < t->n_images&& t->can_run; ++i) {
 		t->targets[i] = new_Tensor(t->cnn->cl->context, t->cnn->queue, 0, t->n_classes, 1, 1, 1, &t->cnn->error, NULL);
 		t->cnn->error.error |= TensorCpy(t->cnn->queue, t->targets[i], labelDouble, i);
 		t->et.ll_imagem_atual = i;
@@ -452,12 +452,11 @@ ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momen
 		CnnLuaLoadString(result.cnn, luafile);
 
 	loadArgsLuaManageTrain(&result, &result.cnn->luaArgs);
-
+	result.can_run = 1;
 	return result;
 }
 
 int ManageTrainloadImages(ManageTrain *t, int runBackground) {
-	t->can_run = 1;
 	t->real_time = 1;
 	t->process_id = PROCESS_ID_LOAD;
 	releaseProcess(&t->process);
@@ -470,7 +469,7 @@ int ManageTrainloadImages(ManageTrain *t, int runBackground) {
 }
 
 int ManageTraintrain(ManageTrain *t, int runBackground) {
-	t->can_run = 1;
+
 	t->real_time = 1;
 	t->process_id = PROCESS_ID_TRAIN;
 	releaseProcess(&t->process);
@@ -483,7 +482,6 @@ int ManageTraintrain(ManageTrain *t, int runBackground) {
 }
 
 int ManageTrainfitnes(ManageTrain *t, int runBackground) {
-	t->can_run = 1;
 	t->real_time = 1;
 	t->process_id = PROCESS_ID_FITNES;
 	releaseProcess(&t->process);
