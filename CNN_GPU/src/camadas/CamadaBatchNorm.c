@@ -105,7 +105,7 @@ int calc_gradsBatchNorm(CamadaBatchNorm c, Tensor GradNext) {
 							 K_ARG c->media->data,
 							 K_ARG c->Y->data,
 							 K_ARG c->somaDiferenca->data,
-							 K_ARG c->super.entrada,
+							 K_ARG c->super.entrada->data,
 							 K_ARG c->super.entrada->x,
 							 K_ARG c->super.entrada->y);
 		if (erro)return erro;
