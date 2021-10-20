@@ -49,11 +49,6 @@ int main(int arg, char **args) {
 	ManageTrainfitnes(&manageTrain, 1);
 	manageTrainLoop(&manageTrain, 0);
 
-	if (!manageTrain.can_run){
-		goto end;
-	}
-	printf("\nO treinamento terminou:\n");
-	const char *tmpfile = "tmp.lua";
 	char buf[250] = "";
 	escolha = 8;
 	double t0 = getms();
@@ -79,7 +74,7 @@ int main(int arg, char **args) {
 	}
 	fflush(stdin);
 	while (escolha != 8) {
-
+		manageTrain.cnn->error.error = 0;
 		system("cls");
 		gotoxy(1, 1);
 		printf("[1] continuar treinamento\n");
