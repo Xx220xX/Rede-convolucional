@@ -1,13 +1,14 @@
-kV convSum(Vector filtro, Vector entrada, Vector saida,
+kV convFSum(Vector filtro, Vector entrada, Vector Z, Vector saida,
            int passox, int passoy,
            int saidatx, int saidaty,
            int entradatx, int entradaty,
-           int fx, int fy, int fz, int k0) {
+           int fx, int fy, int fz, int fid, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, filtrok;
+
 	KTensorRemap(k, x, y, filtrok, saidatx, saidaty)
-	REAL sum = 0, f = 0, v = 0;
-	int lf = 0, le = 0;
+	REAL sum = 0, f , v ;
+	int lf, le ;
 	for (int m = 0; m < fx; m++) {
 		for (int n = 0; n < fy; n++) {
 			for (int z = 0; z < fz; z++) {
@@ -19,11 +20,15 @@ kV convSum(Vector filtro, Vector entrada, Vector saida,
 			}
 		}
 	}
-	saida[k] = sum;
+	Z[k] = sum;
+	saida[k] = func(fid,sum);
 }
 
-
-kV convCalcGradAndFixWeight(Vector filtros, Vector ds,
+kV convFCalcGradZ(Vector  ds,Vector z,Vector dz,int fid,int k0){
+	int k = get_global_id(0) + k0;
+	dz[k] = ds[k]*func(fid,z[k]);
+}
+kV convFCalcGradAndFixWeight(Vector filtros, Vector dz,
                             Vector entrada, Vector gradFiltro,
                             int fx, int fy, int fz,
                             int entrada_tx, int entrada_ty,
@@ -41,7 +46,7 @@ kV convCalcGradAndFixWeight(Vector filtros, Vector ds,
 			le = KTensorMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty);
 			ls = KTensorMap(i, j, l, saida_tx, saida_ty);
 			soma += entrada[le]
-			        * ds[ls];
+			        * dz[ls];
 		}
 	}
 	REAL dw = soma + gradFiltro[k] * momento;
@@ -50,7 +55,7 @@ kV convCalcGradAndFixWeight(Vector filtros, Vector ds,
 	gradFiltro[k] = dw;
 }
 
-kV convCalcGradIn(Vector filtro, Vector gradEntrada, Vector gradNext,
+kV convFCalcGradIn(Vector filtro, Vector gradEntrada, Vector dz,
                   int fx, int fy, int fz,
                   int passox, int passoy,
                   int entradatx, int entradaty,
@@ -90,7 +95,7 @@ kV convCalcGradIn(Vector filtro, Vector gradEntrada, Vector gradNext,
 				lf = KTensorMap4D(m, n, z, w, fx, fy, fz);
 				ls = KTensorMap(i, j, w, saidatx, saidaty);
 				pesoAplicado = filtro[lf];
-				somaErro += pesoAplicado * gradNext[ls];
+				somaErro += pesoAplicado * dz[ls];
 			}
 		}
 	}

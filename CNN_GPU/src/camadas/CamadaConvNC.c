@@ -148,7 +148,7 @@ void salvarConvNc(WrapperCL *cl, CamadaConvNc c, FILE *dst, CNN_ERROR *error) {
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
 	fwrite(&c->super.parametros, sizeof(Params), 1, dst);
 
-	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->filtros->z, sizeof(double));
+	REAL *data = (REAL *) alloc_mem(c->filtros->x * c->filtros->y * c->filtros->z, sizeof(REAL));
 	for (int a = 0; a < c->numeroFiltros; a++) {
 		TensorGetValuesOffSet(c->super.queue, c->filtros, data, a * c->filtros->bytes);
 		fwrite(data, 1, c->filtros->bytes, dst);
@@ -180,7 +180,7 @@ Camada carregarConvNc(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 	CamadaConvNc c = (CamadaConvNc) createConvNc(cl, queue, passox, passoy, largx, largy, fx, fy, numeroFiltros, inx,
 												 iny, inz,
 												 entrada, params, (RandomParam){-1}, error);
-	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->super.entrada->z, sizeof(double));
+	REAL *data = (REAL *) alloc_mem(c->filtros->x * c->filtros->y * c->super.entrada->z, sizeof(REAL));
 	for (int a = 0; a < c->numeroFiltros; a++) {
 		fread(data, 1, c->filtros->bytes, src);
 		TensorPutValuesOffSet(queue, c->filtros, data, a * c->filtros->bytes);
@@ -235,7 +235,7 @@ Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
 
 
 	if (randomParams.type != -1) {
-		if (randomParams.type == 0)TensorRandomize(queue, c->filtros, LCG_NORMAL, 2.0 * sizeof(double) / (c->filtros->bytes), -1.0 * sizeof(double) / (c->filtros->bytes));
+		if (randomParams.type == 0)TensorRandomize(queue, c->filtros, LCG_NORMAL, 2.0 * sizeof(REAL) / (c->filtros->bytes), -1.0 * sizeof(REAL) / (c->filtros->bytes));
 		else  TensorRandomize(queue, c->filtros, randomParams.type, randomParams.a,randomParams.b);
 	}
 	if (error->error) return (Camada) c;
@@ -246,7 +246,7 @@ Camada createConvNc(WrapperCL *cl, QUEUE queue, UINT passox,
 									K_INT, K_INT, K_INT, K_INT,
 									K_INT, K_INT);
 	c->kernelConvNcFixWeight = new_Kernel(cl->program, error, convncFixWeight, 7, K_VOID_P, K_VOID_P, K_VOID_P,
-										  K_DOUBLE, K_DOUBLE, K_DOUBLE, K_INT);
+										  K_REAL, K_REAL, K_REAL, K_INT);
 	c->kernelConvNcCalcGradsFiltro = new_Kernel(cl->program, error, convncCalcFiltro, 15,
 												K_VOID_P, K_VOID_P, K_VOID_P,
 												K_INT, K_INT, K_INT,

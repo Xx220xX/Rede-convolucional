@@ -3,7 +3,6 @@
 //
 
 #include "camadas/Camada.h"
-
 Camada carregarCamada(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada, CNN_ERROR *error) {
 	char identify = 0;
 	fread(&identify, sizeof(char), 1, src);
@@ -73,7 +72,7 @@ void CamadaSetLearn(Camada c, char learn) {
 	c->learnable = learn != 0;
 }
 
-void CamadaSetParams(Camada c, double hitlearn, double momento, double decaimento) {
+void CamadaSetParams(Camada c, REAL hitlearn, REAL momento, REAL decaimento) {
 	c->parametros.hitLearn = hitlearn;
 	c->parametros.momento = momento;
 	c->parametros.decaimentoDePeso = decaimento;

@@ -2,7 +2,7 @@ import os
 
 path = 'camadas'
 output = '../src/gpuKernels.c'
-kernelFiles = ['utils.h'] + [b for b in os.listdir(path) if b != 'utils.h']
+kernelFiles = ['utils.h'] + [b for b in os.listdir(path) if b != 'utils.h' ]
 
 with open(output, 'w') as fout:
 	fout.write('#ifndef GAB_KERNELS_OPENCL_H\n#define GAB_KERNELS_OPENCL_H\n')

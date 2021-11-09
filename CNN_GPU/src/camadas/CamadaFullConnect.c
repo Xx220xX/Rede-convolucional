@@ -1,6 +1,7 @@
 //
 // Created by Henrique on 5/8/2021.
 //
+
 #include "camadas/CamadaFullConnect.h"
 
 #if (RUN_KERNEL_USING_GPU != 1)
@@ -10,21 +11,18 @@
 
 const char *getCreateParamsFullConnect(CamadaFullConnect c) {
 	if (c->super.__string__ != NULL)free_mem(c->super.__string__);
-	c->super.__string__ = (char *) alloc_mem(1000, sizeof(char));
-	int len = snprintf(c->super.__string__, 1000,
-					   "['FullConnect',%d,'%s']\n",
+	c->super.__string__ = mprintf(
+					   "['FullConnect',%d,%d]\n",
 					   c->super.saida->x * c->super.saida->y * c->super.saida->z,
-					   c->fa == FTANH ? "TANH" : (c->fa == FSIGMOID ? "SIGMOID" : (c->fa == FRELU ? "RELU" : "UNKNOW"))
+					   c->fa
 	);
-	len += 1;
-	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
+
 	return c->super.__string__;
 }
 
 const char *tostringFullConnect(CamadaFullConnect c) {
 	if (c->super.__string__ != NULL)free_mem(c->super.__string__);
-	c->super.__string__ = (char *) alloc_mem(1000, sizeof(char));
-	int len = snprintf(c->super.__string__, 1000,
+	c->super.__string__ = mprintf(
 					   "Full Connect Layer: (%u,%u,%u) -> (%u,%u,%u)\n"
 					   "\tactivation function %s\n",
 
@@ -32,8 +30,7 @@ const char *tostringFullConnect(CamadaFullConnect c) {
 					   c->super.saida->x, c->super.saida->y, c->super.saida->z,
 					   c->fa == FTANH ? "TANH" : (c->fa == FSIGMOID ? "SIGMOID" : (c->fa == FRELU ? "RELU" : "UNKNOW"))
 	);
-	len += 1;
-	c->super.__string__ = realloc(c->super.__string__, sizeof(char) * len);
+
 	return c->super.__string__;
 }
 
@@ -71,6 +68,7 @@ int ativaFullConnect(CamadaFullConnect c) {
 	return erro;
 
 }
+
 
 int corrigePesosFullConnect(CamadaFullConnect c) {
 	int erro = 0;
@@ -124,7 +122,7 @@ void salvarFullConnect(WrapperCL *cl, CamadaFullConnect c, FILE *dst, CNN_ERROR 
 	fwrite(&c->super.saida->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.parametros, sizeof(Params), 1, dst);
 
-	double *data = (double *) alloc_mem(c->pesos->x * c->pesos->y * c->pesos->z, sizeof(double));
+	REAL *data = (REAL *) alloc_mem(c->pesos->x * c->pesos->y * c->pesos->z, sizeof(REAL));
 	cl_command_queue queue = clCreateCommandQueueWithProperties(cl->context, cl->device, NULL, &error->error);
 
 	TensorGetValues(queue, c->pesos, data);
@@ -153,12 +151,13 @@ Camada carregarFullConnect(WrapperCL *cl, FILE *src, cl_command_queue queue, Ten
 	CamadaFullConnect c = (CamadaFullConnect) createFullConnect(cl, queue, inx, iny, inz, tamanhoSaida,
 																entrada, params,
 																fa, (RandomParam) {-1}, error);
-	double *data = (double *) alloc_mem(c->pesos->x * c->pesos->y * c->pesos->z, sizeof(double));
+	REAL *data = (REAL *) alloc_mem(c->pesos->x * c->pesos->y * c->pesos->z, sizeof(REAL));
 	fread(data, 1, c->pesos->bytes, src);
 	TensorPutValues(queue, c->pesos, data);
 	free_mem(data);
 	return (Camada) c;
 }
+
 
 Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, UINT inz, UINT tamanhoSaida,
 						 Tensor entrada, Params params,
@@ -179,8 +178,12 @@ Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT i
 
 	if (randomParams.type != -1) {
 		if (randomParams.type == 0) {
-			double val = 2.19722 / sqrt(c->pesos->x * c->pesos->y);
-			TensorRandomize(queue, c->pesos, LCG_UNIFORM, 2 * val, -val);
+			if (funcaoDeAtivacao != FRELU) {
+				REAL val = 2.19722 / sqrt(c->pesos->x * c->pesos->y);
+				TensorRandomize(queue, c->pesos, LCG_UNIFORM, 2 * val, -val);
+			} else {
+				TensorRandomize(queue, c->pesos, LCG_NORMAL, sqrt(2.0 / (inx * iny * inz)), 0);
+			}
 		} else
 			TensorRandomize(queue, c->pesos, randomParams.type, randomParams.a, randomParams.b);
 	}
@@ -196,7 +199,7 @@ Camada createFullConnect(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT i
 								   K_INT, K_INT, K_INT, K_INT, K_INT, K_INT, K_INT);
 	c->kernelfullfixWeight = new_Kernel(cl->program, error, fullfixweight, 9,
 										K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-										K_DOUBLE, K_DOUBLE, K_DOUBLE,
+										K_REAL, K_REAL, K_REAL,
 										K_INT, K_INT);
 	c->kernelfullcalcgrad1 = new_Kernel(cl->program, error, fullcalcgrads1, 5, K_VOID_P, K_VOID_P, K_VOID_P, K_INT,
 										K_INT);

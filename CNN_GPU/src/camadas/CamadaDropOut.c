@@ -83,7 +83,7 @@ void salvarDropOut(WrapperCL *cl, CamadaDropOut c, FILE *dst, CNN_ERROR *error) 
 	fwrite(&c->super.entrada->x, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->y, sizeof(UINT), 1, dst);
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
-	fwrite(&c->p_ativacao, sizeof(double), 1, dst);
+	fwrite(&c->p_ativacao, sizeof(REAL), 1, dst);
 
 }
 
@@ -96,19 +96,19 @@ Camada carregarDropOut(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor 
 		fread(&flag, sizeof(char), 1, src);
 	UINT inx, iny, inz;
 	char flag_usehost = 0;
-	double pativacao;
+	REAL pativacao;
 	fread(&flag_usehost, sizeof(char), 1, src);
 	fread(&inx, sizeof(UINT), 1, src);
 	fread(&iny, sizeof(UINT), 1, src);
 	fread(&inz, sizeof(UINT), 1, src);
-	fread(&pativacao, sizeof(double), 1, src);
+	fread(&pativacao, sizeof(REAL), 1, src);
 	CamadaDropOut c = (CamadaDropOut) createDropOut(cl, queue, inx, iny, inz, pativacao,
 	                                                time(NULL), entrada,  error);
 	return (Camada) c;
 }
 
 Camada createDropOut(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, UINT inz,
-					 double p_ativacao, long long seed, Tensor entrada,
+					 REAL p_ativacao, long long seed, Tensor entrada,
 					 CNN_ERROR *error) {
 	if (error->error)return NULL;
 	CamadaDropOut c = (CamadaDropOut) alloc_mem(1, sizeof(Typecamadadropout));
@@ -123,7 +123,7 @@ Camada createDropOut(WrapperCL *cl, cl_command_queue queue, UINT inx, UINT iny, 
 	c->seed = seed;
 	c->super.salvar = (f4v) salvarDropOut;
 	c->kerneldropativa = new_Kernel(cl->program, error, dropativa, 6, K_VOID_P, K_VOID_P, K_VOID_P, sizeof(cl_long),
-	                                K_DOUBLE, K_INT);
+	                                K_REAL, K_INT);
 	c->kerneldropcalcgrad = new_Kernel(cl->program, error, dropcalcgrad, 4, K_VOID_P, K_VOID_P, K_VOID_P, K_INT);
 	return (Camada) c;
 }

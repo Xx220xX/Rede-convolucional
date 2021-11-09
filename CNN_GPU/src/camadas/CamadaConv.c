@@ -121,7 +121,7 @@ void salvarConv(WrapperCL *cl, CamadaConv c, FILE *dst, CNN_ERROR *error) {
 	fwrite(&c->filtros->w, sizeof(UINT), 1, dst);
 	fwrite(&c->super.parametros, sizeof(Params), 1, dst);
 
-	double *data = (double *) alloc_mem(c->filtros->x * c->filtros->y * c->filtros->z * c->filtros->w, sizeof(double));
+	REAL *data = (REAL *) alloc_mem(c->filtros->x * c->filtros->y * c->filtros->z * c->filtros->w, sizeof(REAL));
 	TensorGetValuesMem(c->super.queue, c->filtros, data, c->filtros->bytes * c->filtros->w);
 	fwrite(data, 1, c->filtros->bytes * c->filtros->w, dst);
 	free_mem(data);
@@ -154,8 +154,8 @@ Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada,
 		c->super.release(c);
 		return NULL;
 	}
-	double *data = (double *) alloc_mem(fx * fy * inz * fw, sizeof(double));
-	fread(data, 1, fx * fy * inz * fw * sizeof(double), src);
+	REAL *data = (REAL *) alloc_mem(fx * fy * inz * fw, sizeof(REAL));
+	fread(data, 1, fx * fy * inz * fw * sizeof(REAL), src);
 	error->error = TensorPutValuesMem(queue, c->filtros, data, c->filtros->bytes * c->filtros->w);
 	free_mem(data);
 	return (Camada) c;
@@ -241,7 +241,7 @@ Camada createConv(WrapperCL *cl, QUEUE queue, UINT passox, UINT passoy, UINT len
 										K_INT, K_INT,
 										K_INT, K_INT,
 										K_INT, K_INT,
-										K_DOUBLE, K_DOUBLE, K_DOUBLE,
+										K_REAL, K_REAL, K_REAL,
 										K_INT
 	);
 

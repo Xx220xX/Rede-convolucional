@@ -12,4 +12,7 @@
 
 #define EXCEPTION_MAX_MSG_SIZE 500
 
+
+#define REAL float
+#define CLREAL cl_float
 #endif //CNN_GPU_CONFIG_H

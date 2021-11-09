@@ -24,13 +24,6 @@
 lua_setglobal(state,name)
 
 #define RETURN_LUA_STATUS_FUNCTION() lua_pushinteger(L, c->error.error);return 1;
-#define L_CONVOLUTION_NAME "Convolucao"
-
-#define L_CONVOLUTIONNC_NAME "ConvolucaoNcausal"
-
-#define L_POOLING_NAME "Pooling"
-
-#define L_POOLINGAV_NAME "PoolingAv"
 
 
 typedef struct Luac_function {
@@ -65,7 +58,7 @@ static int l_createCnn(lua_State *L) {
 	}
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	while(c->size>0){
+	while (c->size > 0) {
 		CnnRemoveLastLayer(c);
 	}
 	size_t x, y, z;
@@ -77,7 +70,7 @@ static int l_createCnn(lua_State *L) {
 	count++;
 	if (c->size != 0) {
 
-		luaL_error(L, "O tamanho da rede não pode ser alterado (%d,%d)",count,c->size);
+		luaL_error(L, "O tamanho da rede não pode ser alterado (%d,%d)", count, c->size);
 		return 0;
 	}
 
@@ -156,13 +149,65 @@ static int l_convolution(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize,nfilters)\n"
-						  " "L_CONVOLUTION_NAME"(step,filterSize,nfilters)\n"
-						  " "L_CONVOLUTION_NAME"(stepx,stepy,filterx,filtery,nfilters)\n"
-						  " "L_CONVOLUTION_NAME"(stepx,stepy,filterx,filtery,nfilters,PDF,a,b)\n"
+						  " ""Convolucao""(step,filterSize,nfilters)\n"
+						  " ""Convolucao""(stepx,stepy,filterx,filtery,nfilters)\n"
+						  " ""Convolucao""(stepx,stepy,filterx,filtery,nfilters,PDF,a,b)\n"
 			);
 
 	}
 	c->error.error = Convolucao(c, px, py, fx, fy, nfiltros, randomParam);
+	if (c->error.error) {
+		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
+		luaL_error(L, "falha ao adicionar camada  %d %s", c->error.error, c->error.msg);
+	}
+	RETURN_LUA_STATUS_FUNCTION();
+
+}
+
+static int l_convolutionf(lua_State *L) {
+	int nArgs = lua_gettop(L);
+	lua_getglobal(L, LCNN);
+	Cnn c = lua_touserdata(L, -1);
+	int px, py, fx, fy;
+	int nfiltros, ativacao;
+	int arg = 1;
+	RandomParam randomParam = {0};
+	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	switch (nArgs) {
+		case 4:// px=py, fx=fy,nfilters
+			py = px = luaL_checkinteger(L, arg++);
+			fy = fx = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			ativacao = luaL_checkinteger(L, arg++);
+			break;
+		case 6:// px,py, fx,fy,nfilters,ativacao
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			ativacao = luaL_checkinteger(L, arg++);
+			break;
+		case 9:// px,py, fx,fy,nfilters,ativacao,typeRand,a,m
+			px = luaL_checkinteger(L, arg++);
+			py = luaL_checkinteger(L, arg++);
+			fx = luaL_checkinteger(L, arg++);
+			fy = luaL_checkinteger(L, arg++);
+			ativacao = luaL_checkinteger(L, arg++);
+			randomParam.type = luaL_checkinteger(L, arg++);
+			randomParam.a = luaL_checknumber(L, arg++);
+			randomParam.b = luaL_checknumber(L, arg++);
+			nfiltros = luaL_checkinteger(L, arg++);
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n %s(step,filterSize,nfilters)\n"
+						  " ""Convolucao""(step,filterSize,nfilters,ativacao)\n"
+						  " ""Convolucao""(stepx,stepy,filterx,filtery,nfilters,ativacao)\n"
+						  " ""Convolucao""(stepx,stepy,filterx,filtery,nfilters,ativacao,PDF,a,b)\n"
+			);
+
+	}
+	c->error.error = ConvolucaoF(c, px, py, fx, fy, nfiltros,ativacao, randomParam);
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 		luaL_error(L, "falha ao adicionar camada  %d %s", c->error.error, c->error.msg);
@@ -209,9 +254,9 @@ static int l_convolution_non_causal(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
-						  " "L_CONVOLUTIONNC_NAME"(step,filterSize,aperture,nfilters,memory_flag)\n"
-						  " "L_CONVOLUTIONNC_NAME"(stepx,stepy,filterx,filtery,aperturex,aperturey,nfilters)\n"
-						  " "L_CONVOLUTIONNC_NAME"(stepx,stepy,filterx,filtery,aperturex,aperturey,nfilters,PDF,a,b)\n"
+						  " ""ConvolucaoNcausal""(step,filterSize,aperture,nfilters,memory_flag)\n"
+						  " ""ConvolucaoNcausal""(stepx,stepy,filterx,filtery,aperturex,aperturey,nfilters)\n"
+						  " ""ConvolucaoNcausal""(stepx,stepy,filterx,filtery,aperturex,aperturey,nfilters,PDF,a,b)\n"
 			);
 			return 0;
 	}
@@ -253,9 +298,9 @@ static int l_pooling(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
-						  " "L_POOLING_NAME"(step,filterSize,memory_flag)\n"
-						  " "L_POOLING_NAME"(stepx,stepy,filtrox,filtroy)\n"
-						  " "L_POOLING_NAME"(stepx,stepy,filtrox,filtroy,PDF,a,b)\n"
+						  " ""Pooling""(step,filterSize,memory_flag)\n"
+						  " ""Pooling""(stepx,stepy,filtrox,filtroy)\n"
+						  " ""Pooling""(stepx,stepy,filtrox,filtroy,PDF,a,b)\n"
 			);
 			return 2;
 	}
@@ -287,8 +332,8 @@ static int l_poolingav(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
-						  " "L_POOLINGAV_NAME"(step,filter)\n"
-						  " "L_POOLINGAV_NAME"(stepx,stepy,filterx,filtery)\n"
+						  " ""PoolingAv""(step,filter)\n"
+						  " ""PoolingAv""(stepx,stepy,filterx,filtery)\n"
 			);
 			return 0;
 	}
@@ -305,19 +350,24 @@ static int l_relu(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
+	REAL less = 0, greater = 1;
 	int arg = 1;
 	switch (nArgs) {
 		case 0:
 			break;
-
+		case 2:
+			less = luaL_checknumber(L, arg++);
+			greater = luaL_checknumber(L, arg++);
+			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
 						  " Relu()\n"
+						  " Relu(lessoh,greateroh)\n"
 			);
 			return 0;
 	}
 
-	int erro = Relu(c);
+	int erro = Relu(c, less, greater);
 	if (erro) {
 		char msg[EXCEPTION_MAX_MSG_SIZE];
 		getClError(erro, msg, EXCEPTION_MAX_MSG_SIZE);
@@ -385,7 +435,7 @@ static int l_dropout(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	double ativa = luaL_checknumber(L, 1);
+	REAL ativa = luaL_checknumber(L, 1);
 	long long int seed = time(NULL);
 	switch (nArgs) {
 		case 1:
@@ -457,7 +507,7 @@ static int l_batchnorm(lua_State *L) {
 	RandomParam randomY = {0};
 	RandomParam randomB = {0};
 	int arg = 1;
-	double epsilon = 1e-12;
+	REAL epsilon = 1e-12;
 
 	switch (nArgs) {
 		case 0:
@@ -532,11 +582,11 @@ static int l_printCnn(lua_State *L) {
 	RETURN_LUA_STATUS_FUNCTION();
 }
 
-double *getNumbers(lua_State *L, UINT *n) {
+REAL *getNumbers(lua_State *L, UINT *n) {
 	lua_settop(L, 1);
 	luaL_checktype(L, 1, LUA_TTABLE);
 	*n = luaL_len(L, 1);
-	double *v = alloc_mem(*n, sizeof(double));
+	REAL *v = alloc_mem(*n, sizeof(REAL));
 	for (int i = 0; i < *n; i++) {
 		lua_rawgeti(L, 1, i + 1);
 		v[i] = lua_tonumber(L, -1);
@@ -549,7 +599,7 @@ static int l_callCnn(lua_State *L) {
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
 	UINT len = 0;
-	double *input = getNumbers(L, &len);
+	REAL *input = getNumbers(L, &len);
 	CnnCall(c, input);
 	free_mem(input);
 	if (c->error.error) {
@@ -575,12 +625,12 @@ static int l_putlua_arg(lua_State *L) {
 
 static int l_CamadasetParam(lua_State *L) {
 	int nArgs = lua_gettop(L);
-	double ht, mm, dc;
-	int cm ;
+	REAL ht, mm, dc;
+	int cm;
 	int arg = 1;
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	cm = c->size-1;
+	cm = c->size - 1;
 	switch (nArgs) {
 		case 4:
 			cm = lua_tointeger(L, arg++) - 1;
@@ -631,7 +681,7 @@ static int l_learnCnn(lua_State *L) {
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
 	UINT len = 0;
-	double *target = getNumbers(L, &len);
+	REAL *target = getNumbers(L, &len);
 	CnnLearn(c, target);
 	free_mem(target);
 	if (c->error.error) {
@@ -650,34 +700,36 @@ static int l_closeConsole(lua_State *L) {
 }
 
 Luac_function globalFunctions[] = {
-		{l_createCnn,          "Entrada",              "Cria uma CNN para utilizar",            "Entrada(x:int,y:int,z:int) "},
-		{l_CamadasetLearnable, "SetLearnable",         "Ativa ou desativa a correção de pesos", "SetLearnable(camada_i:int,learn:boolean)"},
-		{l_CamadasetParam,     "SetParams",            "Modifica os parametros da camada",      "SetParams(camada_i:int,hitlearn:float,momentum:float,decaimento:float"},
-		{l_removeLayer,        "RemoveLastLayer",      "Remove a ultima camada",                "RemoveLastLayer()"},
-		{l_printCnn,           "PrintCnn",             "mostra a rede",                         "PrintCnn()"},
-		{l_putlua_arg,         "Args",                 "Utilizado para comunicar com managetrain informando parametros para o treinamento"},
-		{l_callCnn,            "Call",                 "Faz a propagação",                      "Call(input:table)"},
-		{l_learnCnn,           "Learn",                "Faz a retro propagação",                "Learn(target:table)"},
-		{l_helpCnn,            "helpCnn",              "Mostra detalhes sobre todas funções",   "helpCnn()"},
-		{l_convolution,            L_CONVOLUTION_NAME, "Adiciona camada Convolucional", L_CONVOLUTION_NAME"(step[x,y],filterSize[x,y],nfilters,randomParanm[pdf,a,bq])"},
-		{l_convolution_non_causal, L_CONVOLUTIONNC_NAME},
-		{l_pooling,                L_POOLING_NAME},
-		{l_poolingav,              L_POOLINGAV_NAME},
-		{l_relu,               "Relu"},
-		{l_prelu,              "PRelu"},
-		{l_padding,            "Padding"},
-		{l_dropout,            "Dropout"},
-		{l_fullConnect,        "FullConnect"},
-		{l_batchnorm,          "BatchNorm"},
-		{l_softmax,            "SoftMax"},
-		{l_loadCnn,            "CarregarRede"},
-		{l_closeConsole,       "closeConsole"},
-		{NULL,                 ""}
+		{l_createCnn,              "Entrada",         "Cria uma CNN para utilizar",            "Entrada(x:int,y:int,z:int) "},
+		{l_CamadasetLearnable,     "SetLearnable",    "Ativa ou desativa a correção de pesos", "SetLearnable(camada_i:int,learn:boolean)"},
+		{l_CamadasetParam,         "SetParams",       "Modifica os parametros da camada",      "SetParams(camada_i:int,hitlearn:float,momentum:float,decaimento:float"},
+		{l_removeLayer,            "RemoveLastLayer", "Remove a ultima camada",                "RemoveLastLayer()"},
+		{l_printCnn,               "PrintCnn",        "mostra a rede",                         "PrintCnn()"},
+		{l_putlua_arg,             "Args",            "Utilizado para comunicar com managetrain informando parametros para o treinamento"},
+		{l_callCnn,                "Call",            "Faz a propagação",                      "Call(input:table)"},
+		{l_learnCnn,               "Learn",           "Faz a retro propagação",                "Learn(target:table)"},
+		{l_helpCnn,                "helpCnn",         "Mostra detalhes sobre todas funções",   "helpCnn()"},
+		{l_convolution,            "Convolucao",      "Adiciona camada Convolucional",         "Convolucao""(step[x,y],filterSize[x,y],nfilters,randomParanm[pdf,a,bq])"},
+		{l_convolutionf,            "ConvolucaoF",      "Adiciona camada Convolucional com função de ativacao",         "Convolucao""(step[x,y],filterSize[x,y],nfilters,ativacao,randomParanm[pdf,a,bq])"},
+		{l_convolution_non_causal, "ConvolucaoNcausal"},
+		{l_pooling,                "Pooling"},
+		{l_poolingav,              "PoolingAv"},
+		{l_relu,                   "Relu"},
+		{l_prelu,                  "PRelu"},
+		{l_padding,                "Padding"},
+		{l_dropout,                "Dropout"},
+		{l_fullConnect,            "FullConnect"},
+		{l_batchnorm,              "BatchNorm"},
+		{l_softmax,                "SoftMax"},
+		{l_loadCnn,                "CarregarRede"},
+		{l_closeConsole,           "closeConsole"},
+		{NULL,                     ""}
 };
 Luac_contantes globalConstantes[] = {
 		{FSIGMOID, "SIGMOID"},
 		{FTANH,    "TANH"},
 		{FRELU,    "RELU"},
+		{FLIN,     "LIN"},
 		{0, NULL}
 };
 
@@ -763,16 +815,16 @@ int CnnLuaConsole(Cnn c) {
 		if (!cmd.str[0])continue;
 		fflush(stdout);
 		if (!strcmp(cmd.str, "exit"))break;
-		if (!strcmp(cmd.str, "cls")){
+		if (!strcmp(cmd.str, "cls")) {
 			system("cls");
 			continue;
 		}
-		if (!strcmp(cmd.str, "show")){
+		if (!strcmp(cmd.str, "show")) {
 			printCnn(c);
 			continue;
 		}
-		if (!strcmp(cmd.str, "clear")){
-			while(c->size>0){
+		if (!strcmp(cmd.str, "clear")) {
+			while (c->size > 0) {
 				CnnRemoveLastLayer(c);
 			}
 			continue;
@@ -792,7 +844,8 @@ int CnnLuaConsole(Cnn c) {
 	}
 	free_mem(cmd.str);
 }
-int CnnLuaLoadString(Cnn c, const char *lua_program){
+
+int CnnLuaLoadString(Cnn c, const char *lua_program) {
 	if (!c)return NULL_PARAM;
 	if (!c->L)CnnInitLuaVm(c);
 	int error = luaL_dostring(c->L, lua_program);
@@ -839,6 +892,7 @@ int CnnLuaLoadString(Cnn c, const char *lua_program){
 					  "Args('nome_classes', nome_classes_lua)");
 	}
 }
+
 int CnnLuaLoadFile(Cnn c, const char *file_name) {
 	if (!c)return NULL_PARAM;
 	if (!c->L)CnnInitLuaVm(c);
@@ -889,47 +943,6 @@ int CnnLuaLoadFile(Cnn c, const char *file_name) {
 	}
 }
 
-int CnnCallT(Cnn c, Tensor input) {
-	if (!c)return NULL_PARAM;
-	if (!input)return NULL_PARAM;
-	if (!c->size)return NULL_PARAM;
-	int erro = 0;
-	Tensor aux;
-	switch (input->flag & TENSOR_MASK_MEM) {
-		case TENSOR_SVM:
-		case TENSOR_RAM:
-			return CnnCall(c, input->hostd);
-		case TENSOR_GPU:
-			aux = c->camadas[0]->entrada;
-			c->camadas[0]->entrada = input;
-			erro = CnnCall(c, NULL);
-			c->camadas[0]->entrada = aux;
-			return erro;
-		default:
-			return TENSOR_INVALID_FLAG_MEM;
-	}
-}
 
-int CnnLearnT(Cnn c, Tensor target) {
-	if (!c)return NULL_PARAM;
-	if (!target)return NULL_PARAM;
-	if (!c->size)return NULL_PARAM;
-	int erro = 0;
-	Tensor aux;
-	switch (target->flag & TENSOR_MASK_MEM) {
-		case TENSOR_SVM:
-		case TENSOR_RAM:
-			return CnnLearn(c, target->hostd);
-		case TENSOR_GPU:
-			aux = c->target;
-			c->target = target;
-			erro = CnnLearn(c, NULL);
-			c->target = aux;
-			return erro;
-		default:
-			c->error.error = TENSOR_INVALID_FLAG_MEM;
-			return TENSOR_INVALID_FLAG_MEM;
-	}
-}
 
 #endif //CNN_GPU_CNNLUA_H

@@ -4,6 +4,7 @@
 #include "config.h"
 #include "camadas/Camada.h"
 #include "camadas/CamadaConv.h"
+#include "camadas/CamadaConvF.h"
 #include "camadas/CamadaConvNC.h"
 #include "camadas/CamadaRelu.h"
 #include "camadas/CamadaPRelu.h"
@@ -64,15 +65,17 @@ Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, U
 								UINT inz, ULL devicetype);
 
 /// Calcula o erro gerada na saida da rede
-int CnnCalculeError(Cnn c, double *mse);
+int CnnCalculeError(Cnn c, REAL *mse);
 
-int CnnCalculeErrorWithOutput(Cnn c, double *target, double *mse);
+int CnnCalculeErrorWithOutput(Cnn c, REAL *target, REAL *mse);
 
-int CnnCalculeErrorTWithOutput(Cnn c, Tensor target, double *mse);
+int CnnCalculeErrorTWithOutput(Cnn c, Tensor target, REAL *mse);
 
 int CnnGetIndexMax(Cnn c);
 
 int Convolucao(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros, RandomParam randomParam);
+
+int ConvolucaoF(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT numeroDeFiltros, int funcAtivacao, RandomParam randomParam);
 
 int ConvolucaoNcausal(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy, UINT largx, UINT largy, UINT numeroDeFiltros, RandomParam randomParam);
 
@@ -80,25 +83,25 @@ int Pooling(Cnn c, UINT passox, UINT passoy, UINT filtrox, UINT filtroy);
 
 int PoolingAv(Cnn c, UINT passox, UINT pasoy, UINT fx, UINT fy);
 
-int Relu(Cnn c);
+int Relu(Cnn c, REAL lessoh, REAL greateroh);
 
 int PRelu(Cnn c, RandomParam randomParam);
 
 int Padding(Cnn c, UINT top, UINT bottom, UINT left, UINT right);
 
-int BatchNorm(Cnn c, double epsilon, RandomParam randomParamY, RandomParam randomParamB);
+int BatchNorm(Cnn c, REAL epsilon, RandomParam randomParamY, RandomParam randomParamB);
 
 int SoftMax(Cnn c);
 
-int Dropout(Cnn c, double pontoAtivacao, long long int seed);
+int Dropout(Cnn c, REAL pontoAtivacao, long long int seed);
 
 int FullConnect(Cnn c, UINT tamanhoDaSaida, int funcaoDeAtivacao, RandomParam randomParam);
 
-int CnnCall(Cnn c, double *input);
+int CnnCall(Cnn c, REAL *input);
 
 int CnnCallT(Cnn c, Tensor input);
 
-int CnnLearn(Cnn c, double *target);
+int CnnLearn(Cnn c, REAL *target);
 
 int CnnLearnT(Cnn c, Tensor target);
 
@@ -117,12 +120,12 @@ void cnnSave(Cnn c, FILE *dst);
 
 int cnnCarregar(Cnn c, FILE *src);
 
-void normalizeGPU(Cnn c, double *input, double *output, int len, double maximo, double minimo);
+void normalizeGPU(Cnn c, REAL *input, REAL *output, int len, REAL maximo, REAL minimo);
 
 
-void normalizeGPUSpaceKnow(Cnn c, double *input, double *output, int len, double input_maximo,
-						   double input_minimo,
-						   double maximo, double minimo);
+void normalizeGPUSpaceKnow(Cnn c, REAL *input, REAL *output, int len, REAL input_maximo,
+						   REAL input_minimo,
+						   REAL maximo, REAL minimo);
 
 void printCnn(Cnn c);
 

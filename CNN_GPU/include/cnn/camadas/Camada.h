@@ -8,6 +8,7 @@
 #include "config.h"
 #include"tensor/Tensor.h"
 #include "utils/memory_utils.h"
+#include "utils/String.h"
 #include "cnn_errors_list.h"
 
 
@@ -22,10 +23,10 @@
 #define POOLAV      9
 #define CONVNC     10
 #define PRELU     11
-
+#define CONVF	12
 
 typedef struct {
-	double hitLearn, momento, decaimentoDePeso;
+	REAL hitLearn, momento, decaimentoDePeso;
 } Params;
 
 
@@ -35,7 +36,7 @@ typedef int (*fv)(void *);
 
 typedef int (*fvc)(void *, char);
 
-typedef int (*fv3d)(void *, double, double, double);
+typedef int (*fv3d)(void *, REAL, REAL, REAL);
 
 typedef int  (*f4v)(void *, void *, void *, void *);
 
@@ -63,6 +64,7 @@ typedef struct {
 	char *__string__;
 } *Camada, Typecamada;
 
+
 void __newCamada__(Camada c, WrapperCL *cl, char type, Tensor entrada, QUEUE queue,
 				   Params params, size_t xi, size_t yi, size_t zi,
 				   size_t xo, size_t yo, size_t zo,
@@ -72,7 +74,7 @@ void __releaseCamada__(Camada c);
 
 void CamadaSetLearn(Camada c, char learn);
 
-void CamadaSetParams(Camada c, double hitlearn, double momento, double decaimento);
+void CamadaSetParams(Camada c, REAL hitlearn, REAL momento, REAL decaimento);
 
 Camada carregarConv(WrapperCL *cl, FILE *src, QUEUE queue, Tensor entrada, CNN_ERROR *error);
 

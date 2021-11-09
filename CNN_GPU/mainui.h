@@ -39,8 +39,8 @@ int saveAsGraphic(DVector *a) {
 	FILE *f = fopen(a->file, "wb");
 	fwrite(&a->length, sizeof(size_t), 1, f);
 
-	fwrite(a->x, sizeof(double), a->length, f);
-	fwrite(a->y, sizeof(double), a->length, f);
+	fwrite(a->x, sizeof(REAL), a->length, f);
+	fwrite(a->y, sizeof(REAL), a->length, f);
 	fflush(f);
 	fclose(f);
 	if (a->releasex_y) {
@@ -63,8 +63,8 @@ void OnfinishEpic(ManageTrain *t) {
 	v->x = t->et.tr_mse_vector;
 	v->y = t->et.tr_acertos_vector;
 	v->length = t->et.tr_imagem_atual + 1;
-	t->et.tr_mse_vector = alloc_mem(t->n_images, sizeof(double));
-	t->et.tr_acertos_vector = alloc_mem(t->n_images, sizeof(double));
+	t->et.tr_mse_vector = alloc_mem(t->n_images, sizeof(REAL));
+	t->et.tr_acertos_vector = alloc_mem(t->n_images, sizeof(REAL));
 
 	HANDLE th = newThread(saveAsGraphic, v);
 	ThreadClose(th);
@@ -86,7 +86,7 @@ void OnfinishFitnes(ManageTrain *t) {
 	int i = 0;
 	char sep = t->character_sep;
 	sep = ' ';
-	double media = 0;
+	REAL media = 0;
 	for (int j = 0; j < t->n_classes; ++j) {
 		for (; i < t->class_names.size && msg[i] != sep; i++) {
 			if (msg[i] == ',')continue;
@@ -165,8 +165,8 @@ void UpdateTrain(ManageTrain *mt) {
 	double imps = 0;
 	Estatistica *t = (Estatistica *) mt;
 //	if (t->tr_time)
-//		imps = (t->tr_epoca_atual * t->tr_numero_imagens + t->tr_imagem_atual) / (double) t->tr_time * 1000.0;
-	imps = t->tr_imps;
+//		imps = (t->tr_epoca_atual * t->tr_numero_imagens + t->tr_imagem_atual) / (REAL) t->tr_time * 1000.0;
+	imps = (double)t->tr_imps;
 	size_t tmp_restante_epoca = round((t->tr_numero_imagens - t->tr_imagem_atual - 1) / imps);
 	size_t tmp_restante_treino =
 			round(((t->tr_numero_epocas - t->tr_epoca_atual - 1) * t->tr_numero_imagens + t->tr_numero_imagens -
@@ -185,8 +185,7 @@ void UpdateTrain(ManageTrain *mt) {
 		   tmp_restante_epoca / 3600,
 		   (tmp_restante_epoca % 3600) / 60,
 		   (tmp_restante_epoca % 3600) % 60);
-	printf("Imagens por segundo %.2lf\n",
-		   imps);
+	printf("Imagens por segundo %.2lf\n",imps);
 	printf("Mse %.16lf\n"
 		   "Acerto medio %lf\n",
 		   t->tr_erro_medio,
@@ -217,7 +216,7 @@ void UpdateFitnes(ManageTrain *t) {
 		imps = (t->et.ft_imagem_atual + 1) / tm;
 	size_t tmp = (t->et.ft_numero_imagens - t->et.ft_imagem_atual - 1.0) / imps;
 //		printf("Tempo estimado final da avaliação --:--:--     \n");
-	printf("\n%lf tr_imps     ", imps);
+	printf("\n%lf tr_imps     ", (double)imps);
 //	printf("\n%lf temp     ",tm);
 	printf("\nTempo estimado final da avaliação %lld:%02lld:%02lld     \n",
 		   tmp / 3600,

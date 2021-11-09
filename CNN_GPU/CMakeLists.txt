@@ -22,6 +22,7 @@ set(LCG_RANDOM include/cnn/LCG_Random/lcg.h src/LCG_Random/lcg.c)
 
 set(camadasCNN include/cnn/camadas/Camada.h src/camadas/Camada.c
         include/cnn/camadas/CamadaConv.h src/camadas/CamadaConv.c
+        include/cnn/camadas/CamadaConvF.h src/camadas/CamadaConvF.c
         include/cnn/camadas/CamadaConvNC.h src/camadas/CamadaConvNC.c
         include/cnn/camadas/CamadaPool.h src/camadas/CamadaPool.c
         include/cnn/camadas/CamadaPoolAv.h src/camadas/CamadaPoolAv.c
@@ -61,7 +62,7 @@ set(kernels kernels/camadas/utils.h kernels/camadas/bathnorm.h kernels/camadas/c
         kernels/camadas/softmax.h
         kernels/camadas/cnnutils.h)
 
-add_library(CNNGPU SHARED
+add_library(gabcnn SHARED
         ${CNNpython}
         src/icon/icon.o
         ${cnn}
@@ -95,25 +96,41 @@ add_executable(CNN_GPU main.c  mainui.h ${lua}
         ${tensor}
         ${conio2} include/cnn/config.h)
 
+add_executable(EXAMPLE samples/conv.c
+        ${cnn}
+        ${time_util}
+        ${list_util}
+        ${dir_util}
+        ${string_util}
+        ${default_kernel_util}
+        ${thread_util}
+        ${gpu}
+        ${camadasCNN}
+        ${memory_util}
+        ${LCG_RANDOM}
+        ${tensor}
+        ${conio2} include/cnn/config.h
+        )
 
-add_executable(svm_teste teste/testeTensor.c
-        ${tensor}
-        ${gpu}
-        ${memory_util}
-        ${time_util}
-        ${LCG_RANDOM}
-        )
-add_executable(sum_teste teste/sum.c
-        ${tensor}
-        ${gpu}
-        ${memory_util}
-        ${time_util}
-        ${LCG_RANDOM}
-        )
-add_executable(mult_teste teste/mult.c
-        ${tensor}
-        ${gpu}
-        ${memory_util}
-        ${time_util}
-        ${LCG_RANDOM}
-        )
+add_executable(debug_kernel kernels/debugKernel.c)
+#add_executable(svm_teste teste/testeTensor.c
+#        ${tensor}
+#        ${gpu}
+#        ${memory_util}
+#        ${time_util}
+#        ${LCG_RANDOM}
+#        )
+#add_executable(sum_teste teste/sum.c
+#        ${tensor}
+#        ${gpu}
+#        ${memory_util}
+#        ${time_util}
+#        ${LCG_RANDOM}
+#        )
+#add_executable(mult_teste teste/mult.c
+#        ${tensor}
+#        ${gpu}
+#        ${memory_util}
+#        ${time_util}
+#        ${LCG_RANDOM}
+#        )

@@ -11,7 +11,7 @@
 
 #define K_VOID_P sizeof(cl_mem)
 #define K_INT sizeof(cl_int)
-#define K_DOUBLE sizeof(cl_double)
+#define K_REAL sizeof(CLREAL)
 
 typedef struct _Kernel {
 	void *kernel;

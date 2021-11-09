@@ -276,7 +276,7 @@ LUA_API int   (lua_setiuservalue) (lua_State *L, int idx, int n);
 
 
 /*
-** 'load' and 'call' functions (load and run Lua code)
+** 'CAMADA_load' and 'call' functions (CAMADA_load and run Lua code)
 */
 LUA_API void  (lua_callk) (lua_State *L, int nargs, int nresults,
                            lua_KContext ctx, lua_KFunction k);

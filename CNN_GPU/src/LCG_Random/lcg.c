@@ -34,8 +34,8 @@ int pLCG_randI(LCG *self) {
 	return (int) (LCG_randB(self) % self->max_int);
 }
 
-double pLCG_randD(LCG *self) {
-	return (double) LCG_randB(self) / self->rand_max;
+REAL pLCG_randD(LCG *self) {
+	return (REAL) LCG_randB(self) / self->rand_max;
 }
 
 
@@ -43,7 +43,7 @@ void LCG_setSeed(Bytes64 seed) {
 	pLCG_setSeed(&default_var_lcg, seed);
 }
 
-double LCG_randD() {
+REAL LCG_randD() {
 	return pLCG_randD(&default_var_lcg);
 }
 
@@ -75,14 +75,14 @@ void LCG_shuffle(void *d, size_t n, size_t size_element) {
 	pLCG_shuffle(&default_var_lcg, d, n, size_element);
 }
 
-double pLCG_randn(LCG *self) {
+REAL pLCG_randn(LCG *self) {
 	//https://en.wikipedia.org/wiki/Box–Muller_transform
-	double u1 = pLCG_randD(self);
-	double u2 = pLCG_randD(self);
-	double Z0 = sqrt(-2 * log(u1)) * cos(2 * M_PI * u2);
+	REAL u1 = pLCG_randD(self);
+	REAL u2 = pLCG_randD(self);
+	REAL Z0 = sqrt(-2 * log(u1)) * cos(2 * M_PI * u2);
 	return Z0;
 }
 
-double LCG_randn() {
+REAL LCG_randn() {
 	return pLCG_randn(&default_var_lcg);
 }

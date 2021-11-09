@@ -28,8 +28,8 @@ Tensor new_Tensor(cl_context context, QUEUE queue, char tensor_flag, UINT x, UIN
 	}
 
 	switch (tensor_flag & TENSOR_MASK_TYPE) {
-		case TENSOR_DOUBLE:
-			t->bytes = x * y * z * sizeof(double);
+		case TENSOR_REAL:
+			t->bytes = x * y * z * sizeof(REAL);
 			break;
 		case TENSOR_CHAR:
 			t->bytes = x * y * z * sizeof(char);
@@ -140,26 +140,26 @@ int TensorFillOffSet(QUEUE queue, Tensor t, char pattern, size_t offset) {
 	}
 }
 
-int TensorFillDouble(QUEUE queue, Tensor t, double pattern) {
-	return TensorFillDoubleOffSet(queue, t, pattern, 0);
+int TensorFillREAL(QUEUE queue, Tensor t, REAL pattern) {
+	return TensorFillREALOffSet(queue, t, pattern, 0);
 }
 
-int TensorFillDoubleOffSet(QUEUE queue, Tensor t, double pattern, size_t offset) {
+int TensorFillREALOffSet(QUEUE queue, Tensor t, REAL pattern, size_t offset) {
 	int erro = 0;
 	size_t bytes;
-	double *mem;
+	REAL *mem;
 	switch (t->flag & TENSOR_MASK_MEM) {
 		case TENSOR_RAM:
 		case TENSOR_SVM:
 			bytes = t->bytes - offset;
-			bytes = bytes / sizeof(double);
+			bytes = bytes / sizeof(REAL);
 			mem = t->host + offset;
 			for (int i = 0; i < bytes; i++) {
 				mem[i] = pattern;
 			}
 			return erro;
 		case TENSOR_GPU:
-			erro = clEnqueueFillBuffer(queue, t->data, &pattern, sizeof(double), offset, t->bytes, 0, NULL, NULL);
+			erro = clEnqueueFillBuffer(queue, t->data, &pattern, sizeof(REAL), offset, t->bytes, 0, NULL, NULL);
 			PERR(erro, "TensorFillOffSet/clEnqueueWriteBuffer ");
 			return erro;
 		default:
@@ -236,7 +236,7 @@ int TensorPutValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, si
 
 void printTensor(QUEUE q, Tensor t, FILE *f) {
 	union {
-		double *d;
+		REAL *d;
 		int *i;
 		unsigned char *c;
 	} v;
@@ -245,37 +245,43 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 	for (int l = 0; l < t->w; l++) {
 		error = TensorGetValuesOffSet(q, t, v.d, l * t->bytes);
 		if (error)break;
+		fprintf(f,"{");
 		for (int z = 0; z < t->z; z++) {
+			fprintf(f,"[");
 			for (int i = 0; i < t->x; i++) {
-				fprintf(f, "  ");
-				for (int j = 0; j < t->y; j++)
+				fprintf(f, "(");
+				for (int j = 0; j < t->y; j++){
 					switch (t->flag & TENSOR_MASK_TYPE) {
-						case TENSOR_DOUBLE:
-							fprintf(f, "%.2lf ", v.d[Tensor_Map(t, i, j, z)]);
+						case TENSOR_REAL:
+							fprintf(f, "%.2lf", (double )(v.d[Tensor_Map(t, i, j, z)]));
 							break;
 						case TENSOR_INT:
-							fprintf(f, "%d ", v.i[Tensor_Map(t, i, j, z)]);
+							fprintf(f, "%d", v.i[Tensor_Map(t, i, j, z)]);
 							break;
 						case TENSOR_CHAR:
-							fprintf(f, "%02X ", (int) v.c[Tensor_Map(t, i, j, z)]);
+							fprintf(f, "%02X", (int) v.c[Tensor_Map(t, i, j, z)]);
 							break;
 						default:
 							free_mem(v.d);
 
 					}
-				if (t->y != 1)
+					if (j+1 != t->y)
+						fprintf(f, ", ");
+				}
+				fprintf(f, ")");
+				if (i+1 != t->x)
 					fprintf(f, "\n");
 			}
+			fprintf(f,"]");
 			if (z + 1 != t->z)
 				fprintf(f, "\n");
 		}
-		if (l + 1 != t->w) {
-			if (t->y == 1)
-				fprintf(f, "\n");
-			fprintf(f, "------------\n");
-		}
+		fprintf(f,"}");
+		if(l+1 != t->w)
+			fprintf(f,"\n");
+
 	}
-	fprintf(f, "\n");
+	fprintf(f, "\n\n");
 	free_mem(v.d);
 	if (error) {
 		fprintf(stderr, "printTensor: %d\n", error);
@@ -284,20 +290,20 @@ void printTensor(QUEUE q, Tensor t, FILE *f) {
 
 }
 
-int TensorGetNorm(QUEUE queue, Tensor t, double *norm) {
+int TensorGetNorm(QUEUE queue, Tensor t, REAL *norm) {
 	int error = 0;
 	if (!norm)return -92;
 	if (!t) {
 		return -93;
 	}
-	double *v = alloc_mem(t->bytes, t->w);
+	REAL *v = alloc_mem(t->bytes, t->w);
 	error = TensorGetValuesMem(queue, t, v, t->bytes*t->w);
 	if (error) {
 		fprintf(stderr, "TensorGetNorm/TensorGetValuesMem:");
 		free_mem(v);
 		return error;
 	}
-	double sum = 0;
+	REAL sum = 0;
 
 	for (int i = t->x * t->y * t->z * t->w - 1; i >= 0; i--) {
 
@@ -315,8 +321,8 @@ int TensorAt(Tensor t, UINT x, UINT y, UINT z, UINT w, UINT *index) {
 	UINT ofset = y + x * t->y + z * t->x * t->y + w * t->z * t->x * t->y;
 
 	switch (t->flag & TENSOR_MASK_TYPE) {
-		case TENSOR_DOUBLE:
-			*index = ofset * sizeof(double);
+		case TENSOR_REAL:
+			*index = ofset * sizeof(REAL);
 			break;
 		case TENSOR_INT:
 			*index = ofset * sizeof(int);
@@ -363,14 +369,14 @@ int TensorCpy(QUEUE queue, Tensor tdst, Tensor tsrc, size_t wsrc) {
 	return 0;
 }
 
-int TensorRandomize(QUEUE queue, Tensor t, int distribuicao, double a, double b) {
-	double *values;
+int TensorRandomize(QUEUE queue, Tensor t, int distribuicao, REAL a, REAL b) {
+	REAL *values;
 	int length;
 	int erro;
 	if (!t)return NULL_PARAM;
 	values = alloc_mem(t->bytes, t->w);
-	length = (t->bytes * t->w) / sizeof(double);
-	double (*X)() = LCG_randD;
+	length = (t->bytes * t->w) / sizeof(REAL);
+	REAL (*X)() = LCG_randD;
 	if (distribuicao == LCG_NORMAL) {
 		X = LCG_randn;
 	}

@@ -8,9 +8,9 @@
 #include <stdio.h>
 #include "cnn.h"
 
-void ppmp2(double *data, int x, int y, char *fileName);
+void ppmp2(REAL *data, int x, int y, char *fileName);
 
-void ppmp3(double *data, int x, int y, int z, const char *fileName);
+void ppmp3(REAL *data, int x, int y, int z, const char *fileName);
 
 void salveCnnOutAsPPM(Cnn c, const char *name);
 
@@ -23,7 +23,7 @@ void salveTensorAsPPM(const char *name, Tensor t, Cnn c);
 
 int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c, UINT w);
 
-int dividirVetor(double *v, Tensor m, size_t len, double value, Kernel funcNorm, size_t max_works,
+int dividirVetor(REAL *v, Tensor m, size_t len, REAL value, Kernel funcNorm, size_t max_works,
 				 QUEUE queue);
 
 #endif //CNN_GPU_VECTORUTILS_H

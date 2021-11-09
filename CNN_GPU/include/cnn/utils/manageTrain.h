@@ -5,7 +5,7 @@
 #ifndef CNN_GPU_MANAGETRAIN_H
 #define CNN_GPU_MANAGETRAIN_H
 
-#include"cnn.h"
+#include "cnn.h"
 #include <stdatomic.h>
 #include "Thread.h"
 #include "utils/String.h"
@@ -22,7 +22,7 @@ typedef struct {
 	UINT tr_numero_epocas;
 	double tr_erro_medio;
 	double tr_acerto_medio;
-	double  tr_imps;
+	double tr_imps;
 	size_t tr_time;
 
 
@@ -32,8 +32,8 @@ typedef struct {
 	int ft_info_coluns;
 	UINT ft_numero_classes;
 	size_t ft_time;
-    size_t ll_imagem_atual;
-    size_t ld_imagem_atual;
+	size_t ll_imagem_atual;
+	size_t ld_imagem_atual;
 } Estatistica;
 
 
@@ -49,8 +49,8 @@ typedef struct {
 	UINT headers_images;
 	UINT headers_labels;
 
-	Tensor *imagens;//double
-	Tensor *targets;//double
+	Tensor *imagens;//REAL
+	Tensor *targets;//REAL
 	Tensor labels;//char
 
 	// controle de treino
@@ -85,8 +85,8 @@ typedef struct {
 	ManageEvent OnFinishLoop;
 	// controle de memoria
 	char self_release;
-	// id para thread processo (ler imagens, treinar e avaliar rede)
 	char real_time;
+	// id para thread processo (ler imagens, treinar e avaliar rede)
 	HANDLE process;
 	HANDLE update_loop;
 	// controle do processo
@@ -104,13 +104,13 @@ void manageTrainSetEvent(ManageEvent *dst, ManageEvent src);
 
 void manageTrainSetRun(ManageTrain *t, int run);
 
-ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momento, double decaimento,int luaIsProgram);
+ManageTrain createManageTrain(char *luafile, REAL tx_aprendizado, REAL momento, REAL decaimento, int luaIsProgram);
 
-int ManageTrainloadImages(ManageTrain *t,int runBackground);
+int ManageTrainloadImages(ManageTrain *t, int runBackground);
 
-int ManageTraintrain(ManageTrain *t,int runBackground);
+int ManageTraintrain(ManageTrain *t, int runBackground);
 
-int ManageTrainfitnes(ManageTrain *t,int runBackground);
+int ManageTrainfitnes(ManageTrain *t, int runBackground);
 
 void manageTrainLoop(ManageTrain *t, int run_background);
 

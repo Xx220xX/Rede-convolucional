@@ -69,7 +69,7 @@ void train(ManageTrain *t) {
 	}
 	EVENT(t->OnInitTrain, t);
 
-	double local_mse = 0;
+	REAL local_mse = 0;
 	double time_init_train;
 	double internal_time = t->current_time;
 	Tensor input;
@@ -110,7 +110,7 @@ void train(ManageTrain *t) {
 
 			t->sum_acerto += (cnn_label == label);
 
-			t->sum_erro += local_mse;
+			t->sum_erro += (double)local_mse;
 			t->et.tr_acertos_vector[t->image] = t->sum_acerto / (t->image + 1.0);
 			t->et.tr_erro_medio = t->et.tr_mse_vector[t->image] = t->sum_erro / (t->image + 1.0);
 
@@ -118,7 +118,7 @@ void train(ManageTrain *t) {
 			t->current_time = internal_time + getms() - time_init_train;
 			t->et.tr_imagem_atual = t->image;
 			t->et.tr_time = t->current_time;
-			t->et.tr_imps = imgs / (getms() - time_init_train) * 1000;
+			t->et.tr_imps =( ((double)imgs) / (getms() - time_init_train) * 1000.0);
 		}
 		EVENT(t->OnfinishEpic, t);
 	}
@@ -130,7 +130,7 @@ void fitnes(ManageTrain *t) {
 	CHECK_REAL_TIME(t->real_time);
 	EVENT(t->OnInitFitnes, t);
 
-	double local_mse = 0;
+	REAL local_mse = 0;
 	Tensor input;
 	Tensor output;
 	char label;
@@ -157,6 +157,11 @@ void fitnes(ManageTrain *t) {
 		cnnLabel = CnnGetIndexMax(t->cnn);
 		CnnCalculeErrorTWithOutput(t->cnn, output, &local_mse);
 
+		if(t->image<10){
+			String s = Strf("imagens/%d.ppm",t->image);
+			salveCnnOutAsPPM(t->cnn,s.d);
+			releaseStr(&s);
+		}
 		t->et.ft_info[label * t->et.ft_info_coluns + CASOS]++;
 		if (cnnLabel == label) {
 			t->et.ft_info[label * t->et.ft_info_coluns + HIT_RATE]++;
@@ -204,24 +209,24 @@ void loadImage(ManageTrain *t) {
 		CNN_ERROR("Falha ao criar tensores imageInt: ");
 		return;
 	}
-	Tensor imageDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR4D,
+	Tensor imageREAL = new_Tensor(t->cnn->cl->context, t->cnn->queue, TENSOR4D,
 									imageInt->x, imageInt->y, imageInt->z, imageInt->w,
 									&t->cnn->error, NULL
 	);
 
 
 	if (t->cnn->error.error) {
-		CNN_ERROR("Falha ao criar tensores imageDouble: ");
+		CNN_ERROR("Falha ao criar tensores imageREAL: ");
 		releaseTensor(&imageInt);
 		return;
 	}
 
-	TensorFill(t->cnn->queue, imageInt, 255);
-	double value = 255;
-	kernel_run_recursive(t->cnn->error.error, t->cnn->kerneldivInt, t->cnn->queue, imageDouble->x * imageDouble->y * imageDouble->z * imageDouble->w,
+
+	REAL value = 255;
+	kernel_run_recursive(t->cnn->error.error, t->cnn->kerneldivInt, t->cnn->queue, imageREAL->x * imageREAL->y * imageREAL->z * imageREAL->w,
 						 t->cnn->cl->maxworks,
 						 K_ARG imageInt->data,
-						 K_ARG imageDouble->data,
+						 K_ARG imageREAL->data,
 						 K_ARG value
 	);
 	t->cnn->error.error = synchronizeKernel(t->cnn->queue);
@@ -230,21 +235,23 @@ void loadImage(ManageTrain *t) {
 	if (t->cnn->error.error) {
 		CNN_ERROR("Falha ao iniciar Kernel: ");
 		releaseTensor(&imageInt);
-		releaseTensor(&imageDouble);
+		releaseTensor(&imageREAL);
 		return;
 	}
+
 	releaseTensor(&imageInt);
 
 	for (int i = 0; i < t->n_images && t->can_run; ++i) {
 		t->imagens[i] = new_Tensor(t->cnn->cl->context, t->cnn->queue, t->use_gpu_mem ? 0 : TENSOR_RAM,
-								   imageDouble->x, imageDouble->y, imageDouble->z, 1,
+								   imageREAL->x, imageREAL->y, imageREAL->z, 1,
 								   &t->cnn->error, NULL
 		);
+
 		t->et.ld_imagem_atual = i;
-		TensorCpy(t->cnn->queue, t->imagens[i], imageDouble, i);
+		TensorCpy(t->cnn->queue, t->imagens[i], imageREAL, i);
 
 	}
-	releaseTensor(&imageDouble);
+	releaseTensor(&imageREAL);
 	if (t->cnn->error.error) {
 		CNN_ERROR("Falha enquanto roda o kernel: ");
 	}
@@ -253,6 +260,7 @@ void loadImage(ManageTrain *t) {
 void loadLabels(ManageTrain *t) {
 	if (t->cnn->error.error)return;
 	FILE *flabel = fopen(t->file_labels.d, "rb");
+
 	if (!flabel) {
 		t->cnn->error.error = FAILED_LOAD_FILE;
 		CNN_ERROR("Imagens nao foram encontradas em %s\n", t->file_labels);
@@ -271,35 +279,36 @@ void loadLabels(ManageTrain *t) {
 								 TENSOR_CHAR | TENSOR_CPY,
 								 t->n_images, 1, 1, 1,
 								 &t->cnn->error, t->labels->host);
-	Tensor labelDouble = new_Tensor(t->cnn->cl->context, t->cnn->queue,
+	Tensor labelREAL = new_Tensor(t->cnn->cl->context, t->cnn->queue,
 									TENSOR4D,
 									1, t->n_classes, 1, t->n_images,
 									&t->cnn->error, NULL);
+	TensorFill(t->cnn->queue,labelREAL,0);
 
 	if (t->cnn->error.error) {
-		CNN_ERROR("Falha ao criar tensores imageDouble: ");
+		CNN_ERROR("Falha ao criar tensores imageREAL: ");
 		return;
 	}
 
 	kernel_run_recursive(t->cnn->error.error, t->cnn->kernelInt2Vector, t->cnn->queue,
-						 t->n_images * t->n_classes, t->cnn->cl->maxworks,
+						 t->n_images , t->cnn->cl->maxworks,
 						 K_ARG labelInt->data,
-						 K_ARG labelDouble->data,
+						 K_ARG labelREAL->data,
 						 K_ARG t->n_classes
 	);
 	synchronizeKernel(t->cnn->queue);
 	releaseTensor(&labelInt);
 	if (t->cnn->error.error) {
 		CNN_ERROR("Falha ao iniciar kernel: ");
-		releaseTensor(&labelDouble);
+		releaseTensor(&labelREAL);
 		return;
 	}
 	for (int i = 0; i < t->n_images&& t->can_run; ++i) {
 		t->targets[i] = new_Tensor(t->cnn->cl->context, t->cnn->queue, 0, t->n_classes, 1, 1, 1, &t->cnn->error, NULL);
-		t->cnn->error.error |= TensorCpy(t->cnn->queue, t->targets[i], labelDouble, i);
+		t->cnn->error.error |= TensorCpy(t->cnn->queue, t->targets[i], labelREAL, i);
 		t->et.ll_imagem_atual = i;
 	}
-	releaseTensor(&labelDouble);
+	releaseTensor(&labelREAL);
 
 
 }
@@ -442,7 +451,7 @@ void loadArgsLuaManageTrain(ManageTrain *t, Dictionary *args) {
 	}
 }
 
-ManageTrain createManageTrain(char *luafile, double tx_aprendizado, double momento, double decaimento, int luaIsProgram) {
+ManageTrain createManageTrain(char *luafile, REAL tx_aprendizado, REAL momento, REAL decaimento, int luaIsProgram) {
 	ManageTrain result = {0};
 	result.cnn = createCnnWithWrapperProgram(default_kernel, (Params) {tx_aprendizado, momento, decaimento}, 0, 0, 0, CL_DEVICE_TYPE_GPU);
 	LuaputHelpFunctionArgs(helpArgumentsManageTrain);

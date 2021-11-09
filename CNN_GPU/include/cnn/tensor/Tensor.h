@@ -27,7 +27,7 @@
 /**
  * Valido somente para tensores com host definido
  */
-#define Tensor_Map_V(T, xx, yy, zz) ((double *)(T)->host)[(zz)*((T)->y*(T)->x)+(xx)*(T)->y+(yy)]
+#define Tensor_Map_V(T, xx, yy, zz) ((REAL *)(T)->host)[(zz)*((T)->y*(T)->x)+(xx)*(T)->y+(yy)]
 
 // TYPE_VALUE    COPY_PTR   TYPEMEMORY     OBSOLETO         3d/4d
 // 000          	 0  		10            1               0
@@ -47,8 +47,8 @@
 /// Tensor 4D.
 #define TENSOR4D 0b1
 
-/// Tensor tipo double (default).
-#define TENSOR_DOUBLE 0x0
+/// Tensor tipo REAL (default).
+#define TENSOR_REAL 0x0
 /// Tensor tipo char.
 #define TENSOR_CHAR 0b00100000
 /// Tensor tipo int.
@@ -63,7 +63,7 @@
 typedef unsigned int UINT;
 typedef unsigned int flag_t;
 #define Ptr
-#define var_host union {void *host;double *hostd;char *hostc;int *hosti;}
+#define var_host union {void *host;REAL *hostd;char *hostc;int *hosti;}
 
 /**
  * Armazena as três dimensões de um ponto
@@ -75,10 +75,10 @@ typedef struct Ponto {
 	size_t x, y, z;
 } Ponto;
 typedef struct {
-	int type;// -1 disable random,0 default, 1 uniform, 2 normal
+	int type;// 0 default, 1 uniform, 2 normal
 	// y = X * a + b
-	double a;
-	double b;
+	REAL a;
+	REAL b;
 } RandomParam;
 
 /***
@@ -116,9 +116,9 @@ int TensorFill(QUEUE queue, Tensor t, char patern);
 
 int TensorFillOffSet(QUEUE queue, Tensor t, char patern, size_t offset);
 
-int TensorFillDouble(QUEUE queue, Tensor t, double pattern);
+int TensorFillREAL(QUEUE queue, Tensor t, REAL pattern);
 
-int TensorFillDoubleOffSet(QUEUE queue, Tensor t, double pattern, size_t offset);
+int TensorFillREALOffSet(QUEUE queue, Tensor t, REAL pattern, size_t offset);
 
 int TensorPutValues(QUEUE queue, Tensor t, void *data);
 
@@ -136,7 +136,7 @@ int TensorPutValuesMem(QUEUE queue, Tensor t, void *data, size_t bytes);
 
 int TensorPutValuesMemOffSet(QUEUE queue, Tensor t, void *data, size_t bytes, size_t ofset);
 
-int TensorGetNorm(QUEUE queue, Tensor t, double *norm);
+int TensorGetNorm(QUEUE queue, Tensor t, REAL *norm);
 
 int TensorAt(Tensor t, UINT x, UINT y, UINT z, UINT w, UINT *index);
 
@@ -151,7 +151,7 @@ int TensorCpy(QUEUE queue, Tensor tdst, Tensor tsrc, size_t wsrc);
  * @param b  soma, para distribuição normal é a média
  * @return se falhar retorna um valor diferente de 0
  */
-int TensorRandomize(QUEUE queue, Tensor t, int distribuicao, double a, double b);
+int TensorRandomize(QUEUE queue, Tensor t, int distribuicao, REAL a, REAL b);
 
 void releaseTensor(Tensor *t);
 

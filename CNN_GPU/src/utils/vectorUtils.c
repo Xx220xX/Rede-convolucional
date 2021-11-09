@@ -5,7 +5,7 @@
 #include "utils/vectorUtils.h"
 #include <windows.h>
 
-void ppmp2(double *data, int x, int y, char *fileName) {
+void ppmp2(REAL *data, int x, int y, char *fileName) {
 	FILE *f = fopen(fileName, "w");
 	fprintf(f, "P2\n");
 	fprintf(f, "%d %d\n", y, x);
@@ -21,7 +21,7 @@ void ppmp2(double *data, int x, int y, char *fileName) {
 	fclose(f);
 }
 
-void ppmp3(double *data, int x, int y, int z, const char *fileName) {
+void ppmp3(REAL *data, int x, int y, int z, const char *fileName) {
 	FILE *f = fopen(fileName, "w");
 	fprintf(f, "P3\n");
 	fprintf(f, "%d %d\n", y, x);
@@ -56,10 +56,10 @@ void salveCnnOutAsPPM(Cnn c, const char *name) {
 }
 
 void salveTensorAsPPM(const char *name, Tensor t, Cnn c) {
-	double *dt = alloc_mem(t->bytes, 1);
+	REAL *dt = alloc_mem(t->bytes, 1);
 	FILE *f = fopen(name, "w");
 	TensorGetValues(c->queue, t, dt);
-	normalizeGPU(c, dt, dt, t->bytes / sizeof(double), 255, 0);
+	normalizeGPU(c, dt, dt, t->bytes / sizeof(REAL), 255, 0);
 	fprintf(f, "P2\n");
 	fprintf(f, "%d %d\n", t->y * t->z + t->z - 1, t->x);
 	fprintf(f, "255\n");
@@ -87,9 +87,9 @@ int salveTensorAsPPM3(const char *name, Tensor t, Cnn c) {
 
 int salveTensor4DAsPPM3(const char *name, Tensor t, Cnn c, UINT w) {
 	if (t->z != 3)return -1;
-	double *dt = alloc_mem(t->bytes, 1);
+	REAL *dt = alloc_mem(t->bytes, 1);
 	TensorGetValuesOffSet(c->queue, t, dt, t->bytes * w);
-	normalizeGPU(c, dt, dt, t->bytes / sizeof(double), 255, 0);
+	normalizeGPU(c, dt, dt, t->bytes / sizeof(REAL), 255, 0);
 	ppmp3(dt, t->x, t->y, t->z, name);
 	free_mem(dt);
 	return 0;
@@ -97,13 +97,13 @@ int salveTensor4DAsPPM3(const char *name, Tensor t, Cnn c, UINT w) {
 
 int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c, UINT w) {
 	if (w >= t->w) return -2;
-	double *dt = alloc_mem(t->bytes, 1);
+	REAL *dt = alloc_mem(t->bytes, 1);
 	c->error.error = TensorGetValuesOffSet(c->queue, t, dt, t->bytes * w);
 	if (c->error.error) {
 		free_mem(dt);
 		return c->error.error;
 	}
-	normalizeGPU(c, dt, dt, t->bytes / sizeof(double), 255, 0);
+	normalizeGPU(c, dt, dt, t->bytes / sizeof(REAL), 255, 0);
 	if (c->error.error) {
 		free_mem(dt);
 		return c->error.error;
@@ -134,13 +134,13 @@ int salveTensor4DAsPPM(const char *name, Tensor t, Cnn c, UINT w) {
 }
 
 
-int dividirVetor(double *v, Tensor m, size_t len, double value, Kernel funcNorm, size_t max_works,
+int dividirVetor(REAL *v, Tensor m, size_t len, REAL value, Kernel funcNorm, size_t max_works,
 				 QUEUE queue) {
-	int error = TensorPutValuesMem(queue, m, v, len * sizeof(double));
+	int error = TensorPutValuesMem(queue, m, v, len * sizeof(REAL));
 	if (error)return error;
 	kernel_run_recursive(error, funcNorm, queue, len, max_works, K_ARG m, K_ARG value);
 	if (error)return error;
-	error = TensorGetValuesMem(queue, m, v, len * sizeof(double));
+	error = TensorGetValuesMem(queue, m, v, len * sizeof(REAL));
 	return error;
 }
 

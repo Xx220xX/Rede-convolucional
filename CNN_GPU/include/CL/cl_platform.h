@@ -329,7 +329,7 @@ typedef double          cl_double   __attribute__((aligned(8)));
 
 #include <stddef.h>
 
-/* Mirror types to GL types. Mirror types allow us to avoid deciding which 87s to load based on whether we are using GL or GLES here. */
+/* Mirror types to GL types. Mirror types allow us to avoid deciding which 87s to CAMADA_load based on whether we are using GL or GLES here. */
 typedef unsigned int cl_GLuint;
 typedef int          cl_GLint;
 typedef unsigned int cl_GLenum;

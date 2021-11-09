@@ -18,7 +18,7 @@ typedef struct {
 	Tensor B;
 	Tensor gradB;
 
-	double epsilon;
+	REAL epsilon;
 
 
 	Tensor media;
@@ -44,7 +44,7 @@ typedef struct {
 
 
 Camada createBatchNorm(WrapperCL *cl, QUEUE queue, Params params, unsigned int inx, unsigned int iny,
-					   unsigned int inz, Tensor entrada, double epsilon, RandomParam randY, RandomParam randB, CNN_ERROR *error);
+					   unsigned int inz, Tensor entrada, REAL epsilon, RandomParam randY, RandomParam randB, CNN_ERROR *error);
 
 
 #endif //CNN_GPU_CAMADABATCHNORM_H

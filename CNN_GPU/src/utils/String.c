@@ -49,3 +49,24 @@ String vStrS(String sformat, va_list args) {
 	result.release = 1;
 	return result;
 }
+
+
+
+char *vmprintf(char *format, va_list list) {
+	char *result = NULL;
+	int len = vsprintf(result, format, list);
+	result = alloc_mem(len + 1, sizeof(char *));
+	vsprintf(result, format, list);
+	return result;
+
+}
+
+char *mprintf(char *format, ...) {
+	va_list list;
+	va_start(list, format);
+	char *result = vmprintf(format, list);
+	va_end(list);
+	return result;
+
+}
+

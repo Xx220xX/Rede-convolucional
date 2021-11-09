@@ -21,6 +21,11 @@ String StrS(String sformat, ...);
 
 String vStrS(String sformat, va_list args);
 
+char *vmprintf(char *format, va_list list);
+
+char *mprintf(char *format, ...);
+
 void releaseStr(String *s);
-#define StrClearAndCopy(dst,char_src)releaseStr(&(dst));(dst) = Strf("%s",char_src)
+
+#define StrClearAndCopy(dst, char_src)releaseStr(&(dst));(dst) = Strf("%s",char_src)
 #endif //CNN_GPU_STRING_H

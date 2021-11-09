@@ -86,7 +86,7 @@ void salvarPRelu(WrapperCL *cl, CamadaPRelu c, FILE *dst, CNN_ERROR *error) {
 	fwrite(&c->super.entrada->z, sizeof(UINT), 1, dst);
 	fwrite(&c->super.parametros, sizeof(Params), 1, dst);
 
-	double *data = alloc_mem(c->A->bytes, 1);
+	REAL *data = alloc_mem(c->A->bytes, 1);
 	TensorGetValuesMem(c->super.queue, c->A, data, c->A->bytes);
 	fwrite(data, c->A->bytes, 1, dst);
 	free_mem(data);
@@ -108,7 +108,7 @@ Camada carregarPRelu(WrapperCL *cl, FILE *src, cl_command_queue queue, Tensor en
 	fread(&params, sizeof(Params), 1, src);
 
 	CamadaPRelu c = (CamadaPRelu) createPRelu(cl, queue, inx, iny, inz, entrada, params,(RandomParam) {-1}, error);
-	double *data = alloc_mem(c->A->bytes, 1);
+	REAL *data = alloc_mem(c->A->bytes, 1);
 	fread(data, c->A->bytes, 1, src);
 	TensorPutValuesMem(c->super.queue, c->A, data, c->A->bytes);
 	free_mem(data);
@@ -135,7 +135,7 @@ Camada createPRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsi
 
 	if (randomParams.type != -1) {
 		if (randomParams.type == 0)
-			TensorRandomize(queue, c->A, LCG_NORMAL, 1, 0);
+			TensorRandomize(queue, c->A, LCG_NORMAL, sqrt(2.0/(inx*iny*inz)), 0);
 		else
 			TensorRandomize(queue, c->A, randomParams.type, randomParams.a, randomParams.b);
 	}
@@ -144,7 +144,7 @@ Camada createPRelu(WrapperCL *cl, cl_command_queue queue, unsigned int inx, unsi
 	c->kernelPReluCalcGrads = new_Kernel(cl->program, error, prelucalcgrad, 10,
 										 K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 										 K_INT,
-										 K_DOUBLE, K_DOUBLE, K_DOUBLE,
+										 K_REAL, K_REAL, K_REAL,
 										 K_INT);
 
 	return (Camada) c;

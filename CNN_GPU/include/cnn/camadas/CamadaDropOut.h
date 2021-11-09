@@ -16,7 +16,7 @@ typedef struct {
 	Typecamada super;
 	Tensor hitmap;
 	char flag_releaseInput;
-	double p_ativacao;
+	REAL p_ativacao;
 	cl_ulong seed;
 	Kernel kerneldropativa;
 	Kernel kerneldropcalcgrad;
@@ -24,7 +24,7 @@ typedef struct {
 
 
 Camada createDropOut(WrapperCL *cl, QUEUE queue, UINT inx, UINT iny, UINT inz,
-					 double p_ativacao, long long seed,
+					 REAL p_ativacao, long long seed,
 					 Tensor entrada,  CNN_ERROR *error);
 
 

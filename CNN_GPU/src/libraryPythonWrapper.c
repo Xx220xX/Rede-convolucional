@@ -1,7 +1,7 @@
 #include "libraryPythonWrapper.h"
 #include "cnn/utils/defaultkernel.h"
 
-void PY_createCnn(Cnn c, double hitLearn, double momento, double decaimentoDePeso,
+void PY_createCnn(Cnn c, REAL hitLearn, REAL momento, REAL decaimentoDePeso,
 				  UINT inx, UINT iny, UINT inz) {
 	Params pr = {hitLearn, momento, decaimentoDePeso};
 	WrapperCL *cl = (WrapperCL *) alloc_mem(sizeof(WrapperCL), 1);
@@ -51,12 +51,12 @@ void Py_getCnnOutPutAsPPM(Cnn c, String *p, size_t *h, size_t *w) {
 }
 
 
-void createManageTrainPy(ManageTrain *self, char *luafile, double tx_aprendizado, double momento, double decaimento) {
+void createManageTrainPy(ManageTrain *self, char *luafile, REAL tx_aprendizado, REAL momento, REAL decaimento) {
 	*self = createManageTrain(luafile, tx_aprendizado, momento, decaimento,0);
 	self->self_release = 0;
 }
 
-void createManageTrainPyStr(ManageTrain *self, char *lua_data, double tx_aprendizado, double momento, double decaimento) {
+void createManageTrainPyStr(ManageTrain *self, char *lua_data, REAL tx_aprendizado, REAL momento, REAL decaimento) {
 	*self = createManageTrain(lua_data, tx_aprendizado, momento, decaimento,1);
 	self->self_release = 0;
 }

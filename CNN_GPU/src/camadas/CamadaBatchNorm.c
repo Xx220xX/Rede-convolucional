@@ -135,7 +135,7 @@ void salvarBatchNorm(WrapperCL *cl, CamadaBatchNorm c, FILE *dst, CNN_ERROR *err
 	fwrite(&c->super.parametros, sizeof(Params), 1, dst);
 
 
-	double *data = (double *) alloc_mem(c->Y->z, sizeof(double));
+	REAL *data = (REAL *) alloc_mem(c->Y->z, sizeof(REAL));
 	TensorGetValues(c->super.queue, c->Y, data);
 	fwrite(data, c->Y->bytes, 1, dst);
 	TensorGetValues(c->super.queue, c->B, data);
@@ -159,11 +159,11 @@ Camada carregarBatchNorm(WrapperCL *cl, FILE *src, cl_command_queue queue, Tenso
 	fread(&inz, sizeof(UINT), 1, src);
 	fread(&params, sizeof(Params), 1, src);
 
-	double epsilon = 1e-10;
+	REAL epsilon = 1e-10;
 	CamadaBatchNorm cm = (CamadaBatchNorm) createBatchNorm(cl, queue, params, inx, iny, inz, entrada,
 														   epsilon, (RandomParam) {-1},
 														   (RandomParam) {-1}, error);
-	double *data = (double *) alloc_mem(cm->Y->z, sizeof(double));
+	REAL *data = (REAL *) alloc_mem(cm->Y->z, sizeof(REAL));
 	fread(data, cm->Y->bytes, 1, src);
 	TensorPutValues(cm->super.queue, cm->Y, data);
 	fread(data, cm->B->bytes, 1, src);
@@ -202,7 +202,7 @@ void realeaseBatchNorm(CamadaBatchNorm *pc) {
 
 Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
 					   UINT inx, UINT iny,
-					   UINT inz, Tensor entrada, double epsilon, RandomParam randY, RandomParam randB,
+					   UINT inz, Tensor entrada, REAL epsilon, RandomParam randY, RandomParam randB,
 					   CNN_ERROR *error) {
 	if (error->error)return NULL;
 
@@ -240,7 +240,7 @@ Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
 										  K_INT, K_INT, K_INT);
 	c->kernelBatchNormAtiva3 = new_Kernel(cl->program, error, BatchNormVariance, 8,
 										  K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-										  K_DOUBLE, K_INT, K_INT, K_INT);
+										  K_REAL, K_INT, K_INT, K_INT);
 	c->kernelBatchNormAtiva4 = new_Kernel(cl->program, error, BatchNormNormaliza, 9,
 										  K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
 										  K_VOID_P, K_VOID_P,
@@ -255,7 +255,7 @@ Camada createBatchNorm(WrapperCL *cl, cl_command_queue queue, Params params,
 											  K_INT, K_INT, K_INT);
 	c->kernelBatchNormCorrige = new_Kernel(cl->program, error, batchNormCorrigePeso, 6,
 										   K_VOID_P, K_VOID_P, K_VOID_P, K_VOID_P,
-										   K_DOUBLE, K_INT);
+										   K_REAL, K_INT);
 	if (randY.type != -1) {
 		if (randY.type == 0) {
 			TensorRandomize(queue, c->Y, LCG_UNIFORM, 1.0 / inz, 0);

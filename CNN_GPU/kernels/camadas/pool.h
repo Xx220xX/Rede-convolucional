@@ -5,14 +5,14 @@ kV poolativa(Vector entrada, Vector saida,
 			 int entradatx, int entradaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
-	TensorRemap(k, x, y, z, saidatx, saidaty)
+	KTensorRemap(k, x, y, z, saidatx, saidaty)
 
 	Ponto3d mapeado = {x * passox, y * passoy, 0};
-	double mval, v;
+	REAL mval, v;
 	mval = -DBL_MAX;
 	for (int i = 0; i < filtrox; ++i) {
 		for (int j = 0; j < filtroy; ++j) {
-			v = entrada[TensorMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
+			v = entrada[KTensorMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
 			if (v > mval)
 				mval = v;
 		}
@@ -29,7 +29,7 @@ kV poolCalcGrads(Vector entrada, Vector gradEntrada,
 				 int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
-	TensorRemap(k, x, y, z, entradatx, entradaty)
+	KTensorRemap(k, x, y, z, entradatx, entradaty)
 	Range range_filtro;
 	if (x + fx > entradatx) {
 		range_filtro.min.x = x + fx - entradatx;
@@ -47,17 +47,17 @@ kV poolCalcGrads(Vector entrada, Vector gradEntrada,
 		range_filtro.max.y = y;
 	}
 	int i, j;//saida
-	gradEntrada[TensorMap(x, y, z, entradatx, entradaty)] =0;
+	gradEntrada[KTensorMap(x, y, z, entradatx, entradaty)] =0;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		i = (x - m) / px;
 		if (i * px + m != x)continue;
 		for (int n = range_filtro.min.y; n <= range_filtro.max.y; n++) {
 			j = (y - n) / py;
 			if (j * py + n != y)continue;
-			if (entrada[TensorMap(x, y, z, entradatx, entradaty)] ==
-				saida[TensorMap(i, j, z, saidatx, saidaty)]) {
-				gradEntrada[TensorMap(x, y, z, entradatx, entradaty)] =
-						gradNext[TensorMap(i, j, z, saidatx, saidaty)];
+			if (entrada[KTensorMap(x, y, z, entradatx, entradaty)] ==
+				saida[KTensorMap(i, j, z, saidatx, saidaty)]) {
+				gradEntrada[KTensorMap(x, y, z, entradatx, entradaty)] =
+						gradNext[KTensorMap(i, j, z, saidatx, saidaty)];
 				return;
 			}
 		}

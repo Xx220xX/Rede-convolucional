@@ -21,7 +21,7 @@ LCG new_LCG(Bytes64 seed);
 
 void pLCG_setSeed(LCG *self, Bytes64 seed);
 
-double pLCG_randD(LCG *self);
+REAL pLCG_randD(LCG *self);
 
 int pLCG_randI(LCG *self);
 
@@ -29,11 +29,11 @@ Bytes64 pLCG_randB(LCG *self);
 
 void LCG_setSeed(Bytes64 seed);
 
-double LCG_randD();
+REAL LCG_randD();
 
-double pLCG_randn(LCG *self);
+REAL pLCG_randn(LCG *self);
 
-double LCG_randn();
+REAL LCG_randn();
 
 int LCG_randI();
 

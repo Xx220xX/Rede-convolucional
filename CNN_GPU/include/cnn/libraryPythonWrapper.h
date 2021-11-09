@@ -9,11 +9,11 @@ typedef struct {
 	void *p;
 } Pointer;
 
-void createManageTrainPy(ManageTrain *self, char *luafile, double tx_aprendizado, double momento, double decaimento);
+void createManageTrainPy(ManageTrain *self, char *luafile, REAL tx_aprendizado, REAL momento, REAL decaimento);
 
-void createManageTrainPyStr(ManageTrain *self, char *lua_data, double tx_aprendizado, double momento, double decaimento);
+void createManageTrainPyStr(ManageTrain *self, char *lua_data, REAL tx_aprendizado, REAL momento, REAL decaimento);
 
-void PY_createCnn(Cnn c, double hitLearn, double momento, double decaimentoDePeso,
+void PY_createCnn(Cnn c, REAL hitLearn, REAL momento, REAL decaimentoDePeso,
 				  UINT inx, UINT iny, UINT inz);
 
 void PY_releaseCnn(Cnn c);
