@@ -4,8 +4,9 @@
 #include "utils/manageTrain.h"
 #include "utils/vectorUtils.h"
 #include "conio2/conio2.h"
-
+#include "ui.h"
 // call backs
+
 void onLoad(ManageTrain *t);
 
 void OnfinishEpic(ManageTrain *t);
@@ -39,8 +40,8 @@ int saveAsGraphic(DVector *a) {
 	FILE *f = fopen(a->file, "wb");
 	fwrite(&a->length, sizeof(size_t), 1, f);
 
-	fwrite(a->x, sizeof(REAL), a->length, f);
-	fwrite(a->y, sizeof(REAL), a->length, f);
+	fwrite(a->x, sizeof(double), a->length, f);
+	fwrite(a->y, sizeof(double), a->length, f);
 	fflush(f);
 	fclose(f);
 	if (a->releasex_y) {
@@ -63,8 +64,8 @@ void OnfinishEpic(ManageTrain *t) {
 	v->x = t->et.tr_mse_vector;
 	v->y = t->et.tr_acertos_vector;
 	v->length = t->et.tr_imagem_atual + 1;
-	t->et.tr_mse_vector = alloc_mem(t->n_images, sizeof(REAL));
-	t->et.tr_acertos_vector = alloc_mem(t->n_images, sizeof(REAL));
+	t->et.tr_mse_vector = alloc_mem(t->n_images, sizeof(double));
+	t->et.tr_acertos_vector = alloc_mem(t->n_images, sizeof(double));
 
 	HANDLE th = newThread(saveAsGraphic, v);
 	ThreadClose(th);
@@ -93,14 +94,14 @@ void OnfinishFitnes(ManageTrain *t) {
 			fprintf(f, "%c", msg[i]);
 		}
 		fprintf(f, ",");
-		fprintf(f, "%d,%d,%lf,%lf", (int) t->et.ft_info[0 + j  * t->et.ft_info_coluns], (int) t->et.ft_info[1 + j * t->et.ft_info_coluns],
+		fprintf(f, "%d,%d,%lf,%lf", (int) t->et.ft_info[0 + j * t->et.ft_info_coluns], (int) t->et.ft_info[1 + j * t->et.ft_info_coluns],
 				100 * t->et.ft_info[1 + j * t->et.ft_info_coluns] / (t->et.ft_info[0 + j * t->et.ft_info_coluns] + 1e-14),
 				t->et.ft_info[2 + j * t->et.ft_info_coluns] / (t->et.ft_info[0 + j * t->et.ft_info_coluns] + 1e-14));
 		for (int k = 0; k < t->n_classes; k++) {
 			if (k == j)
 				fprintf(f, ",-");
 			else
-				fprintf(f, ",%d", (int)t->et.ft_info[3+k + j * t->et.ft_info_coluns]);
+				fprintf(f, ",%d", (int) t->et.ft_info[3 + k + j * t->et.ft_info_coluns]);
 		}
 		fprintf(f, "\n");
 		media += t->et.ft_info[1 + j * t->et.ft_info_coluns];
@@ -166,17 +167,25 @@ void UpdateTrain(ManageTrain *mt) {
 	Estatistica *t = (Estatistica *) mt;
 //	if (t->tr_time)
 //		imps = (t->tr_epoca_atual * t->tr_numero_imagens + t->tr_imagem_atual) / (REAL) t->tr_time * 1000.0;
-	imps = (double)t->tr_imps;
+	imps = (double) t->tr_imps;
 	size_t tmp_restante_epoca = round((t->tr_numero_imagens - t->tr_imagem_atual - 1) / imps);
 	size_t tmp_restante_treino =
 			round(((t->tr_numero_epocas - t->tr_epoca_atual - 1) * t->tr_numero_imagens + t->tr_numero_imagens -
 				   t->tr_imagem_atual - 1) / imps);
 	static int y = -1;
+	static Progress pepoca = {0};
+	static Progress pimagen = {0};
 	if (y == -1) {
-		y = wherey() + 2;
+		y = wherey() + 3;
+		pepoca = newProgress("Epocas", 0, 1, y, 30);
+		pimagen = newProgress("Imagens", 0, 1, y + 1, 30);
+
 	}
-	gotoxy(1, y);
-	printf("Epoca %d de %d     imagem %d de %d \n", t->tr_epoca_atual, t->tr_numero_epocas, t->tr_imagem_atual, t->tr_numero_imagens);
+
+	showP(&pepoca, (double) (t->tr_epoca_atual * t->tr_numero_imagens + t->tr_imagem_atual) / ((double) t->tr_numero_epocas * t->tr_numero_imagens));
+	showP(&pimagen, (double) (t->tr_imagem_atual + 1.0) / (t->tr_numero_imagens));
+	pimagen.end = 0;
+	printf("\n");
 	printf("Tempo estimado final do treino  %lld:%02lld:%02lld\n",
 		   tmp_restante_treino / 3600,
 		   (tmp_restante_treino % 3600) / 60,
@@ -187,11 +196,12 @@ void UpdateTrain(ManageTrain *mt) {
 		   (tmp_restante_epoca % 3600) % 60);
 	printf("Imagens por segundo %.2lf\n",imps);
 	printf("Mse %.16lf\n"
-		   "Acerto medio %lf\n",
+		   "Acerto medio %.2lf     \n",
 		   t->tr_erro_medio,
 		   t->tr_acerto_medio * 100);
 
-	static int delete = 0;
+
+
 	char c = 0;
 	if (kbhit()) {
 		c = getche();
@@ -200,7 +210,6 @@ void UpdateTrain(ManageTrain *mt) {
 		}
 	}
 	Sleep(10);
-//	system("cls");
 }
 
 void UpdateFitnes(ManageTrain *t) {
@@ -216,7 +225,7 @@ void UpdateFitnes(ManageTrain *t) {
 		imps = (t->et.ft_imagem_atual + 1) / tm;
 	size_t tmp = (t->et.ft_numero_imagens - t->et.ft_imagem_atual - 1.0) / imps;
 //		printf("Tempo estimado final da avaliação --:--:--     \n");
-	printf("\n%lf tr_imps     ", (double)imps);
+	printf("\n%lf tr_imps     ", (double) imps);
 //	printf("\n%lf temp     ",tm);
 	printf("\nTempo estimado final da avaliação %lld:%02lld:%02lld     \n",
 		   tmp / 3600,
@@ -232,18 +241,17 @@ void UpdateFitnes(ManageTrain *t) {
 	}
 }
 
+
 void UpdateLoad(ManageTrain *t) {
+	static Progress pi = {0};
+	static Progress pl = {0};
 	static int y = -1;
 	if (y == -1) {
 		y = wherey() + 1;
-		gotoxy(1, y);
-		printf("Imagem: \n");
-		printf("Label: ");
+		pi = newProgress("Imagem ", 0, 1, y, 20);
+		pl = newProgress("Label ", 0, 1, y + 1, 20);
 	}
-	gotoxy(8, y);
-	printf("%lld    %.3lf%%        ", t->et.ld_imagem_atual + 1, 100.0 * (t->et.ld_imagem_atual + 1.0) / t->n_images);
-	gotoxy(7, y+1);
-	unsigned long  long  int im = t->et.ll_imagem_atual ;
-	if (im!=0)im+=1;
-	printf("%lld     %.3lf%%        ", im, 100.0 * (im) / t->n_images);
+
+	showP(&pi, (t->et.ld_imagem_atual + 1.0) / t->n_images);
+	showP(&pl, (t->et.ll_imagem_atual + 1.0) / t->n_images);
 }

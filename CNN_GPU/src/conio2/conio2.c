@@ -32,6 +32,7 @@ static struct text_info __text_info = {
 static int __CONIO_TOP = 0;
 static int __CONIO_LEFT = 0;
 
+
 static void __fill_text_info(void) {
 	CONSOLE_SCREEN_BUFFER_INFO info;
 

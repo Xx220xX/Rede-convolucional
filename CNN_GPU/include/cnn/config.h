@@ -15,4 +15,5 @@
 
 #define REAL float
 #define CLREAL cl_float
+#include "utils/log.h"
 #endif //CNN_GPU_CONFIG_H

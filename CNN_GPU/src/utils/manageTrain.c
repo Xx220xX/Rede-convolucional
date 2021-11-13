@@ -2,6 +2,7 @@
 // Created by Henrique on 28-Jul-21.
 //
 
+
 #include "utils/manageTrain.h"
 #include "utils/vectorUtils.h"
 #include"utils/time_utils.h"
@@ -71,6 +72,7 @@ void train(ManageTrain *t) {
 
 	REAL local_mse = 0;
 	double time_init_train;
+	double time_init_epic;
 	double internal_time = t->current_time;
 	Tensor input;
 	Tensor output;
@@ -81,20 +83,23 @@ void train(ManageTrain *t) {
 	if (!t->et.tr_acertos_vector) {
 		t->et.tr_acertos_vector = alloc_mem(t->n_images2train, sizeof(double));
 		t->et.tr_mse_vector = alloc_mem(t->n_images2train, sizeof(double));
+		t->et.tr_erro_medio = 1;
 	}
 	t->et.tr_numero_epocas = t->n_epics;
 	time_init_train = getms();
 	long long int imgs = 0;
+	t->et.tr_imps = 0;
 	for (; t->can_run && !t->cnn->error.error && t->epic < t->n_epics; t->epic++) {
 		if (t->image >= t->n_images2train) {
 			t->image = 0;
 			t->et.tr_imagem_atual = 0;
 			t->sum_acerto = 0;
-			t->sum_erro = 0;
 		}
 		t->et.tr_numero_imagens = t->n_images2train;
 
 		t->et.tr_epoca_atual = t->epic;
+		imgs = 0;
+		time_init_epic= getms();
 		for (; t->can_run && !t->cnn->error.error && t->image < t->n_images2train; t->image++) {
 			imgs++;
 			input = t->imagens[t->image];
@@ -110,15 +115,17 @@ void train(ManageTrain *t) {
 
 			t->sum_acerto += (cnn_label == label);
 
-			t->sum_erro += (double)local_mse;
-			t->et.tr_acertos_vector[t->image] = t->sum_acerto / (t->image + 1.0);
-			t->et.tr_erro_medio = t->et.tr_mse_vector[t->image] = t->sum_erro / (t->image + 1.0);
 
+			t->et.tr_acertos_vector[t->image] = t->sum_acerto / (t->image + 1.0);
+			t->et.tr_erro_medio = t->et.tr_erro_medio*0.4 + 0.6 * local_mse;
+			t->et.tr_mse_vector[t->image] = t->et.tr_erro_medio;
 			t->et.tr_acerto_medio = t->et.tr_acertos_vector[t->image];
 			t->current_time = internal_time + getms() - time_init_train;
 			t->et.tr_imagem_atual = t->image;
 			t->et.tr_time = t->current_time;
-			t->et.tr_imps =( ((double)imgs) / (getms() - time_init_train) * 1000.0);
+
+			t->et.tr_imps = t->et.tr_imps*0.4 +  0.6*1000.0*imgs/(getms() - time_init_epic);
+
 		}
 		EVENT(t->OnfinishEpic, t);
 	}
@@ -158,8 +165,8 @@ void fitnes(ManageTrain *t) {
 		CnnCalculeErrorTWithOutput(t->cnn, output, &local_mse);
 
 		if(t->image<10){
-			String s = Strf("imagens/%d.ppm",t->image);
-			salveCnnOutAsPPM(t->cnn,s.d);
+			String s = Strf("imagens/%da.ppm",t->image);
+			salveCnnOutAsPPMR(t->cnn,s.d,720,720);
 			releaseStr(&s);
 		}
 		t->et.ft_info[label * t->et.ft_info_coluns + CASOS]++;
@@ -260,7 +267,7 @@ void loadImage(ManageTrain *t) {
 void loadLabels(ManageTrain *t) {
 	if (t->cnn->error.error)return;
 	FILE *flabel = fopen(t->file_labels.d, "rb");
-
+	t->et.ll_imagem_atual = -1;
 	if (!flabel) {
 		t->cnn->error.error = FAILED_LOAD_FILE;
 		CNN_ERROR("Imagens nao foram encontradas em %s\n", t->file_labels);
@@ -449,9 +456,12 @@ void loadArgsLuaManageTrain(ManageTrain *t, Dictionary *args) {
 			t->use_gpu_mem = atoi(arg.value);
 		}
 	}
+	t->et.tr_numero_imagens = t->n_images;
+	t->et.tr_numero_epocas = t->n_epics;
 }
 
 ManageTrain createManageTrain(char *luafile, REAL tx_aprendizado, REAL momento, REAL decaimento, int luaIsProgram) {
+	LOGF("createManageTrain:init")
 	ManageTrain result = {0};
 	result.cnn = createCnnWithWrapperProgram(default_kernel, (Params) {tx_aprendizado, momento, decaimento}, 0, 0, 0, CL_DEVICE_TYPE_GPU);
 	LuaputHelpFunctionArgs(helpArgumentsManageTrain);
@@ -462,6 +472,8 @@ ManageTrain createManageTrain(char *luafile, REAL tx_aprendizado, REAL momento, 
 
 	loadArgsLuaManageTrain(&result, &result.cnn->luaArgs);
 	result.can_run = 1;
+	LOGF("createManageTrain:end")
+
 	return result;
 }
 
@@ -482,6 +494,7 @@ int ManageTraintrain(ManageTrain *t, int runBackground) {
 	t->real_time = 1;
 	t->process_id = PROCESS_ID_TRAIN;
 	releaseProcess(&t->process);
+
 	if (runBackground) {
 		t->process = newThread(train, t);
 		return t->process != NULL;

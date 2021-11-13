@@ -3,10 +3,10 @@ project(CNN_GPU C)
 
 set(CMAKE_C_FLAGS -m64)
 set(CMAKE_C_STANDARD 11)
-link_directories(lib/lua)
+link_directories(lib/lua lib/png)
 include_directories(include include/cnn)
 
-link_libraries(OpenCL lua543)
+link_libraries(OpenCL lua543 png)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../bin)
 
@@ -49,6 +49,7 @@ set(string_util src/utils/String.c include/cnn/utils/String.h)
 set(default_kernel_util src/utils/defaultkernel.c include/cnn/utils/defaultkernel.h)
 set(thread_util include/cnn/utils/Thread.h src/utils/Thread.c)
 set(memory_util include/cnn/utils/memory_utils.h src/utils/memory_utils.c)
+set(logs_util include/cnn/utils/log.h)
 set(tensor include/cnn/tensor/Tensor.h src/tensor/Tensor.c)
 
 set(gpu include/cnn/gpu/Kernel.h src/gpu/Kernel.c include/cnn/gpu/WrapperCL.h src/gpu/WrapperCL.c)
@@ -78,6 +79,8 @@ add_library(gabcnn SHARED
         ${memory_util}
         ${LCG_RANDOM}
         ${tensor}
+        ${logs_util}
+
         ${conio2} include/cnn/config.h)
 
 add_executable(CNN_GPU main.c  mainui.h ${lua}
@@ -94,6 +97,8 @@ add_executable(CNN_GPU main.c  mainui.h ${lua}
         ${memory_util}
         ${LCG_RANDOM}
         ${tensor}
+        ${logs_util}
+
         ${conio2} include/cnn/config.h)
 
 add_executable(EXAMPLE samples/conv.c
@@ -108,6 +113,7 @@ add_executable(EXAMPLE samples/conv.c
         ${camadasCNN}
         ${memory_util}
         ${LCG_RANDOM}
+        ${logs_util}
         ${tensor}
         ${conio2} include/cnn/config.h
         )
@@ -116,6 +122,7 @@ add_executable(debug_kernel kernels/debugKernel.c)
 #add_executable(svm_teste teste/testeTensor.c
 #        ${tensor}
 #        ${gpu}
+#       ${logs_util}
 #        ${memory_util}
 #        ${time_util}
 #        ${LCG_RANDOM}

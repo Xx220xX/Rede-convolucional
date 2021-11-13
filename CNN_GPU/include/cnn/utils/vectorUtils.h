@@ -14,6 +14,7 @@ void ppmp3(REAL *data, int x, int y, int z, const char *fileName);
 
 void salveCnnOutAsPPM(Cnn c, const char *name);
 
+void salveCnnOutAsPPMR(Cnn c, const char *name, size_t width, size_t height);
 
 int salveTensorAsPPM3(const char *name, Tensor t, Cnn c);
 

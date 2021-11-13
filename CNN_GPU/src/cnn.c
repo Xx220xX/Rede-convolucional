@@ -53,9 +53,13 @@ Cnn createCnn(WrapperCL *cl, Params p, UINT inx, UINT iny, UINT inz) {
 	c->kerneldivInt = new_Kernel(cl->program, &c->error, divIntDo, 4, K_VOID_P, K_VOID_P, K_REAL, K_INT);
 	c->kernelInt2Vector = new_Kernel(cl->program, &c->error, int2vector, 4, K_VOID_P, K_VOID_P, K_INT, K_INT);
 	c->kernelNormalize = new_Kernel(cl->program, &c->error, normalizeVector, 6, K_VOID_P, K_VOID_P, K_REAL,
-									K_REAL, K_REAL,K_INT);
+									K_REAL, K_REAL, K_INT);
 	c->kernelcreateIMG = new_Kernel(cl->program, &c->error, createImg, 7, K_VOID_P, K_VOID_P, K_INT, K_INT, K_INT,
 									K_INT, K_INT);
+	c->kernelputIMG = new_Kernel(cl->program, &c->error, putIMG, 12	, K_VOID_P, K_VOID_P, K_INT, K_REAL, K_REAL,
+								 K_INT, K_INT, K_INT, K_INT,
+								 K_INT, K_INT, K_INT);
+
 	if (c->error.error) {
 		getClError(c->error.error, c->error.msg, EXCEPTION_MAX_MSG_SIZE);
 	}
@@ -79,6 +83,7 @@ void releaseCnn(Cnn *pc) {
 	releaseKernel(&c->kernelInt2Vector);
 	releaseKernel(&c->kernelNormalize);
 	releaseKernel(&c->kernelcreateIMG);
+	releaseKernel(&c->kernelputIMG);
 	if (c->releaseCL) {
 		WrapperCL_release(c->cl);
 		free_mem(c->cl);
@@ -104,6 +109,7 @@ Cnn createCnnWithWrapperFile(const char *kernelFile, Params p, UINT inx, UINT in
 }
 
 Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, UINT iny, UINT inz, ULL devicetype) {
+	LOGF("createCnnWithWrapperProgram:init")
 	WrapperCL *cl = (WrapperCL *) alloc_mem(sizeof(WrapperCL), 1);
 	cl->type_device = devicetype;
 	if (kernelprogram == NULL)
@@ -111,6 +117,7 @@ Cnn createCnnWithWrapperProgram(const char *kernelprogram, Params p, UINT inx, U
 	WrapperCl_init(cl, kernelprogram);
 	Cnn c = createCnn(cl, p, inx, iny, inz);
 	c->releaseCL = 1;
+	LOGF("createCnnWithWrapperProgram:end")
 	return c;
 }
 
@@ -592,6 +599,103 @@ void normalizeGPUSpaceKnow(Cnn c, REAL *input, REAL *output, int len, REAL input
 
 	releaseTensor(&tinp);
 
+}
+
+char *salveCnnOutAsPPMGPUR(Cnn c, size_t height, size_t width) {
+	int maxH = 0;
+	int maxW = 0;
+	int max_bytes = 0;
+	int w, h;
+	int maximoz = 0;
+	for (int i = 0; i < c->size; ++i) {
+		if (max_bytes < c->camadas[i]->saida->bytes)
+			max_bytes = c->camadas[i]->saida->bytes;
+		if (maximoz < c->camadas[i]->saida->z)
+			maximoz = c->camadas[i]->saida->z;
+	}
+	int padh = 1;
+	int padw = 1;
+	h = (height) / (c->size+1) - padh;
+	w = (width) / maximoz - padw;
+	if (h <= 0 || w <= 0)return NULL;
+
+	Tensor saida;
+	Tensor img, normalizado;
+	REAL mx, mn, somador, multiplicador, minimo = 0;
+	REAL px = maxH / (REAL) height, py = maxW / (REAL) width;
+	size_t len;
+	normalizado = newTensor(c->cl->context, c->queue, max_bytes, 1, 1, 0, &c->error);
+	img = newTensorChar(c->cl->context, c->queue, height, width, 1, TENSOR_CHAR, &c->error);
+	TensorFill(c->queue,img,0xff);
+	REAL *values = alloc_mem(max_bytes, 1);
+	int erro;
+	int vx, vy;
+	int i0=0,j0 = 0;
+
+	for (int cm = -1; cm < c->size; cm++) {
+		if (cm == -1)
+			saida = c->camadas[0]->entrada;
+		else
+			saida = c->camadas[cm]->saida;
+		len = saida->x * saida->y * saida->z;
+		// achar o maximo e minimo
+		values = (REAL *) alloc_mem(len, sizeof(REAL));
+		if (TensorGetValues(c->queue, saida, values))continue;
+		mx = values[0];
+		mn = values[0];
+		for (int i = len - 1; i > 0; i--) {
+			if (values[i] > mx) {
+				mx = values[i];
+			}
+			if (values[i] < mn) {
+				mn = values[i];
+			}
+		}
+		// nao da para normalizar
+		if (mx - mn != 0.0) {
+			somador = -mn;
+			multiplicador = 255.0 / (mx - mn);
+			kernel_run_recursive(erro, c->kernelNormalize, c->queue, len, c->cl->maxworks,
+								 K_ARG saida->data,
+								 K_ARG normalizado->data,
+								 K_ARG multiplicador,
+								 K_ARG somador,
+								 K_ARG minimo);
+			vx = saida->x;
+			vy = saida->y;
+			if (saida->y < saida->x) {
+				vx = saida->y;
+				vy = saida->z;
+			}
+			for (int z = 0; z < saida->z; ++z) {
+				px = vx / (REAL) h;
+				py = vy / (REAL) w;
+				i0 = (cm + 1) * (h + padh);
+				j0 = z * (w + padw);
+				kernel_run_recursive(erro, c->kernelputIMG, c->queue, w * h, c->cl->maxworks,
+									 K_ARG img->data,
+									 K_ARG normalizado->data,
+									 K_ARG z,
+									 K_ARG px,
+									 K_ARG py,
+									 K_ARG w,
+									 K_ARG width,
+									 K_ARG i0,
+									 K_ARG j0,
+									 K_ARG vx,
+									 K_ARG vy);
+			}
+		}
+
+	}
+	clFinish(c->queue);
+	free_mem(values);
+	char *ans = alloc_mem(height, width);
+
+	TensorGetValues(c->queue, img, ans);
+	releaseTensor(&img);
+	releaseTensor(&normalizado);
+	return ans;
 }
 
 char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r) {

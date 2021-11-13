@@ -65,7 +65,6 @@ typedef struct {
 	char character_sep; // por padrao é ',' e nao pode ser 0x00 (null)
 
 	// estatisticas de treino
-	double sum_erro;
 	char use_gpu_mem;
 
 

@@ -29,6 +29,7 @@ int WrapperCL_init_file(WrapperCL *self, const char *filename) {
 }
 
 int WrapperCl_init(WrapperCL *self, const char *src) {
+	LOGF("WrapperCl_init:init")
 	cl_int error = CL_SUCCESS;
 	if (self->type_device == -1) {
 		self->type_device = CL_DEVICE_TYPE_GPU;
@@ -66,6 +67,7 @@ int WrapperCl_init(WrapperCL *self, const char *src) {
 	if (stt != CL_SUCCESS) {
 		return stt;
 	}
+	LOGF("WrapperCl_init:end")
 	return 0;
 
 }

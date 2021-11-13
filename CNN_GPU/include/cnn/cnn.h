@@ -38,6 +38,7 @@ typedef struct Cnn {
 	Kernel kernelNormalize;
 	Kernel kernelInt2Vector;
 	Kernel kernelcreateIMG;
+	Kernel kernelputIMG;
 
 	void *L;
 	Dictionary luaArgs;
@@ -122,7 +123,6 @@ int cnnCarregar(Cnn c, FILE *src);
 
 void normalizeGPU(Cnn c, REAL *input, REAL *output, int len, REAL maximo, REAL minimo);
 
-
 void normalizeGPUSpaceKnow(Cnn c, REAL *input, REAL *output, int len, REAL input_maximo,
 						   REAL input_minimo,
 						   REAL maximo, REAL minimo);
@@ -130,6 +130,8 @@ void normalizeGPUSpaceKnow(Cnn c, REAL *input, REAL *output, int len, REAL input
 void printCnn(Cnn c);
 
 char *salveCnnOutAsPPMGPU(Cnn c, size_t *h_r, size_t *w_r);
+
+char *salveCnnOutAsPPMGPUR(Cnn c, size_t height, size_t width);
 
 const char *getVersion();
 

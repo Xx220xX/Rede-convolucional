@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.20)
+project(tensor C)
+set(CMAKE_C_FLAGS -m64)
+set(CMAKE_C_STANDARD 11)
+link_directories(lib)
+include_directories(include)
+
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../lib)
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+add_library(lcg STATIC include/config.h include/lcg/lcg.h include/lcg/lcg.c)
+link_libraries(png OpenCL)
+add_library(gpu STATIC include/config.h include/gpu/Gpu.h include/gpu/Gpu.c include/gpu/kernel.c include/gpu/kernel.h)
+link_libraries(gpu lcg)
+
+add_library(tensor STATIC include/config.h include/tensor.c include/tensor/tensor.h include/tensor/tensor_flags.h include/png/png.h include/lcg/lcg.h)
+link_libraries(tensor)
+
+
+add_executable(gpuTeste main_gpu.c)
+add_executable(tensor_test main.c)
+

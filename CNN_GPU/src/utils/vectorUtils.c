@@ -40,11 +40,88 @@ void ppmp3(REAL *data, int x, int y, int z, const char *fileName) {
 	fclose(f);
 }
 
+void salveCnnOutAsPPMR(Cnn c, const char *name, size_t width, size_t height) {
+	unsigned char *im = alloc_mem(width, height);
 
+
+	int bytesm = 0;
+	REAL *v = NULL;
+	Tensor saida = NULL;
+	REAL mx, mn;
+	int padh = 1;
+	int padw = 1;
+	int maxz = 0;
+	for (int cm = -1; cm < c->size; ++cm) {
+		if (cm == -1)saida = c->camadas[0]->entrada;
+		else saida = c->camadas[cm]->saida;
+		if (maxz < saida->z)maxz = saida->z;
+		if(bytesm<saida->bytes)bytesm = saida->bytes;
+	}
+	v = alloc_mem(bytesm,1);
+	int h = height / (c->size + 1) - padh * (c->size + 1);
+	int w = width / maxz - padw * maxz;
+	int j0, i0;
+	double px, py;
+	int x, y;
+	int vx, vy;
+	REAL vr;
+	for (int cm = 0; cm < 1; ++cm) {
+		if (cm == -1)saida = c->camadas[0]->entrada;
+		else saida = c->camadas[cm]->saida;
+
+		TensorGetValues(c->queue, saida, v);
+		mx = v[0];
+		mn = v[0];
+		maxz = 0;
+		for (int i = saida->x * saida->y * saida->z - 1; i > 0; i--) {
+			if (mx < v[i])mx = v[i];
+			if (mn > v[i])mn = v[i];
+		}
+		mx = mx - mn;
+		vx = saida->x;
+		vy = saida->y;
+		if (vx > vy) {
+			vx = saida->y;
+			vy = saida->x;
+		}
+		printTensor(c->queue, saida, stdout);
+		for (int z = 0; z < saida->z; ++z) {
+			px = vx / (double) h;
+			py = vy / (double) w;
+			j0 = z * (padw + w);
+			i0 = (cm + 1) * (padh + h);
+			for (int i = 0; i < h; ++i) {
+				for (int j = 0; j < w; ++j) {
+					x = i * px;
+					y = i * py;
+					vr = v[z * vx * vy + x * vy + y];
+					printf("%f ", vr);
+					im[(i + i0) * width + j + j0] = ((int) ((vr - mn) / mx)) & 0xff;
+				}
+				printf("\n");
+			}
+
+		}
+
+	}
+	free_mem(v);
+
+
+	FILE *f = fopen(name, "wb");
+	fprintf(f,
+			"P5 ");
+	fprintf(f,
+			"%zu %zu ", width, height);
+	fprintf(f,
+			"255 ");
+	fwrite(im, height, width, f
+	);
+	free_mem(im);
+	fclose(f);
+}
 
 void salveCnnOutAsPPM(Cnn c, const char *name) {
 	size_t w = 0, h = 0;
-
 	char *im = salveCnnOutAsPPMGPU(c, &h, &w);
 	FILE *f = fopen(name, "wb");
 	fprintf(f, "P5 ");
