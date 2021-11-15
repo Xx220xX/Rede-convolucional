@@ -33,6 +33,7 @@ typedef struct CLInfo {
 
 	// metodo
 	char *(*json)(void *self);
+
 } CLInfo;
 /***
  * Interface para simplificar uso da API openCL

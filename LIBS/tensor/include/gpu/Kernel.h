@@ -31,8 +31,7 @@ typedef struct Kernel_t {
 
 extern Kernel Kernel_new(cl_program clProgram, char *funcname, int nargs, ...);
 
-extern void Kernel_release(Kernel *self);
-extern  int k_index;
+
 #define __kernel
 #define __global
 #define  Vector __global REAL *

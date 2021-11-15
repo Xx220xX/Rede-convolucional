@@ -11,7 +11,6 @@
 #include "gpu/Gpu.h"
 
 
-
 #define asprintf(str, format, ...){int len = snprintf(NULL,0,format,## __VA_ARGS__);\
 str = calloc(len+1,1);                                                           \
 snprintf(str,len,format,## __VA_ARGS__);}
@@ -32,7 +31,9 @@ snprintf(str,len,format,## __VA_ARGS__);}
 
 
 char *Tensor_print(Tensor self) {
-	if (self->error)return NULL;
+	self->erro->addstack(self->erro, "Tensor_print");
+	if (self->erro->error)return NULL;
+
 	Memory m = {0};
 	m.mem = self->getvalues(self, NULL);
 	size_t len = 0;
@@ -57,7 +58,8 @@ char *Tensor_print(Tensor self) {
 					} else if (self->flag.caractere) {
 						apendstr(string, len, "0x%02X", (int) m.caractere[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 					} else {
-						apendstr(string, len, "%.3lf", (double) m.real[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
+//						apendstr(string, len, "%.3lf", (double) m.real[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
+						apendstr(string, len, "0x%08X",  m.inteiro[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 					}
 				}
 				apendstr(string, len, "]")
@@ -70,12 +72,16 @@ char *Tensor_print(Tensor self) {
 		}
 	}
 	free(m.mem);
+	self->erro->popstack(self->erro);
 	return string;
 }
 
-char *Tensor_json(Tensor self) {
+char *Tensor_json(Tensor self, int showValues) {
+	self->erro->addstack(self->erro, "Tensor_json");
 	char *string;
-	char *tmp = Tensor_print(self);
+	char *tmp = "";
+	if (showValues)
+		tmp = Tensor_print(self);
 	asprintf(string, "{\n"
 			PAD"\"flag\":{\n"
 			PAD PAD "\"dimensao4D\":%d,\n"
@@ -113,7 +119,9 @@ char *Tensor_json(Tensor self) {
 			 sizeof(Tensor_t)
 
 	)
-	free(tmp);
+	if (showValues)
+		free(tmp);
+	self->erro->popstack(self->erro);
 	return string;
 }
 
@@ -137,8 +145,14 @@ void Tensor_registreError(Tensor self, char *format, ...);
 
 void Tensor_release(Tensor *self);
 
-Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, int flag, ...) {
+int Tensor_fillM(Tensor self, size_t offset, size_t bytes, void *patern, size_t size_patern);
+
+int Tensor_fill(Tensor self, char partern);
+
+Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...) {
+	ecx->addstack(ecx, "Tensor_new");
 	Tensor self = calloc(1, sizeof(Tensor_t));
+	self->erro = ecx;
 	memset(self, flag, 1);
 	// verificando flag
 	if (self->flag.inteiro && self->flag.caractere) {
@@ -166,7 +180,7 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, int flag, ...) {
 
 	// alocar memoria
 	if (self->flag.ram) {
-		self->data = calloc(self->x*self->y*self->z*self->w, self->size_element);
+		self->data = calloc(self->x * self->y * self->z * self->w, self->size_element);
 	} else if (self->flag.shared) {
 		fprintf(stderr, "Invalid flag: Shared memory not suported");
 		exit(-1);
@@ -179,31 +193,32 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, int flag, ...) {
 
 		if (self->flag.copy) {
 			p = va_arg(v, void *);
-			self->data = clCreateBuffer(self->context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_WRITE, self->bytes, p, &self->error);
+			self->data = clCreateBuffer(self->context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_WRITE, self->bytes, p, &self->erro->error);
 		} else {
-			self->data = clCreateBuffer(self->context, CL_MEM_READ_WRITE, self->bytes, NULL, &self->error);
-
+			self->data = clCreateBuffer(self->context, CL_MEM_READ_WRITE, self->bytes, NULL, &self->erro->error);
 		}
 		va_end(v);
 
 	}
 
 	// metodos
-	self->json = (char *(*)(void *)) Tensor_json;
-	self->release = (void (*)(void *)) Tensor_release;
-	self->registreError = (void (*)(void *, void *, ...)) Tensor_registreError;
-	self->setvalues = (int (*)(void *, void *)) Tensor_setvalues;
-	self->getvalues = (void *(*)(void *, void *)) Tensor_getvalues;
-	self->getvaluesM = (void *(*)(void *, size_t, void *, size_t)) Tensor_getvaluesm;
-	self->setvaluesM = (int (*)(void *, size_t, void *, size_t)) Tensor_setvaluesm;
-	self->randomize = (int (*)(void *, int, REAL, REAL)) Tensor_randomize;
+	self->json =  Tensor_json;
+	self->release =  Tensor_release;
+	self->registreError = Tensor_registreError;
+	self->setvalues =  Tensor_setvalues;
+	self->getvalues =  Tensor_getvalues;
+	self->getvaluesM =  Tensor_getvaluesm;
+	self->setvaluesM =  Tensor_setvaluesm;
+	self->randomize =  Tensor_randomize;
+	self->fill = Tensor_fill;
+	self->fillM = Tensor_fillM;
 	if (self->flag.inteiro)
-		self->imagegray = (int (*)(void *, ubyte *, size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t)) Tensor_imagegrayINT;
+		self->imagegray =  Tensor_imagegrayINT;
 	else if (self->flag.caractere)
-		self->imagegray = (int (*)(void *, ubyte *, size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t)) Tensor_imagegrayCHAR;
+		self->imagegray =  Tensor_imagegrayCHAR;
 	else
-		self->imagegray = (int (*)(void *, ubyte *, size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t)) Tensor_imagegrayREAL;
-
+		self->imagegray =  Tensor_imagegrayREAL;
+	ecx->popstack(ecx);
 	return self;
 }
 
@@ -248,20 +263,23 @@ void *Tensor_getvalues(Tensor self, void *data) {
 
 
 int Tensor_setvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
-	if (self->error)return self->error;
+	self->erro->addstack(self->erro, "Tensor_setvaluesm");
+	if (self->erro->error)return self->erro->error;
 	if (self->flag.ram) {
 		memcpy(self->data + offset, data, bytes);
 		return 0;
 	} else if (self->flag.shared) {
 		fprintf(stderr, "ERROR: shared memory not implanted\n");
 	} else {
-		self->error = clEnqueueWriteBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
+		self->erro->error = clEnqueueWriteBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
 	}
-	return self->error;
+	self->erro->popstack(self->erro);
+	return self->erro->error;
 }
 
 void *Tensor_getvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
-	if (self->error)return NULL;
+	self->erro->addstack(self->erro, "Tensor_getvaluesm");
+	if (self->erro->error)return NULL;
 	if (!data)
 		data = calloc(bytes, 1);
 	if (self->flag.ram) {
@@ -270,14 +288,16 @@ void *Tensor_getvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 		fprintf(stderr, "ERROR: shared memory not implanted\n");
 
 	} else {
-		self->error = clEnqueueReadBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
+		self->erro->error = clEnqueueReadBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
 	}
+	self->erro->popstack(self->erro);
 	return data;
 }
 
 
 int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
-	if (self->error)return self->error;
+	if (self->erro->error)return self->erro->error;
+	self->erro->addstack(self->erro, "Tensor_randomize");
 	void *m = calloc(self->bytes, 1);
 	size_t len = self->bytes / self->size_element;
 	REAL x;
@@ -296,7 +316,8 @@ int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
 	}
 	self->setvalues(self, m);
 	free(m);
-	return self->error;
+	self->erro->popstack(self->erro);
+	return self->erro->error;
 }
 
 void normalizeReal(REAL *data, size_t len, REAL a) {
@@ -329,10 +350,11 @@ void normalizeInt(int *data, size_t len, REAL a) {
 
 
 int Tensor_imagegrayREAL(Tensor self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l) {
-	if (self->error)return self->error;
+	if (self->erro->error)return self->erro->error;
+	self->erro->addstack(self->erro, "Tensor_imagegrayREAL");
 	int x, y;
 	double px = ((double) self->x / (double) h), py = ((double) self->y / (double) w);
-	REAL *data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y)*self->size_element, NULL, self->size_element * self->x * self->y);
+	REAL *data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
 	normalizeReal(data, self->x * self->y, 255);
 	for (int i = 0; i < h; ++i) {
 		for (int j = 0; j < w; ++j) {
@@ -343,14 +365,16 @@ int Tensor_imagegrayREAL(Tensor self, ubyte *image, size_t width, size_t height_
 		}
 	}
 	free(data);
+	self->erro->popstack(self->erro);
 	return 0;
 }
 
 int Tensor_imagegrayINT(Tensor self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l) {
-	if (self->error)return self->error;
+	if (self->erro->error)return self->erro->error;
+	self->erro->addstack(self->erro, "Tensor_imagegrayINT");
 	int x, y;
 	double px = ((double) self->x / (double) h), py = ((double) self->y / (double) w);
-	int *data = self->getvaluesM(self,  (z * self->x * self->y + l * self->z * self->x * self->y)*self->size_element, NULL, self->size_element * self->x * self->y);
+	int *data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
 	normalizeInt(data, self->x * self->y, 255);
 	for (int i = 0; i < h; ++i) {
 		for (int j = 0; j < w; ++j) {
@@ -361,14 +385,16 @@ int Tensor_imagegrayINT(Tensor self, ubyte *image, size_t width, size_t height_t
 		}
 	}
 	free(data);
+	self->erro->popstack(self->erro);
 	return 0;
 }
 
 int Tensor_imagegrayCHAR(Tensor self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l) {
-	if (self->error)return self->error;
+	if (self->erro->error)return self->erro->error;
+	self->erro->addstack(self->erro, "Tensor_imagegrayCHAR");
 	int x, y;
 	double px = ((double) self->x / (double) h), py = ((double) self->y / (double) w);
-	ubyte *data = self->getvaluesM(self,  (z * self->x * self->y + l * self->z * self->x * self->y)*self->size_element, NULL, self->size_element * self->x * self->y);
+	ubyte *data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
 	for (int i = 0; i < h; ++i) {
 		for (int j = 0; j < w; ++j) {
 			y = j * py;
@@ -378,5 +404,31 @@ int Tensor_imagegrayCHAR(Tensor self, ubyte *image, size_t width, size_t height_
 		}
 	}
 	free(data);
+	self->erro->popstack(self->erro);
 	return 0;
+}
+
+int Tensor_fill(Tensor self, char partern) {
+	Tensor_fillM(self, 0, self->bytes, &partern, 1);
+}
+
+int Tensor_fillM(Tensor self, size_t offset, size_t bytes, void *patern, size_t size_patern) {
+	self->erro->addstack(self->erro, "Tensor_fillM");
+	if (!patern || size_patern <= 0) {
+		self->erro->error = -1;
+		return self->erro->error;
+	}
+	if (self->flag.ram) {
+		void *p = self->data + offset;
+		void *pend = self->data + offset + bytes;
+		for (; p <= pend; p += size_patern) {
+			if (p + size_patern <= pend)
+				memcpy(p, patern, size_patern);
+		}
+	} else if (self->flag.shared) {
+
+	} else {
+		self->erro->error = clEnqueueFillBuffer(self->queue, self->data, patern, size_patern, offset, bytes, 0, NULL, NULL);
+	}
+	self->erro->popstack(self->erro);
 }

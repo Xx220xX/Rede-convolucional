@@ -10,4 +10,8 @@
 #else
 #define KREAL  "#define REAL double\n"
 #endif
+
+
+
+#define  DEBUG_STACK 1
 #endif //TENSOR_REA_H

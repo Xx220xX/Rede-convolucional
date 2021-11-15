@@ -14,9 +14,9 @@ link_libraries(png OpenCL)
 add_library(gpu STATIC include/config.h include/gpu/Gpu.h include/gpu/Gpu.c include/gpu/kernel.c include/gpu/kernel.h)
 link_libraries(gpu lcg)
 
-add_library(tensor STATIC include/config.h include/tensor.c include/tensor/tensor.h include/tensor/tensor_flags.h include/png/png.h include/lcg/lcg.h)
+add_library(tensor STATIC include/config.h include/tensor.c include/tensor/tensor.h include/tensor/tensor_flags.h include/png/png.h include/lcg/lcg.h include/tensor/exc.c include/tensor/exc.h  include/tensor/exc.h include/tensor/exc.c)
 link_libraries(tensor)
-
+add_executable(stack main_stack.c include/tensor/exc.h include/tensor/exc.c)
 
 add_executable(gpuTeste main_gpu.c)
 add_executable(tensor_test main.c)

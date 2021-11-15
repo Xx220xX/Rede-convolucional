@@ -15,6 +15,8 @@
 #include <time.h>
 
 #include "config.h"
+#include "exc.h"
+
 
 #define TENSOR_NORMAL 2
 #define TENSOR_UNIFORM 1
@@ -55,8 +57,7 @@ typedef struct Tensor_t {
 	const TensorFlag flag;
 	/// debug do tensor
 	char *file_debug;
-	/// controle de erros internos
-	int error;
+
 	/// dimensão do tensor
 	size_t x, y, z, w;
 	/// tamanho total de data
@@ -64,45 +65,53 @@ typedef struct Tensor_t {
 	/// tamanho de um elemento
 	unsigned int size_element;
 	/// dados do tensor
-	void * data;
+	void *data;
 	/// cl_command_queue para quando GPU ativo
 	void *queue;
 	/// cl_context para quando GPU ativo
 	void *context;
 
 	/// coloca os valores de data dentro do tensor, data deve ter o mesmo tamanho do tensor
-	int (*setvalues)(void *self, void *data);
+	int (*setvalues)(struct Tensor_t *self, void *data);
 
 	/// pega os valores de dentro do tensor para data, data deve ter o mesmo tamanho do tensor
 	///(se data for nulo a funcao alocara os recursos que devaram ser liberados com free_mem)
-	void *(*getvalues)(void *self,void *data);
+	void *(*getvalues)(struct Tensor_t *self, void *data);
 
 	/// coloca valores aleatorios no tensor, v[i] = X * a + b
 	/// as funções Tensor_rand e Tensor_randn devem ser implementadas
 	/// type = 2, Normal ; 1, Uniform
-	int (*randomize)(void *self, int type, REAL a, REAL b);
+	int (*randomize)(struct Tensor_t *self, int type, REAL a, REAL b);
 
 	/// modifica os nbytes  do tensor com o offset aplicado
 	///  v[offset:offset+bytes] = data
-	int (*setvaluesM)(void *self, size_t offset, void *data, size_t n_bytes);
+	int (*setvaluesM)(struct Tensor_t *self, size_t offset, void *data, size_t n_bytes);
 
 	/// devolve os nbytes  do tensor com o offset aplicado
 	/// data = v[offset:offset+bytes]
 	/// (se data for nulo a funcao alocara os recursos que devaram ser liberados com free_mem)
-	void *(*getvaluesM)(void *self, size_t offset, void *data,size_t n_bytes);
+	void *(*getvaluesM)(struct Tensor_t *self, size_t offset, void *data, size_t n_bytes);
+
+	/// preenche o tensor com o valor
+	int (*fill)(struct Tensor_t *self,char partern);
+	/// preenche a região com um valor
+	int (*fillM)(struct Tensor_t *self,size_t offset,size_t bytes,void *patern, size_t size_patern);
 
 	/// retorna uma string(deve ser liberados os recursos com free_mem) contendo o tensor no formato json
-	char *(*json)(void *);
+	char *(*json)(struct Tensor_t *self, int showValues);
 
 	///  libera os recursos internos do tensor
-	void (*release)(void *);
+	void (*release)(struct Tensor_t **self_p);
 
 	/// debug do tensor
-	void (*registreError)(void *self, void *format, ...);
+	void (*registreError)(struct Tensor_t *self, char *format, ...);
 
 	/// coloca o tensor em uma imagem cinza , imagem[i0:h,j0:w] = tensor[:,:,z,l]
-	int (*imagegray)(void *self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l);
+	int (*imagegray)(struct Tensor_t *self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l);
 
+	/// ponteiro utilizado para debugar stack
+	/// controle de erros internos
+	Ecx erro;
 } *Tensor, Tensor_t;
 
 /***
@@ -122,7 +131,7 @@ typedef struct Tensor_t {
  *
  * @return Tensor
  */
-Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, int flag, ...);
+Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...);
 
 
 #endif //TENSOR_TENSOR_H

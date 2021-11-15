@@ -1067,15 +1067,15 @@ clEnqueueWriteBufferRect(cl_command_queue    /* command_queue */,
                          cl_event *          /* event */) CL_API_SUFFIX__VERSION_1_1;
                             
 extern CL_API_ENTRY cl_int CL_API_CALL
-clEnqueueFillBuffer(cl_command_queue   /* command_queue */,
-                    cl_mem             /* buffer */, 
-                    const void *       /* pattern */, 
-                    size_t             /* pattern_size */, 
-                    size_t             /* offset */, 
-                    size_t             /* size */, 
-                    cl_uint            /* num_events_in_wait_list */, 
-                    const cl_event *   /* event_wait_list */, 
-                    cl_event *         /* event */) CL_API_SUFFIX__VERSION_1_2;
+clEnqueueFillBuffer(cl_command_queue    command_queue ,
+                    cl_mem              buffer ,
+                    const void *        pattern ,
+                    size_t              pattern_size ,
+                    size_t              offset ,
+                    size_t              size ,
+                    cl_uint             num_events_in_wait_list ,
+                    const cl_event *    event_wait_list ,
+                    cl_event *         event ) CL_API_SUFFIX__VERSION_1_2;
                             
 extern CL_API_ENTRY cl_int CL_API_CALL
 clEnqueueCopyBuffer(cl_command_queue    /* command_queue */, 
