@@ -58,8 +58,51 @@ char *Tensor_print(Tensor self) {
 					} else if (self->flag.caractere) {
 						apendstr(string, len, "0x%02X", (int) m.caractere[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 					} else {
-//						apendstr(string, len, "%.3lf", (double) m.real[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
-						apendstr(string, len, "0x%08X",  m.inteiro[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
+						apendstr(string, len, "%.3lf", (double) m.real[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
+					}
+				}
+				apendstr(string, len, "]")
+			}
+			apendstr(string, len, "]")
+		}
+
+		if (self->flag.dimensao4D) {
+			apendstr(string, len, "]")
+		}
+	}
+	free(m.mem);
+	self->erro->popstack(self->erro);
+	return string;
+}
+
+char *Tensor_printhex(Tensor self) {
+	self->erro->addstack(self->erro, "Tensor_print");
+	if (self->erro->error)return NULL;
+	size_t id;
+	Memory m = {0};
+	m.mem = self->getvalues(self, NULL);
+	size_t len = 0;
+	char *string = NULL;
+	for (int w = 0; w < self->w; ++w) {
+		if (self->flag.dimensao4D) {
+			if (w == 0) apendstr(string, len, "[")
+			else apendstr(string, len, "\n,[")
+		}
+
+		for (int z = 0; z < self->z; ++z) {
+			if (z == 0) apendstr(string, len, "[")
+			else apendstr(string, len, ",[")
+
+			for (int x = 0; x < self->x; ++x) {
+				if (x == 0) apendstr(string, len, "[")
+				else apendstr(string, len, ",[")
+				for (int y = 0; y < self->y; ++y) {
+					if (y > 0) apendstr(string, len, ", ");
+					id = y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y;
+					id = id * self->size_element;
+					apendstr(string, len, "0x%02X", (int) m.caractere[id])
+					for (int i = 1; i < self->size_element; ++i) {
+						apendstr(string, len, "%02X", (int) m.caractere[id + i])
 					}
 				}
 				apendstr(string, len, "]")
@@ -80,8 +123,11 @@ char *Tensor_json(Tensor self, int showValues) {
 	self->erro->addstack(self->erro, "Tensor_json");
 	char *string;
 	char *tmp = "";
-	if (showValues)
+	if (showValues == 2)
+		tmp = Tensor_printhex(self);
+	else if (showValues)
 		tmp = Tensor_print(self);
+
 	asprintf(string, "{\n"
 			PAD"\"flag\":{\n"
 			PAD PAD "\"dimensao4D\":%d,\n"
@@ -96,6 +142,7 @@ char *Tensor_json(Tensor self, int showValues) {
 			PAD"\"y\":%d,\n"
 			PAD"\"z\":%d,\n"
 			PAD"\"w\":%d,\n"
+			PAD"\"length\":%d,\n"
 			PAD"\"bytes\":%d,\n"
 			PAD"\"size_element\":%d,\n"
 			PAD"\"data\":[%s],\n"
@@ -113,6 +160,7 @@ char *Tensor_json(Tensor self, int showValues) {
 			 self->y,
 			 self->z,
 			 self->w,
+			 self->lenght,
 			 self->bytes,
 			 self->size_element,
 			 tmp,
@@ -176,7 +224,8 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 		self->size_element = sizeof(int);
 	else if (self->flag.caractere)
 		self->size_element = sizeof(char);
-	self->bytes = self->x * self->y * self->z * self->w * self->size_element;
+	self->lenght = self->x * self->y * self->z * self->w;
+	self->bytes = self->lenght * self->size_element;
 
 	// alocar memoria
 	if (self->flag.ram) {
@@ -202,22 +251,22 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 	}
 
 	// metodos
-	self->json =  Tensor_json;
-	self->release =  Tensor_release;
+	self->json = Tensor_json;
+	self->release = Tensor_release;
 	self->registreError = Tensor_registreError;
-	self->setvalues =  Tensor_setvalues;
-	self->getvalues =  Tensor_getvalues;
-	self->getvaluesM =  Tensor_getvaluesm;
-	self->setvaluesM =  Tensor_setvaluesm;
-	self->randomize =  Tensor_randomize;
+	self->setvalues = Tensor_setvalues;
+	self->getvalues = Tensor_getvalues;
+	self->getvaluesM = Tensor_getvaluesm;
+	self->setvaluesM = Tensor_setvaluesm;
+	self->randomize = Tensor_randomize;
 	self->fill = Tensor_fill;
 	self->fillM = Tensor_fillM;
 	if (self->flag.inteiro)
-		self->imagegray =  Tensor_imagegrayINT;
+		self->imagegray = Tensor_imagegrayINT;
 	else if (self->flag.caractere)
-		self->imagegray =  Tensor_imagegrayCHAR;
+		self->imagegray = Tensor_imagegrayCHAR;
 	else
-		self->imagegray =  Tensor_imagegrayREAL;
+		self->imagegray = Tensor_imagegrayREAL;
 	ecx->popstack(ecx);
 	return self;
 }
@@ -357,13 +406,21 @@ int Tensor_imagegrayREAL(Tensor self, ubyte *image, size_t width, size_t height_
 	REAL *data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
 	normalizeReal(data, self->x * self->y, 255);
 	for (int i = 0; i < h; ++i) {
+		if (i + i0 >= height_tensor) {
+			self->erro->error = 1;
+			goto end;
+		}
 		for (int j = 0; j < w; ++j) {
 			y = j * py;
 			x = i * px;
-			if (j + j0 >= height_tensor)exit(-1);
+			if (j + j0 >= width) {
+				self->erro->error = 1;
+				goto end;
+			}
 			image[(i + i0) * width + j + j0] = (char) (data[x * self->y + y]);
 		}
 	}
+	end:
 	free(data);
 	self->erro->popstack(self->erro);
 	return 0;

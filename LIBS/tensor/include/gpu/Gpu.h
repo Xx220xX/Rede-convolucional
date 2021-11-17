@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include<CL/opencl.h>
 
+typedef cl_command_queue Queue;
+
 typedef struct CLInfo {
 	cl_ulong global_mem_cache_size;
 	cl_ulong global_mem_cache_line_size;
@@ -48,18 +50,18 @@ typedef struct Gpu_t {
 	cl_device_type type_device;
 
 	int error;
-
-	void (*release)(void *self_p);
-
-	char *(*json)(void *self);
-
+	/// Libera os recursos
+	void (*release)(struct Gpu_t**self_p);
+	/// retorna uma cadeia de caracteres contendo a mensagem referente ao codigo(a mensage deve ser liberada com free_mem)
 	char *(*errorMsg)(int error_code);
-
-	int (*compileProgram)(void *self, char *program_source);
-
-	int (*compileProgramFile)(void *self, char *program_file);
-
-	CLInfo (*getClInfo)(void *self);
+	/// compila os kernel e salva em self.program, se compilado novamente, o anterior será apagado
+	int (*compileProgram)(struct Gpu_t*self, char *program_source);
+	/// compila os kernel de um arquivo e salva em self.program, se compilado novamente, o anterior será apagado
+	int (*compileProgramFile)(struct Gpu_t*self, char *program_file);
+	/// Obtem informações da gpu
+	CLInfo (*getClInfo)(struct Gpu_t*self);
+	/// Cria uma nova cl_command Queue, deve ser liberada com clCommandQueueRelease
+	Queue (*Queue_new)(struct Gpu_t *self,cl_int *error);
 } *Gpu, Gpu_t;
 
 extern char *Gpu_errormsg(int error);

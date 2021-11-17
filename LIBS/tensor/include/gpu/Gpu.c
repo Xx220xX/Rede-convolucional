@@ -30,7 +30,7 @@ int Gpu_compileProgram(Gpu self, char *program);
 
 int Gpu_compileProgramFile(Gpu self, char *file_program);
 
-
+Queue Gpu_Queue_new(Gpu self,cl_int *error);
 void Gpu_release(Gpu *self) {
 	if (!self)return;
 	if (!*self)return;
@@ -94,11 +94,12 @@ Gpu Gpu_new() {
 
 	// metodos
 	metodos:
-	self->release = (void (*)(void *)) Gpu_release;
+	self->release =Gpu_release;
 	self->errorMsg = Gpu_errormsg;
-	self->compileProgram = (int (*)(void *, char *)) Gpu_compileProgram;
-	self->compileProgramFile = (int (*)(void *, char *)) Gpu_compileProgramFile;
-	self->getClInfo = (CLInfo (*)(void *)) Gpu_getClinfo;
+	self->compileProgram =  Gpu_compileProgram;
+	self->compileProgramFile =  Gpu_compileProgramFile;
+	self->getClInfo =  Gpu_getClinfo;
+	self->Queue_new =  Gpu_Queue_new;
 
 	return self;
 }
@@ -305,5 +306,7 @@ CLInfo Gpu_getClinfo(Gpu cl) {
 	return cif;
 }
 
-
+Queue Gpu_Queue_new(Gpu self,cl_int *error){
+	return clCreateCommandQueueWithProperties(self->context,self->device,NULL,error);
+}
 

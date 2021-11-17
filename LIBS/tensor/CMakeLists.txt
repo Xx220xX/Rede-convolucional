@@ -8,13 +8,20 @@ include_directories(include)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../lib)
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-add_library(lcg STATIC include/config.h include/lcg/lcg.h include/lcg/lcg.c)
-link_libraries(png OpenCL)
-add_library(gpu STATIC include/config.h include/gpu/Gpu.h include/gpu/Gpu.c include/gpu/kernel.c include/gpu/kernel.h)
-link_libraries(gpu lcg)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
 
+add_library(lcg STATIC include/config.h include/lcg/lcg.h include/lcg/lcg.c)
+#set_target_properties(lcg PROPERTIES PREFIX "")
+
+link_libraries(png OpenCL )
+add_library(gpu STATIC include/config.h include/gpu/Gpu.h include/gpu/Gpu.c include/gpu/kernel.c include/gpu/kernel.h)
+#set_target_properties(gpu PROPERTIES PREFIX "")
+
+link_libraries(gpu)
 add_library(tensor STATIC include/config.h include/tensor.c include/tensor/tensor.h include/tensor/tensor_flags.h include/png/png.h include/lcg/lcg.h include/tensor/exc.c include/tensor/exc.h  include/tensor/exc.h include/tensor/exc.c)
+#set_target_properties(tensor PROPERTIES PREFIX "")
+#target_link_libraries(tensor gpu.dll lcg.dll  OpenCL.dll )
+
 link_libraries(tensor)
 add_executable(stack main_stack.c include/tensor/exc.h include/tensor/exc.c)
 

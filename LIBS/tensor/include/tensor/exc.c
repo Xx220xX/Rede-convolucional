@@ -14,11 +14,12 @@ void Ecx_addstack(Ecx self, char *stack);
 void Ecx_release(Ecx *self_p);
 
 void Ecx_print(Ecx self);
-
+int Ecx_setError(Ecx self, int error);
 Ecx Ecx_new(int stack_len) {
 	Ecx self = calloc(1, sizeof(Ecx_t));
 	self->len = stack_len;
 	self->index = -1;
+	self->perro = &self->error;
 	if (stack_len > 0) {
 		self->stack = calloc(stack_len, sizeof(char *));
 	}
@@ -26,7 +27,17 @@ Ecx Ecx_new(int stack_len) {
 	self->addstack = Ecx_addstack;
 	self->release = Ecx_release;
 	self->print = Ecx_print;
+	self->setError = Ecx_setError;
 	return self;
+}
+
+int Ecx_setError(Ecx self, int error) {
+	if (self->error)return self->error;
+	while (self->block);
+	self->block = 1;
+	self->error = error;
+	self->block = 0;
+	return self->error;
 }
 
 void Ecx_addstack(Ecx self, char *stack) {

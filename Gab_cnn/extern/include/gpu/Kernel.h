@@ -8,6 +8,7 @@
 
 #include<CL/opencl.h>
 #include "config.h"
+
 #define KP sizeof(cl_mem)
 #define KI sizeof(cl_int)
 #define KR sizeof(CLREAL)
@@ -19,20 +20,21 @@ typedef struct Kernel_t {
 	int nArgs;
 	int error;
 
-	char *(*json)(void *self);
+	char *(*json)(struct  Kernel_t*self);
 
-	void (*release)(void *self_p);
+	void (*release)(struct  Kernel_t**self_p);
 
-	void (*run)(void *self_p, cl_command_queue queue, size_t globals, size_t locals, ...);
+	int (*run)(struct  Kernel_t*self_p, cl_command_queue queue, size_t globals, size_t locals, ...);
 
-	void (*runRecursive)(void *self, cl_command_queue queue, size_t globals, size_t max_works, ...);
+	int (*runRecursive)(struct  Kernel_t*self, cl_command_queue queue, size_t globals, size_t max_works, ...);
 } *Kernel, Kernel_t;
 
 
 extern Kernel Kernel_new(cl_program clProgram, char *funcname, int nargs, ...);
 
-extern void Kernel_release(Kernel *self);
-extern  int k_index;
+extern Kernel Kernel_news(cl_program clProgram, char *funcname, const char *p);
+
+
 #define __kernel
 #define __global
 #define  Vector __global REAL *
@@ -79,6 +81,17 @@ KREAL "#define  Vector __global REAL *\n"\
 "\n"\
 "#define KTensorRemap2D(total, x, y, ty)\\\n"\
 "y = total % ty;\\\n"\
-"x = total/ ty;\n\n"\
+"x = total/ ty;\n\n"
 
+#define PAD " "
+#define apendstr(str, len, format, ...) { \
+         size_t sz = snprintf(NULL,0,format,##__VA_ARGS__); \
+         if(!str)                         \
+         str = alloc_mem(1,sz+1);    \
+         else                                 \
+         str = realloc(str,len+sz+1);                              \
+         char *local_tmp = str+len;               \
+         len = len+sz;\
+         sprintf(local_tmp,format,##__VA_ARGS__) ;                           \
+}
 #endif //GABKernel_H

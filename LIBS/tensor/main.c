@@ -20,10 +20,11 @@ KV im(Vector image, int ix, int iy, int k0) {
 
 int main() {
 	Gpu gpu = Gpu_new();
-	int error = 0;
-	cl_command_queue queue = clCreateCommandQueueWithProperties(gpu->context, gpu->device, NULL, &error);
-	if (error)exit(error);
-	Tensor timage = Tensor_new(255, 255, 3, 1, 0, gpu->context,queue);
+	Ecx ecx = Ecx_new(10);
+	ecx->addstack(ecx,"clCreateCommandQueueWithProperties");
+	cl_command_queue queue = clCreateCommandQueueWithProperties(gpu->context, gpu->device, NULL, &ecx->error);
+	ecx->popstack(ecx);
+	Tensor timage = Tensor_new(4, 5, 3, 1,ecx ,0, gpu->context,queue);
 
 //	for (int i = 0; i < timage->x*timage->y; ++i) {
 //		im(timage->data,timage->x,timage->y,i);
@@ -39,22 +40,28 @@ int main() {
 				 "}";
 	gpu->compileProgram(gpu,prog);
 	Kernel k = Kernel_new(gpu->program,"im",4,KP,KI,KI,KI,KI);
+	ecx->addstack(ecx,"runRecursive");
 	k->runRecursive(k,queue,timage->x*timage->y,gpu->maxworks,&timage->data,&timage->x,&timage->y);
+	timage->erro->error = k->error;
+	ecx->popstack(ecx);
 	clFinish(queue);
+
 	unsigned char * image = calloc(timage->x*timage->y,3);
-	char *tjson = timage->json(timage);
+	char *tjson = timage->json(timage,2);
 	FILE *f = fopen("../a.json","w");
 	fprintf(f,"%s\n", tjson);
 	free(tjson);
 	fclose(f);
 
-	timage->imagegray(timage,image,timage->x,timage->y,timage->x,timage->y,0,0,0,0);
-	timage->imagegray(timage,image+(timage->x*timage->y),timage->x,timage->y,timage->x,timage->y,0,0,1,0);
-	timage->imagegray(timage,image+(2*timage->x*timage->y),timage->x,timage->y,timage->x,timage->y,0,0,2,0);
+	timage->imagegray(timage,image,timage->y,timage->x,timage->y,timage->x,0,0,0,0);
+//	timage->imagegray(timage,image+(timage->x*timage->y),timage->y,timage->x,timage->y,timage->x,0,0,1,0);
+//	timage->imagegray(timage,image+(2*timage->x*timage->y),timage->y,timage->x,timage->y,timage->x,0,0,2,0);
 	pngRGB("../rgb.png",image,image+timage->x*timage->y,image+2*timage->x*timage->y,timage->x,timage->y);
 	free(image);
 	timage->release(&timage);
 	gpu->release(&gpu);
 	k->release(&k);
+	ecx->print(ecx);
+	ecx->release(&ecx);
 	return 0;
 }

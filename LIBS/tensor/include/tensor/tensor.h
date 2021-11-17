@@ -59,7 +59,7 @@ typedef struct Tensor_t {
 	char *file_debug;
 
 	/// dimensão do tensor
-	size_t x, y, z, w;
+	size_t x, y, z, w,lenght;
 	/// tamanho total de data
 	size_t bytes;
 	/// tamanho de um elemento
@@ -133,5 +133,17 @@ typedef struct Tensor_t {
  */
 Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...);
 
+
+#define PAD " "
+#define apendstr(str, len, format, ...) { \
+         size_t sz = snprintf(NULL,0,format,##__VA_ARGS__); \
+         if(!str)                         \
+         str = alloc_mem(1,sz+1);    \
+         else                                 \
+         str = realloc(str,len+sz+1);                              \
+         char *tmp = str+len;               \
+         len = len+sz;\
+         sprintf(tmp,format,##__VA_ARGS__) ;                           \
+}
 
 #endif //TENSOR_TENSOR_H
