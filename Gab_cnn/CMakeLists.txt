@@ -21,7 +21,18 @@ set(camadas
         camadas/CamadaRelu.h
         camadas/CamadaSoftMax.h
         camadas/funcoesDeAtivacao.h
-        camadas/src/CamadaPool.c camadas/src/CamadaBatchNorm.c)
+        camadas/src/camada.c
+        camadas/src/CamadaBatchNorm.c
+        camadas/src/CamadaConv.c
+        camadas/src/CamadaConvF.c
+        camadas/src/CamadaConvNC.c
+        camadas/src/CamadaDropOut.c
+        camadas/src/CamadaFullConnect.c
+        camadas/src/CamadaPadding.c
+        camadas/src/CamadaPool.c
+        camadas/src/CamadaPRelu.c
+        camadas/src/CamadaRelu.c
+        )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
 link_libraries(OpenCL Lua543 png)

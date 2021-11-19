@@ -17,15 +17,16 @@ typedef struct CamadaConvF_t {
 	Tensor dz;
 	Tensor grad_filtros;
 	size_t passox, passoy;
-	Kernel kernelConvFSum;
-	Kernel kernelConvFFixWeight;
-	Kernel kernelConvFCalcZGrad;
-	Kernel kernelConvFCalcGrads;
+	Kernel convFSum;
+	Kernel convFCalcGradZ;
+	Kernel convFCalcGradAndFixWeight;
+	Kernel convFCalcGrads;
 	int activationFuntion;
 	int derivationFuntion;
+	RdP rdp_filtros;
 } *CamadaConvF, CamadaConvF_t;
 
-extern Camada createConvF(Gpu gpu, QUEUE queue, P3d passo, P3d filtro, P3d size_in, int ativacao,
-						  Tensor entrada, Params params, RandomParam randomParams);
+extern Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, int ativacao,
+							  Tensor entrada, Parametros params, Ecx ecx, RdP rdp_filtros);
 
-#endif //CNN_GPU_CAMADACONV_H
+#endif //CNN_GPU_CAMADACONVF_H

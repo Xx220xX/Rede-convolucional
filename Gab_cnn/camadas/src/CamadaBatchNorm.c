@@ -218,7 +218,8 @@ extern Camada CamadaBatchNorm_new(Gpu gpu, Queue queue, Parametros params, P3d s
 	self->B = Tensor_new(1, 1, size_in.z, 1, ecx, 0, gpu->context, queue);
 	self->gradY = Tensor_new(1, 1, size_in.z, 1, ecx, 0, gpu->context, queue);
 	self->gradB = Tensor_new(1, 1, size_in.z, 1, ecx, 0, gpu->context, queue);
-
+	self->gradY->fill(self->gradY,0);
+	self->gradB->fill(self->gradB,0);
 	self->diferenca = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
 	self->diferencaquad = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
 	self->norma = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
