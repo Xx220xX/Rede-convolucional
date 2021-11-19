@@ -22,7 +22,7 @@ typedef struct CamadaConv_t {
 	RdP rdp_filtros;
 } *CamadaConv, CamadaConv_t;
 
-extern Camada CamadaConv_new(Gpu gpu, Queue queue, Ponto3d passo, Ponto3d filtro, Ponto3d size_in, Tensor entrada,
+extern Camada CamadaConv_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, Tensor entrada,
 							 Parametros params, Ecx ecx, RdP rdp_filtros);
 
 

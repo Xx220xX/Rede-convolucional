@@ -1,6 +1,6 @@
 kV poolativa(Vector entrada, Vector saida,
-			 int passox,int passoy,
-			 int filtrox,int filtroy,
+			 int passox, int passoy,
+			 int filtrox, int filtroy,
 			 int saidatx, int saidaty,
 			 int entradatx, int entradaty, int k0) {
 	int k = get_global_id(0) + k0;
@@ -47,17 +47,15 @@ kV poolCalcGrads(Vector entrada, Vector gradEntrada,
 		range_filtro.max.y = y;
 	}
 	int i, j;//saida
-	gradEntrada[KTensorMap(x, y, z, entradatx, entradaty)] =0;
+	gradEntrada[KTensorMap(x, y, z, entradatx, entradaty)] = 0;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		i = (x - m) / px;
 		if (i * px + m != x)continue;
 		for (int n = range_filtro.min.y; n <= range_filtro.max.y; n++) {
 			j = (y - n) / py;
 			if (j * py + n != y)continue;
-			if (entrada[KTensorMap(x, y, z, entradatx, entradaty)] ==
-				saida[KTensorMap(i, j, z, saidatx, saidaty)]) {
-				gradEntrada[KTensorMap(x, y, z, entradatx, entradaty)] =
-						gradNext[KTensorMap(i, j, z, saidatx, saidaty)];
+			if (entrada[k] == saida[KTensorMap(i, j, z, saidatx, saidaty)]) {
+				gradEntrada[k] = gradNext[KTensorMap(i, j, z, saidatx, saidaty)];
 				return;
 			}
 		}

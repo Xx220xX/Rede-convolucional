@@ -24,7 +24,7 @@ typedef struct CamadaConvNc_t {
 } *CamadaConvNc, CamadaConvNc_t;
 
 
-extern Camada createConvNc(Gpu gpu, QUEUE queue, Ponto3d  passo, Ponto3d larg,Ponto3d filtro,Ponto3d size_in,Tensor entrada, Params params, RandomParam randomParams);
+extern Camada createConvNc(Gpu gpu, QUEUE queue, P3d  passo, P3d larg, P3d filtro, P3d size_in, Tensor entrada, Params params, RandomParam randomParams);
 
 
 #endif //CNN_GPU_CAMADAConvNc_H

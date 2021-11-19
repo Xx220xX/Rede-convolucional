@@ -13,7 +13,7 @@ typedef struct CamadaPadding_t {
 	Kernel ativa, calcGrad;
 } *CamadaPadding, CamadaPadding_t;
 
-extern Camada createPadding(Gpu gpu, QUEUE queue, Ponto3d size_in, size_t top, size_t bottom, size_t left, size_t right, Tensor entrada);
+extern Camada createPadding(Gpu gpu, QUEUE queue, P3d size_in, size_t top, size_t bottom, size_t left, size_t right, Tensor entrada);
 
 
 #endif //CNN_GPU_CAMADA_Padding_H

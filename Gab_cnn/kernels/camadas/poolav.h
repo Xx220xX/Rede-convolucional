@@ -1,6 +1,6 @@
-kV PoolAvativa(Vector entrada, Vector saida,
-			   int passox,int passoy,
-			   int fx,int fy,
+kV poolAVativa(Vector entrada, Vector saida,
+			   int passox, int passoy,
+			   int fx, int fy,
 			   int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
@@ -18,9 +18,10 @@ kV PoolAvativa(Vector entrada, Vector saida,
 }
 
 
-kV PoolAvCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector saida,
-                   int px, int py,  int fx, int fy,
-				   int entradatx, int entradaty, int saidatx, int saidaty,
+kV poolAvCalcGrads(Vector entrada, Vector gradEntrada, Vector gradNext, Vector saida,
+				   int fx, int fy, int px, int py,
+				   int entradatx, int entradaty,
+				   int saidatx, int saidaty,
 				   int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;

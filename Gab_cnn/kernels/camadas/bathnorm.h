@@ -1,7 +1,8 @@
 
-// achar a media
+/// achar a media
+/// ativa 1
 kV BatchNormMedia(Vector entrada, Vector media,
-                  int entradatx, int entradaty, int k0) {
+				  int entradatx, int entradaty, int k0) {
 	int z = get_global_id(0) + k0;
 	int x, y;
 	REAL m = 0;
@@ -10,25 +11,26 @@ kV BatchNormMedia(Vector entrada, Vector media,
 			m += entrada[KTensorMap(x, y, z, entradatx, entradaty)];
 		}
 	}
-	media[z] = m / (REAL) (entradatx * entradaty);
+	media[z] = m / (REAL)(entradatx * entradaty);
 }
 
-// achar a diferenca
+/// achar a diferenca
+/// ativa 2
 kV BatchNormDiferenca(Vector entrada, Vector media,
-                      Vector diferenca,
-                      Vector diferencaquad,
-                      int entradatx, int entradaty, int k0) {
+					  Vector diferenca,
+					  Vector diferencaquad,
+					  int entradatx, int entradaty, int k0) {
 	int x, y, z;
 	int k = get_global_id(0) + k0;
 	KTensorRemap(k, x, y, z, entradatx, entradaty)
 	diferenca[k] = entrada[k] - media[z];
 	diferencaquad[k] = diferenca[k] * diferenca[k];
 }
-
+/// ativa 3
 kV BatchNormVariance(Vector dif, Vector difQuad,
-                     Vector sumdiferenca, Vector variancia,
-                     REAL episolon, int diftx, int difty,
-                     int k0) {
+					 Vector sumdiferenca, Vector variancia,
+					 REAL episolon, int diftx, int difty,
+					 int k0) {
 	int z = get_global_id(0) + k0;
 	REAL sum = 0;
 	REAL sumdif = 0;
@@ -42,14 +44,15 @@ kV BatchNormVariance(Vector dif, Vector difQuad,
 	variancia[z] = sqrt(sum / (difty * diftx) + episolon);
 }
 
-// normaliza
+/// normaliza
+/// ativa 4
 kV BatchNormNormaliza(Vector saida,
-                      Vector norma,
-                      Vector diferenca,
-                      Vector variancia,
-                      Vector Y,
-                      Vector B,
-                      int diferencatx, int diferencaty, int k0) {
+					  Vector norma,
+					  Vector diferenca,
+					  Vector variancia,
+					  Vector Y,
+					  Vector B,
+					  int diferencatx, int diferencaty, int k0) {
 	int x, y, z;
 	int k = get_global_id(0) + k0;
 	KTensorRemap(k, x, y, z, diferencatx, diferencaty)
@@ -59,16 +62,15 @@ kV BatchNormNormaliza(Vector saida,
 
 
 kV BatchNormaCalcGrad1(Vector gradIn,
-                       Vector gradNext,
-                       Vector variancia,
-                       Vector media,
-                       Vector Y,
-
-                       Vector somaDif,
-                       Vector entrada,
-                       int entradatx,
-                       int entradaty,
-                       int k0) {
+					   Vector gradNext,
+					   Vector variancia,
+					   Vector media,
+					   Vector Y,
+					   Vector somaDif,
+					   Vector entrada,
+					   int entradatx,
+					   int entradaty,
+					   int k0) {
 	int x, y, z;
 	int k = get_global_id(0) + k0;
 	KTensorRemap(k, x, y, z, entradatx, entradaty)
@@ -83,12 +85,17 @@ kV BatchNormaCalcGrad1(Vector gradIn,
 }
 
 kV BatchNormaCalcGrad2(Vector gradNext,
-                       Vector norma,
-                       Vector gradY,
-                       Vector gradB,
-                       int entradatx,
-                       int entradaty,
-                       int k0) {
+					   Vector norma,
+					   Vector Y,
+					   Vector B,
+					   Vector gradY,
+					   Vector gradB,
+					   REAL hitlearn,
+					   REAL momento,
+					   REAL weightDecay,
+					   int entradatx,
+					   int entradaty,
+					   int k0) {
 	int z = get_global_id(0) + k0;
 	REAL sumY = 0;
 	REAL sumB = 0;
@@ -100,18 +107,11 @@ kV BatchNormaCalcGrad2(Vector gradNext,
 			sumB += gradNext[k] * norma[k];
 		}
 	}
-	gradB[z] = sumB;
-	gradY[z] = sumY;
+	gradB[z] = sumB + gradB[z] * momento;
+	gradY[z] = sumY + gradY[z] * momento;
+
+	B[z] = B[z] - (gradB[z] + weightDecay * B[z]) * hitlearn;
+	Y[z] = Y[z] - (gradY[z] + weightDecay * Y[z]) * hitlearn;
 }
 
 
-kV batchNormCorrigePeso(Vector gradY,
-                        Vector gradB,
-                        Vector Y,
-                        Vector B,
-                        REAL hitlearn,
-                        int k0) {
-	int z = get_global_id(0) + k0;
-	B[z] = B[z] - gradB[z] * hitlearn;
-	Y[z] = Y[z] - gradY[z] * hitlearn;
-}

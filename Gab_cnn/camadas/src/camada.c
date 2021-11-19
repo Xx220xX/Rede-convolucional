@@ -2,14 +2,14 @@
 // Created by hslhe on 13/11/2021.
 //
 
-#include "camada.h"
+#include "camadas/camada.h"
 
-Ponto3d internnal_getOutSize(Camada self) {
-	return (Ponto3d) {self->s->x, self->s->y, self->s->z};
+P3d internnal_getOutSize(Camada self) {
+	return (P3d) {self->s->x, self->s->y, self->s->z};
 }
 
 void internal_Camada_new(Camada self, Gpu gpu, Queue queue, int layer_id, const char *layer_name, Parametros params,
-						 Tensor entrada, Ponto3d dim_in, Ponto3d dim_out, Ecx erro) {
+						 Tensor entrada, P3d dim_in, P3d dim_out, Ecx erro) {
 	erro->addstack(erro, "internal_Camada_new");
 	self->a = entrada;
 	self->size_in = dim_in;
@@ -26,18 +26,18 @@ void internal_Camada_new(Camada self, Gpu gpu, Queue queue, int layer_id, const 
 	self->erro = erro;
 	self->params = params;
 	erro->popstack(erro);
-	self->getOutSize = (Ponto3d (*)(void *)) internnal_getOutSize;
+	self->getOutSize = (P3d (*)(void *)) internnal_getOutSize;
 
 }
 
 void internal_Camada_release(Camada *self) {
 	if (!self)return;
 	if (!*self)return;
+
 	if (self[0]->release_da) {
-		(*self)->da->release(&(*self)->da);
+		Release((*self)->da);
 	}
-	if ((*self)->s)
-		(*self)->s->release(&(*self)->s);
+	Release((*self)->s);
 
 }
 

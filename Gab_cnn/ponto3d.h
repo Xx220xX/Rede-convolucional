@@ -4,8 +4,11 @@
 
 #ifndef GAB_CNN_PONTO3D_H
 #define GAB_CNN_PONTO3D_H
-typedef struct Ponto3d_t{
+typedef struct P3d_t{
 	size_t x,y,z;
-}Ponto3d ;
+}P3d ;
+typedef struct P2d_t{
+	size_t x,y,z;
+}P2d ;
 #define P3D(x,...)((Ponto3d){x,##__VA_ARGS__})
 #endif //GAB_CNN_PONTO3D_H

@@ -16,7 +16,7 @@ typedef struct CamadaPRelu_t {
 	Kernel kernelPReluCalcGrads;
 } *CamadaPRelu, CamadaPRelu_t;
 
-Camada createPRelu(WrapperCL *cl, QUEUE queue, Ponto3d size_in, Tensor entrada, Params params, RandomParam randomParams);
+Camada createPRelu(WrapperCL *cl, QUEUE queue, P3d size_in, Tensor entrada, Params params, RandomParam randomParams);
 
 
 #endif //CNN_GPU_CAMADA_PRelu_H

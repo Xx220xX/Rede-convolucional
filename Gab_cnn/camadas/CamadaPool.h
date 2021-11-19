@@ -15,11 +15,11 @@ typedef struct CamadaPool_t {
 	int type;
 	size_t passox, passoy;
 	size_t filtrox, filtroy;
-	Kernel kernelPoolAtiva;
-	Kernel kernelPoolCalcGrads;
+	Kernel poolativa;
+	Kernel poolCalcGrads;
 } *CamadaPool, CamadaPool_t;
 
-extern Camada createPool(Gpu gpu, Queue queue, Ponto3d passo, Ponto3d filtro, Ponto3d size_in,int type_pooling, Tensor entrada);
+extern Camada CamadaPooling_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, int type_pooling, Tensor entrada, Ecx ecx);
 
 
 #endif //CNN_GPU_CAMADAPOOL_H

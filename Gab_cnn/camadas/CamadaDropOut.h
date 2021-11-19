@@ -19,9 +19,9 @@ typedef struct v {
 } *CamadaDropOut, CamadaDropOut_t;
 
 
-extern Camada createDropOut(Gpu gpu, QUEUE queue, Ponto3d size_in,
-					 REAL p_ativacao, long long int seed,
-					 Tensor entrada);
+extern Camada createDropOut(Gpu gpu, QUEUE queue, P3d size_in,
+							REAL p_ativacao, long long int seed,
+							Tensor entrada);
 
 
 #endif //CNN_GPU_CAMADADROPOUT_H
