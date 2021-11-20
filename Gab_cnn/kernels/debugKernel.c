@@ -4,6 +4,7 @@
 #define __kernel
 #define __global
 int globI = 0;
+#include <math.h>
 
 int get_global_id(int id) {
 	globI++;

@@ -27,6 +27,7 @@ kV BatchNormDiferenca(Vector entrada, Vector media,
 	diferencaquad[k] = diferenca[k] * diferenca[k];
 }
 /// ativa 3
+
 kV BatchNormVariance(Vector dif, Vector difQuad,
 					 Vector sumdiferenca, Vector variancia,
 					 REAL episolon, int diftx, int difty,
@@ -46,6 +47,7 @@ kV BatchNormVariance(Vector dif, Vector difQuad,
 
 /// normaliza
 /// ativa 4
+
 kV BatchNormNormaliza(Vector saida,
 					  Vector norma,
 					  Vector diferenca,
@@ -83,7 +85,6 @@ kV BatchNormaCalcGrad1(Vector gradIn,
 	didx = didx * gradNext[k];
 	gradIn[k] = didx * Y[z];
 }
-
 kV BatchNormaCalcGrad2(Vector gradNext,
 					   Vector norma,
 					   Vector Y,
