@@ -207,6 +207,8 @@ Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
 			self->l_args[self->nArgs - 1] = sizeof(CL_REAL);
 		} else if (!cmp("int", p, j)) {
 			self->l_args[self->nArgs - 1] = sizeof(cl_int);
+		} else if (!cmp("unsigned int", p, j)) {
+			self->l_args[self->nArgs - 1] = sizeof(cl_uint);
 		} else if (!cmp("char", p, j)) {
 			self->l_args[self->nArgs - 1] = sizeof(cl_char);
 		} else if (!cmp("float", p, j)) {

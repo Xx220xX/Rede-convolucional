@@ -32,10 +32,25 @@ set(camadas
         camadas/src/CamadaPool.c
         camadas/src/CamadaPRelu.c
         camadas/src/CamadaRelu.c
-        )
+        camadas/src/CamadaSoftMax.c)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
 link_libraries(OpenCL Lua543 png)
 
 add_executable(Gab_cnn main.c cnn.h cnn.c cnn.h ponto3d.h parametros.h ${camadas} camadas/src/CamadaConv.c)
-target_link_libraries(Gab_cnn tensor.dll gpu.dll lcg.dll OpenCL.dll)
+
+add_executable(Kernels kernels/camadas/bathnorm.h
+        kernels/camadas/cnnutils.h
+        kernels/camadas/conv.h
+        kernels/camadas/convf.h
+        kernels/camadas/convNc.h
+        kernels/camadas/dropout.h
+        kernels/camadas/fullconnect.h
+        kernels/camadas/padding.h
+        kernels/camadas/poolav.h
+        kernels/camadas/poolMax.h
+        kernels/camadas/poolMin.h
+        kernels/camadas/prelu.h
+        kernels/camadas/relu.h
+        kernels/camadas/softmax.h
+        kernels/camadas/utils.h kernels/debugKernel.c)

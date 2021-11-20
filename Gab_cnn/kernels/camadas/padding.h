@@ -1,7 +1,8 @@
+
 kV paddingfeed(Vector in,Vector out,
-			   int txi,int tyi,
-			   int txo,int tyo,
-			   int t, int l ,
+			   unsigned int txi,unsigned int tyi,
+			   unsigned int txo,unsigned int tyo,
+			   unsigned int t, unsigned int l ,
 			   int k0){
 	int k = get_global_id(0) + k0;
 	int x, y, z;
@@ -10,9 +11,9 @@ kV paddingfeed(Vector in,Vector out,
 	out[s] = in[k];
 }
 kV paddingBack(Vector gradNext,Vector gradin,
-			   int txi,int tyi,
-			   int txo,int tyo,
-			   int t, int l , int k0){
+			   unsigned int txi, unsigned int tyi,
+			   unsigned int txo,unsigned int tyo,
+			   unsigned int t, unsigned int l , int k0){
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	KTensorRemap(k, x, y, z, txi, tyi)

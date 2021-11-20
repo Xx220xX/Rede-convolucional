@@ -14,7 +14,6 @@ void internal_Camada_new(Camada self, Gpu gpu, Queue queue, int layer_id, const 
 	self->a = entrada;
 	self->size_in = dim_in;
 	if (entrada) {
-		self->release_da = 1;
 		self->da = Tensor_new(entrada->x, entrada->y, entrada->z, 1, erro, 0, gpu->context, queue);
 		if (self->erro->error)goto methods;
 	}
@@ -33,10 +32,7 @@ void internal_Camada_new(Camada self, Gpu gpu, Queue queue, int layer_id, const 
 void internal_Camada_release(Camada *self) {
 	if (!self)return;
 	if (!*self)return;
-
-	if (self[0]->release_da) {
-		Release((*self)->da);
-	}
+	Release((*self)->da);
 	Release((*self)->s);
 
 }
@@ -70,7 +66,7 @@ char *internal_json(Camada self, int showValues) {
 	apendstr(string, len, ",\n"PAD"\"max_compute\":%zu,\n"
 			PAD"\"params\":{\"hitlearn\":%g,\"momento\":%g,\"decaimento\":%g,\"treinavel\":%d}",
 			 *self->maxcompute, (double) self->params.hitlearn, (double) self->params.momento, (double) self->params.decaimento,
-			 !self->params.disable_learn
+			 !self->params.skipLearn
 	)
 
 	return string;

@@ -41,7 +41,7 @@ static int CamadaConv_backpropagation(CamadaConv self, Tensor ds) {
 				&self->super.da->x, &self->super.da->y,
 				&self->super.s->x, &self->super.s->y, &self->super.s->z
 		);
-	if (!self->super.params.disable_learn)
+	if (!self->super.params.skipLearn)
 		Execute(convCalcGradAndFixWeight,
 				self->filtros->lenght,
 				&self->filtros->data, &ds->data,
@@ -67,6 +67,7 @@ static char *CamadaConv_json(CamadaConv self, int showValues) {
 			 self->passox, self->passoy, self->filtros->w,
 			 tmp);
 	free_mem(tmp);
+
 	tmp = self->grad_filtros->json(self->grad_filtros, showValues);
 	apendstr(string, len, ",\n\""PAD"grad_filtros\":%s", tmp);
 	free_mem(tmp);
@@ -87,7 +88,7 @@ static char *CamadaConv_getGenerate(CamadaConv self) {
 			 (double) self->super.params.hitlearn,
 			 (double) self->super.params.momento,
 			 (double) self->super.params.decaimento,
-			 self->super.params.disable_learn, self->rdp_filtros.type,
+			 self->super.params.skipLearn, self->rdp_filtros.type,
 			 (double) self->rdp_filtros.a,
 			 (double) self->rdp_filtros.b
 	)
@@ -190,7 +191,7 @@ Camada CamadaConv_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, 
 	methods:
 	self->super.release = (void (*)(void *)) CamadaConv_release;
 	self->super.propagation = (int (*)(void *)) CamadaConv_propagation;
-	self->super.retroPropagation = (int (*)(void *, Tensor *)) CamadaConv_backpropagation;
+	self->super.retroPropagation = (int (*)(void *, Tensor )) CamadaConv_backpropagation;
 	self->super.json = (char *(*)(void *, int)) CamadaConv_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaConv_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaConv_save;

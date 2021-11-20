@@ -81,7 +81,7 @@ int CamadaBatchNorm_backpropagation(CamadaBatchNorm self, Tensor ds) {
 				&self->super.a->y
 		);
 	}
-	if (!self->super.params.disable_learn)
+	if (!self->super.params.skipLearn)
 		Execute(batchNormCalcGrads2,
 				self->super.s->lenght,
 				&ds->data,
@@ -157,7 +157,7 @@ char *CamadaBatchNorm_getGenerate(CamadaBatchNorm self) {
 			 (double) self->super.params.hitlearn,
 			 (double) self->super.params.momento,
 			 (double) self->super.params.decaimento,
-			 self->super.params.disable_learn,
+			 self->super.params.skipLearn,
 			 self->rdp_Y.type,
 			 (double) self->rdp_Y.a,
 			 (double) self->rdp_Y.b,
@@ -296,7 +296,7 @@ extern Camada CamadaBatchNorm_new(Gpu gpu, Queue queue, Parametros params, P3d s
 	methods:
 	self->super.release = (void (*)(void *)) CamadaBatchNorm_release;
 	self->super.propagation = (int (*)(void *)) CamadaBatchNorm_propagation;
-	self->super.retroPropagation = (int (*)(void *, Tensor *)) CamadaBatchNorm_backpropagation;
+	self->super.retroPropagation = (int (*)(void *, Tensor )) CamadaBatchNorm_backpropagation;
 	self->super.json = (char *(*)(void *, int)) CamadaBatchNorm_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaBatchNorm_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaBatchNorm_save;

@@ -9,22 +9,28 @@
 #include"camada.h"
 
 
-typedef struct CamadaConvNc_t {
+typedef struct CamadaConvNC_t {
 	Camada_t super;
 	Tensor filtros;
 	Tensor grad_filtros;
-	Tensor grad_filtros_old;
+	Tensor z;
+	Tensor dz;
 	size_t passox, passoy;
 	size_t largx, largy;
 	size_t numeroFiltros;
-	Kernel kernelConvNcSum;
-	Kernel kernelConvNcFixWeight;
-	Kernel kernelConvNcCalcGradsFiltro;
-	Kernel kernelConvNcCalcGrads;
-} *CamadaConvNc, CamadaConvNc_t;
+	int activationFuntion;
+	int derivationFunction;
+	RdP rdp_filtros;
+
+	Kernel convNcSum;
+	Kernel convNcFixWeight;
+	Kernel convNcCalcGradsFiltro;
+	Kernel convNcCalcGrads;
+
+} *CamadaConvNC, CamadaConvNC_t;
 
 
-extern Camada createConvNc(Gpu gpu, QUEUE queue, P3d  passo, P3d larg, P3d filtro, P3d size_in, Tensor entrada, Params params, RandomParam randomParams);
+extern Camada createConvNc(Gpu gpu, QUEUE queue, P3d passo, P3d larg, P3d filtro, P3d size_in, Tensor entrada, Params params, RandomParam randomParams);
 
 
 #endif //CNN_GPU_CAMADAConvNc_H

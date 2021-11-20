@@ -1,11 +1,8 @@
 //
 // Created by hslhe on 19/11/2021.
 //
-//
-// Created by hslhe on 14/11/2021.
-//
 
-#include <kernels/camadas/convf.h>
+
 #include "camadas/CamadaConvF.h"
 
 static const char *lname = "ConvolucaoF";
@@ -40,7 +37,7 @@ static int CamadaConvF_propagation(CamadaConvF self) {
 }
 
 static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
-	if (self->super.da || !self->super.params.disable_learn) {
+	if (self->super.da || !self->super.params.skipLearn) {
 		Execute(convFCalcGradZ, self->super.s->lenght,
 				&ds->data, &self->z->data,
 				&self->dz->data, &self->derivationFuntion
@@ -55,7 +52,7 @@ static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
 				&self->super.da->x, &self->super.da->y,
 				&self->super.s->x, &self->super.s->y, &self->super.s->z
 		);
-	if (!self->super.params.disable_learn)
+	if (!self->super.params.skipLearn)
 		Execute(convFCalcGradAndFixWeight,
 				self->filtros->lenght,
 				&self->filtros->data, &self->dz->data,
@@ -110,7 +107,7 @@ static char *CamadaConvF_getGenerate(CamadaConvF self) {
 			 (double) self->super.params.hitlearn,
 			 (double) self->super.params.momento,
 			 (double) self->super.params.decaimento,
-			 self->super.params.disable_learn, self->rdp_filtros.type,
+			 self->super.params.skipLearn, self->rdp_filtros.type,
 			 (double) self->rdp_filtros.a,
 			 (double) self->rdp_filtros.b
 	)
@@ -163,7 +160,7 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1, filtro.z};
 	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAO_ID, lname, params, entrada, size_in, size_out, ecx);
 	self->activationFuntion = ativacao;
-	self->activationFuntion = ativacao | FLAGDIF;
+	self->derivationFuntion = ativacao | FLAGDIF;
 	self->grad_filtros = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
 	self->grad_filtros->fill(self->grad_filtros, 0);
 	self->filtros = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
@@ -221,7 +218,7 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	methods:
 	self->super.release = (void (*)(void *)) CamadaConvF_release;
 	self->super.propagation = (int (*)(void *)) CamadaConvF_propagation;
-	self->super.retroPropagation = (int (*)(void *, Tensor *)) CamadaConvF_backpropagation;
+	self->super.retroPropagation = (int (*)(void *, Tensor )) CamadaConvF_backpropagation;
 	self->super.json = (char *(*)(void *, int)) CamadaConvF_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaConvF_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaConvF_save;

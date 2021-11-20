@@ -10,22 +10,28 @@
 #include"funcoesDeAtivacao.h"
 
 
-typedef struct CamadaFullConnect_t{
+typedef struct CamadaFullConnect_t {
 	Camada_t super;
-	Tensor pesos;
-	Tensor grad;
+	Tensor w;
+	Tensor dw;
+	Tensor b;
+	Tensor db;
 	Tensor z;
 	Tensor dz;
 	// funcao de ativacao e sua derivada
 	int fa, dfa;
-	Kernel kernelfullfeed;
-	Kernel kernelfullfixWeight;
-	Kernel kernelfullcalcgrad1;
-	Kernel kernelfullcalcgrad2;
+	Kernel fullfeed;
+	Kernel fullCalcDWandFix;
+	Kernel fullCalcDz;
+	Kernel fullCalcDzandFixB;
+	Kernel fullcalcin;
+	RdP rdp_pesos;
+	RdP rdp_bias;
 } *CamadaFullConnect, CamadaFullConnect_t;
 
-extern Camada createFullConnect(Gpu gpu, QUEUE queue, P3d size_in, size_t tamanhoSaida,
-								Tensor entrada, Params params, int funcaoDeAtivacao, RandomParam randomParams);
+extern Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSaida,
+									Tensor entrada, Parametros params, int funcaoDeAtivacao,
+									Ecx exc, RdP rdp_pesos, RdP rdp_bias);
 
 
 #endif //CNN_GPU_CAMADAFULLCONNECT_H

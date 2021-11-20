@@ -13,32 +13,44 @@
 
 #define CONVOLUCAO_ID 1
 #define POOLING_ID 2
+#define FULLCONNECT_ID 3
+#define PADDING_ID 4
 
 typedef struct Camada_t {
+	/// nome canonico da camada (apenas leitura)
 	const char *layer_name;
+	/// identificador da camada (apenas leitura)
 	const int layer_id;
+	/// parametros da camada
 	Parametros params;
+	/// entrada
 	Tensor a;
+	/// gradiente de entrada
 	Tensor da;
+	/// saída
 	Tensor s;
+	/// fila para utilizar gpu
 	void *queue;
-	char release_da;
+	/// numero maximo de threads na gpu
 	size_t *maxcompute;
+	/// variavel de controle de erro
 	Ecx erro;
+	/// tamanho da entrada
 	P3d size_in;
 
+	/// faz a propagação na camada, o Tensro de entrada é usado a
 	int (*propagation)(void *self);
-
-	int (*retroPropagation)(void *self, Tensor *ds);
-
+	/// faz a retropropagação, ds deve ser o gradiente da saída
+	int (*retroPropagation)(void *self, Tensor ds);
+	/// retorna uma string (que deve ser liberada com free_mem) contendo o objeto no formato json
 	char *(*json)(void *self, int showTensorValues);
-
+	/// retorna a chamada do construtor que gerou essa camada
 	char *(*getGenerate)(void *self);
-
+	/// libera os recursos alocados pela camada
 	void (*release)(void *self_p);
-
+	/// salva a camada no arquivo destino (apenas pesos são salvos, os gradientes são descartados)
 	int (*save)(void *self, FILE *destino);
-
+	/// retorna o tamanho da saída dessa camada
 	P3d (*getOutSize)(void *self);
 } *Camada, Camada_t;
 
@@ -65,5 +77,8 @@ char *internal_json(Camada self, int showValues);
 self->kernel->runRecursive(self->kernel, self->super.queue,len,*self->super.maxcompute, ##__VA_ARGS__)); }
 #define Release(self)if(self)(self)->release(&(self))
 #define CheckKernel(kernel)if (self->super.erro->setError(self->super.erro, self->kernel->error))goto methods
-
+#define apendTensor(name,t,string, len,tmp,showValues)\
+tmp = self->t->json(self->t, showValues);\
+apendstr(string, len, ",\n"PAD"\""name"\":%s", tmp);\
+free_mem(tmp)
 #endif //GAB_CNN_CAMADA_H
