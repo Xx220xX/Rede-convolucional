@@ -15,6 +15,9 @@
 #define POOLING_ID 2
 #define FULLCONNECT_ID 3
 #define PADDING_ID 4
+#define DROPOUT_ID 5
+#define RELU_ID 6
+#define PRELU_ID 7
 
 typedef struct Camada_t {
 	/// nome canonico da camada (apenas leitura)

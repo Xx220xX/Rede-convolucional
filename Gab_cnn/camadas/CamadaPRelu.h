@@ -12,11 +12,12 @@ typedef struct CamadaPRelu_t {
 	Camada_t super;
 	Tensor A;
 	Tensor dA;
-	Kernel kernelPReluAtiva;
-	Kernel kernelPReluCalcGrads;
+	RdP rdp_a;
+	Kernel preluativa;
+	Kernel preluonlyfix;
+	Kernel prelucalcgrad;
 } *CamadaPRelu, CamadaPRelu_t;
 
-Camada createPRelu(WrapperCL *cl, QUEUE queue, P3d size_in, Tensor entrada, Params params, RandomParam randomParams);
-
+extern Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parametros params, RdP rdp_a,Ecx ecx);
 
 #endif //CNN_GPU_CAMADA_PRelu_H

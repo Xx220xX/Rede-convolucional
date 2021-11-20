@@ -7,19 +7,37 @@
 
 #include "camada.h"
 
-typedef struct {
+typedef struct CamadaRelu_t {
+	/// herda os atributos da classe mãe Camada
 	Camada_t super;
-	Kernel kernelReluAtiva;
-	Kernel kernelReluCalcGrads;
-	REAL lessoh,greateroh;
-} *CamadaRelu, TypecamadaRelu;
+	/// fator de multiplicação para valores menores que 0
+	REAL lessoh;
+	/// fator de multiplicação para valores maiores que 0
+	REAL greateroh;
+	/***
+ * Itera na saída
+ * @param entrada tensor de entrada (leitura)
+ * @param saida tensor de saída (escrita)
+ * @param menor (contante de multiplicação para valores menores que 0
+ * @param maior (contante de multiplicação para valores maiores que 0
+ * @param k0 uso interno do kernel
+ */
+	Kernel reluativa;
+	/***
+ * Itera na entrada
+ * @param gradentrada  tensor de gadiente de entrada (escrita)
+ * @param entrada tensor de entrada (leitura)
+ * @param gradnext tensor gradiente da saída (leitura)
+ * @param menor (contante de multiplicação para valores menores que 0
+ * @param maior (contante de multiplicação para valores maiores que 0
+ * @param k0 uso interno do kernel
+ */
+	Kernel relucalcgrad;
+} *CamadaRelu, CamadaRelu_t;
 
 
-
-
-Camada createRelu(WrapperCL *cl, QUEUE queue, unsigned int inx, unsigned int iny,
-				  unsigned int inz,REAL less,REAL greater, Tensor entrada,
-				  CNN_ERROR *error);
+Camada CamadaRelu_new(Gpu gpu, Queue queue, P3d size_in, REAL less, REAL greater, Tensor entrada,
+					  Ecx ecx);
 
 
 #endif //CNN_GPU_CAMADA_RELU_H
