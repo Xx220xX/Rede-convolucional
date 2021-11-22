@@ -42,7 +42,7 @@ kV BatchNormVariance(Vector dif, Vector difQuad,
 		}
 	}
 	sumdiferenca[z] = sumdif;
-	variancia[z] = sqrt(sum / (difty * diftx) + episolon);
+	variancia[z] = SQRT(sum / (difty * diftx) + episolon);
 }
 
 /// normaliza

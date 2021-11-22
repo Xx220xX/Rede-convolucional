@@ -1,9 +1,9 @@
 //
-// Created by hslhe on 19/11/2021.
+// Created by henrique on 19/11/2021.
 //
 
 /***
- * Implementa uma versão da relu em que possui valores treinaveis,
+ * Implementa uma versão da relu em que possui valores treináveis,
  * onde cada dimensão possui sua inclinação
  */
 #include "camadas/CamadaPRelu.h"
@@ -21,7 +21,7 @@ static void CamadaPRelu_release(CamadaPRelu *self_p) {
 }
 
 static int CamadaPRelu_propagation(CamadaPRelu self) {
-	Execute(preluativa, self->super.s->lenght,
+	Execute(preluativa, self->super.s->length,
 			&self->super.a->data, &self->super.s->data,
 			&self->A
 	);
@@ -31,7 +31,7 @@ static int CamadaPRelu_propagation(CamadaPRelu self) {
 static int CamadaPRelu_backpropagation(CamadaPRelu self, Tensor ds) {
 	if (self->super.da) {
 		int learn = !self->super.params.skipLearn;
-		Execute(prelucalcgrad, self->super.da->lenght,
+		Execute(prelucalcgrad, self->super.da->length,
 				&self->super.da->data, &self->super.a->data,
 				&ds->data, &self->A->data, &self->dA->data,
 				&learn,
@@ -40,7 +40,7 @@ static int CamadaPRelu_backpropagation(CamadaPRelu self, Tensor ds) {
 				&self->super.params.decaimento
 		);
 	} else if (!self->super.params.skipLearn) {
-		Execute(preluonlyfix, self->dA->lenght,
+		Execute(preluonlyfix, self->dA->length,
 				&self->super.a->data, &ds->data,
 				&self->A->data, &self->dA->data,
 				&self->super.params.hitlearn,
@@ -79,7 +79,7 @@ static char *CamadaPRelu_getGenerate(CamadaPRelu self) {
 			 self->rdp_a.type,
 			 (double) self->rdp_a.a,
 			 (double) self->rdp_a.b
-	)
+	);
 	return string;
 }
 
@@ -88,8 +88,8 @@ static char *CamadaPRelu_getGenerate(CamadaPRelu self) {
  * 4 bytes -> indicando o tipo
  * 1 bytes -> separação deve ser '#'
  * 4 bytes -> size_element
- * 8 bytes -> lenght
- * size_element*lenght bytes -> data
+ * 8 bytes -> length
+ * size_element*length bytes -> data
  * @param self camada
  * @param f arquivo para salvar
  * @return 0 caso não detecte nenhuma falha
@@ -100,10 +100,10 @@ static int CamadaPRelu_save(CamadaPRelu self, FILE *f) {
 	fwrite(&self->super.layer_id, 1, sizeof(int), f);
 	fwrite("#", 1, 1, f);
 	fwrite(&self->A->size_element, 1, sizeof(uint32_t), f);
-	fwrite(&self->A->lenght, 1, sizeof(size_t), f);
+	fwrite(&self->A->length, 1, sizeof(size_t), f);
 
 	void *data = self->A->getvalues(self->A, NULL);
-	fwrite(data, self->A->size_element, self->A->lenght, f);
+	fwrite(data, self->A->size_element, self->A->length, f);
 	free_mem(data);
 	end:
 	self->super.erro->popstack(self->super.erro);

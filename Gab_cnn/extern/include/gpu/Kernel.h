@@ -63,6 +63,7 @@ x = total/ ty;
 #define  UTILS_MACRO_KERNEL \
 KREAL "#define  Vector __global REAL *\n"\
 "#define KV __kernel void\n"\
+"#define kV __kernel void\n"\
 "#define KTensorMap(x, y, z, tx, ty)((z)*(ty*tx)+(x)*ty+(y))\n"\
 "\n"\
 "#define KTensorMap4D(x, y, z, l, tx, ty, tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(x)*ty+(y))\n"\
@@ -81,17 +82,6 @@ KREAL "#define  Vector __global REAL *\n"\
 "\n"\
 "#define KTensorRemap2D(total, x, y, ty)\\\n"\
 "y = total % ty;\\\n"\
-"x = total/ ty;\n\n"
+"x = total/ ty;\n\n"\
 
-#define PAD " "
-#define apendstr(str, len, format, ...) { \
-         size_t sz = snprintf(NULL,0,format,##__VA_ARGS__); \
-         if(!str)                         \
-         str = alloc_mem(1,sz+1);    \
-         else                                 \
-         str = realloc(str,len+sz+1);                              \
-         char *local_tmp = str+len;               \
-         len = len+sz;\
-         sprintf(local_tmp,format,##__VA_ARGS__) ;                           \
-}
 #endif //GABKernel_H

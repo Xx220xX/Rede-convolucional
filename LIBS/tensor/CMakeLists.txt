@@ -21,10 +21,10 @@ link_libraries(gpu)
 add_library(tensor STATIC include/config.h include/tensor.c include/tensor/tensor.h include/tensor/tensor_flags.h include/png/png.h include/lcg/lcg.h include/tensor/exc.c include/tensor/exc.h  include/tensor/exc.h include/tensor/exc.c)
 #set_target_properties(tensor PROPERTIES PREFIX "")
 #target_link_libraries(tensor gpu.dll lcg.dll  OpenCL.dll )
-
 link_libraries(tensor)
+link_libraries(lcg)
 add_executable(stack main_stack.c include/tensor/exc.h include/tensor/exc.c)
 
 add_executable(gpuTeste main_gpu.c)
-add_executable(tensor_test main.c)
+add_executable(tensor_test main.c )
 

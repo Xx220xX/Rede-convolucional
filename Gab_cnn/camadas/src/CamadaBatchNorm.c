@@ -51,7 +51,7 @@ int CamadaBatchNorm_propagation(CamadaBatchNorm self) {
 
 	);
 	Execute(batchNormAtiva4,
-			self->super.s->lenght,
+			self->super.s->length,
 			&self->super.s->data,
 			&self->norma->data,
 			&self->diferenca->data,
@@ -69,7 +69,7 @@ int CamadaBatchNorm_propagation(CamadaBatchNorm self) {
 int CamadaBatchNorm_backpropagation(CamadaBatchNorm self, Tensor ds) {
 	if (self->super.da) {
 		Execute(batchNormCalcGrads1,
-				self->super.s->lenght,
+				self->super.s->length,
 				&self->super.da->data,
 				&ds->data,
 				&self->variancia->data,
@@ -83,7 +83,7 @@ int CamadaBatchNorm_backpropagation(CamadaBatchNorm self, Tensor ds) {
 	}
 	if (!self->super.params.skipLearn)
 		Execute(batchNormCalcGrads2,
-				self->super.s->lenght,
+				self->super.s->length,
 				&ds->data,
 				&self->norma->data,
 				&self->Y->data,
@@ -109,41 +109,20 @@ char *CamadaBatchNorm_json(CamadaBatchNorm self, int showValues) {
 					 PAD"\"epsilon\":%g,\n",
 			 tmp,
 			 (double) self->epsilon
-	)
+	);
 	free_mem(tmp);
-	tmp = self->Y->json(self->Y, showValues);
-	apendstr(string, len, PAD"\"Y\":%s,\n", tmp);
-	free_mem(tmp);
-	tmp = self->gradY->json(self->gradY, showValues);
-	apendstr(string, len, PAD"\"gradY\":%s,\n", tmp);
-	free_mem(tmp);
-	tmp = self->B->json(self->B, showValues);
-	apendstr(string, len, PAD"\"B\":%s,\n", tmp);
-	free_mem(tmp);
-	tmp = self->gradB->json(self->gradB, showValues);
-	apendstr(string, len, PAD"\"gradB\":%s,\n", tmp);
-	free_mem(tmp);
-	tmp = self->media->json(self->media, showValues);
-	apendstr(string, len, PAD"\"media\":%s,\n", tmp);
-	free_mem(tmp);
-	tmp = self->somaDiferenca->json(self->somaDiferenca, showValues);
-	apendstr(string, len, PAD"\"somaDiferenca\":%s,\n", tmp);
-	free_mem(tmp);
-	tmp = self->variancia->json(self->variancia, showValues);
-	apendstr(string, len, PAD"\"variancia\":%s,\n", tmp);
-	free_mem(tmp);
-	tmp = self->gradVariancia->json(self->gradVariancia, showValues);
-	apendstr(string, len, PAD"\"gradVariancia\":%s,\n", tmp);
-	free_mem(tmp);
-	tmp = self->diferenca->json(self->diferenca, showValues);
-	apendstr(string, len, PAD"\"diferenca\":%s,\n", tmp);
-	free_mem(tmp);
-	tmp = self->diferencaquad->json(self->diferencaquad, showValues);
-	apendstr(string, len, PAD"\"diferencaquad\":%s,\n", tmp);
-	free_mem(tmp);
-	tmp = self->norma->json(self->norma, showValues);
-	apendstr(string, len, PAD"\"norma\":%s\n}", tmp);
-	free_mem(tmp);
+	apendTensor("Y",Y,string,len,tmp,showValues);
+	apendTensor("dY",gradY,string,len,tmp,showValues);
+	apendTensor("B",B,string,len,tmp,showValues);
+	apendTensor("dB",gradB,string,len,tmp,showValues);
+	apendTensor("media",media,string,len,tmp,showValues);
+	apendTensor("somaDiferenca",somaDiferenca,string,len,tmp,showValues);
+	apendTensor("variancia",variancia,string,len,tmp,showValues);
+	apendTensor("gradVariancia",gradVariancia,string,len,tmp,showValues);
+	apendTensor("diferenca",diferenca,string,len,tmp,showValues);
+	apendTensor("diferencaquad",diferencaquad,string,len,tmp,showValues);
+	apendTensor("norma",norma,string,len,tmp,showValues);
+
 	return string;
 }
 
@@ -164,7 +143,7 @@ char *CamadaBatchNorm_getGenerate(CamadaBatchNorm self) {
 			 self->rdp_B.type,
 			 (double) self->rdp_B.a,
 			 (double) self->rdp_B.b
-	)
+	);
 	return string;
 }
 
@@ -191,9 +170,9 @@ int CamadaBatchNorm_save(CamadaBatchNorm self, FILE *f) {
 	fwrite(&self->epsilon, 1, sizeof(REAL), f);
 	fwrite(&self->Y->z, 1, sizeof(size_t), f);
 	void *data = self->Y->getvalues(self->Y, NULL);
-	fwrite(data, self->Y->lenght, self->Y->size_element, f);
+	fwrite(data, self->Y->length, self->Y->size_element, f);
 	data = self->B->getvalues(self->B, data);
-	fwrite(data, self->B->lenght, self->B->size_element, f);
+	fwrite(data, self->B->length, self->B->size_element, f);
 	free_mem(data);
 
 	end:

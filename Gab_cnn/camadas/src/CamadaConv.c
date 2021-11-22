@@ -20,7 +20,7 @@ static void CamadaConv_release(CamadaConv *self_p) {
 }
 
 static int CamadaConv_propagation(CamadaConv self) {
-	Execute(convSum, self->super.s->lenght,
+	Execute(convSum, self->super.s->length,
 
 			&self->filtros->data, &self->super.a->data, &self->super.s->data,
 			&self->passox, &self->passoy,
@@ -33,7 +33,7 @@ static int CamadaConv_propagation(CamadaConv self) {
 
 static int CamadaConv_backpropagation(CamadaConv self, Tensor ds) {
 	if (self->super.da)
-		Execute(convCalcGradIn, self->super.da->lenght,
+		Execute(convCalcGradIn, self->super.da->length,
 
 				&self->filtros->data, &self->super.da->data, &ds->data,
 				&self->filtros->x, &self->filtros->y, &self->filtros->z,
@@ -43,7 +43,7 @@ static int CamadaConv_backpropagation(CamadaConv self, Tensor ds) {
 		);
 	if (!self->super.params.skipLearn)
 		Execute(convCalcGradAndFixWeight,
-				self->filtros->lenght,
+				self->filtros->length,
 				&self->filtros->data, &ds->data,
 				&self->super.a->data, &self->grad_filtros->data,
 				&self->filtros->x, &self->filtros->y, &self->filtros->z,
@@ -91,7 +91,7 @@ static char *CamadaConv_getGenerate(CamadaConv self) {
 			 self->super.params.skipLearn, self->rdp_filtros.type,
 			 (double) self->rdp_filtros.a,
 			 (double) self->rdp_filtros.b
-	)
+	);
 
 	return string;
 }
@@ -125,7 +125,7 @@ static int CamadaConv_save(CamadaConv self, FILE *f) {
 	fwrite(&self->filtros->w, 1, sizeof(size_t), f);
 	fwrite(&self->filtros->size_element, 1, sizeof(unsigned int), f);
 	void *data = self->filtros->getvalues(self->filtros, NULL);
-	fwrite(data, self->filtros->size_element, self->filtros->lenght, f);
+	fwrite(data, self->filtros->size_element, self->filtros->length, f);
 	free_mem(data);
 
 	end:

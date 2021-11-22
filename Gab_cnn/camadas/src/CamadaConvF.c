@@ -24,7 +24,7 @@ static void CamadaConvF_release(CamadaConvF *self_p) {
 }
 
 static int CamadaConvF_propagation(CamadaConvF self) {
-	Execute(convFSum, self->super.s->lenght,
+	Execute(convFSum, self->super.s->length,
 
 			&self->filtros->data, &self->super.a->data, &self->z->data, &self->super.s->data,
 			&self->passox, &self->passoy,
@@ -38,13 +38,13 @@ static int CamadaConvF_propagation(CamadaConvF self) {
 
 static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
 	if (self->super.da || !self->super.params.skipLearn) {
-		Execute(convFCalcGradZ, self->super.s->lenght,
+		Execute(convFCalcGradZ, self->super.s->length,
 				&ds->data, &self->z->data,
 				&self->dz->data, &self->derivationFuntion
 		);
 	}
 	if (self->super.da)
-		Execute(convFCalcGrads, self->super.da->lenght,
+		Execute(convFCalcGrads, self->super.da->length,
 
 				&self->filtros->data, &self->super.da->data, &self->dz->data,
 				&self->filtros->x, &self->filtros->y, &self->filtros->z,
@@ -54,7 +54,7 @@ static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
 		);
 	if (!self->super.params.skipLearn)
 		Execute(convFCalcGradAndFixWeight,
-				self->filtros->lenght,
+				self->filtros->length,
 				&self->filtros->data, &self->dz->data,
 				&self->super.a->data, &self->grad_filtros->data,
 				&self->filtros->x, &self->filtros->y, &self->filtros->z,
@@ -110,7 +110,7 @@ static char *CamadaConvF_getGenerate(CamadaConvF self) {
 			 self->super.params.skipLearn, self->rdp_filtros.type,
 			 (double) self->rdp_filtros.a,
 			 (double) self->rdp_filtros.b
-	)
+	);
 
 	return string;
 }
@@ -146,7 +146,7 @@ static int CamadaConvF_save(CamadaConvF self, FILE *f) {
 	fwrite(&self->filtros->w, 1, sizeof(size_t), f);
 	fwrite(&self->filtros->size_element, 1, sizeof(unsigned int), f);
 	void *data = self->filtros->getvalues(self->filtros, NULL);
-	fwrite(data, self->filtros->size_element, self->filtros->lenght, f);
+	fwrite(data, self->filtros->size_element, self->filtros->length, f);
 	free_mem(data);
 
 	end:
@@ -158,7 +158,7 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	ecx->addstack(ecx, "CamadaConvF_new");
 	CamadaConvF self = alloc_mem(1, sizeof(CamadaConvF_t));
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1, filtro.z};
-	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAO_ID, lname, params, entrada, size_in, size_out, ecx);
+	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAOF_ID, lname, params, entrada, size_in, size_out, ecx);
 	self->activationFuntion = ativacao;
 	self->derivationFuntion = ativacao | FLAGDIF;
 	self->grad_filtros = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);

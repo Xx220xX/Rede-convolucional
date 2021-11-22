@@ -10,11 +10,14 @@
 static const char *lname = "CamadaPadding";
 
 void CamadaPadding_release(CamadaPadding *self) {
-
+	Release((*self)->paddingBack);
+	Release((*self)->paddingfeed);
+	internal_Camada_release((Camada *) self);
+	free_mem(*self);
 }
 
 int CamadaPadding_propagation(CamadaPadding self) {
-	Execute(paddingfeed, self->super.a->lenght,
+	Execute(paddingfeed, self->super.a->length,
 			&self->super.a->data, &self->super.s->data,
 			&self->super.a->x, &self->super.a->y,
 			&self->super.s->x, &self->super.s->y,
@@ -25,7 +28,7 @@ int CamadaPadding_propagation(CamadaPadding self) {
 
 int CamadaPadding_backpropagation(CamadaPadding self, Tensor ds) {
 	if (self->super.da) {
-		Execute(paddingBack, self->super.a->lenght,
+		Execute(paddingBack, self->super.a->length,
 				&ds->data,
 				&self->super.da->data,
 				&self->super.a->x,
@@ -71,7 +74,7 @@ char *CamadaPadding_getGenerate(CamadaPadding self) {
 			 self->bottom,
 			 self->left,
 			 self->right
-	)
+	);
 
 	return string;
 }

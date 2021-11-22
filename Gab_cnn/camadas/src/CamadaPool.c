@@ -14,7 +14,7 @@ void CamadaPooling_release(CamadaPool *selfp) {
 }
 
 int CamadaPooling_propagation(CamadaPool self) {
-	Execute(poolativa, self->super.s->lenght,
+	Execute(poolativa, self->super.s->length,
 
 			&self->super.a->data, &self->super.s->data,
 			&self->passox, &self->passoy,
@@ -28,7 +28,7 @@ int CamadaPooling_propagation(CamadaPool self) {
 
 int CamadaPooling_backpropagation(CamadaPool self, Tensor ds) {
 	if (self->super.da) {
-		Execute(poolCalcGrads, self->super.da->lenght,
+		Execute(poolCalcGrads, self->super.da->length,
 
 				&self->super.a->data, &self->super.da->data,
 				&ds->data, &self->super.s->data,
@@ -56,7 +56,7 @@ char *CamadaPooling_json(CamadaPool self, int showValues) {
 			 self->passox, self->passoy,
 			 self->filtrox, self->filtroy,
 			 self->type == MAXPOOL ? "Max Poling" : (self->type == MINPOOL ? "Min Poling" : "Average Pooling")
-	)
+	);
 	free_mem(tmp);
 	return string;
 }
@@ -70,7 +70,7 @@ char *CamadaPooling_getGenerate(CamadaPool self) {
 			 self->type,
 			 self->passox, self->passoy,
 			 self->filtrox, self->filtroy
-	)
+	);
 	return string;
 }
 
@@ -178,7 +178,7 @@ Camada CamadaPooling_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_i
 	methods:
 	self->super.release = (void (*)(void *)) CamadaPooling_release;
 	self->super.propagation = (int (*)(void *)) CamadaPooling_propagation;
-	self->super.retroPropagation = (int (*)(void *, Tensor )) CamadaPooling_backpropagation;
+	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPooling_backpropagation;
 	self->super.json = (char *(*)(void *, int)) CamadaPooling_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaPooling_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaPooling_save;

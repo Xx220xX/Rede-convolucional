@@ -14,24 +14,9 @@
 #define asprintf(str, format, ...){int len = snprintf(NULL,0,format,## __VA_ARGS__);\
 str = calloc(len+1,1);                                                           \
 snprintf(str,len,format,## __VA_ARGS__);}
-#define PAD " "
 
-#define apendstr(str, len, format, ...) { \
-         size_t sz = snprintf(NULL,0,format,##__VA_ARGS__); \
-         if(!str)                         \
-         str = calloc(1,sz+1);    \
-         else                                 \
-         str = realloc(str,len+sz+1);                              \
-         char *tmp = str+len;               \
-         len = len+sz;\
-         sprintf(tmp,format,##__VA_ARGS__) ;                           \
-         \
-         \
-}\
-
-
-char *Tensor_print(Tensor self) {
-	self->erro->addstack(self->erro, "Tensor_print");
+char *Tensor_putvaluesAsstr(Tensor self) {
+	self->erro->addstack(self->erro, "Tensor_putvaluesAsstr");
 	if (self->erro->error)return NULL;
 
 	Memory m = {0};
@@ -74,9 +59,9 @@ char *Tensor_print(Tensor self) {
 	self->erro->popstack(self->erro);
 	return string;
 }
-
+void Tensor_print(Tensor self);
 char *Tensor_printhex(Tensor self) {
-	self->erro->addstack(self->erro, "Tensor_print");
+	self->erro->addstack(self->erro, "Tensor_putvaluesAsstr");
 	if (self->erro->error)return NULL;
 	size_t id;
 	Memory m = {0};
@@ -126,7 +111,7 @@ char *Tensor_json(Tensor self, int showValues) {
 	if (showValues == 2)
 		tmp = Tensor_printhex(self);
 	else if (showValues)
-		tmp = Tensor_print(self);
+		tmp = Tensor_putvaluesAsstr(self);
 
 	asprintf(string, "{\n"
 			PAD"\"flag\":{\n"
@@ -160,7 +145,7 @@ char *Tensor_json(Tensor self, int showValues) {
 			 self->y,
 			 self->z,
 			 self->w,
-			 self->lenght,
+			 self->length,
 			 self->bytes,
 			 self->size_element,
 			 tmp,
@@ -197,6 +182,10 @@ int Tensor_fillM(Tensor self, size_t offset, size_t bytes, void *patern, size_t 
 
 int Tensor_fill(Tensor self, char partern);
 
+int Tensor_copy(Tensor self, Tensor b);
+int Tensor_copyM(Tensor self, Tensor b,size_t self_ofset,size_t b_ofset,size_t bytes);
+
+
 Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...) {
 	ecx->addstack(ecx, "Tensor_new");
 	Tensor self = calloc(1, sizeof(Tensor_t));
@@ -224,8 +213,8 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 		self->size_element = sizeof(int);
 	else if (self->flag.caractere)
 		self->size_element = sizeof(char);
-	self->lenght = self->x * self->y * self->z * self->w;
-	self->bytes = self->lenght * self->size_element;
+	self->length = self->x * self->y * self->z * self->w;
+	self->bytes = self->length * self->size_element;
 
 	// alocar memoria
 	if (self->flag.ram) {
@@ -254,6 +243,9 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 	self->json = Tensor_json;
 	self->release = Tensor_release;
 	self->registreError = Tensor_registreError;
+	self->copy = Tensor_copy;
+	self->copyM = Tensor_copyM;
+	self->print = Tensor_print;
 	self->setvalues = Tensor_setvalues;
 	self->getvalues = Tensor_getvalues;
 	self->getvaluesM = Tensor_getvaluesm;
@@ -316,12 +308,12 @@ int Tensor_setvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 	if (self->erro->error)return self->erro->error;
 	if (self->flag.ram) {
 		memcpy(self->data + offset, data, bytes);
-		return 0;
 	} else if (self->flag.shared) {
 		fprintf(stderr, "ERROR: shared memory not implanted\n");
 	} else {
 		self->erro->error = clEnqueueWriteBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
 	}
+
 	self->erro->popstack(self->erro);
 	return self->erro->error;
 }
@@ -489,3 +481,49 @@ int Tensor_fillM(Tensor self, size_t offset, size_t bytes, void *patern, size_t 
 	}
 	self->erro->popstack(self->erro);
 }
+
+int Tensor_copy(Tensor self, Tensor b) {
+	self->erro->addstack(self->erro, "Tensor_copy");
+	if (self->bytes != b->bytes) {
+		fprintf(stderr, "O tensor b deve possuir o mesmo tamanho\n");
+		self->erro->error = 1;
+		return 1;
+	}
+	void *mem = NULL;
+	if (b->flag.ram) {
+		self->setvalues(self, b->data);
+	} else if (self->flag.ram) {
+		mem = b->getvalues(b, NULL);
+		self->setvalues(self, mem);
+		free_mem(mem);
+	} else {
+		self->erro->error = clEnqueueCopyBuffer(self->queue, b->data, self->data, 0, 0, self->bytes, 0, NULL, NULL);
+		clFinish(self->queue);
+	}
+	self->erro->popstack(self->erro);
+	return self->erro->error;
+}
+
+int Tensor_copyM(Tensor self, Tensor b, size_t self_ofset, size_t b_ofset, size_t bytes) {
+	self->erro->addstack(self->erro, "Tensor_copy");
+	void *mem = NULL;
+	if (b->flag.ram) {
+		self->setvaluesM(self, self_ofset,b->data+b_ofset,bytes);
+	} else if (self->flag.ram) {
+		mem = b->getvaluesM(b, b_ofset,NULL,bytes);
+		self->setvaluesM(self,self_ofset, mem,bytes);
+		free_mem(mem);
+	} else {
+		self->erro->error = clEnqueueCopyBuffer(self->queue, b->data, self->data, b_ofset, self_ofset, bytes, 0, NULL, NULL);
+		clFinish(self->queue);
+	}
+	self->erro->popstack(self->erro);
+	return self->erro->error;
+}
+
+void Tensor_print(Tensor self) {
+	char *json = Tensor_putvaluesAsstr(self);
+	printf("%u : %s\n",self->size_element,json);
+	free_mem(json);
+}
+

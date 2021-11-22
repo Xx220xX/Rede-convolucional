@@ -164,7 +164,6 @@ Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
 	char *p = calloc(len + 1, sizeof(char));
 	p0 = p;
 	memcpy(p, params, len);
-	printf("%s\n", p);
 
 	/// remover espaçoes
 	int i, j = 0;
@@ -187,7 +186,7 @@ Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
 	len = j;
 
 
-	printf("%s\n", p);
+
 	// Vector v, int x, REAL
 	/// achar parametros
 	self->nArgs = 0;
@@ -201,7 +200,7 @@ Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
 		self->nArgs++;
 		self->l_args = realloc(self->l_args, self->nArgs * sizeof(size_t));
 		p[j] = 0;
-		if (cmp("Vector", p, j) == 0) {
+		if (!cmp("Vector", p, j)){
 			self->l_args[self->nArgs - 1] = sizeof(void *);
 		} else if (!cmp("REAL", p, j)) {
 			self->l_args[self->nArgs - 1] = sizeof(CL_REAL);
@@ -227,11 +226,7 @@ Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
 		}
 		i = i + j + 1;
 	}
-	printf("%u\n", self->nArgs);
-	for (i = 0; i < self->nArgs; ++i) {
-		printf("%zu ", self->l_args[i]);
-	}
-	printf("\n");
+
 	metods:
 	self->release = Kernel_release;
 	self->run = Kernel_run;

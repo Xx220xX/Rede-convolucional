@@ -59,7 +59,7 @@ typedef struct Tensor_t {
 	char *file_debug;
 
 	/// dimensão do tensor
-	size_t x, y, z, w,lenght;
+	size_t x, y, z, w, length;
 	/// tamanho total de data
 	size_t bytes;
 	/// tamanho de um elemento
@@ -92,12 +92,21 @@ typedef struct Tensor_t {
 	/// (se data for nulo a funcao alocara os recursos que devaram ser liberados com free_mem)
 	void *(*getvaluesM)(struct Tensor_t *self, size_t offset, void *data, size_t n_bytes);
 
-	/// preenche o tensor com o valor
-	int (*fill)(struct Tensor_t *self,char partern);
-	/// preenche a região com um valor
-	int (*fillM)(struct Tensor_t *self,size_t offset,size_t bytes,void *patern, size_t size_patern);
+	/// copia os valores do tensor b
+	int (*copy)(struct Tensor_t *self, struct Tensor_t *b);
 
-	/// retorna uma string(deve ser liberados os recursos com free_mem) contendo o tensor no formato CamadaConv_json
+	/// copia os valores do tensor b
+	int (*copyM)(struct Tensor_t *self, struct Tensor_t *b, size_t self_ofset, size_t b_ofset, size_t bytes);
+	/// printa o json do tensor
+	void (*print)(struct Tensor_t *self);
+
+	/// preenche o tensor com o valor
+	int (*fill)(struct Tensor_t *self, char partern);
+
+	/// preenche a região com um valor
+	int (*fillM)(struct Tensor_t *self, size_t offset, size_t bytes, void *patern, size_t size_patern);
+
+	/// retorna uma string(deve ser liberados os recursos com free_mem) contendo o tensor no formato json
 	char *(*json)(struct Tensor_t *self, int showValues);
 
 	///  libera os recursos internos do tensor
@@ -133,5 +142,17 @@ typedef struct Tensor_t {
  */
 Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...);
 
+
+#define PAD " "
+#define apendstr(str, len, format, ...) do{ \
+         size_t sz = snprintf(NULL,0,format,##__VA_ARGS__); \
+         if(!str)                         \
+         str = alloc_mem(1,sz+1);    \
+         else                                 \
+         str = realloc(str,len+sz+1);                              \
+         char *tmp__ = str+len;               \
+         len = len+sz;\
+         sprintf(tmp__,format,##__VA_ARGS__) ;                           \
+}while(0)
 
 #endif //TENSOR_TENSOR_H

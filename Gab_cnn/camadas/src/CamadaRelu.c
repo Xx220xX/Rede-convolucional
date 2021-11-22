@@ -26,7 +26,7 @@ static void CamadaRelu_release(CamadaRelu *self_p) {
 }
 
 static int CamadaRelu_propagation(CamadaRelu self) {
-	Execute(reluativa, self->super.s->lenght,
+	Execute(reluativa, self->super.s->length,
 			&self->super.a->data, &self->super.s->data,
 			&self->lessoh, &self->greateroh
 	);
@@ -35,7 +35,7 @@ static int CamadaRelu_propagation(CamadaRelu self) {
 
 static int CamadaRelu_backpropagation(CamadaRelu self, Tensor ds) {
 	if (self->super.da) {
-		Execute(relucalcgrad, self->super.da->lenght,
+		Execute(relucalcgrad, self->super.da->length,
 				&self->super.da->data, &self->super.a->data, &ds->data,
 				&self->lessoh, &self->greateroh
 		);
@@ -66,7 +66,7 @@ static char *CamadaRelu_getGenerate(CamadaRelu self) {
 			 "%s(%g,%g)",
 			 lname,
 			 (double) self->lessoh, (double) self->greateroh
-	)
+	);
 
 	return string;
 }

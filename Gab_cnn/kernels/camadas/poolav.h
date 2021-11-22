@@ -7,7 +7,7 @@ kV poolAVativa(Vector entrada, Vector saida,
 	KTensorRemap(k, x, y, z, saidatx, saidaty)
 
 	Ponto3d mapeado = {x * passox, y * passoy, 0};
-	REAL soma = 0, v;
+	REAL soma = 0;
 
 	for (int i = 0; i < fx; ++i) {
 		for (int j = 0; j < fy; ++j) {

@@ -11,13 +11,16 @@
 #include "parametros.h"
 #include "ponto3d.h"
 
-#define CONVOLUCAO_ID 1
-#define POOLING_ID 2
-#define FULLCONNECT_ID 3
-#define PADDING_ID 4
-#define DROPOUT_ID 5
-#define RELU_ID 6
-#define PRELU_ID 7
+#define CONVOLUCAO_ID 	1
+#define CONVOLUCAOF_ID 	2
+#define CONVOLUCAONC_ID 3
+#define POOLING_ID 		4
+#define FULLCONNECT_ID 	5
+#define PADDING_ID 		6
+#define DROPOUT_ID 		7
+#define RELU_ID 		8
+#define PRELU_ID 		9
+#define SOFTMAX_ID 		9
 
 typedef struct Camada_t {
 	/// nome canonico da camada (apenas leitura)
@@ -76,8 +79,8 @@ void internal_Camada_release(Camada *self);
 
 char *internal_json(Camada self, int showValues);
 
-#define Execute(kernel,len,...)if(!self->super.erro->error){self->super.erro->setError(self->super.erro, \
-self->kernel->runRecursive(self->kernel, self->super.queue,len,*self->super.maxcompute, ##__VA_ARGS__)); }
+#define Execute(kernel,len,...)if(!self->super.erro->error)self->super.erro->setError(self->super.erro, \
+self->kernel->runRecursive(self->kernel, self->super.queue,len,*self->super.maxcompute, ##__VA_ARGS__))
 #define Release(self)if(self)(self)->release(&(self))
 #define CheckKernel(kernel)if (self->super.erro->setError(self->super.erro, self->kernel->error))goto methods
 #define apendTensor(name,t,string, len,tmp,showValues)\

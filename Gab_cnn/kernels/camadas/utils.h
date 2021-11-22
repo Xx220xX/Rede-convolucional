@@ -1,8 +1,19 @@
 // Created by Xx220xX on 10/05/2020.
 #ifndef ATIVATIONSFUNCTIONS_H
 #define ATIVATIONSFUNCTIONS_H
-#define  REAL float
+#define USEFLOAT 1
 
+#if (USEFLOAT == 1)
+#define  REAL float
+#define TANH tanhf
+#define EXP expf
+#define SQRT sqrtf
+#else
+#define  REAL double
+#define TANH tanh
+#define EXP exp
+#define SQRT sqrt
+#endif
 #define Vector __global REAL *
 
 #define kV __kernel void
@@ -36,9 +47,8 @@ typedef struct {
 } Range;
 
 
-
 REAL sigmoid(REAL x) {
-	return 1.0 / (1.0 + exp(-x));
+	return 1.0 / (1.0 + EXP(-x));
 }
 
 REAL difsigmoid(REAL x) {
@@ -47,11 +57,11 @@ REAL difsigmoid(REAL x) {
 }
 
 REAL tanghG(REAL x) {
-	return tanh(x);
+	return TANH(x);
 }
 
 REAL diftanhG(REAL x) {
-	REAL tmp = tanh(x);
+	REAL tmp = TANH(x);
 	return (1.0 - tmp * tmp);
 }
 
@@ -63,7 +73,7 @@ REAL difrelu(REAL x) {
 	return x > 0 ? 1.0 : 0.0;
 }
 
-REAL func(int id, REAL x) {
+REAL func(unsigned int id, REAL x) {
 	switch (id) {
 		case 0:
 			return sigmoid(x);

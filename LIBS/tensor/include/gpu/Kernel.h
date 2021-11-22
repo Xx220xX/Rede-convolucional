@@ -63,6 +63,7 @@ x = total/ ty;
 #define  UTILS_MACRO_KERNEL \
 KREAL "#define  Vector __global REAL *\n"\
 "#define KV __kernel void\n"\
+"#define kV __kernel void\n"\
 "#define KTensorMap(x, y, z, tx, ty)((z)*(ty*tx)+(x)*ty+(y))\n"\
 "\n"\
 "#define KTensorMap4D(x, y, z, l, tx, ty, tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(x)*ty+(y))\n"\

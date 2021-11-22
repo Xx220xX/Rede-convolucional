@@ -67,7 +67,7 @@ char *internal_json(Camada self, int showValues) {
 			PAD"\"params\":{\"hitlearn\":%g,\"momento\":%g,\"decaimento\":%g,\"treinavel\":%d}",
 			 *self->maxcompute, (double) self->params.hitlearn, (double) self->params.momento, (double) self->params.decaimento,
 			 !self->params.skipLearn
-	)
+	);
 
 	return string;
 

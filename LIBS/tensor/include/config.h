@@ -4,13 +4,18 @@
 
 #ifndef TENSOR_REA_H
 #define TENSOR_REA_H
-#define REAL float
+#include <crtdefs.h>
 
-#if (REAL == float)
+#define USEFLOAT 1
+
+
+#if (USEFLOAT == 1)
+#define REAL float
 #define KREAL  "#define REAL float\n"
 #define CL_REAL cl_float
 
 #else
+#define REAL double
 #define KREAL  "#define REAL double\n"
 #define CL_REAL cl_double
 

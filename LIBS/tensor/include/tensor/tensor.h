@@ -59,7 +59,7 @@ typedef struct Tensor_t {
 	char *file_debug;
 
 	/// dimensão do tensor
-	size_t x, y, z, w,lenght;
+	size_t x, y, z, w, length;
 	/// tamanho total de data
 	size_t bytes;
 	/// tamanho de um elemento
@@ -92,10 +92,19 @@ typedef struct Tensor_t {
 	/// (se data for nulo a funcao alocara os recursos que devaram ser liberados com free_mem)
 	void *(*getvaluesM)(struct Tensor_t *self, size_t offset, void *data, size_t n_bytes);
 
+	/// copia os valores do tensor b
+	int (*copy)(struct Tensor_t *self, struct Tensor_t *b);
+
+	/// copia os valores do tensor b
+	int (*copyM)(struct Tensor_t *self, struct Tensor_t *b, size_t self_ofset, size_t b_ofset, size_t bytes);
+	/// printa o json do tensor
+	void (*print)(struct Tensor_t *self);
+
 	/// preenche o tensor com o valor
-	int (*fill)(struct Tensor_t *self,char partern);
+	int (*fill)(struct Tensor_t *self, char partern);
+
 	/// preenche a região com um valor
-	int (*fillM)(struct Tensor_t *self,size_t offset,size_t bytes,void *patern, size_t size_patern);
+	int (*fillM)(struct Tensor_t *self, size_t offset, size_t bytes, void *patern, size_t size_patern);
 
 	/// retorna uma string(deve ser liberados os recursos com free_mem) contendo o tensor no formato json
 	char *(*json)(struct Tensor_t *self, int showValues);

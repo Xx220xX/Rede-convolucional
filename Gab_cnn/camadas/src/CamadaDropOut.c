@@ -20,18 +20,18 @@ static void CamadaDropOut_release(CamadaDropOut *self_p) {
 }
 
 static int CamadaDropOut_propagation(CamadaDropOut self) {
-	Execute(dropativa, self->super.s->lenght,
+	Execute(dropativa, self->super.s->length,
 			&self->super.a->data, &self->hitmap->data, &self->seed,
 			&self->probabilidade_saida
 	);
-	self->seed += self->super.s->lenght;
+	self->seed += self->super.s->length;
 	self->seed = (self->seed * 0x5deece66dULL + 0xbULL) & ((1ULL << 31) - 1);
 	return self->super.erro->error;
 }
 
 static int CamadaDropOut_backpropagation(CamadaDropOut self, Tensor ds) {
 	if (self->super.da) {
-		Execute(dropcalcgrad, self->super.da->lenght,
+		Execute(dropcalcgrad, self->super.da->length,
 				&self->super.da->data,
 				&self->hitmap->data,
 				&ds->data
@@ -67,7 +67,7 @@ static char *CamadaDropOut_getGenerate(CamadaDropOut self) {
 			 "%s(%g,%llu)",
 			 lname,
 			 (double) self->probabilidade_saida, self->seed
-	)
+	);
 
 	return string;
 }

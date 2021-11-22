@@ -26,11 +26,23 @@
 static const char *lname = "FullConnect";
 
 void CamadaFullConnect_release(CamadaFullConnect *self) {
-
+	internal_Camada_release((Camada *) self);
+	Release((*self)->w);
+	Release((*self)->dw);
+	Release((*self)->b);
+	Release((*self)->db);
+	Release((*self)->z);
+	Release((*self)->dz);
+	Release((*self)->fullfeed);
+	Release((*self)->fullCalcDWandFix);
+	Release((*self)->fullCalcDz);
+	Release((*self)->fullCalcDzandFixB);
+	Release((*self)->fullcalcin);
+	free_mem(*self);
 }
 
 int CamadaFullConnect_propagation(CamadaFullConnect self) {
-	Execute(fullfeed, self->super.s->lenght, &self->super.a->data, &self->w->data, &self->b->data, &self->z->data,
+	Execute(fullfeed, self->super.s->length, &self->super.a->data, &self->w->data, &self->b->data, &self->z->data,
 			&self->super.s->data,
 			&self->fa, &self->w->x, &self->w->y
 	);
@@ -40,7 +52,7 @@ int CamadaFullConnect_propagation(CamadaFullConnect self) {
 int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 	if (self->super.da || !self->super.params.skipLearn) {
 		if (self->super.params.skipLearn) {
-			Execute(fullCalcDz, self->dz->lenght,
+			Execute(fullCalcDz, self->dz->length,
 					&self->dz->data, &ds->data, &self->z->data, &self->b->data, &self->db->data,
 					&self->dfa,
 					&self->super.params.hitlearn,
@@ -48,7 +60,7 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 					&self->super.params.decaimento
 			);
 		} else {
-			Execute(fullCalcDzandFixB, self->dz->lenght,
+			Execute(fullCalcDzandFixB, self->dz->length,
 					&self->dz->data, &ds->data, &self->z->data, &self->b->data, &self->db->data,
 					&self->dfa,
 					&self->super.params.hitlearn,
@@ -57,7 +69,7 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 			);
 		}
 		if (self->super.da) {
-			Execute(fullcalcin, self->super.da->lenght,
+			Execute(fullcalcin, self->super.da->length,
 					&self->dz->data,
 					&self->super.da->data,
 					&self->w->data,
@@ -65,7 +77,7 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 					&self->w->y
 			);
 		}
-		Execute(fullCalcDWandFix, self->w->lenght,
+		Execute(fullCalcDWandFix, self->w->length,
 				&self->super.a->data,
 				&self->w->data,
 				&self->dw->data,
@@ -112,7 +124,7 @@ char *CamadaFullConnect_getGenerate(CamadaFullConnect self) {
 			 self->rdp_pesos.type, self->rdp_pesos.a, self->rdp_pesos.b,
 			 self->rdp_bias.type, self->rdp_bias.a, self->rdp_bias.b
 
-	)
+	);
 
 	return string;
 }
@@ -143,9 +155,9 @@ int CamadaFullConnect_save(CamadaFullConnect self, FILE *f) {
 	fwrite(&self->w->z, 1, sizeof(size_t), f);
 	fwrite(&self->w->size_element, 1, sizeof(unsigned int), f);
 	void *data = self->w->getvalues(self->w, NULL);
-	fwrite(data, self->w->size_element, self->w->lenght, f);
+	fwrite(data, self->w->size_element, self->w->length, f);
 	data = self->b->getvalues(self->b, data);
-	fwrite(data, self->b->size_element, self->b->lenght, f);
+	fwrite(data, self->b->size_element, self->b->length, f);
 	free_mem(data);
 
 	end:
