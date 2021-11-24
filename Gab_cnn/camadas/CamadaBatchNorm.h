@@ -126,5 +126,5 @@ typedef struct CamadaBatchNorm_t {
 
 extern Camada CamadaBatchNorm_new(Gpu gpu, Queue queue, Parametros params, P3d size_in, Tensor entrada, REAL epsilon, Ecx ecx, RandomParams randY, RandomParams randB);
 
-
+extern Camada CamadaBatchNormload(FILE *f, Gpu gpu, Queue queue, P3d sizein, Tensor entrada, Ecx ecx);
 #endif //CNN_GPU_CAMADABATCHNORM_H

@@ -19,5 +19,6 @@ typedef struct CamadaPRelu_t {
 } *CamadaPRelu, CamadaPRelu_t;
 
 extern Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parametros params, RandomParams rdp_a, Ecx ecx);
+extern Camada CamadaPRelu_load(FILE *f, Gpu gpu, Queue queue, P3d sizein, Tensor entrada, Ecx ecx);
 
 #endif //CNN_GPU_CAMADA_PRelu_H

@@ -43,10 +43,11 @@ add_library(gabkernel SHARED cnn/kernel_lib.c cnn/kernel_lib.c kernels/defaultke
 set_target_properties(gabkernel PROPERTIES PREFIX "")
 
 link_libraries(tensor lcg gpu OpenCL)
-set(CNN ponto3d.h parametros.h ${camadas} cnn/cnn.h cnn/cnn.c )
+set(CNN cnn/ponto3d.h cnn/parametros.h ${camadas} cnn/cnn.h cnn/cnn.c )
 add_executable(Gab_cnn main.c ${CNN})
 target_link_libraries(Gab_cnn gabkernel.dll)
 
+add_executable(cnnLua mainlua.c cnn/cnn_lua.c cnn/cnn_lua.h ${CNN})
 
 
 add_executable(Kernels kernels/camadas/bathnorm.h

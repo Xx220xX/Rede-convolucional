@@ -28,5 +28,5 @@ typedef struct CamadaConvF_t {
 
 extern Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, uint32_t ativacao,
 							  Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros);
-
+extern Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, P3d sizein, Tensor entrada, Ecx ecx);
 #endif //CNN_GPU_CAMADACONVF_H

@@ -22,6 +22,11 @@ typedef struct Cnn_t {
 	Camada *cm;
 	/// kernels internos
 	void *kernels;
+	/// Lua vm
+	void *LuaVm;
+
+	void (*releaseL)(void *L);
+
 	/// entrada da rede
 	const P3d size_in;
 	Ecx erro;
@@ -31,7 +36,8 @@ typedef struct Cnn_t {
 	Queue queue;
 
 	// methods
-	int (*setInput)(struct Cnn_t *self,size_t x,size_t y,size_t z);
+	int (*setInput)(struct Cnn_t *self, size_t x, size_t y, size_t z);
+
 	int (*release)(struct Cnn_t **selfp);
 
 	/// retorna a dimensão da saída da rede
@@ -39,8 +45,11 @@ typedef struct Cnn_t {
 
 	/// retorna a rede em json
 	char *(*json)(struct Cnn_t *self, int showValue);
-	void(*jsonF)(struct Cnn_t *self, int showValue,const char *fileName);
 
+	void (*jsonF)(struct Cnn_t *self, int showValue, const char *fileName);
+
+	int (*save)(struct Cnn_t *self, const char * filename);
+	int (*load)(struct Cnn_t *self, const char * filename);
 	int (*predict)(struct Cnn_t *self, Tensor input);
 
 	int (*predictv)(struct Cnn_t *self, REAL *input);
@@ -56,7 +65,6 @@ typedef struct Cnn_t {
 	int (*normalizeIMAGE)(struct Cnn_t *self, Tensor dst_real, Tensor src_char);
 
 	int (*extractVectorLabelClass)(struct Cnn_t *self, Tensor dst, Tensor label);
-
 
 	int (*Convolucao)(struct Cnn_t *self, P2d passo, P3d filtro, Parametros p, RandomParams filtros);
 

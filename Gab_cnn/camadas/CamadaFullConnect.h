@@ -33,5 +33,6 @@ extern Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t ta
 									Tensor entrada, Parametros params, uint32_t funcaoDeAtivacao,
 									Ecx exc, RandomParams rdp_pesos, RandomParams rdp_bias);
 
+extern Camada CamadaFullConnect_load(FILE *f, Gpu gpu, Queue queue, P3d sizein, Tensor entrada, Ecx ecx);
 
 #endif //CNN_GPU_CAMADAFULLCONNECT_H

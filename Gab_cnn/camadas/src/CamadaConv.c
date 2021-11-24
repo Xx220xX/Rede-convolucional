@@ -95,7 +95,7 @@ static char *CamadaConv_getGenerate(CamadaConv self) {
 /**
  * Salva a camada conv em um arquivo
  * 4 bytes -> indicando o tipo
- * 1 bytes -> separação deve ser '#'
+ * 4 bytes -> separação deve ser -1
  * 8 bytes -> passo x
  * 8 bytes -> passo y
  * 8 bytes -> filtro x
@@ -111,8 +111,9 @@ static char *CamadaConv_getGenerate(CamadaConv self) {
 static int CamadaConv_save(CamadaConv self, FILE *f) {
 	if (self->super.erro->error)goto end;
 	self->super.erro->addstack(self->super.erro, "CamadaConv_save");
+	int flag = -1;
 	fwrite(&self->super.layer_id, 1, sizeof(int), f);
-	fwrite("#", 1, 1, f);
+	fwrite(&flag, 1, sizeof(int), f);
 	fwrite(&self->passox, 1, sizeof(size_t), f);
 	fwrite(&self->passoy, 1, sizeof(size_t), f);
 	fwrite(&self->filtros->x, 1, sizeof(size_t), f);
@@ -120,6 +121,11 @@ static int CamadaConv_save(CamadaConv self, FILE *f) {
 	fwrite(&self->filtros->z, 1, sizeof(size_t), f);
 	fwrite(&self->filtros->w, 1, sizeof(size_t), f);
 	fwrite(&self->filtros->size_element, 1, sizeof(unsigned int), f);
+
+	fwrite(&self->super.params.hitlearn, 1, sizeof(REAL), f);
+	fwrite(&self->super.params.momento, 1, sizeof(REAL), f);
+	fwrite(&self->super.params.decaimento, 1, sizeof(REAL), f);
+	fwrite(&self->super.params.skipLearn, 1, sizeof(int), f);
 	void *data = self->filtros->getvalues(self->filtros, NULL);
 	fwrite(data, self->filtros->size_element, self->filtros->length, f);
 	free_mem(data);
@@ -127,6 +133,65 @@ static int CamadaConv_save(CamadaConv self, FILE *f) {
 	end:
 	self->super.erro->popstack(self->super.erro);
 	return self->super.erro->error;
+}
+
+Camada CamadaConv_load(FILE *f, Gpu gpu, Queue queue, P3d sizein, Tensor entrada, Ecx ecx) {
+	ecx->addstack(ecx, "CamadaConv_save");
+	int flag;
+	fread(&flag, 1, sizeof(int), f);
+	if (flag != -1) {
+		fread(&flag, 1, sizeof(int), f);
+	}
+	union {
+		double auxd;
+		float auxf;
+		REAL auxR;
+	} aux;
+	P2d passo;
+	P3d filtros;
+	Parametros prm;
+	size_t nfiltros, length;
+	unsigned int size_element;
+	fread(&passo.x, 1, sizeof(size_t), f);
+	fread(&passo.y, 1, sizeof(size_t), f);
+	fread(&filtros.x, 1, sizeof(size_t), f);
+	fread(&filtros.y, 1, sizeof(size_t), f);
+	fread(&filtros.z, 1, sizeof(size_t), f);
+	fread(&nfiltros, 1, sizeof(size_t), f);
+	fread(&size_element, 1, sizeof(unsigned int), f);
+
+	fread(&aux, 1, size_element, f);
+	REALCAST(prm.hitlearn, size_element, aux);
+	fread(&aux, 1, size_element, f);
+	REALCAST(prm.momento, size_element, aux);
+	fread(&aux, 1, size_element, f);
+	REALCAST(prm.decaimento, size_element, aux);
+	fread(&prm.skipLearn, 1, sizeof(int), f);
+	length = filtros.x * filtros.y * filtros.z * nfiltros;
+
+	void *data = alloc_mem(length, size_element);
+	fread(data, size_element, length, f);
+
+	CamadaConv self = CamadaConv_new(gpu, queue, passo, filtros, sizein, entrada, prm, ecx, Rdp(-1));
+	if (size_element != sizeof(REAL)) {
+		REAL *dt = alloc_mem(length, sizeof(REAL));
+		if (size_element == sizeof(double)) {
+			for (int i = 0; i < length; ++i)
+				dt[i] = (REAL) ((double *) data)[i];
+		} else {
+			for (int i = 0; i < length; ++i)
+				dt[i] = (REAL) ((float *) data)[i];
+		}
+		free_mem(data);
+		data = dt;
+
+	}
+	self->filtros->setvalues(self->filtros, data);
+	free_mem(data);
+
+	end:
+	ecx->popstack(ecx);
+	return (Camada) self;
 }
 
 Camada CamadaConv_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, Tensor entrada,

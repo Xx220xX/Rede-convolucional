@@ -4,11 +4,13 @@
 
 #ifndef GAB_CNN_PARAMETROS_H
 #define GAB_CNN_PARAMETROS_H
+
 #include "config.h"
-typedef struct Parametos_t{
-	REAL hitlearn,momento,decaimento;
+
+typedef struct Parametos_t {
+	REAL hitlearn, momento, decaimento;
 	int skipLearn;
-}Parametros;
+} Parametros;
 /// Params(hitlearn,momento = 0.0,decaimento = 0.0, skipLearn = 0)
-#define Params(hitlearn,...)((Parametros){hitlearn,## __VA_ARGS__})
+#define Params(hitlearn, ...)((Parametros){hitlearn,## __VA_ARGS__})
 #endif //GAB_CNN_PARAMETROS_H

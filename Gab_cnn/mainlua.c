@@ -1,5 +1,5 @@
-#include "cnn/cnn.h"
 
+#include "cnn/cnn_lua.h"
 int main() {
 	Cnn c = Cnn_new(NULL);
 	c->setInput(c, 28, 28, 1);

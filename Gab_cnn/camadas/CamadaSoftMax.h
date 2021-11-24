@@ -56,4 +56,6 @@ typedef struct CamadaSoftMax_t {
 } *CamadaSoftMax, CamadaSoftMax_t;
 
 extern Camada CamadaSoftMax_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Ecx ecx);
+extern Camada CamadaSoftMax_load(FILE *f, Gpu gpu, Queue queue, P3d sizein, Tensor entrada, Ecx ecx);
+
 #endif //CNN_GPU_CAMADASOFTMAX_H

@@ -18,6 +18,7 @@ typedef struct CamadaPool_t {
 } *CamadaPool, CamadaPool_t;
 
 extern Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, uint32_t type_pooling, Tensor entrada, Ecx ecx);
+extern Camada CamadaPool_load(FILE *f, Gpu gpu, Queue queue, P3d sizein, Tensor entrada, Ecx ecx);
 
 
 #endif //CNN_GPU_CAMADAPOOL_H

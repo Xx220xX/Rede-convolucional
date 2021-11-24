@@ -8,8 +8,8 @@
 #include <gpu/Gpu.h>
 #include <gpu/Kernel.h>
 #include "tensor/tensor.h"
-#include "parametros.h"
-#include "ponto3d.h"
+#include "cnn/parametros.h"
+#include "cnn/ponto3d.h"
 #include "funcoesDeAtivacao.h"
 #define CONVOLUCAO_ID 	1
 #define CONVOLUCAOF_ID 	2
@@ -74,7 +74,7 @@ typedef struct Camada_t {
 typedef struct RdParams {
 	int type;
 	REAL a, b;
-} RandomParams;
+} RandomParams,RdParams;
 #define  Rdp(type,...)((RandomParams){type,## __VA_ARGS__})
 void internal_Camada_new(Camada self, Gpu gpu, Queue queue, int layer_id, const char *layer_name, Parametros params,
 						 Tensor entrada, P3d dim_in, P3d dim_out, Ecx erro);

@@ -59,9 +59,14 @@ int Cnn_normalizeIMAGE(Cnn self, Tensor dst, Tensor src);
 int Cnn_extractVectorLabelClass(Cnn self, Tensor dst, Tensor label);
 
 char *Cnn_json(Cnn self, int showValues);
-void Cnn_jsonF(Cnn self, int showValues,const char *filename);
+
+void Cnn_jsonF(Cnn self, int showValues, const char *filename);
 
 int Cnn_setInput(Cnn self, size_t x, size_t y, size_t z);
+
+int Cnn_save(Cnn self, const char *filename);
+
+int Cnn_load(Cnn self, const char *filename);
 
 //#####################################################################################
 //							FUNÇÕES PARA ADICIONA CAMADAS
@@ -168,6 +173,7 @@ int Cnn_release(Cnn *selfp) {
 	if ((*selfp)->release_gpu) {
 		Release((*selfp)->gpu);
 	}
+	if ((*selfp)->releaseL)(*selfp)->releaseL((*selfp)->LuaVm);
 	free_mem(*selfp);
 	return erro;
 }
@@ -319,8 +325,8 @@ int Cnn_Convolucao(Cnn self, P2d passo, P3d filtro, Parametros p, RandomParams f
 		!CHECKDIN(size_in.y, filtro.y, 1, passo.y)) {
 		fprintf(stderr, "Convolucao:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n",
 				size_in.x, size_in.y, size_in.z,
-				(size_in.x - 1 - (filtro.x - 1)) / (REAL)passo.x + 1,
-				(size_in.y - 1 - (filtro.y - 1)) / (REAL)passo.y + 1,
+				(size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1,
+				(size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1,
 				size_in.z
 		);
 		return 25;
@@ -336,8 +342,8 @@ int Cnn_ConvolucaoF(Cnn self, P2d passo, P3d filtro, uint32_t funcaoAtivacao, Pa
 		!CHECKDIN(size_in.y, filtro.y, 1, passo.y)) {
 		fprintf(stderr, "ConvolucaoF:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n",
 				size_in.x, size_in.y, size_in.z,
-				(size_in.x - 1 - (filtro.x - 1)) /(REAL) passo.x + 1,
-				(size_in.y - 1 - (filtro.y - 1)) /(REAL) passo.y + 1,
+				(size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1,
+				(size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1,
 				size_in.z
 		);
 		return 25;
@@ -369,8 +375,8 @@ int Cnn_Pooling(Cnn self, P2d passo, P2d filtro, uint32_t type) {
 		!CHECKDIN(size_in.y, filtro.y, 1, passo.y)) {
 		fprintf(stderr, "Pooling:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n",
 				size_in.x, size_in.y, size_in.z,
-				(size_in.x - 1 - (filtro.x - 1)) /(REAL) passo.x + 1,
-				(size_in.y - 1 - (filtro.y - 1)) /(REAL) passo.y + 1,
+				(size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1,
+				(size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1,
 				size_in.z
 		);
 		return 25;
@@ -474,15 +480,38 @@ int Cnn_setInput(Cnn self, size_t x, size_t y, size_t z) {
 	P3d size_in = P3D(x, y, z);
 	memcpy((void *) &self->size_in, &size_in, sizeof(P3d));
 	Release(self->entrada);
-	self->entrada = Tensor_new(size_in.x,size_in.y,size_in.z,1,self->erro,0,self->gpu->context,self->queue);
+	self->entrada = Tensor_new(size_in.x, size_in.y, size_in.z, 1, self->erro, 0, self->gpu->context, self->queue);
 	return 0;
 }
 
 void Cnn_jsonF(Cnn self, int showValues, const char *filename) {
 	char *json = self->json(self, showValues);
-	FILE *f = fopen(filename,"w");
-	fprintf(f,"%s\n",json);
+	FILE *f = fopen(filename, "w");
+	fprintf(f, "%s\n", json);
 	fclose(f);
 	free_mem(json);
+}
+
+int Cnn_save(Cnn self, const char *filename) {
+	if (self->erro->error) return self->erro->error;
+
+	FILE *f = fopen(filename, "wb");
+	for (int i = 0; i < self->l && !self->erro->error; ++i) {
+		self->cm[i]->save(self->cm[i], f);
+	}
+	fclose(f);
+	return self->erro->error;
+}
+
+int Cnn_load(Cnn self, const char *filename) {
+	FILE *f = fopen(filename, "rb");
+
+	int reading = 1;
+
+	while (!feof(f)){
+
+	}
+	fclose(f);
+	return self->erro->error;
 }
 

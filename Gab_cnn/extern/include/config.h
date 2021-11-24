@@ -21,4 +21,13 @@
 
 #endif
 #define  DEBUG_STACK 1
+
+#define REALCAST(dest,size_element,aux)\
+	if(size_element == sizeof(REAL))\
+		dest = aux.auxR;\
+	else if(size_element == sizeof(float)){\
+		dest = (double)aux.auxf;\
+	}else\
+		dest = (float)aux.auxd
+
 #endif //TENSOR_REA_H
