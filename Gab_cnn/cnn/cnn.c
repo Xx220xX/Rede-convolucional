@@ -473,6 +473,8 @@ int Cnn_setInput(Cnn self, size_t x, size_t y, size_t z) {
 	if (self->l != 0)return 10;
 	P3d size_in = P3D(x, y, z);
 	memcpy((void *) &self->size_in, &size_in, sizeof(P3d));
+	Release(self->entrada);
+	self->entrada = Tensor_new(size_in.x,size_in.y,size_in.z,1,self->erro,0,self->gpu->context,self->queue);
 	return 0;
 }
 
