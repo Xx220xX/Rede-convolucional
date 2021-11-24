@@ -119,12 +119,12 @@ typedef struct CamadaBatchNorm_t {
  */
 	Kernel batchNormCalcGrads2;//calcula gradiente Y B
 	/// Parametros de geração aleatória do tensor Gama
-	RdP rdp_Y;
+	RandomParams rdp_Y;
 	/// Parametros de geração aleatória do tensor Beta
-	RdP rdp_B;
+	RandomParams rdp_B;
 } *CamadaBatchNorm, CamadaBatchNorm_t;
 
-extern Camada CamadaBatchNorm_new(Gpu gpu, Queue queue, Parametros params, P3d size_in, Tensor entrada, REAL epsilon, Ecx ecx, RdP randY, RdP randB);
+extern Camada CamadaBatchNorm_new(Gpu gpu, Queue queue, Parametros params, P3d size_in, Tensor entrada, REAL epsilon, Ecx ecx, RandomParams randY, RandomParams randB);
 
 
 #endif //CNN_GPU_CAMADABATCHNORM_H

@@ -28,7 +28,7 @@ kV putIMG(__global unsigned char *imagem_saida,
 	int i, j;
 	KTensorRemap2D(k, i, j, imy)
 	int x = i * px, y = j * py;
-	imagem_saida[(i+i0)*width+j+j0] = ((int) v[KTensorMap(x, y, z, vx, vy)] ) & 0xff;
+	imagem_saida[(i + i0) * width + j + j0] = ((int) v[KTensorMap(x, y, z, vx, vy)]) & 0xff;
 }
 
 
@@ -39,24 +39,18 @@ kV normalizeVector(Vector input, Vector saida, REAL multiplicador, REAL somador,
 }
 
 
-kV subKernel(Vector grad, Vector saida, Vector target, int k0) {
+kV kernel_sub(Vector ds, Vector s, Vector t, int k0) {
 	int k = get_global_id(0) + k0;
-	grad[k] = saida[k] - target[k];
+	ds[k] = s[k] - t[k];
 }
 
-kV divKernel(Vector v, REAL value, int k0) {
+kV kernel_normalizechar2real(Vector dst, __global char *src, REAL a, REAL b, int k0) {
 	int k = get_global_id(0) + k0;
-	v[k] = v[k] / value;
+	dst[k] = ((REAL)src[k] - b) / a;
 }
 
-kV divIntDo(__global unsigned char *src, Vector v, REAL value, int k0) {
-	int k = get_global_id(0) + k0;
-	v[k] = ((REAL) src[k]) / value;
-
-}
-
-kV int2vector(__global unsigned char *ints, Vector v, int noptiobs, int k0) {
+kV kernel_getVetorClassFromChar( Vector dst, __global unsigned char *ints,int noptiobs, int k0) {
 	int w = get_global_id(0) + k0;
 	int y = ints[w];
-	v[KTensorMap4D(0, y, 0, w, 1, noptiobs, 1)] = 1.0;
+	dst[KTensorMap4D(0, y, 0, w, 1, noptiobs, 1)] = 1.0;
 }

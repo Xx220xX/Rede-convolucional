@@ -70,29 +70,19 @@ static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
 static char *CamadaConvF_json(CamadaConvF self, int showValues) {
 	char *string = NULL;
 	int len = 0;
-	char *tmp = self->filtros->json(self->filtros, showValues);
+	char *tmp = internal_json((Camada) self, showValues);
 	apendstr(string, len,
 			 "{"
+					 PAD"%s,\n"
 					 PAD"\"functionActivation\":%d,\n"
 					 PAD"\"passo\":[%zu,%zu],\n"
-					 PAD"\"numero_filtros\":%zu,\n"
-					 PAD"\"filtros\":%s",
+					 PAD"\"numero_filtros\":%zu", tmp,
 			 self->activationFuntion,
-			 self->passox, self->passoy, self->filtros->w,
-			 tmp);
+			 self->passox, self->passoy, self->filtros->w);
 	free_mem(tmp);
-	tmp = self->grad_filtros->json(self->grad_filtros, showValues);
-	apendstr(string, len, ",\n"PAD"\"grad_filtros\":%s", tmp);
-	free_mem(tmp);
-	tmp = self->z->json(self->z, showValues);
-	apendstr(string, len, ",\n"PAD"\"z\":%s", tmp);
-	free_mem(tmp);
-	tmp = self->dz->json(self->dz, showValues);
-	apendstr(string, len, ",\n"PAD"\"dz\":%s", tmp);
-	free_mem(tmp);
-	tmp = internal_json((Camada) self, showValues);
-	apendstr(string, len, ",\n"PAD"%s\n}", tmp);
-	free_mem(tmp);
+	apendTensor("filtros",filtros,string,len,tmp,showValues);
+	apendTensor("grad_filtros",grad_filtros,string,len,tmp,showValues);
+	apendstr(string,len,"\n}");
 	return string;
 }
 
@@ -154,7 +144,7 @@ static int CamadaConvF_save(CamadaConvF self, FILE *f) {
 	return self->super.erro->error;
 }
 
-Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, int ativacao, Tensor entrada, Parametros params, Ecx ecx, RdP rdp_filtros) {
+Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros) {
 	ecx->addstack(ecx, "CamadaConvF_new");
 	CamadaConvF self = alloc_mem(1, sizeof(CamadaConvF_t));
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1, filtro.z};
@@ -218,7 +208,7 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	methods:
 	self->super.release = (void (*)(void *)) CamadaConvF_release;
 	self->super.propagation = (int (*)(void *)) CamadaConvF_propagation;
-	self->super.retroPropagation = (int (*)(void *, Tensor )) CamadaConvF_backpropagation;
+	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaConvF_backpropagation;
 	self->super.json = (char *(*)(void *, int)) CamadaConvF_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaConvF_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaConvF_save;

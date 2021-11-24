@@ -34,10 +34,20 @@ set(camadas
         camadas/src/CamadaRelu.c
         camadas/src/CamadaSoftMax.c)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
-link_libraries(OpenCL Lua543 png)
 
-add_executable(Gab_cnn main.c cnn.h cnn.c cnn.h ponto3d.h parametros.h ${camadas} camadas/src/CamadaConv.c)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
+link_libraries(Lua543 png)
+
+
+add_library(gabkernel SHARED cnn/kernel_lib.c cnn/kernel_lib.c kernels/defaultkernel.h)
+set_target_properties(gabkernel PROPERTIES PREFIX "")
+
+link_libraries(tensor lcg gpu OpenCL)
+set(CNN ponto3d.h parametros.h ${camadas} cnn/cnn.h cnn/cnn.c )
+add_executable(Gab_cnn main.c ${CNN})
+target_link_libraries(Gab_cnn gabkernel.dll)
+
+
 
 add_executable(Kernels kernels/camadas/bathnorm.h
         kernels/camadas/cnnutils.h

@@ -8,7 +8,7 @@
 static const char *lname = "BatchNorm";
 
 void CamadaBatchNorm_release(CamadaBatchNorm *selfp) {
-	internal_Camada_release((Camada *) (*selfp));
+	internal_Camada_release((Camada *) (selfp));
 	Release((*selfp)->Y);
 	Release((*selfp)->gradY);
 	Release((*selfp)->B);
@@ -105,8 +105,8 @@ char *CamadaBatchNorm_json(CamadaBatchNorm self, int showValues) {
 	char *tmp = internal_json((Camada) self, showValues);
 	apendstr(string, len,
 			 "{"
-					 PAD"%s"
-					 PAD"\"epsilon\":%g,\n",
+					 PAD"%s,\n"
+					 PAD"\"epsilon\":%g",
 			 tmp,
 			 (double) self->epsilon
 	);
@@ -122,7 +122,7 @@ char *CamadaBatchNorm_json(CamadaBatchNorm self, int showValues) {
 	apendTensor("diferenca",diferenca,string,len,tmp,showValues);
 	apendTensor("diferencaquad",diferencaquad,string,len,tmp,showValues);
 	apendTensor("norma",norma,string,len,tmp,showValues);
-
+	apendstr(string, len,"\n}");
 	return string;
 }
 
@@ -181,7 +181,7 @@ int CamadaBatchNorm_save(CamadaBatchNorm self, FILE *f) {
 }
 
 extern Camada CamadaBatchNorm_new(Gpu gpu, Queue queue, Parametros params, P3d size_in, Tensor entrada,
-								  REAL epsilon, Ecx ecx, RdP randY, RdP randB) {
+								  REAL epsilon, Ecx ecx, RandomParams randY, RandomParams randB) {
 	ecx->addstack(ecx, "CamadaBatchNorm_new");
 	CamadaBatchNorm self = alloc_mem(1, sizeof(CamadaBatchNorm_t));
 

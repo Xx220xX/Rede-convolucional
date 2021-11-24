@@ -41,7 +41,7 @@ char *Tensor_putvaluesAsstr(Tensor self) {
 					if (self->flag.inteiro) {
 						apendstr(string, len, "%d", m.inteiro[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 					} else if (self->flag.caractere) {
-						apendstr(string, len, "0x%02X", (int) m.caractere[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
+						apendstr(string, len, "\"0x%02X\"", (int) m.caractere[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 					} else {
 						apendstr(string, len, "%.3lf", (double) m.real[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 					}
@@ -85,7 +85,7 @@ char *Tensor_printhex(Tensor self) {
 					if (y > 0) apendstr(string, len, ", ");
 					id = y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y;
 					id = id * self->size_element;
-					apendstr(string, len, "0x%02X", (int) m.caractere[id])
+					apendstr(string, len, "\"0x%02X\"", (int) m.caractere[id])
 					for (int i = 1; i < self->size_element; ++i) {
 						apendstr(string, len, "%02X", (int) m.caractere[id + i])
 					}

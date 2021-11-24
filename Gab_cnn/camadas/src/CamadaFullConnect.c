@@ -94,19 +94,21 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 char *CamadaFullConnect_json(CamadaFullConnect self, int showValues) {
 	char *string = NULL;
 	int len = 0;
-	char *tmp;
+	char *tmp = internal_json((Camada) self, showValues);
 	apendstr(string, len,
 			 "{"
-					 PAD"\"funcaoAtivacao\":%d",
-			 self->fa);
+			 PAD"%s,\n"
+			 PAD"\"funcaoAtivacao\":%d",
+			 tmp, self->fa);
+	free_mem(tmp);
 
 	apendTensor("z", z, string, len, tmp, showValues);
 	apendTensor("dz", dz, string, len, tmp, showValues);
 	apendTensor("w", w, string, len, tmp, showValues);
 	apendTensor("dw", dw, string, len, tmp, showValues);
-	tmp = internal_json((Camada) self, showValues);
-	apendstr(string, len, ",\n"PAD"%s\n}", tmp);
-	free_mem(tmp);
+
+	apendstr(string, len, "\n}");
+
 	return string;
 }
 
@@ -128,6 +130,7 @@ char *CamadaFullConnect_getGenerate(CamadaFullConnect self) {
 
 	return string;
 }
+
 /**
  * Salva a camada conv em um arquivo
  * 4 bytes -> indicando o tipo
@@ -166,7 +169,7 @@ int CamadaFullConnect_save(CamadaFullConnect self, FILE *f) {
 }
 
 Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSaida, Tensor entrada,
-							 Parametros params, int funcaoDeAtivacao, Ecx ecx, RdP rdp_pesos, RdP rdp_bias) {
+							 Parametros params, uint32_t funcaoDeAtivacao, Ecx ecx, RandomParams rdp_pesos, RandomParams rdp_bias) {
 	ecx->addstack(ecx, "CamadaFullConnect_new");
 	CamadaFullConnect self = alloc_mem(1, sizeof(CamadaFullConnect_t));
 	P3d size_out = {1, tamanhoSaida, 1};

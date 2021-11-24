@@ -29,7 +29,7 @@ typedef struct CamadaConvNC_t {
 	/// derivada da função de ativação
 	uint32_t  derivationFunction;
 	/// geração aleatória dos filtros
-	RdP rdp_filtros;
+	RandomParams rdp_filtros;
 	/***
  * @goal Fazer a soma convolucional e aplicar a função de ativação
  * @iteration  dimensão da saída s(x,y,z)
@@ -111,8 +111,8 @@ typedef struct CamadaConvNC_t {
 } *CamadaConvNC, CamadaConvNC_t;
 
 
-extern Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo,P2d abertura, P3d filtro, P3d size_in, uint32_t  ativacao, Tensor entrada,
-							   Parametros params, Ecx ecx, RdP rdp_filtros);
+extern Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtro, P3d size_in, uint32_t  ativacao, Tensor entrada,
+							   Parametros params, Ecx ecx, RandomParams rdp_filtros);
 
 
 #endif //CNN_GPU_CAMADAConvNc_H

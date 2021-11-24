@@ -8,17 +8,13 @@
 static const char *lname = "SoftMax";
 
 void CamadaSoftMaxing_release(CamadaSoftMax *selfp) {
-	internal_Camada_release((Camada *) (*selfp));
-
-
 	Release((*selfp)->soma);
 	Release((*selfp)->exponent);
 	Release((*selfp)->softmaxExp);
 	Release((*selfp)->softmaxSomaExp);
 	Release((*selfp)->softmaxNormaliza);
 	Release((*selfp)->softMaxcalcgrad);
-
-
+	internal_Camada_release((Camada *) (selfp));
 	free_mem(*selfp);
 }
 
@@ -52,17 +48,16 @@ int CamadaSoftMaxing_backpropagation(CamadaSoftMax self, Tensor ds) {
 char *CamadaSoftMaxing_json(CamadaSoftMax self, int showValues) {
 	char *string = NULL;
 	int len = 0;
-	char *tmp ;
+	char *tmp = internal_json((Camada) self, showValues);
 	apendstr(string, len,
 			 "{"
-			 PAD"\"size\":%zu"
-			 , sizeof(CamadaSoftMax_t));
-	apendTensor("exponencial",exponent,string,len,tmp,showValues);
-	apendTensor("soma",soma,string,len,tmp,showValues);
-
-	tmp = internal_json((Camada) self, showValues);
-	apendstr(string, len, ",\n"PAD"%s\n}", tmp);
+					 PAD"%s",
+			 tmp);
 	free_mem(tmp);
+	apendTensor("exponencial", exponent, string, len, tmp, showValues);
+	apendTensor("soma", soma, string, len, tmp, showValues);
+	apendstr(string,len,"\n}");
+
 	return string;
 }
 
@@ -95,7 +90,7 @@ int CamadaSoftMaxing_save(CamadaSoftMax self, FILE *f) {
 	return self->super.erro->error;
 }
 
-Camada CamadaSoftMaxing_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Ecx ecx) {
+Camada CamadaSoftMax_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaSoftMaxing_new");
 	CamadaSoftMax self = alloc_mem(1, sizeof(CamadaSoftMax_t));
 

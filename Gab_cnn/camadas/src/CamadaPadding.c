@@ -46,21 +46,23 @@ int CamadaPadding_backpropagation(CamadaPadding self, Tensor ds) {
 char *CamadaPadding_json(CamadaPadding self, int showValues) {
 	char *string = NULL;
 	int len = 0;
-	char *tmp;
+	char *tmp=internal_json((Camada) self, showValues);
 	apendstr(string, len,
 			 "{"
-					 PAD"\"top\":%d,\n"
-					 PAD"\"bottom\":%d,\n"
-					 PAD"\"left\":%d,\n"
-					 PAD"\"right\":%d,\n",
+					 PAD"%s,\n"
+					 PAD"\"top\":%u,\n"
+					 PAD"\"bottom\":%u,\n"
+					 PAD"\"left\":%u,\n"
+					 PAD"\"right\":%u"
+						"\n}",
+			 tmp,
 			 self->top,
 			 self->bottom,
 			 self->left,
 			 self->right);
-
-	tmp = internal_json((Camada) self, showValues);
-	apendstr(string, len, ",\n"PAD"%s\n}", tmp);
 	free_mem(tmp);
+
+
 	return string;
 }
 

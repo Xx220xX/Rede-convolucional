@@ -46,16 +46,17 @@ static int CamadaRelu_backpropagation(CamadaRelu self, Tensor ds) {
 static char *CamadaRelu_json(CamadaRelu self, int showValues) {
 	char *string = NULL;
 	int len = 0;
-	char *tmp = NULL;
+	char *tmp = internal_json((Camada) self, showValues);
 	apendstr(string, len,
 			 "{"
+					 PAD"%s,\n"
 					 PAD"\"lessoh\":%g,\n"
-					 PAD"\"greateroh\":%g,\n",
+					 PAD"\"greateroh\":%g",
+			 tmp,
 			 (double) self->lessoh, (double) self->greateroh);
 
-	tmp = internal_json((Camada) self, showValues);
-	apendstr(string, len, ",\n"PAD"%s\n}", tmp);
 	free_mem(tmp);
+	apendstr(string, len, "\n}");
 	return string;
 }
 
@@ -86,10 +87,10 @@ static int CamadaRelu_save(CamadaRelu self, FILE *f) {
 	self->super.erro->addstack(self->super.erro, "CamadaRelu_save");
 	fwrite(&self->super.layer_id, 1, sizeof(int), f);
 	fwrite("#", 1, 1, f);
-	double p = (double)self->lessoh;
-	fwrite(&p, 1, sizeof(double ), f);
-	p = (double)self->greateroh;
-	fwrite(&p, 1, sizeof(double ), f);
+	double p = (double) self->lessoh;
+	fwrite(&p, 1, sizeof(double), f);
+	p = (double) self->greateroh;
+	fwrite(&p, 1, sizeof(double), f);
 	end:
 	self->super.erro->popstack(self->super.erro);
 	return self->super.erro->error;

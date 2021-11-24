@@ -58,7 +58,7 @@ static char *CamadaPRelu_json(CamadaPRelu self, int showValues) {
 	char *tmp = NULL;
 	apendstr(string, len, "{\n");
 	tmp = internal_json((Camada) self, showValues);
-	apendstr(string, len, ",\n"PAD"%s", tmp);
+	apendstr(string, len, PAD"%s", tmp);
 	free_mem(tmp);
 	apendTensor("A", A, string, len, tmp, showValues);
 	apendTensor("dA", dA, string, len, tmp, showValues);
@@ -110,7 +110,7 @@ static int CamadaPRelu_save(CamadaPRelu self, FILE *f) {
 	return self->super.erro->error;
 }
 
-Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parametros params, RdP rdp_a, Ecx ecx) {
+Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parametros params, RandomParams rdp_a, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaPRelu_new");
 	CamadaPRelu self = alloc_mem(1, sizeof(CamadaPRelu_t));
 	P3d size_out = size_in;

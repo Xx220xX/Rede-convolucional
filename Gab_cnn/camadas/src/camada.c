@@ -11,6 +11,7 @@ P3d internnal_getOutSize(Camada self) {
 void internal_Camada_new(Camada self, Gpu gpu, Queue queue, int layer_id, const char *layer_name, Parametros params,
 						 Tensor entrada, P3d dim_in, P3d dim_out, Ecx erro) {
 	erro->addstack(erro, "internal_Camada_new");
+	self->erro = erro;
 	self->a = entrada;
 	self->size_in = dim_in;
 	if (entrada) {
@@ -22,7 +23,6 @@ void internal_Camada_new(Camada self, Gpu gpu, Queue queue, int layer_id, const 
 	memcpy((void *) &self->layer_id, &layer_id, sizeof(const int));
 	memcpy(self, &layer_name, sizeof(const char *));
 	self->maxcompute = &gpu->maxworks;
-	self->erro = erro;
 	self->params = params;
 	erro->popstack(erro);
 	self->getOutSize = (P3d (*)(void *)) internnal_getOutSize;
@@ -41,7 +41,7 @@ char *internal_json(Camada self, int showValues) {
 	char *string = NULL;
 	int len = 0;
 	char *tmp = NULL;
-	apendstr(string, len, "\"layer_name\":%s,\n\"layer_id\":%d", self->layer_name, self->layer_id);
+	apendstr(string, len, "\"layer_name\":\"%s\",\n\"layer_id\":%d", self->layer_name, self->layer_id);
 	if (self->a) {
 		tmp = self->a->json(self->a, showValues);
 		apendstr(string, len, ",\n"PAD"\"entrada\":%s", tmp);

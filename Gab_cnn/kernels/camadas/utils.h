@@ -5,9 +5,9 @@
 
 #if (USEFLOAT == 1)
 #define  REAL float
-#define TANH tanhf
-#define EXP expf
-#define SQRT sqrtf
+#define TANH tanh
+#define EXP exp
+#define SQRT sqrt
 #else
 #define  REAL double
 #define TANH tanh

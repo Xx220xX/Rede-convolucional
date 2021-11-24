@@ -7,7 +7,7 @@
 static const char *lname = "Pooling";
 
 void CamadaPooling_release(CamadaPool *selfp) {
-	internal_Camada_release((Camada *) (*selfp));
+	internal_Camada_release((Camada *) (selfp));
 	Release((*selfp)->poolCalcGrads);
 	Release((*selfp)->poolativa);
 	free_mem(*selfp);
@@ -47,11 +47,11 @@ char *CamadaPooling_json(CamadaPool self, int showValues) {
 	char *tmp = internal_json((Camada) self, showValues);
 	apendstr(string, len,
 			 "{"
-					 PAD"%s"
+					 PAD"%s,\n"
 					 PAD"\"passo\":[%zu,%zu],\n"
 					 PAD"\"filtro\":[%zu,%zu],\n"
-					 PAD"\"type\":\"%s\",\n"
-						"}",
+					 PAD"\"type\":\"%s\""
+						"\n}",
 			 tmp,
 			 self->passox, self->passoy,
 			 self->filtrox, self->filtroy,
@@ -101,8 +101,8 @@ int CamadaPooling_save(CamadaPool self, FILE *f) {
 	return self->super.erro->error;
 }
 
-Camada CamadaPooling_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, int type_pooling, Tensor entrada, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaPooling_new");
+Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, uint32_t type_pooling, Tensor entrada, Ecx ecx) {
+	ecx->addstack(ecx, "CamadaPool_new");
 	CamadaPool self = alloc_mem(1, sizeof(CamadaPool_t));
 
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1,

@@ -14,11 +14,11 @@ with open(output, 'w') as fout:
 			fout.write('\n')
 	fout.write('#endif //GAB_KERNELS_OPENCL_H\n')
 print()
-with open('defaultkernel.c', 'w') as fout:
+with open('defaultkernel.h', 'w') as fout:
 	fout.write("//\n"
-			   "// Created by hslhe on 14/08/2021.\n"
+			   "// Created by Henrique on 14/08/2021.\n"
 			   "//\n"
-			   "#include \"utils/defaultkernel.h\"\n")
+			   )
 
 	fout.write('const char __default_kernel__[] = \n')
 	l = 1

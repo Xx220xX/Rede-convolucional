@@ -11,6 +11,9 @@
 #ifndef alloc_mem
 #define alloc_mem calloc
 #endif
+#ifndef realloc_mem
+#define realloc_mem realloc
+#endif
 
 
 #include <stdio.h>
@@ -55,7 +58,7 @@ typedef struct Gpu_t {
 	/// retorna uma cadeia de caracteres contendo a mensagem referente ao codigo(a mensage deve ser liberada com free_mem)
 	char *(*errorMsg)(int error_code);
 	/// compila os kernel e salva em self.program, se compilado novamente, o anterior será apagado
-	int (*compileProgram)(struct Gpu_t*self, char *program_source);
+	int (*compileProgram)(struct Gpu_t*self, const char *program_source);
 	/// compila os kernel de um arquivo e salva em self.program, se compilado novamente, o anterior será apagado
 	int (*compileProgramFile)(struct Gpu_t*self, char *program_file);
 	/// Obtem informações da gpu

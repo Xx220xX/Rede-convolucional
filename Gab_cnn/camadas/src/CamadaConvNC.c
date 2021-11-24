@@ -73,13 +73,15 @@ static int CamadaConvNC_backpropagation(CamadaConvNC self, Tensor ds) {
 static char *CamadaConvNC_json(CamadaConvNC self, int showValues) {
 	char *string = NULL;
 	int len = 0;
-	char *tmp = NULL;
+	char *tmp = internal_json((Camada) self, showValues);
 	apendstr(string, len,
 			 "{"
+					 PAD"%s,\n"
 					 PAD"\"functionActivation\":%d,\n"
 					 PAD"\"passo\":[%zu,%zu],\n"
 					 PAD"\"largura\":[%zu,%zu],\n"
 					 PAD"\"numero_filtros\":%zu",
+			 tmp,
 			 self->activationFuntion,
 			 self->passox, self->passoy,
 			 self->largx, self->largy,
@@ -90,9 +92,9 @@ static char *CamadaConvNC_json(CamadaConvNC self, int showValues) {
 	apendTensor("dW",dW,string,len,tmp,showValues);
 	apendTensor("Z",z,string,len,tmp,showValues);
 	apendTensor("dZ",dz,string,len,tmp,showValues);
-	tmp = internal_json((Camada) self, showValues);
-	apendstr(string, len, ",\n"PAD"%s\n}", tmp);
-	free_mem(tmp);
+
+	apendstr(string, len, "\n}");
+
 	return string;
 }
 
@@ -160,7 +162,7 @@ static int CamadaConvNC_save(CamadaConvNC self, FILE *f) {
 
 Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtro, P3d size_in,
 						uint32_t ativacao, Tensor entrada,
-						Parametros params, Ecx ecx, RdP rdp_filtros) {
+						Parametros params, Ecx ecx, RandomParams rdp_filtros) {
 	ecx->addstack(ecx, "CamadaConvNC_new");
 	CamadaConvNC self = alloc_mem(1, sizeof(CamadaConvNC_t));
 	P3d size_out = {(size_in.x - 1 - (filtro.x - 1) * abertura.x) / passo.x + 1,

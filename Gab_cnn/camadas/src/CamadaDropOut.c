@@ -43,20 +43,21 @@ static int CamadaDropOut_backpropagation(CamadaDropOut self, Tensor ds) {
 
 static char *CamadaDropOut_json(CamadaDropOut self, int showValues) {
 	char *string = NULL;
+	char *tmp = internal_json((Camada) self, showValues);
 	int len = 0;
 	apendstr(string, len,
 			 "{"
+					 PAD"%s,\n"
 					 PAD"\"seed\":%llu,\n"
-					 PAD"\"probabilidade_saida\":%g,\n",
-			 self->seed,
+					 PAD"\"probabilidade_saida\":%g",
+			 tmp, self->seed,
 			 (double) self->probabilidade_saida);
 
-	char *tmp = NULL;
-	apendTensor("hitmap", hitmap, string, len, tmp, showValues);
 
-	tmp = internal_json((Camada) self, showValues);
-	apendstr(string, len, ",\n"PAD"%s\n}", tmp);
 	free_mem(tmp);
+
+	apendTensor("hitmap", hitmap, string, len, tmp, showValues);
+	apendstr(string, len, "\n}");
 	return string;
 }
 

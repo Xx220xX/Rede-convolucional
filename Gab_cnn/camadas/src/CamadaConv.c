@@ -58,22 +58,18 @@ static int CamadaConv_backpropagation(CamadaConv self, Tensor ds) {
 static char *CamadaConv_json(CamadaConv self, int showValues) {
 	char *string = NULL;
 	int len = 0;
-	char *tmp = self->filtros->json(self->filtros, showValues);
+	char *tmp = internal_json((Camada) self, showValues);
 	apendstr(string, len,
-			 "{"
+			 "{\n"
+					 PAD"%s,\n"
 					 PAD"\"passo\":[%zu,%zu],\n"
-					 PAD"\"numero_filtros\":%zu,\n"
-					 PAD"\"filtros\":%s",
-			 self->passox, self->passoy, self->filtros->w,
-			 tmp);
+					 PAD"\"numero_filtros\":%zu",
+			 tmp, self->passox, self->passoy, self->filtros->w
+	);
 	free_mem(tmp);
-
-	tmp = self->grad_filtros->json(self->grad_filtros, showValues);
-	apendstr(string, len, ",\n\""PAD"grad_filtros\":%s", tmp);
-	free_mem(tmp);
-	tmp = internal_json((Camada) self, showValues);
-	apendstr(string, len, ",\n"PAD"%s\n}", tmp);
-	free_mem(tmp);
+	apendTensor("filtros", filtros, string, len, tmp, showValues);
+	apendTensor("grad_filtros", grad_filtros, string, len, tmp, showValues);
+	apendstr(string, len, "\n}");
 	return string;
 }
 
@@ -134,7 +130,7 @@ static int CamadaConv_save(CamadaConv self, FILE *f) {
 }
 
 Camada CamadaConv_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, Tensor entrada,
-					  Parametros params, Ecx ecx, RdP rdp_filtros) {
+					  Parametros params, Ecx ecx, RandomParams rdp_filtros) {
 	ecx->addstack(ecx, "CamadaConv_new");
 	CamadaConv self = alloc_mem(1, sizeof(CamadaConv_t));
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1,
@@ -191,7 +187,7 @@ Camada CamadaConv_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, 
 	methods:
 	self->super.release = (void (*)(void *)) CamadaConv_release;
 	self->super.propagation = (int (*)(void *)) CamadaConv_propagation;
-	self->super.retroPropagation = (int (*)(void *, Tensor )) CamadaConv_backpropagation;
+	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaConv_backpropagation;
 	self->super.json = (char *(*)(void *, int)) CamadaConv_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaConv_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaConv_save;
