@@ -228,8 +228,10 @@ char *Gpu_errormsg(int error) {
 		case -68: allocprint(msg, "%s", "INVALID_DEVICE_PARTITION_COUNT");
 			break;
 		default:
+		allocprint(msg, "Error ID: %d, The error was not elapsed in the OpenCL api\n", error);
 			break;
 	}
+
 	return msg;
 }
 

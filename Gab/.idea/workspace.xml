@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated>
+      <config projectName="Gab" targetName="Gab" />
+      <config projectName="Gab" targetName="Debug" />
+      <config projectName="Gab" targetName="gabkernel" />
+      <config projectName="Gab" targetName="DEBUG_KERNEL" />
+    </generated>
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c338dee6-06d1-48f9-9422-2956ec3c4b4a" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/Gab.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Setup.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Setup.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../lua/.idea/lua.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/Rede-convolucional.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/CNN_GPU.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/dictionaries/Henrique.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/jsLibraryMappings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/markdown-navigator-enh.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/markdown-navigator.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/CNN_GPU.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/EXAMPLE.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/debug_kernel.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/libCNNGPU.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/libCNNGPU.dll.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/mult_teste.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/onlygpu.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/onlygpuMulttime.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/pl.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/sum_teste.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/svm.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/svm.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/bin/svm_teste.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/debug/camada/batchnorm.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/debug/camada/conv.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/debug/implementeSoftMax.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/debug/remap.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/debug/testeAllCNN.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/debug/testeAllCNN.m" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/debug/testeCamada.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/debug/testeCnn.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/debug/testeshuffle.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/CL/cl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/CL/cl.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/CL/cl_d3d10.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/CL/cl_d3d11.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/CL/cl_dx9_media_sharing.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/CL/cl_ext.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/CL/cl_gl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/CL/cl_gl_ext.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/CL/cl_platform.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/CL/opencl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/LCG_Random/lcg.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/Camada.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaBatchNorm.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaConv.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaConvF.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaConvNC.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaDropOut.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaFullConnect.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaPRelu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaPadding.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaPool.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaPoolAv.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaRelu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/CamadaSoftMax.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/funcoesDeAtivacao.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/camadas/utils.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/cnn.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/cnn_errors_list.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/config.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/gpu/Kernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/gpu/WrapperCL.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/libraryPythonWrapper.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/tensor/Tensor.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/utils/String.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/utils/Thread.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/utils/defaultkernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/utils/dir.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/utils/list_args.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/utils/log.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/utils/manageTrain.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/utils/memory_utils.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/utils/time_utils.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/cnn/utils/vectorUtils.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/conio2/conio2.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/lua/lauxlib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/lua/lua.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/lua/luaconf.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/lua/lualib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/include/png/png.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/buildKernel.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/bathnorm.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/cnnutils.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/conv.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/convNc.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/convf.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/dropout.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/fullconnect.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/padding.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/pool.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/poolav.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/prelu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/relu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/softmax.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/camadas/utils.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/conv.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/debugKernel.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/kernels/showconv.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/lib/CL/libOpenCL.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/lib/lua/libLua543.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/lib/png/libpng.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/main.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/mainui.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/notas.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/samples/conv.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/CnnLua.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/LCG_Random/lcg.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/Camada.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaBatchNorm.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaConv.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaConvF.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaConvNC.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaDropOut.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaFullConnect.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaPRelu.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaPadding.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaPool.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaPoolAv.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaRelu.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/camadas/CamadaSoftMax.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/cnn.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/conio2/conio2.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/gpu/Kernel.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/gpu/WrapperCL.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/gpuKernels.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/icon/camadas.bmp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/icon/icon.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/icon/icon.rc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/icon/icon.res" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/icon/icone.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/libraryPythonWrapper.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/tensor/Tensor.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/treino/conioHUD.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/treino/preparaImagens.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/treino/treinoWithLua.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/treino/uteisTreino.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/utils/String.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/utils/Thread.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/utils/defaultKernel.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/utils/dir.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/utils/list_args.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/utils/manageTrain.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/utils/memory_utils.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/utils/time_utils.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/src/utils/vectorUtils.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/MAIN_LUA.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/commonsTest.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/loadAndPlot.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/mult.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/sum.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/svm.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/testeCamadas.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/testeCnn.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/testeOpenCL.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/testeTensor.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/teste/treinoWithPy.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../CNN_GPU/ui.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Thread.h" beforeDir="false" afterPath="$PROJECT_DIR$/Thread.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/external/include/png/png.h" beforeDir="false" afterPath="$PROJECT_DIR$/external/include/png/png.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/external/lib/libLua543.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/external/lib/libpng.a" beforeDir="false" afterPath="$PROJECT_DIR$/external/lib/libpng.a" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/project/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaConvF.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaConvF.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/cnn/ponto3d.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/cnn/ponto3d.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/conio2/conio2.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/conio2/conio2.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/error_list.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/error_list.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/gpu/Gpu.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/gpu/Gpu.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/tensor/exc.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/tensor/exc.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/tensor/tensor.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/tensor/tensor.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/cnnutils.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/cnnutils.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/fullconnect.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/fullconnect.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/defaultkernel.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/defaultkernel.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/gpuKernels.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/gpuKernels.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/conio2/conio2.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/conio2/conio2.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/gpu/Gpu.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/gpu/Gpu.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/tensor/exc.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/tensor/exc.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/.idea/Gab_cnn.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/a.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/bin/Gab_cnn.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/bin/gabkernel.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaBatchNorm.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaConv.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaConvF.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaConvNC.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaDropOut.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaFullConnect.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaPRelu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaPadding.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaPool.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaRelu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/CamadaSoftMax.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/camada.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/funcoesDeAtivacao.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaBatchNorm.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaConv.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaConvF.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaConvNC.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaDropOut.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaFullConnect.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaPRelu.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaPadding.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaPool.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaRelu.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/CamadaSoftMax.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/camadas/src/camada.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/cnn/cnn.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/cnn/cnn.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/cnn/cnn_lua.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/cnn/cnn_lua.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/cnn/kernel_lib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/cnn/kernel_lib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/cnn/parametros.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/cnn/ponto3d.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/CL/cl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/CL/cl.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/CL/cl_d3d10.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/CL/cl_d3d11.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/CL/cl_dx9_media_sharing.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/CL/cl_ext.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/CL/cl_gl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/CL/cl_gl_ext.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/CL/cl_platform.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/CL/opencl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/config.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/gpu/Gpu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/gpu/Kernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/lcg/lcg.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/lua/lauxlib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/lua/lua.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/lua/luaconf.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/lua/lualib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/png/png.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/tensor/exc.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/tensor/tensor.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/include/tensor/tensor_flags.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/lib/libLua543.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/lib/libOpenCL.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/lib/libgpu.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/lib/liblcg.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/lib/libpng.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/extern/lib/libtensor.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/buildKernel.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/bathnorm.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/cnnutils.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/conv.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/convNc.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/convf.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/dropout.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/fullconnect.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/padding.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/poolMax.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/poolMin.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/poolav.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/prelu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/relu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/softmax.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/camadas/utils.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/debugKernel.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/defaultkernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/kernels/gpuKernels.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/main.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/mainlua.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/rgb.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_cnn/testlibs.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_train/.idea/Gab_train.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_train/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_train/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/.idea/Gab_treino.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/bin/gabkernel.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/CL/cl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/CL/cl.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/CL/cl_d3d10.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/CL/cl_d3d11.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/CL/cl_dx9_media_sharing.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/CL/cl_ext.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/CL/cl_gl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/CL/cl_gl_ext.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/CL/cl_platform.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/CL/opencl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaBatchNorm.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaConv.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaConvF.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaConvNC.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaDropOut.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaFullConnect.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaPRelu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaPadding.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaPool.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaRelu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/CamadaSoftMax.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/camada.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/camadas/funcoesDeAtivacao.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/cnn.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/cnn/cnn.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/cnn/cnn_lua.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/cnn/kernel_lib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/cnn/parametros.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/cnn/ponto3d.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/config.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/gpu/Gpu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/gpu/Kernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/lcg/lcg.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/lua/lauxlib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/lua/lua.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/lua/luaconf.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/lua/lualib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/parametros.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/png/png.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/ponto3d.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/tensor/exc.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/tensor/tensor.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/include/tensor/tensor_flags.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/lib/gabCnn.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/lib/libLua543.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/lib/libOpenCL.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/lib/libgabCnn.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/lib/libgpu.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/lib/liblcg.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/lib/libpng.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/extern/lib/libtensor.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/main.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Gab_treino/main.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/Calling/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/Calling/.idea/Calling.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/Calling/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/Calling/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/Calling/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/Calling/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/Calling/main.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/.idea/tensor.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/a.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/bin/gpu.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/bin/lcg.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/bin/stack.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/bin/tensor.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/bin/tensor_test.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/debug.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/CL/cl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/CL/cl.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/CL/cl_d3d10.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/CL/cl_d3d11.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/CL/cl_dx9_media_sharing.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/CL/cl_ext.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/CL/cl_gl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/CL/cl_gl_ext.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/CL/cl_platform.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/CL/opencl.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/config.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/gpu/Gpu.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/gpu/Gpu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/gpu/Kernel.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/gpu/Kernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/lcg/lcg.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/lcg/lcg.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/png/png.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/tensor.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/tensor/exc.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/tensor/exc.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/tensor/tensor.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/include/tensor/tensor_flags.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/lib/libOpenCL.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/lib/libgpu.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/lib/liblcg.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/lib/libpng.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/lib/libtensor.a" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/main.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/main_gpu.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/main_stack.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/rgb.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../LIBS/tensor/teste/main_tensor_rand.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/.idea/docs.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/conv.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/img/ui/criar_arquitetura.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/teoria.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../documentation/batchNormalization.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../documentation/fullconnect.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../documentation/funcaoAtivação.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../documentation/img/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../documentation/img/derivada.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../documentation/img/derivada2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../documentation/index.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/.idea/lua543.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/main.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/Makefile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lapi.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lapi.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lauxlib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lauxlib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lbaselib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lcode.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lcode.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lcorolib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lctype.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lctype.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ldblib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ldebug.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ldebug.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ldo.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ldo.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ldump.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lfunc.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lfunc.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lgc.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lgc.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/linit.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/liolib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ljumptab.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/llex.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/llex.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/llimits.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lmathlib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lmem.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lmem.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/loadlib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lobject.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lobject.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lopcodes.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lopcodes.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lopnames.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/loslib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lparser.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lparser.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lprefix.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lstate.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lstate.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lstring.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lstring.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lstrlib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ltable.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ltable.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ltablib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ltm.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/ltm.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lua.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lua.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lua.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/luac.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/luaconf.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lualib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lundump.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lundump.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lutf8lib.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lvm.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lvm.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lzio.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lua543/src/lzio.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/.idea/pyTrain.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/Activity.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/Form.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/gab_py_c/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/gab_py_c/gab_cnn.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/gab_py_c/gab_wrapper_class.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/gab_py_c/gab_wrapper_functions.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/gab_py_c/gab_wrapper_functionspy.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/gab_py_c/gab_wrapper_load_dll.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/gab_py_c/gab_wrapper_structs.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/align-center.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/align-justify.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/align-left.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/align-right.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/bold.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/copy.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/cut.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/find.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/font-color.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/highlight.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/italic.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/new.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/open.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/paste.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/redo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/save.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/strike.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/underline.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/icons/undo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/teste/manage_teste.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/teste/rede0.cnn" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/tetsqt.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/ui.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/uis/main.ui" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyTrain/uittk.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/CNN.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/gab_py_c/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/gab_py_c/.idea/gab_py_c.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/gab_py_c/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/gab_py_c/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/gab_py_c/cnn_wraper_function.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/gab_py_c/cnn_wrapper_structs.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/gab_py_c/manageTrainWrapper_functions.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/gab_py_c/wrapper_dll.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/generateClasses/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/generateClasses/.idea/generateClasses.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/generateClasses/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/generateClasses/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/generateClasses/createPythonWraper.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/generateClasses/generateClass.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/generateClasses/generateFunctions.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/generateClasses/pytypes.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/generateClasses/tmp.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/teste.lua" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/testeConvNc.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/testeDropOut.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/testeFullConnect.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pycnn/treinado.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../releases/GenerateArchtecture.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../versao_3/Gab_cnn/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/../versao_3/Gab_cnn/main.c" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="21jg9RdTNx6PQI2BWkrC745ZfH1" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showVisibilityIcons" value="true" />
+    <option name="sortByType" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="RunOnceActivity.cidr.known.project.marker" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="cidr.known.project.marker" value="true" />
+    <property name="cmake.loaded.for.project" value="true" />
+  </component>
+  <component name="RunManager" selected="CMake Application.Gab">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="DEBUG_KERNEL" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="DEBUG_KERNEL" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gab" RUN_TARGET_NAME="DEBUG_KERNEL">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Debug" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="Debug" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gab" RUN_TARGET_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Gab" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="Gab" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gab" RUN_TARGET_NAME="Gab">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="gabkernel" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="gabkernel" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="CMake Application.Debug" />
+      <item itemvalue="CMake Application.DEBUG_KERNEL" />
+      <item itemvalue="CMake Application.Gab" />
+      <item itemvalue="CMake Application.gabkernel" />
+    </list>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c338dee6-06d1-48f9-9422-2956ec3c4b4a" name="Changes" comment="" />
+      <created>1638459759262</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1638459759262</updated>
+      <workItem from="1638459760620" duration="2156000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/main.c</url>
+          <line>20</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

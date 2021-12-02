@@ -65,13 +65,13 @@ void clrscr(void) {
 	__fill_text_info();
 	for (i = __CONIO_TOP; i < __CONIO_TOP + __text_info.screenheight; i++) {
 		FillConsoleOutputAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-		                           __FOREGROUND + (__BACKGROUND << 4), __text_info.screenwidth,
-		                           (COORD) {__CONIO_LEFT, i},
-		                           &written);
+								   __FOREGROUND + (__BACKGROUND << 4), __text_info.screenwidth,
+								   (COORD) {__CONIO_LEFT, i},
+								   &written);
 		FillConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE), ' ',
-		                           __text_info.screenwidth,
-		                           (COORD) {__CONIO_LEFT, i},
-		                           &written);
+								   __text_info.screenwidth,
+								   (COORD) {__CONIO_LEFT, i},
+								   &written);
 	}
 	gotoxy(1, 1);
 }
@@ -86,10 +86,10 @@ void clreol(void) {
 	coord.Y = __CONIO_TOP + __text_info.cury - 1;
 
 	FillConsoleOutputAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-	                           __FOREGROUND + (__BACKGROUND << 4),
-	                           __text_info.screenwidth - __text_info.curx + 1, coord, &written);
+							   __FOREGROUND + (__BACKGROUND << 4),
+							   __text_info.screenwidth - __text_info.curx + 1, coord, &written);
 	FillConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),
-	                           ' ', __text_info.screenwidth - __text_info.curx + 1, coord, &written);
+							   ' ', __text_info.screenwidth - __text_info.curx + 1, coord, &written);
 	gotoxy(__text_info.curx, __text_info.cury);
 }
 
@@ -114,7 +114,7 @@ void delline(void) {
 #else
 	fillchar.Char.AsciiChar = ' ';
 	ScrollConsoleScreenBufferA(GetStdHandle(STD_OUTPUT_HANDLE),
-	                           &rect, NULL, coord, &fillchar);
+							   &rect, NULL, coord, &fillchar);
 #endif
 
 
@@ -141,7 +141,7 @@ void insline(void) {
 #else
 	fillchar.Char.AsciiChar = ' ';
 	ScrollConsoleScreenBufferA(GetStdHandle(STD_OUTPUT_HANDLE),
-	                           &rect, NULL, coord, &fillchar);
+							   &rect, NULL, coord, &fillchar);
 #endif
 
 	gotoxy(__text_info.curx, __text_info.cury);
@@ -157,7 +157,7 @@ void movetext(int left, int top, int right, int bottom, int destleft, int destto
 }
 
 void _conio_gettext(int left, int top, int right, int bottom,
-               struct char_info *buf) {
+					struct char_info *buf) {
 	int i;
 	SMALL_RECT r;
 	CHAR_INFO *buffer;
@@ -165,13 +165,13 @@ void _conio_gettext(int left, int top, int right, int bottom,
 
 	__fill_text_info();
 	r = (SMALL_RECT) {__CONIO_LEFT + left - 1, __CONIO_TOP + top - 1,
-	                  __CONIO_LEFT + right - 1, __CONIO_TOP + bottom - 1};
+					  __CONIO_LEFT + right - 1, __CONIO_TOP + bottom - 1};
 	size.X = right - left + 1;
 	size.Y = bottom - top + 1;
 	buffer = malloc(size.X * size.Y * sizeof(CHAR_INFO));
 
 	ReadConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE),
-	                  (PCHAR_INFO) buffer, size, (COORD) {0, 0}, &r);
+					  (PCHAR_INFO) buffer, size, (COORD) {0, 0}, &r);
 
 	for (i = 0; i < size.X * size.Y; i++) {
 #ifdef UNICODE
@@ -192,7 +192,7 @@ void puttext(int left, int top, int right, int bottom, struct char_info *buf) {
 
 	__fill_text_info();
 	r = (SMALL_RECT) {__CONIO_LEFT + left - 1, __CONIO_TOP + top - 1,
-	                  __CONIO_LEFT + right - 1, __CONIO_TOP + bottom - 1};
+					  __CONIO_LEFT + right - 1, __CONIO_TOP + bottom - 1};
 	size.X = right - left + 1;
 	size.Y = bottom - top + 1;
 	buffer = malloc(size.X * size.Y * sizeof(CHAR_INFO));
@@ -207,7 +207,7 @@ void puttext(int left, int top, int right, int bottom, struct char_info *buf) {
 	}
 
 	WriteConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE),
-	                   buffer, size, (COORD) {0, 0}, &r);
+					   buffer, size, (COORD) {0, 0}, &r);
 	free(buffer);
 }
 
@@ -229,7 +229,7 @@ void putchxy(int x, int y, char ch) {
 	putch(ch);
 }
 
-void _setcursortype(int type) {
+void setcursortype(int type) {
 	CONSOLE_CURSOR_INFO Info;
 
 	if (type == 0) {
@@ -239,9 +239,15 @@ void _setcursortype(int type) {
 		Info.bVisible = TRUE;
 	}
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),
-	                     &Info);
+						 &Info);
 }
-
+void showCursor(int hidecursor){
+	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_CURSOR_INFO info;
+	info.dwSize = 100;
+	info.bVisible = hidecursor;
+	SetConsoleCursorInfo(consoleHandle, &info);
+}
 
 void textattr(int _attr) {
 	__FOREGROUND = _attr & 0xF;
@@ -256,32 +262,29 @@ void normvideo(void) {
 void textbackground(int color) {
 	__BACKGROUND = color;
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-	                        __FOREGROUND + (color << 4));
+							__FOREGROUND + (color << 4));
 }
 
 
 void textcolor(int color) {
 	__FOREGROUND = color;
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-	                        color + (__BACKGROUND << 4));
+							color + (__BACKGROUND << 4));
 }
 
 
-int
-wherex(void) {
+int wherex(void) {
 	__fill_text_info();
 	return __text_info.curx;
 }
 
 
-int
-wherey(void) {
+int wherey(void) {
 	__fill_text_info();
 	return __text_info.cury;
 }
 
-char *
-getpass(const char *prompt, char *str) {
+char *getpass(const char *prompt, char *str) {
 	int maxlength = str[0];
 	int length = 0;
 	int ch = 0;
@@ -331,9 +334,9 @@ void switchbackground(int color) {
 	int i;
 
 	buffer = malloc(__text_info.screenwidth * __text_info.screenheight *
-	                sizeof(struct char_info));
+					sizeof(struct char_info));
 	_conio_gettext(1, 1, __text_info.screenwidth, __text_info.screenheight,
-	               buffer);
+				   buffer);
 	for (i = 0; i < __text_info.screenwidth * __text_info.screenheight; i++) {
 		unsigned short attr = buffer[i].attr & 0xF;
 		buffer[i].attr = (color << 4) | attr;
@@ -346,9 +349,9 @@ void flashbackground(int color, int ms) {
 	struct char_info *buffer;
 
 	buffer = malloc(__text_info.screenwidth * __text_info.screenheight *
-	                sizeof(struct char_info));
+					sizeof(struct char_info));
 	_conio_gettext(1, 1, __text_info.screenwidth, __text_info.screenheight,
-	               buffer);
+				   buffer);
 	switchbackground(color);
 	delay(ms);
 	puttext(1, 1, __text_info.screenwidth, __text_info.screenheight, buffer);

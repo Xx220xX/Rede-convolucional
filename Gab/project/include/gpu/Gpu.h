@@ -11,6 +11,9 @@
 #ifndef alloc_mem
 #define alloc_mem calloc
 #endif
+#ifndef realloc_mem
+#define realloc_mem realloc
+#endif
 
 
 #include <stdio.h>

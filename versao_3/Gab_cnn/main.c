@@ -121,7 +121,6 @@ int menu(Manage *manage) {
 				printf("invalid option");
 
 		}
-
 		Sleep(300);
 	}
 

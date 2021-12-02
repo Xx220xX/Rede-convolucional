@@ -289,12 +289,13 @@ kV kernel_sub(Vector ds, Vector s, Vector t, int k0) {
 	ds[k] = s[k] - t[k];
 }
 
-kV kernel_normalizechar2real(Vector dst, __global char *src, REAL a, REAL b, int k0) {
+kV kernel_normalizechar2real(Vector dst, __global unsigned char *src, REAL a, REAL b, int k0) {
 	int k = get_global_id(0) + k0;
+//	printf("update\n");
 	dst[k] = ((REAL)src[k] - b) / a;
 }
 
-kV kernel_getVetorClassFromChar( Vector dst, __global unsigned char *ints,int noptiobs, int k0) {
+kV kernel_getVetorClassFromChar( Vector dst, __global unsigned char *ints,unsigned int noptiobs, int k0) {
 	int w = get_global_id(0) + k0;
 	int y = ints[w];
 	dst[KTensorMap4D(0, y, 0, w, 1, noptiobs, 1)] = 1.0;
@@ -675,7 +676,7 @@ kV fullfeed(Vector entrada, Vector pesos, Vector b, Vector z, Vector saida,
 		valorEntrada += entrada[n] * pesos[KTensorMap(m, n, 0, pesosx, pesosy)];
 	}
 	z[m] = valorEntrada + b[m];
-	saida[m] = func(funcaoativacao, valorEntrada);
+	saida[m] = func(funcaoativacao, z[m]);
 }
 
 kV fullCalcDWandFix(Vector a,

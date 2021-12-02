@@ -228,7 +228,8 @@ void putchxy(int x, int y, char ch);
  * @see @ref cursortypes
  * @param type cursor type, under Win32 it is height of the cursor in percents
  */
-void _setcursortype(int type);
+void setcursortype(int type);
+void showCursor(int show);
 
 /**
  * Sets attribute of text.

@@ -18,7 +18,7 @@ typedef struct Ecx_t {
 
 	int (*setError)(struct Ecx_t *self, int error);
 
-	void (*addstack)(struct Ecx_t *self, char *stack);
+	void (*addstack)(struct Ecx_t *self, const char *stack);
 
 	void (*popstack)(struct Ecx_t *self);
 
@@ -28,5 +28,7 @@ typedef struct Ecx_t {
 } *Ecx, Ecx_t;
 
 Ecx Ecx_new(int stack_len);
+#define ECXPUSH(ecx)(ecx)->addstack(ecx,__FUNCTION__)
+#define ECXPOP(ecx)(ecx)->popstack(ecx)
 
 #endif //TENSOR_EXC_H

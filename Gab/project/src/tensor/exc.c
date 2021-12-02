@@ -4,17 +4,19 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "exc.h"
+#include "tensor/exc.h"
 #include "stdlib.h"
 
 void Ecx_popstack(Ecx self);
 
-void Ecx_addstack(Ecx self, char *stack);
+void Ecx_addstack(Ecx self, const char *stack);
 
 void Ecx_release(Ecx *self_p);
 
 void Ecx_print(Ecx self);
+
 int Ecx_setError(Ecx self, int error);
+
 Ecx Ecx_new(int stack_len) {
 	Ecx self = calloc(1, sizeof(Ecx_t));
 	self->len = stack_len;
@@ -40,7 +42,7 @@ int Ecx_setError(Ecx self, int error) {
 	return self->error;
 }
 
-void Ecx_addstack(Ecx self, char *stack) {
+void Ecx_addstack(Ecx self, const char *stack) {
 	if (self->error)return;
 	if (self->len < 0)return;
 	while (self->block);
@@ -83,6 +85,7 @@ void Ecx_release(Ecx *self_p) {
 void Ecx_print(Ecx self) {
 	while (self->block);
 	self->block = 1;
+	if (self->error)printf("Erro: %d\n", self->error);
 	for (int i = 0; i <= self->index; ++i) {
 		printf("%d:%s\n", i + 1, self->stack[i]);
 	}

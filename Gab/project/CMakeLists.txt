@@ -33,10 +33,11 @@ set(CAMADA
 
 set(CNN
         project/include/cnn/cnn.h
-        project/include/cnn/cnn_lua.h
         project/include/cnn/parametros.h
         project/include/cnn/ponto3d.h
-        project/src/cnn/cnn.c
+        project/src/cnn/cnn.c)
+set(CNNLUA
+        project/include/cnn/cnn_lua.h
         project/src/cnn/cnn_lua.c
         project/src/cnn/cnn_lua_console.c)
 set(KERNELDLL project/include/cnn/kernel_lib.h project/src/cnn/kernel_lib.c)
@@ -55,4 +56,22 @@ set(TENSOR
         project/src/tensor/exc.c
         project/src/tensor/tensor.c
         )
+
+set(KERNEL_CODE project/kernels/camadas/bathnorm.h
+        project/kernels/camadas/cnnutils.h
+        project/kernels/camadas/conv.h
+        project/kernels/camadas/convf.h
+        project/kernels/camadas/convNc.h
+        project/kernels/camadas/dropout.h
+        project/kernels/camadas/fullconnect.h
+        project/kernels/camadas/padding.h
+        project/kernels/camadas/poolav.h
+        project/kernels/camadas/poolMax.h
+        project/kernels/camadas/poolMin.h
+        project/kernels/camadas/prelu.h
+        project/kernels/camadas/relu.h
+        project/kernels/camadas/softmax.h
+        project/kernels/camadas/utils.h
+        project/kernels/debugKernel.c)
 set(GAB_CODE ${CNN} ${TENSOR} ${LCG} ${GPU} ${CAMADA})
+

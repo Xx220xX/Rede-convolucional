@@ -29,7 +29,7 @@ void setManageThread(vfvv newthread, ifvi killThread, ifv releaseThread);
 
 
 #define Thread_new(func, arg) Thread.newThread(func,arg)
-#define ThreadKill(handle, exit_code) Thread.killThread(handle,exit_code)
+#define Thread_Kill(handle, exit_code) Thread.killThread(handle,exit_code)
 #define Thread_Release(handle) Thread.releaseThread(handle)
 
 //#define newThreadSuspend(func, arg, id) CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) func, arg, CREATE_SUSPENDED, &(id))

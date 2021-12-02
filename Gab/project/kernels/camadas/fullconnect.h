@@ -20,7 +20,7 @@ kV fullfeed(Vector entrada, Vector pesos, Vector b, Vector z, Vector saida,
 		valorEntrada += entrada[n] * pesos[KTensorMap(m, n, 0, pesosx, pesosy)];
 	}
 	z[m] = valorEntrada + b[m];
-	saida[m] = func(funcaoativacao, valorEntrada);
+	saida[m] = func(funcaoativacao, z[m]);
 }
 
 kV fullCalcDWandFix(Vector a,

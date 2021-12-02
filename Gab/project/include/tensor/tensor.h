@@ -13,6 +13,7 @@
 
 #include "tensor_flags.h"
 #include <time.h>
+#include <stdio.h>
 
 #include "config.h"
 #include "exc.h"
@@ -71,6 +72,9 @@ typedef struct Tensor_t {
 	/// cl_context para quando GPU ativo
 	void *context;
 
+	/// salva o tensor como uma imagem
+	void (*png)(struct Tensor_t *self, const char *file);
+
 	/// coloca os valores de data dentro do tensor, data deve ter o mesmo tamanho do tensor
 	int (*setvalues)(struct Tensor_t *self, void *data);
 
@@ -97,8 +101,16 @@ typedef struct Tensor_t {
 
 	/// copia os valores do tensor b
 	int (*copyM)(struct Tensor_t *self, struct Tensor_t *b, size_t self_ofset, size_t b_ofset, size_t bytes);
+
 	/// printa o json do tensor
 	void (*print)(struct Tensor_t *self);
+
+	/// mostra os valores
+	char *(*valuesStr)(struct Tensor_t *self);
+
+	/// coloca o tensor no arquivo
+	void(*tomatlab)(struct Tensor_t *self, FILE *f, char *name, char *reshapeF);
+
 
 	/// preenche o tensor com o valor
 	int (*fill)(struct Tensor_t *self, char partern);
@@ -116,8 +128,9 @@ typedef struct Tensor_t {
 	void (*registreError)(struct Tensor_t *self, char *format, ...);
 
 	/// coloca o tensor em uma imagem cinza , imagem[i0:h,j0:w] = tensor[:,:,z,l]
-	int (*imagegray)(struct Tensor_t *self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l);
-
+	int (*imagegray)(struct Tensor_t *self, ubyte *image, size_t im_width, size_t im_height, size_t t_w, size_t t_h, size_t i0, size_t j0, size_t z, size_t l);
+	/// mapeia as posições do tensor
+	int (*map)(struct  Tensor_t * self,void (*fmap)(struct  Tensor_t * self,void *el,int i,int j,int z,int w,int k));
 	/// ponteiro utilizado para debugar stack
 	/// controle de erros internos
 	Ecx erro;
@@ -142,6 +155,7 @@ typedef struct Tensor_t {
  */
 Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...);
 
+#define _tomatlab(self,...)(self)->tomatlab(self,##__VA_ARGS__)
 
 #define PAD " "
 #define apendstr(str, len, format, ...) { \
@@ -154,5 +168,5 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
          len = len+sz;\
          sprintf(tmp,format,##__VA_ARGS__) ;                           \
 }
-
+#define FMAP (void (*)(struct Tensor_t *, void *, int, int, int, int, int))
 #endif //TENSOR_TENSOR_H

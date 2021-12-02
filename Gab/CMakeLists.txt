@@ -1,8 +1,28 @@
 cmake_minimum_required(VERSION 3.20)
 project(Gab C)
-
 set(CMAKE_C_STANDARD 11)
-add_subdirectory(project)
+set(CMAKE_C_FLAGS -m64)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../bin)
 
 
-add_executable(Gab main.c)
+add_library(gabkernel SHARED project/src/cnn/kernel_lib.c project/kernels/defaultkernel.h)
+set_target_properties(gabkernel PROPERTIES PREFIX "")
+
+
+include_directories(external/include project/include project)
+link_directories(external/lib bin)
+
+
+include(project/CMakeLists.txt)
+
+
+link_libraries(png OpenCL gabkernel)
+link_libraries(-lshell32 -lole32 -lkernel32 -luser32 -lgdi32)
+link_libraries(lua543)
+set(GAB_FILES_EXE ${GAB_CODE} project/include/error_list.h Thread.h Thread.c
+        project/include/conio2/conio2.h project/src/conio2/conio2.c)
+add_executable(Gab main.c ${GAB_FILES_EXE} ${CNNLUA} Setup.c Setup.h)
+add_executable(Debug debug/covf.c ${GAB_FILES_EXE} )
+add_executable(DEBUG_KERNEL ${KERNEL_CODE})
