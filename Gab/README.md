@@ -31,8 +31,8 @@ ____
 * CamadaFullConnect
 * CamadaSoftMax
 * CamadaBatchNorm
-* P3D
-* P2D
+* P3d
+* P2d
 * RdParams
 * Params
 ____
@@ -59,4 +59,8 @@ ____
 * BatchNorm
 * SoftMax
 * sizeOut
+* P3D
+* P2D
+* Params
+* RDP
 
