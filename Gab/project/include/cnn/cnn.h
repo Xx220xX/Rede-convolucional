@@ -93,7 +93,7 @@ typedef struct Cnn_t {
 
 	int (*DropOut)(struct Cnn_t *self, REAL probabilidadeSaida, cl_ulong seed);
 
-	int (*SoftMax)(struct Cnn_t *self);
+	int (*SoftMax)(struct Cnn_t *self,int8_t flag);
 
 	int (*BatchNorm)(struct Cnn_t *self, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB);
 

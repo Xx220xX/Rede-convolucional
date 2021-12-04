@@ -5,6 +5,9 @@
 #define __global
 int globI = 0;
 #include <math.h>
+#include <stdio.h>
+#include "float.h"
+
 
 int get_global_id(int id) {
 	globI++;

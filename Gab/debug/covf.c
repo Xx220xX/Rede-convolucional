@@ -5,9 +5,6 @@
 #include "camadas/CamadaConvF.h"
 #include "lcg/lcg.h"
 
-void map(Tensor self, REAL *v, int i, int j, int z, int w, int k) {
-	*v = (1.0f + k) / self->length;
-}
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 #define matlabf(format, ...) fprintf(f,format,##__VA_ARGS__);fprintf(f,"\n")
@@ -20,7 +17,7 @@ matlab("title('"#x" vs "#y"');");\
 matlab("legend();");                                  \
 matlab("if gcf() == 1");\
 matlabf("print('%s.pdf')",__FILENAME__);                     \
-matlabf("else print('%s.pdf', '-append'); end;",__FILENAME__);\
+matlabf("else print('%s.pdf', '-append'); end;",__FILENAME__)
 
 int main() {
 	Cnn cnn = Cnn_new();

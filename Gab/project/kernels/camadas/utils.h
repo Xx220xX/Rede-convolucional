@@ -4,15 +4,19 @@
 #define USEFLOAT 1
 
 #if (USEFLOAT == 1)
-#define  REAL float
-#define TANH tanh
-#define EXP exp
-#define SQRT sqrt
+#define    REAL float
+#define    TANH tanh
+#define    EXP exp
+#define    SQRT sqrt
+#define    REALMAX FLT_MAX
+#define    REALMIN FLT_MIN
 #else
-#define  REAL double
-#define TANH tanh
-#define EXP exp
-#define SQRT sqrt
+#define	REALMAX DBL_MAX
+#define	REALMIN DBL_MIN
+#define	REAL double
+#define	TANH tanh
+#define	EXP exp
+#define	SQRT sqrt
 #endif
 #define Vector __global REAL *
 
@@ -75,9 +79,9 @@ REAL difrelu(REAL x) {
 
 REAL alan(REAL x) {
 	if (x > 1) {
-		return log10(x)+0.7615941559557649;
+		return log10(x) + 0.7615941559557649;
 	} else if (x < -1) {
-		return -log10(-x)-0.7615941559557649;
+		return -log10(-x) - 0.7615941559557649;
 	}
 	return tanghG(x);
 }

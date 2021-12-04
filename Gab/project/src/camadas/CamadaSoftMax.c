@@ -14,18 +14,43 @@ void CamadaSoftMax_release(CamadaSoftMax *selfp) {
 	Release((*selfp)->softmaxSomaExp);
 	Release((*selfp)->softmaxNormaliza);
 	Release((*selfp)->softMaxcalcgrad);
+	Release((*selfp)->softMaxcalcgradWhenNorm);
+	Release((*selfp)->softmaxFindMax);
+	if (((*selfp)->flag & 0b1) != SOFTLAST && ((*selfp)->flag & 0b10) == SOFTNORM) {
+		Release((*selfp)->ds);
+	}
+	Release((*selfp)->maximos);
+	Release((*selfp)->indice_maximos);
+
 	internal_Camada_release((Camada *) (selfp));
 	free_mem(*selfp);
 }
 
 int CamadaSoftMax_propagation(CamadaSoftMax self) {
-	Execute(softmaxExp, self->super.s->length,
-			&self->super.a->data, &self->exponent->data
-	);
-	Execute(softmaxSomaExp, self->super.s->length,
+
+	if ((self->flag & 0b10) == SOFTNORM) { // é normalizado
+		// encontrar o maximo da entrada
+		Execute(softmaxFindMax, self->super.s->z,
+				&self->super.a->data, &self->maximos->data,
+				&self->indice_maximos->data, &self->super.a->x, &self->super.a->y
+		);
+		//calcular exponencial normalizada
+		Execute(softmaxExp, self->super.s->length,
+				&self->super.a->data, &self->exponent->data,
+				&self->maximos->data, &self->super.a->x, &self->super.a->y
+		);
+	} else {// não é normalizado
+		// faz a exponencial da entrada
+		Execute(softmaxExp, self->super.s->length,
+				&self->super.a->data, &self->exponent->data
+		);
+	}
+	// soma as exponenciais
+	Execute(softmaxSomaExp, self->super.s->z,
 			&self->exponent->data, &self->soma->data,
 			&self->super.s->x, &self->super.s->y
 	);
+	// divide as exponenciais e armazena na saída
 	Execute(softmaxNormaliza, self->super.s->length,
 			&self->exponent->data, &self->soma->data,
 			&self->super.s->data,
@@ -35,12 +60,31 @@ int CamadaSoftMax_propagation(CamadaSoftMax self) {
 }
 
 int CamadaSoftMax_backpropagation(CamadaSoftMax self, Tensor ds) {
-	if (self->super.da) {
-		Execute(softMaxcalcgrad, self->super.da->length,
-				&self->super.da->data, &self->super.a->data,
-				&ds->data
-
-		);
+	if (self->super.da) {// tem que calcular o gradiente de entrada
+		if ((self->flag & 0b1) == SOFTLAST) {// é a ultima camada
+			// Com esta flag ds é somente leitura
+			self->ds = ds;
+			// não é normalizado
+			if ((self->flag & 0b10) != SOFTNORM) {
+				// faz a copia de ds para da. Onde da =  s - t
+				self->super.da->copy(self->super.da, ds);
+			}
+		} else {// não é a ultima camada
+			// ds vai ser escrito
+			// se não for normalizado ds e da são os mesmos
+			// calcula a derivada da camada usando o jacobiano
+			Execute(softMaxcalcgrad, self->super.da->length,
+					&self->ds->data, &self->super.s->data,
+					&ds->data, &self->super.s->x, &self->super.s->y
+			);
+		}
+		if ((self->flag & 0b10) == SOFTNORM) {// é normalizado
+			// nessa flag ds e da são tensores diferentes
+			Execute(softMaxcalcgradWhenNorm, self->super.da->length,
+					&self->super.da->data, &self->ds->data, &self->indice_maximos->data,
+					&self->super.s->x, &self->super.s->y
+			);
+		}
 	}
 	return self->super.erro->error;
 }
@@ -61,12 +105,12 @@ char *CamadaSoftMax_json(CamadaSoftMax self, int showValues) {
 	return string;
 }
 
-char *CamadaSoftMax_getGenerate(__attribute__((unused)) CamadaSoftMax self) {
+char *CamadaSoftMax_getGenerate(CamadaSoftMax self) {
 	char *string = NULL;
 	int len = 0;
 	apendstr(string, len,
-			 "%s()",
-			 lname
+			 "%s(%d)",
+			 lname, (int) self->flag
 	);
 	return string;
 }
@@ -82,48 +126,63 @@ char *CamadaSoftMax_getGenerate(__attribute__((unused)) CamadaSoftMax self) {
  */
 int CamadaSoftMax_save(CamadaSoftMax self, FILE *f) {
 	if (self->super.erro->error)goto end;
-	self->super.erro->addstack(self->super.erro, "CamadaSoftMax_save");
+	ECXPUSH(self->super.erro);
 	internal_saveCamada(f, (Camada) self);
+	fwrite(&self->flag, 1, 1, f);
 	end:
-	self->super.erro->popstack(self->super.erro);
+	ECXPOP(self->super.erro);
 	return self->super.erro->error;
 }
 
 Camada CamadaSoftMax_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaSoftMax_load");
+	ECXPUSH(ecx);
 	Parametros parametros;
 	P3d size_in;
 	uint32_t size_element;
-
-
 	internal_loadCamada(f, &parametros, &size_in, &size_element);;
-
-	CamadaSoftMax self = (CamadaSoftMax) CamadaSoftMax_new(gpu, queue, size_in, entrada, ecx);
+	char flag = 0;
+	fread(&flag, 1, 1, f);
+	CamadaSoftMax self = (CamadaSoftMax) CamadaSoftMax_new(gpu, queue, flag, size_in, entrada, ecx);
 	end:
-	ecx->popstack(ecx);
+	ECXPOP(ecx);
 	return (Camada) self;
 }
 
-Camada CamadaSoftMax_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaSoftMax_new");
+Camada CamadaSoftMax_new(Gpu gpu, Queue queue, char flag, P3d size_in, Tensor entrada, Ecx ecx) {
+	ECXPUSH(ecx);
 	CamadaSoftMax self = alloc_mem(1, sizeof(CamadaSoftMax_t));
 
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, SOFTMAX_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);
 
 	self->soma = Tensor_new(1, 1, size_in.z, 1, ecx, 0, gpu->context, queue);
-	self->exponent = Tensor_new(size_in.x, size_in.z, size_in.z, 1, ecx, 0, gpu->context, queue);
+	self->exponent = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
+	memcpy((void *)&self->flag, &flag, sizeof(char));
+	self->ds = self->super.da;
+	if ((flag & 0b1) == SOFTLAST && (flag & 0b10) == SOFTNORM) { // é a ultima camada e é normalizado
+		// ds é um intermediário
+		self->ds = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
+	}
+	if ((flag & 0b10) == SOFTNORM) {// é normalizado, implica em ter os tensores maximo e index maximo
+		self->maximos = Tensor_new(1, 1, size_in.z, 1, ecx, 0, gpu->context, queue);
+		self->indice_maximos = Tensor_new(1, 1, size_in.z, 1, ecx, TENSOR_INT, gpu->context, queue);
 
-
-	self->softmaxExp = Kernel_news(gpu->program, "softmaxExp", "Vector entrada, Vector exponent,int k0");
+		self->softmaxExp = Kernel_news(gpu->program, "softmaxExpNorm", "Vector entrada, Vector exponent,Vector mx,int ax,int ay, int k0");
+		self->softMaxcalcgradWhenNorm = Kernel_news(gpu->program, "softMaxcalcgradWhenNorm", "Vector da, Vector ds, __global int  *i_max, int sx, int sy, int k0");
+		CheckKernel(softMaxcalcgradWhenNorm);
+		self->softmaxFindMax = Kernel_news(gpu->program, "softmaxFindMax","Vector a, Vector mx, __global int *i_max, int ax, int ay, int k0");
+	} else {
+		self->softmaxExp = Kernel_news(gpu->program, "softmaxExp", "Vector entrada, Vector exponent,int k0");
+	}
 	CheckKernel(softmaxExp);
 	self->softmaxSomaExp = Kernel_news(gpu->program, "softmaxSomaExp", "Vector eps, Vector soma, int saidatx, int saidaty, int k0");
 	CheckKernel(softmaxSomaExp);
 	self->softmaxNormaliza = Kernel_news(gpu->program, "softmaxNormaliza", "Vector exponet, Vector soma, Vector saida,int saidatx, int saidaty, int k0");
 	CheckKernel(softmaxNormaliza);
-	self->softMaxcalcgrad = Kernel_news(gpu->program, "softMaxcalcgrad", "Vector gradentrada, Vector entrada, Vector gradnext, int k0");
-	CheckKernel(softMaxcalcgrad);
-
+	if ((flag & 0b1) != SOFTLAST) {// não é a ultima camada, tem que calcular o jacobiano
+		self->softMaxcalcgrad = Kernel_news(gpu->program, "softMaxcalcgrad", "Vector da, Vector s, Vector ds, int sx, int sy, int k0");
+		CheckKernel(softMaxcalcgrad);
+	}
 	ecx->popstack(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaSoftMax_release;

@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <CL/cl.h>
+#include <math.h>
 #include "gpu/Gpu.h"
 #include "error_list.h"
 
@@ -455,7 +456,13 @@ void Tensor_tomatlab(Tensor self, FILE *f, char *name, char *reshapeF) {
 		} else if (self->flag.inteiro) {
 			fprintf(f, "%d", memory.inteiro[i]);
 		} else {
-			fprintf(f, "%.16lf", (double) memory.real[i]);
+			if (isnan(memory.real[i])) {
+				fprintf(f, "nan");
+			} else if (isinf(memory.real[i])) {
+				fprintf(f, "%sinf", memory.real[i] > 0 ? "+" : "-");
+			} else {
+				fprintf(f, "%.16lf", (double) memory.real[i]);
+			}
 		}
 	}
 	fprintf(f, "];\n");

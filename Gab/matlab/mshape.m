@@ -1,6 +1,7 @@
 function B = mshape(A,shape)
   if length(shape) == 2
-    B = reshape(A,shape)';
+    
+    B = reshape(A,[shape(2),shape(1)])';
   elseif length(shape) == 3
     B = zeros(shape);
     for i = 1:shape(1)

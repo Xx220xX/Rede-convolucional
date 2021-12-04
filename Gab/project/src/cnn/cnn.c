@@ -95,7 +95,7 @@ int Cnn_Padding(Cnn self, uint32_t top, uint32_t bottom, uint32_t left, uint32_t
 
 int Cnn_DropOut(Cnn self, REAL probabilidadeSaida, cl_ulong seed);
 
-int Cnn_SoftMax(Cnn self);
+int Cnn_SoftMax(Cnn self,int8_t flag);
 
 int Cnn_BatchNorm(Cnn self, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB);
 
@@ -606,8 +606,8 @@ int Cnn_DropOut(Cnn self, REAL probabilidadeSaida, cl_ulong seed) {
 	return internal_Cnn_addlayer(self, c);
 }
 
-int Cnn_SoftMax(Cnn self) {
-	Camada c = CamadaSoftMax_new(self->gpu, self->queue, self->getSizeOut(self), internal_Cnn_getEntrada(self), self->erro);
+int Cnn_SoftMax(Cnn self,int8_t flag) {
+	Camada c = CamadaSoftMax_new(self->gpu, self->queue,flag, self->getSizeOut(self), internal_Cnn_getEntrada(self), self->erro);
 	return internal_Cnn_addlayer(self, c);
 }
 

@@ -155,7 +155,7 @@ typedef struct Tensor_t {
  */
 Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...);
 
-#define _tomatlab(self,...)(self)->tomatlab(self,##__VA_ARGS__)
+#define _tomatlab(self,file, name, reshapeFunction)(self)->tomatlab(self,file, name, reshapeFunction)
 
 #define PAD " "
 #define apendstr(str, len, format, ...) { \
@@ -169,4 +169,7 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
          sprintf(tmp,format,##__VA_ARGS__) ;                           \
 }
 #define FMAP (void (*)(struct Tensor_t *, void *, int, int, int, int, int))
+
+#define TS(self_tensor)((self_tensor)->data)
+
 #endif //TENSOR_TENSOR_H

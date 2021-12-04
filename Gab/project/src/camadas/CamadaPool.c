@@ -154,7 +154,8 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 										  "int k0");
 
 		if (self->super.erro->setError(self->super.erro, self->poolCalcGrads->error))goto methods;
-	} else if (type_pooling == AVEPOOL) {
+	}
+	else if (type_pooling == AVEPOOL) {
 		self->poolativa = Kernel_news(gpu->program, "poolAVativa",
 									  "Vector entrada, Vector saida,\n"
 									  "int passox,int passoy,\n"
@@ -172,7 +173,8 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 										  "int k0");
 
 		if (self->super.erro->setError(self->super.erro, self->poolCalcGrads->error))goto methods;
-	} else if (type_pooling == MINPOOL) {
+	}
+	else if (type_pooling == MINPOOL) {
 		self->poolativa = Kernel_news(gpu->program, "poolativaMin",
 									  "Vector entrada, Vector saida,\n"
 									  "int passox,int passoy,\n"
@@ -192,7 +194,7 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 
 		if (self->super.erro->setError(self->super.erro, self->poolCalcGrads->error))goto methods;
 	} else {
-		ecx->setError(ecx, 3);
+		ecx->setError(ecx, INVALID_PARAM);
 		fprintf(stderr, "Tipo invalido\n");
 		goto methods;
 	}

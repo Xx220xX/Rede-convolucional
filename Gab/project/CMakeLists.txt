@@ -56,8 +56,7 @@ set(TENSOR
         project/src/tensor/exc.c
         project/src/tensor/tensor.c
         )
-
-set(KERNEL_CODE project/kernels/camadas/bathnorm.h
+set(KERNEL_CAMADAS project/kernels/camadas/bathnorm.h
         project/kernels/camadas/cnnutils.h
         project/kernels/camadas/conv.h
         project/kernels/camadas/convf.h
@@ -72,6 +71,8 @@ set(KERNEL_CODE project/kernels/camadas/bathnorm.h
         project/kernels/camadas/relu.h
         project/kernels/camadas/softmax.h
         project/kernels/camadas/utils.h
+        )
+set(KERNEL_CODE ${KERNEL_CAMADAS}
         project/kernels/debugKernel.c)
 set(GAB_CODE ${CNN} ${TENSOR} ${LCG} ${GPU} ${CAMADA})
 

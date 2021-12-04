@@ -570,15 +570,32 @@ static int l_BatchNorm(lua_State *L) {
 		free_mem(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
-
 }
 
 static int l_SoftMax(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-
-	if (c->SoftMax(c)) {
+	int8_t flag = 2;
+	int arg = 1;
+	switch (nArgs) {
+		case 0:
+			break;
+		case 1:
+			flag |= luaL_checkinteger(L, arg++) ? 0b01 : 0;
+			break;
+		case 2:
+			flag = luaL_checkinteger(L, arg++) ? 0b01 : 0;
+			flag |= luaL_checkinteger(L, arg++) ? 0b10 : 0;
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n"
+						  " SoftMax()\n"
+						  " SoftMax(islastLayer)\n"
+						  " SoftMax(islastLayer,normalize)\n");
+			return 0;
+	}
+	if (c->SoftMax(c, flag)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada SoftMax:  %d %s", c->erro->error, msg);
 		free_mem(msg);

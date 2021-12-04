@@ -11,6 +11,7 @@
 #include "cnn/parametros.h"
 #include "cnn/ponto3d.h"
 #include "funcoesDeAtivacao.h"
+#include "error_list.h"
 
 #define CONVOLUCAO_ID   		 0x1
 #define CONVOLUCAOF_ID   		 0x2
@@ -24,9 +25,22 @@
 #define SOFTMAX_ID      		 0xA
 #define BATCHNORM_ID      		 0xB
 
+/// implementa a maxpooling
 #define MAXPOOL 				 0x1
+/// implementa a minpooling
 #define MINPOOL 				 0x2
+/// implementa a averagepooling
 #define AVEPOOL 				 0x3
+
+/// Indica que a softmax é a ultima camada .
+#define SOFTLAST				 0x1
+/// Indica que a softmax vai subtrair o maximo da entrada .
+#define SOFTNORM				 0x2
+/// Indica que a softmax não é a ultima camada (default) .
+#define SOFTNLAST				 0x0
+/// Indica que a softmax não vai subtrair o maximo da entrada (default) .
+#define SOFTNNORM				 0x0
+
 
 typedef struct Camada_t {
 	/// nome canonico da camada (apenas leitura)
@@ -106,8 +120,7 @@ void internal_loadREAL(FILE *f, REAL *value, uint32_t size_element);
 
 #define Execute(kernel, len, ...)if(!self->super.erro->error)self->super.erro->setError(self->super.erro, \
 self->kernel->runRecursive(self->kernel, self->super.queue,len,*self->super.maxcompute, ##__VA_ARGS__))
-#define Release(self)if(self)(self)->release(&(self))
-//;(self)=NULL
+#define Release(self)if(self)(self)->release(&(self));(self)=NULL
 #define CheckKernel(kernel)if (self->super.erro->setError(self->super.erro, self->kernel->error))goto methods
 #define apendTensor(name, t, string, len, tmp, showValues) \
 if(self->t)  {                                                     \
