@@ -18,8 +18,7 @@ ____
 * Kernel
 * Memory
 * LCG
-*
-*
+____
 * Cnn
 * Camada
 * CamadaConv
@@ -36,7 +35,7 @@ ____
 * P2D
 * RdParams
 * Params
-* 
+____
 * Setup
 ____
 ### LUA Functions
