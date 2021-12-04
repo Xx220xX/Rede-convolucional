@@ -8,7 +8,10 @@ Orientador: Prof. Dr. Lorenço Vasconcelos
 
 
 ____
+
+
 ### Objetos 
+
 * Tensor
 * Gpu
 * CLInfo
@@ -36,7 +39,7 @@ ____
 * 
 * Setup
 ____
-* ### LUA Functions
+### LUA Functions
 * Entrada
 * SetLearnable
 * SetParams
