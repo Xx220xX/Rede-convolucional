@@ -108,6 +108,10 @@ struct text_info {
 	unsigned char screenheight;  /**< screen height */
 };
 
+int getBackground();
+
+int getForeground();
+
 /**
  * Structure used by gettext/puttext.
  * @see _conio_gettext
@@ -173,7 +177,7 @@ void insline(void);
  * <TT>(right - left + 1) * (bottom - top + 1) * sizeof(char_info)</TT>.
  */
 void _conio_gettext(int left, int top, int right, int bottom,
-                    struct char_info *buf);
+					struct char_info *buf);
 
 /**
  * Puts text back to the screen.
@@ -198,7 +202,7 @@ void puttext(int left, int top, int right, int bottom, struct char_info *buf);
  * @param desttop Top coordinate of the destination rectangle.
  */
 void movetext(int left, int top, int right, int bottom, int destleft,
-              int desttop);
+			  int desttop);
 
 /**
  * Moves cursor to the specified position.
@@ -229,6 +233,7 @@ void putchxy(int x, int y, char ch);
  * @param type cursor type, under Win32 it is height of the cursor in percents
  */
 void setcursortype(int type);
+
 void showCursor(int show);
 
 /**

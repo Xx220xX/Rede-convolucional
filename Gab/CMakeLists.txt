@@ -21,8 +21,9 @@ include(project/CMakeLists.txt)
 link_libraries(png OpenCL gabkernel)
 link_libraries(-lshell32 -lole32 -lkernel32 -luser32 -lgdi32)
 link_libraries(lua543)
-set(GAB_FILES_EXE ${GAB_CODE} project/include/error_list.h Thread.h Thread.c
+set(GAB_FILES_EXE ${GAB_CODE} project/include/error_list.h project/include/thread/Thread.h project/src/thread/Thread.c
         project/include/conio2/conio2.h project/src/conio2/conio2.c)
-add_executable(Gab main.c ${GAB_FILES_EXE} ${CNNLUA} Setup.c Setup.h)
+add_executable(Gab main.c ${GAB_FILES_EXE} ${CNNLUA} project/src/setup/Setup.c project/include/setup/Setup.h)
 add_executable(DEBUG_KERNEL ${KERNEL_CODE} )
-add_executable(Debug debug/softmax.c ${GAB_FILES_EXE} )
+add_executable(Debug debug/prelu.c ${GAB_FILES_EXE} )
+

@@ -19,8 +19,6 @@ typedef struct CamadaSoftMax_t {
 	Tensor indice_maximos;
 	/// armazena a exponencial da entrada
 	Tensor exponent;
-	/// Tensor para armazenar a derivada da camada softmax
-	Tensor ds;
 
 	/// flag para identificar qual tipo de camada
 	const char flag;
@@ -64,16 +62,6 @@ typedef struct CamadaSoftMax_t {
  * @param k0 usado internamente no kernel
  */
 	Kernel softMaxcalcgrad;
-	/**
-* @goal Calcular os gradientes de entrada
-* @iteration dimensão da entrada a(x,y,z)
-* @param da Tensor de gradientes de entrada (escrita)
-* @param ds Tensor gradiente da saída (leitura)
-* @param sx dimensão x da saída
-* @param sy dimensão y da saída
-* @param k0 usado internamente no kernel
-*/
-	Kernel softMaxcalcgradWhenNorm;
 	Kernel softmaxFindMax;
 } *CamadaSoftMax, CamadaSoftMax_t;
 

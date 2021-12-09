@@ -241,7 +241,8 @@ void setcursortype(int type) {
 	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE),
 						 &Info);
 }
-void showCursor(int hidecursor){
+
+void showCursor(int hidecursor) {
 	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 	CONSOLE_CURSOR_INFO info;
 	info.dwSize = 100;
@@ -362,6 +363,14 @@ void clearkeybuf(void) {
 	while (kbhit()) {
 		getch();
 	}
+}
+
+int getBackground(){
+	return __BACKGROUND;
+}
+
+int getForeground() {
+	return __FOREGROUND;
 }
 
 #ifdef __cplusplus

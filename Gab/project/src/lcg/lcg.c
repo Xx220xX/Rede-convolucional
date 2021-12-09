@@ -63,8 +63,8 @@ Bytes64 LCG_randB() {
 }
 
 void pLCG_shuffle(LCG *self, void *d, size_t n, size_t size_element) {
-	char *tmp = alloc_mem(1, size_element);
-	char *arr = d;
+	void *tmp = alloc_mem(1, size_element);
+	void *arr = d;
 	if (n > 1) {
 		size_t i, rnd, j;
 		for (i = 0; i < n - 1; ++i) {

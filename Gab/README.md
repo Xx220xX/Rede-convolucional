@@ -1,4 +1,5 @@
 ## GABRIELA IA
+
 ____
 Versão: 3.0
 
@@ -9,8 +10,7 @@ Orientador: Prof. Dr. Lorenço Vasconcelos
 
 ____
 
-
-### Objetos 
+### Objetos
 
 * Tensor
 * Gpu
@@ -18,7 +18,9 @@ ____
 * Kernel
 * Memory
 * LCG
+
 ____
+
 * Cnn
 * Camada
 * CamadaConv
@@ -35,10 +37,15 @@ ____
 * P2d
 * RdParams
 * Params
+
 ____
+
 * Setup
+
 ____
+
 ### LUA Functions
+
 * Entrada
 * SetLearnable
 * SetParams

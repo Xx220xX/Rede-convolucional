@@ -36,9 +36,7 @@ int main() {
 	target->randomize(target, TENSOR_NORMAL, 1, 0);
 
 	cf->super.da = Tensor_new(entrada->x, entrada->y, entrada->z, 1, cnn->erro, 0, cnn->gpu->context, cnn->queue);
-	cf->ds = cf->super.da;
-		if (!(cf->flag & SOFTLAST) && cf->flag & SOFTNORM) { cf->ds = Tensor_new(entrada->x, entrada->y, entrada->z, 1, cnn->erro, 0, cnn->gpu->context, cnn->queue);; }
-	cnn->predict(cnn, entrada);
+		cnn->predict(cnn, entrada);
 	FILE *f = fopen("D:\\Henrique\\Rede-convolucional\\Gab\\matlab\\softMax.m", "w");
 	matlab("clc;close all;clear all");
 	_tomatlabz_xy(cf->super.a, "a");
@@ -69,7 +67,6 @@ int main() {
 	_tomatlabz_xy(target, "t");
 	_tomatlabz_xy(cnn->ds, "ds");
 	_tomatlabz_xy(cf->super.da, "da");
-	_tomatlabz_xy(cf->ds, "sds");
 	matlabCmp("ex", "exm");
 	matlabCmp("soma", "somam");
 	matlabCmp("s", "sm");

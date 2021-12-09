@@ -1034,26 +1034,6 @@ kV softMaxcalcgrad(Vector da, Vector s, Vector ds, int sx, int sy, int k0) {
 	}
 	da[k] = soma;
 }
-/**
- * @goal Calcular os gradientes de entrada
- * @iteration dimensão da entrada a(x,y,z)
- * @param da Tensor de gradientes de entrada (escrita)
- * @param ds Tensor gradiente da saída (leitura)
- * @param sx dimensão x da saída
- * @param sy dimensão y da saída
- * @param k0 usado internamente no kernel
- */
-kV softMaxcalcgradWhenNorm(Vector da, Vector ds, __global int *i_max, int sx, int sy, int k0) {
-	int k = get_global_id(0) + k0;
-	int i, z, j;
-	int sxy = sx * sy;
-	KTensorRemap2D(k, z, i, sxy);
-	REAL soma = 0.0;
-	for (j = 0; j < sxy; ++j) {
-		soma += ((i == j) - (j == i_max[z])) * ds[j + z * sxy];
-	}
-	da[k] = soma;
-}
 
 /**
  * @goal Encontrar o maximo e o indice de cada dimensão z

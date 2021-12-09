@@ -576,17 +576,17 @@ static int l_SoftMax(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	int8_t flag = 2;
+	int8_t flag = SOFTNORM|SOFTLAST;
 	int arg = 1;
 	switch (nArgs) {
 		case 0:
 			break;
 		case 1:
-			flag |= luaL_checkinteger(L, arg++) ? 0b01 : 0;
+			flag |= luaL_checkinteger(L, arg++) ? SOFTLAST : 0;
 			break;
 		case 2:
-			flag = luaL_checkinteger(L, arg++) ? 0b01 : 0;
-			flag |= luaL_checkinteger(L, arg++) ? 0b10 : 0;
+			flag = luaL_checkinteger(L, arg++) ? SOFTLAST : 0;
+			flag |= luaL_checkinteger(L, arg++) ? SOFTNORM : 0;
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
@@ -755,6 +755,8 @@ Luac_contantes globalConstantes[] = {
 		{MAXPOOL,  "MAXPOOL"},
 		{MINPOOL,  "MINPOOL"},
 		{AVEPOOL,  "AVEPOOL"},
+		{TENSOR_NORMAL,  "GAUSSIAN"},
+		{TENSOR_UNIFORM,  "UNIFORM"},
 
 		{0, NULL}
 };
@@ -848,8 +850,8 @@ int CnnLuaLoadString(Cnn c, const char *lua_program) {
 }
 
 int CnnLuaLoadFile(Cnn c, const char *file_name) {
-	ECXPUSH(c->erro);
 	if (!c) return NULL_POINTER;
+	ECXPUSH(c->erro);
 	if (!c->LuaVm)CnnInitLuaVm(c);
 	c->erro->setError(c->erro, luaL_dofile(c->LuaVm, file_name));
 	if (c->erro->error) {

@@ -90,7 +90,7 @@ static char *CamadaConvF_getGenerate(CamadaConvF self) {
 	char *string = NULL;
 	int len = 0;
 	apendstr(string, len,
-			 "%s(P2D(%zu,%zu),P3D(%zu,%zu,%zu),%d,Params(%g,%g,%g,%d),RDP(%d,%g,%g))",
+			 "%s (P2D(%zu, %zu), P3D(%zu, %zu, %zu), %d, Params(%g, %g, %g, %d), RDP(%d, %g, %g))",
 			 lname,
 			 self->passox, self->passoy,
 			 self->w->x, self->w->y, self->w->w,

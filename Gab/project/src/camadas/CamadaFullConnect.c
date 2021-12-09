@@ -117,7 +117,7 @@ char *CamadaFullConnect_getGenerate(CamadaFullConnect self) {
 	char *string = NULL;
 	int len = 0;
 	apendstr(string, len,
-			 "%s(%zu,%d,Params(%g,%g,%g,%d),RDP(%d,%g,%g),RDP(%d,%g,%g))",
+			 "%s (%zu, %d, Params(%g, %g, %g, %d), RDP(%d, %g, %g), RDP(%d, %g, %g))",
 			 lname,
 			 self->w->x, self->fa,
 			 (double) self->super.params.hitlearn,

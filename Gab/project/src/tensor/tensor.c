@@ -448,6 +448,7 @@ void Tensor_tomatlab(Tensor self, FILE *f, char *name, char *reshapeF) {
 	ECXPUSH(self->erro);
 	Memory memory;
 	memory.mem = self->getvalues(self, NULL);
+	if(!memory.mem){return;}
 	fprintf(f, "%s = [", name);
 	for (int i = 0; i < self->length; ++i) {
 		if (i > 0)fprintf(f, ", ");

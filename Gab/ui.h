@@ -6,15 +6,18 @@
 #define GAB_UI_H
 
 #include "windows.h"
+#include "windowsx.h"
 #include "error_list.h"
-#include "Thread.h"
+#include "thread/Thread.h"
 
 #include <wchar.h>
 #include <strsafe.h>
+#include <commctrl.h>
 
 #define cnnMain _local_main_
+#define  USE_PROGRESS_BAR  0
 
-int cnnMain(int,  char **);
+int cnnMain(int, char **);
 
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -22,6 +25,7 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 void CreateLabels(HWND);
 
 typedef HWND TextLabel;
+typedef HWND ProgressBar[2];
 
 struct {
 	TextLabel epoca;
@@ -30,12 +34,16 @@ struct {
 	TextLabel winHate;
 	TextLabel imps;
 	TextLabel status;
+	TextLabel rede;
+	ProgressBar progress;
 	atomic_int *can_run;
 	atomic_int *force_end;
 	HWND hmain;
+	HWND hconsole;
 
 	void (*setText)(TextLabel text, const char *format, ...);
 
+	void (*setProgress)(ProgressBar progressBar, double value);
 } GUI;
 
 void GUI_setText(TextLabel text, const char *format, ...) {
@@ -50,6 +58,14 @@ void GUI_setText(TextLabel text, const char *format, ...) {
 	va_end(v);
 }
 
+void GUI_setProgress(ProgressBar progressBar, double value) {
+	int ivalue = value;
+#if (USE_PROGRESS_BAR == 1)
+	SendMessage(progressBar[0], PBM_SETPOS, (WPARAM) ivalue % 101, 0);
+	GUI_setText(progressBar[1], "%.2lf%%", value);
+#endif
+}
+
 int wstrlen(const LPWSTR lpwstr) {
 	int len = 0;
 	for (; lpwstr[len]; ++len);
@@ -58,29 +74,28 @@ int wstrlen(const LPWSTR lpwstr) {
 
 void run_main(PSTR pCmdLine) {
 
-	cnnMain(__argc , __argv);
-
-
+	cnnMain(__argc, __argv);
 	PostMessageA(GUI.hmain, WM_DESTROY, 0, 0);
 
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 				   PSTR pCmdLine, int CmdShow) {
+	GUI.hconsole = FindWindowA("ConsoleWindowClass", NULL);
 	HWND hwnd;
 	MSG msg;
 	GUI.setText = GUI_setText;
+	GUI.setProgress = GUI_setProgress;
 	WNDCLASSW wc = {0};
 	wc.lpszClassName = L"GabCnn";
 	wc.hInstance = hInstance;
 	wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
 	wc.lpfnWndProc = WndProc;
 	wc.hCursor = LoadCursor(0, IDC_ARROW);
-
 	RegisterClassW(&wc);
 	hwnd = CreateWindowW(wc.lpszClassName, L"GabCnn",
 						 WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-						 150, 150, 500, 500, 0, 0, hInstance, 0);
+						 150, 150, 750, 500, GUI.hconsole, 0, hInstance, 0);
 	GUI.hmain = hwnd;
 	SetWindowTextA(hwnd, "Gab Cnn");
 	if (!hwnd) {
@@ -98,11 +113,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
-#define BUF_LEN 10
-	wchar_t buf[BUF_LEN];
-
-	RECT rect;
-
+//	Sleep(10);
 	switch (msg) {
 
 		case WM_CREATE:
@@ -127,6 +138,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 			// Else: User canceled. Do nothing.
 			return 0;
+//		case WM_CTLCOLORSTATIC:
+			// Set the colour of the text for our URL
+//			if (((HWND)lParam == GetDlgItem(GUI.progress[1], 0))){
+			// set the text colour in (HDC)lParam
+//				SetBkMode((HDC) GetDC(GUI.progress[1]),TRANSPARENT);
+//				SetTextColor((HDC) GetDC(GUI.progress[1]), RGB(255,0,0));
+//				 NOTE: per documentation as pointed out by selbie, GetSolidBrush would leak a GDI handle.
+//				return (BOOL)GetSysColorBrush(COLOR_MENU);
+//			}
+
+
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			break;
@@ -139,20 +161,35 @@ void CreateLabels(HWND hwnd) {
 	int x = 1, h = 25, w = 150, dy = 0;
 	int dh = 25;
 	int y = 10;
-	CreateWindowA("static", "epoca: ",
-				  WS_CHILD | WS_VISIBLE,
-				  x, y + (dy) * dh, w, h,
-				  hwnd, NULL, NULL, NULL);
+#if (USE_PROGRESS_BAR == 1)
+	GUI.progress[1] = CreateWindowA("static", "status: ",
+									WS_CHILD | WS_VISIBLE|BS_TEXT,
+									x +  3.1*w, y + (dy) * dh, w, h,
+									hwnd, NULL, NULL, NULL);
+	GUI.progress[0] = CreateWindowA(PROGRESS_CLASS, (LPTSTR) NULL,
+									WS_CHILD | WS_VISIBLE ,
+									x + w, y + (dy++) * dh, 2 * w, h,
+									hwnd, NULL, NULL, NULL);
+#endif
+
+//	HWND Stealth;
+//	AllocConsole();
+//	ShowWindow(GUI.hconsole,0);
 	CreateWindowA("static", "status: ",
 				  WS_CHILD | WS_VISIBLE,
 				  x, y + (dy) * dh, w, h,
 				  hwnd, NULL, NULL, NULL);
 
-	GUI.status = CreateWindowA("static", "NAN",
+	GUI.status = CreateWindowA("static", "",
 							   WS_CHILD | WS_VISIBLE,
 							   x + w, y + (dy++) * dh, 1000, h,
 							   hwnd, NULL, NULL, NULL);
-	GUI.epoca = CreateWindowA("static", "0",
+
+	CreateWindowA("static", "epoca: ",
+				  WS_CHILD | WS_VISIBLE,
+				  x, y + (dy) * dh, w, h,
+				  hwnd, NULL, NULL, NULL);
+	GUI.epoca = CreateWindowA("static", "",
 							  WS_CHILD | WS_VISIBLE,
 							  x + w, y + (dy++) * dh, w, h,
 							  hwnd, NULL, NULL, NULL);
@@ -162,7 +199,7 @@ void CreateLabels(HWND hwnd) {
 				  x, y + (dy) * dh, w, h,
 				  hwnd, NULL, NULL, NULL);
 
-	GUI.imagem = CreateWindowA("static", "0",
+	GUI.imagem = CreateWindowA("static", "",
 							   WS_CHILD | WS_VISIBLE,
 							   x + w, y + (dy++) * dh, w, h,
 							   hwnd, NULL, NULL, NULL);
@@ -171,7 +208,7 @@ void CreateLabels(HWND hwnd) {
 				  x, y + (dy) * dh, w, h,
 				  hwnd, NULL, NULL, NULL);
 
-	GUI.mse = CreateWindowA("static", "NAN",
+	GUI.mse = CreateWindowA("static", "",
 							WS_CHILD | WS_VISIBLE,
 							x + w, y + (dy++) * dh, w, h,
 							hwnd, NULL, NULL, NULL);
@@ -180,7 +217,7 @@ void CreateLabels(HWND hwnd) {
 				  x, y + (dy) * dh, w, h,
 				  hwnd, NULL, NULL, NULL);
 
-	GUI.winHate = CreateWindowA("static", "150",
+	GUI.winHate = CreateWindowA("static", "",
 								WS_CHILD | WS_VISIBLE,
 								x + w, y + (dy++) * dh, w, h,
 								hwnd, NULL, NULL, NULL);
@@ -189,10 +226,15 @@ void CreateLabels(HWND hwnd) {
 				  x, y + (dy) * dh, w, h,
 				  hwnd, NULL, NULL, NULL);
 
-	GUI.imps = CreateWindowA("static", "NAN",
+	GUI.imps = CreateWindowA("static", "",
 							 WS_CHILD | WS_VISIBLE,
 							 x + w, y + (dy++) * dh, w, h,
 							 hwnd, NULL, NULL, NULL);
+	GUI.rede = CreateWindowA("static", "",
+							 WS_CHILD | WS_VISIBLE,
+							 x, y + (dy++) * dh, 1000, 1000,
+							 hwnd, NULL, NULL, NULL);
+
 
 }
 

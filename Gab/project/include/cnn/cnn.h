@@ -8,6 +8,31 @@
 #include <tensor/tensor.h>
 #include <gpu/Kernel.h>
 #include <camadas/camada.h>
+#include "lcg/lcg.h"
+
+#include"camadas/CamadaConv.h"
+#include"camadas/CamadaConvF.h"
+#include"camadas/CamadaConvNC.h"
+#include"camadas/CamadaPool.h"
+#include"camadas/CamadaRelu.h"
+#include"camadas/CamadaPRelu.h"
+#include"camadas/CamadaFullConnect.h"
+#include"camadas/CamadaPadding.h"
+#include"camadas/CamadaDropOut.h"
+#include"camadas/CamadaSoftMax.h"
+#include"camadas/CamadaBatchNorm.h"
+
+#define CST_CONVOLUCAO(cnn,layer)((CamadaConv)cnn->cm[layer])
+#define CST_CONVOLUCAOF(cnn,layer)((CamadaConvF)cnn->cm[layer])
+#define CST_CONVOLUCAONC(cnn,layer)((CamadaConvNC)cnn->cm[layer])
+#define CST_POOL(cnn,layer)((CamadaPool)cnn->cm[layer])
+#define CST_FULLCONNECT(cnn,layer)((CamadaFullConnect)cnn->cm[layer])
+#define CST_PADDING(cnn,layer)((CamadaPadding )cnn->cm[layer])
+#define CST_DROPOUT(cnn,layer)((CamadaDropOut )cnn->cm[layer])
+#define CST_RELU(cnn,layer)((CamadaRelu )cnn->cm[layer])
+#define CST_PRELU(cnn,layer)((CamadaPRelu )cnn->cm[layer])
+#define CST_SOFTMAX(cnn,layer)((CamadaSoftMax)cnn->cm[layer])
+#define CST_BATCHNORM(clayer,cm)((CamadaBatchNormcnn->cm[layer])
 
 typedef struct Cnn_t {
 	///  versão da compilação
@@ -71,6 +96,8 @@ typedef struct Cnn_t {
 
 	void (*print)(struct Cnn_t *self, const char *comment);
 
+	char *(*printstr)(struct Cnn_t *self, const char *comment);
+
 	int (*normalizeIMAGE)(struct Cnn_t *self, Tensor dst_real, Tensor src_char);
 
 	int (*extractVectorLabelClass)(struct Cnn_t *self, Tensor dst, Tensor label);
@@ -93,7 +120,7 @@ typedef struct Cnn_t {
 
 	int (*DropOut)(struct Cnn_t *self, REAL probabilidadeSaida, cl_ulong seed);
 
-	int (*SoftMax)(struct Cnn_t *self,int8_t flag);
+	int (*SoftMax)(struct Cnn_t *self, int8_t flag);
 
 	int (*BatchNorm)(struct Cnn_t *self, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB);
 

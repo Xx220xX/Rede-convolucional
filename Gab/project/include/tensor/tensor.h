@@ -164,9 +164,8 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
          str = alloc_mem(1,sz+1);    \
          else                                 \
          str = realloc(str,len+sz+1);                              \
-         char *tmp = str+len;               \
+         sprintf(str+len,format,##__VA_ARGS__) ;                           \
          len = len+sz;\
-         sprintf(tmp,format,##__VA_ARGS__) ;                           \
 }
 #define FMAP (void (*)(struct Tensor_t *, void *, int, int, int, int, int))
 

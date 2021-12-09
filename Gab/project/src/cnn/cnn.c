@@ -72,7 +72,9 @@ int Cnn_save(Cnn self, const char *filename);
 
 int Cnn_load(Cnn self, const char *filename);
 
-void Cnn_print(Cnn self, char *comment);
+void Cnn_print(Cnn self,const char *comment);
+
+char *Cnn_printstr(Cnn self, const char *comment);
 
 //#####################################################################################
 //							FUNÇÕES PARA ADICIONA CAMADAS
@@ -95,7 +97,7 @@ int Cnn_Padding(Cnn self, uint32_t top, uint32_t bottom, uint32_t left, uint32_t
 
 int Cnn_DropOut(Cnn self, REAL probabilidadeSaida, cl_ulong seed);
 
-int Cnn_SoftMax(Cnn self,int8_t flag);
+int Cnn_SoftMax(Cnn self, int8_t flag);
 
 int Cnn_BatchNorm(Cnn self, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB);
 
@@ -117,7 +119,7 @@ Cnn Cnn_new() {
 	memcpy(&self->version, &versao, sizeof(char *));
 
 	self->gpu = Gpu_new();
-	self->erro->error = self->gpu->compileProgram(self->gpu,(char *) KERNEL_LIB_get_defaultKernel());
+	self->erro->error = self->gpu->compileProgram(self->gpu, (char *) KERNEL_LIB_get_defaultKernel());
 	self->release_gpu = 1;
 
 	self->queue = self->gpu->Queue_new(self->gpu, self->erro->perro);
@@ -135,7 +137,8 @@ Cnn Cnn_new() {
 	self->SoftMax = Cnn_SoftMax;
 	self->BatchNorm = Cnn_BatchNorm;
 
-	self->print = (void (*)(struct Cnn_t *, const char *)) Cnn_print;
+	self->print = Cnn_print;
+	self->printstr = Cnn_printstr;
 	self->load = Cnn_load;
 	self->save = Cnn_save;
 	self->predict = Cnn_predict;
@@ -162,9 +165,9 @@ int Cnn_release(Cnn *selfp) {
 	if (!selfp)return 10;
 	if (!(*selfp))return 10;
 	(*selfp)->erro->print((*selfp)->erro);
-	if((*selfp)->erro->error){
-		char * tmp = Gpu_errormsg((*selfp)->erro->error);
-		fprintf(stderr,"%s\n",tmp);
+	if ((*selfp)->erro->error) {
+		char *tmp = Gpu_errormsg((*selfp)->erro->error);
+		fprintf(stderr, "%s\n", tmp);
 		free_mem(tmp);
 	}
 	int erro = (*selfp)->erro->error;
@@ -285,7 +288,7 @@ int Cnn_learn(Cnn self, Tensor target) {
 	sub->runRecursive(sub, self->queue, self->ds->length, self->gpu->maxworks, &self->ds->data,
 					  &self->cm[self->l - 1]->s->data, &target->data);
 	Tensor ds = self->ds;
-	for (int l = self->l-1; l>=0 && !self->erro->error; l--) {
+	for (int l = self->l - 1; l >= 0 && !self->erro->error; l--) {
 		self->cm[l]->retroPropagation(self->cm[l], ds);
 		ds = self->cm[l]->da;
 	}
@@ -301,7 +304,7 @@ int Cnn_learnv(Cnn self, REAL *target) {
 }
 
 REAL Cnn_mse(Cnn self) {
-	if(self->erro->error)return NAN;
+	if (self->erro->error)return NAN;
 	if (self->l <= 0)return NAN;
 	REAL mse = 0;
 	REAL *data = self->ds->getvalues(self->ds, NULL);
@@ -343,23 +346,13 @@ int Cnn_maxIndex(Cnn self) {
 
 int Cnn_normalizeIMAGE(Cnn self, Tensor dst, Tensor src) {
 	if (self->erro->error)return self->erro->error;
-	REAL maximo = 255.0/2;
-	REAL minimo = 255.0/2;
-//	uint8_t *data = src->getvalues(src, NULL);
-//	for (int i = 0; i < src->length; ++i) {
-//		if (maximo < data[i]) {
-//			maximo = data[i];
-//		}
-//		if (minimo > data[i]) {
-//			minimo = data[i];
-//		}
-//	}
-//	free_mem(data);
-//	maximo = maximo - minimo;
-	//if (maximo == 0.0)maximo = 1;
+	REAL maximo = 255.0 ;
+	REAL minimo = 0;
+
 	Kernel normalizeChar2Real = ((Kernel *) self->kernels)[CNN_KERNEL_NORMALIZE_CHAR_2_REAL];
 	self->erro->error = normalizeChar2Real->runRecursive(normalizeChar2Real, self->queue, src->length, self->gpu->maxworks,
 														 &dst->data, &src->data, &maximo, &minimo);
+	clFinish(self->queue);
 	return self->erro->error;
 }
 
@@ -390,7 +383,7 @@ char *Cnn_json(Cnn self, int showValues) {
 
 int Cnn_extractVectorLabelClass(Cnn self, Tensor dst, Tensor label) {
 	if (self->erro->error)return self->erro->error;
-	dst->fill(dst,0);
+	dst->fill(dst, 0);
 	Kernel extract = ((Kernel *) self->kernels)[CNN_KERNEL_EXTRACT_VECTOR_CLASS_FROM_CHAR];
 	self->erro->error = extract->runRecursive(extract, self->queue, dst->w, self->gpu->maxworks, &dst->data, &label->data, &dst->y);
 	return self->erro->error;
@@ -492,7 +485,7 @@ int Cnn_load(Cnn self, const char *filename) {
 	return self->erro->error;
 }
 
-void Cnn_print(Cnn self, char *comment) {
+void Cnn_print(Cnn self,const char *comment) {
 	char *tmp;
 	if (comment == NULL) {
 		comment = "//";
@@ -506,6 +499,27 @@ void Cnn_print(Cnn self, char *comment) {
 		free_mem(tmp);
 	}
 }
+
+char *Cnn_printstr(Cnn self,const char *comment) {
+	char *tmp;
+
+	P3d out = self->size_in;
+	char *string = NULL;
+	int len = 0;
+	apendstr(string, len, "Entrada(%zu,%zu,%zu)\n", out.x, out.y, out.z);
+	for (int i = 0; i < self->l; ++i) {
+		tmp = self->cm[i]->getGenerate(self->cm[i]);
+		out = self->cm[i]->getOutSize(self->cm[i]);
+		if (comment) {
+			apendstr(string, len, "%s %s saida [%zu,%zu,%zu]\n", tmp, comment, out.x, out.y, out.z);
+		} else {
+			apendstr(string, len, "%s\n", tmp);
+		}
+		free_mem(tmp);
+	}
+	return string;
+}
+
 
 //#####################################################################################
 //
@@ -567,7 +581,7 @@ int Cnn_ConvolucaoNC(Cnn self, P2d passo, P2d abertura, P3d filtro, uint32_t fun
 
 int Cnn_Pooling(Cnn self, P2d passo, P2d filtro, uint32_t type) {
 	P3d size_in = self->getSizeOut(self);
-	if (!CHECKDIN(size_in.x, filtro.x, 1, passo.x) ||!CHECKDIN(size_in.y, filtro.y, 1, passo.y)) {
+	if (!CHECKDIN(size_in.x, filtro.x, 1, passo.x) || !CHECKDIN(size_in.y, filtro.y, 1, passo.y)) {
 		fprintf(stderr, "Pooling:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n",
 				size_in.x, size_in.y, size_in.z,
 				(size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1,
@@ -606,8 +620,8 @@ int Cnn_DropOut(Cnn self, REAL probabilidadeSaida, cl_ulong seed) {
 	return internal_Cnn_addlayer(self, c);
 }
 
-int Cnn_SoftMax(Cnn self,int8_t flag) {
-	Camada c = CamadaSoftMax_new(self->gpu, self->queue,flag, self->getSizeOut(self), internal_Cnn_getEntrada(self), self->erro);
+int Cnn_SoftMax(Cnn self, int8_t flag) {
+	Camada c = CamadaSoftMax_new(self->gpu, self->queue, flag, self->getSizeOut(self), internal_Cnn_getEntrada(self), self->erro);
 	return internal_Cnn_addlayer(self, c);
 }
 

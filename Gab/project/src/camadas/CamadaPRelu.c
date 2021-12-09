@@ -23,7 +23,7 @@ static void CamadaPRelu_release(CamadaPRelu *self_p) {
 static int CamadaPRelu_propagation(CamadaPRelu self) {
 	Execute(preluativa, self->super.s->length,
 			&self->super.a->data, &self->super.s->data,
-			&self->A
+			&self->A->data
 	);
 	return self->super.erro->error;
 }
@@ -120,7 +120,7 @@ Camada CamadaPRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 }
 
 Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parametros params, RandomParams rdp_a, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaPRelu_new");
+	ECXPUSH(ecx);
 	CamadaPRelu self = alloc_mem(1, sizeof(CamadaPRelu_t));
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, PRELU_ID, lname, params, entrada, size_in, size_out, ecx);
@@ -158,7 +158,7 @@ Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parame
 
 	CheckKernel(preluonlyfix);
 
-	ecx->popstack(ecx);
+	ECXPOP(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaPRelu_release;
 	self->super.propagation = (int (*)(void *)) CamadaPRelu_propagation;
