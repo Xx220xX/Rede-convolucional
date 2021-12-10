@@ -124,7 +124,7 @@ int cnnMain(int nargs, char **args) {
 			GUI.setText(GUI.epoca, "%d de %d", treino.epAtual, treino.epTotal);
 			GUI.setText(GUI.imagem, "%d de %d", treino.imAtual, treino.imTotal);
 			GUI.setText(GUI.mse, "%.14lf", treino.mse);
-			GUI.setText(GUI.winHate, "%lf", treino.winRate);
+			GUI.setText(GUI.winHate, "%.4lf | %.4lf ", treino.winRate,100*treino.meanwinRate);
 			
 			GUI.setText(GUI.imps, "%.2lf | %.2lf ", treino.imps,im/treino.timeRuning);
 			Sleep(100);

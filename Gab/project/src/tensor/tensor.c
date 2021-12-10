@@ -295,14 +295,14 @@ int Tensor_imagegrayREAL(Tensor self, ubyte *image, size_t width, size_t height_
 	normalizeReal(data, self->x * self->y, 255);
 	for (int i = 0; i < h; ++i) {
 		if (i + i0 >= height_tensor) {
-			self->erro->error = INDEX_OUT_OF_BOUNDS;
+			self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
 			goto end;
 		}
 		for (int j = 0; j < w; ++j) {
 			y = j * py;
 			x = i * px;
 			if (j + j0 >= width) {
-				self->erro->error = INDEX_OUT_OF_BOUNDS;
+				self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
 				goto end;
 			}
 			image[(i + i0) * width + j + j0] = (char) (data[x * self->y + y]);
@@ -324,14 +324,14 @@ int Tensor_imagegrayINT(Tensor self, ubyte *image, size_t width, size_t height_t
 	normalizeInt(data, self->x * self->y, 255);
 	for (int i = 0; i < h; ++i) {
 		if (i + i0 >= height_tensor) {
-			self->erro->error = INDEX_OUT_OF_BOUNDS;
+			self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
 			goto end;
 		}
 		for (int j = 0; j < w; ++j) {
 			y = j * py;
 			x = i * px;
 			if (j + j0 >= width) {
-				self->erro->error = INDEX_OUT_OF_BOUNDS;
+				self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
 				goto end;
 			}
 			image[(i + i0) * width + j + j0] = (char) (data[x * self->y + y] & 0xff);
@@ -351,14 +351,14 @@ int Tensor_imagegrayCHAR(Tensor self, ubyte *image, size_t width, size_t height_
 	ubyte *data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
 	for (int i = 0; i < h; ++i) {
 		if (i + i0 >= height_tensor) {
-			self->erro->error = INDEX_OUT_OF_BOUNDS;
+			self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
 			goto end;
 		}
 		for (int j = 0; j < w; ++j) {
 			y = j * py;
 			x = i * px;
 			if (j + j0 >= width) {
-				self->erro->error = INDEX_OUT_OF_BOUNDS;
+				self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
 				goto end;
 			}
 			image[(i + i0) * width + j + j0] = (char) (data[x * self->y + y]);
@@ -373,7 +373,7 @@ int Tensor_imagegrayCHAR(Tensor self, ubyte *image, size_t width, size_t height_
 int Tensor_fillM(Tensor self, size_t offset, size_t bytes, void *patern, size_t size_patern) {
 	ECXPUSH(self->erro);
 	if (!patern || size_patern <= 0) {
-		self->erro->error = !patern ? NULL_POINTER : INVALID_PARAM;
+		self->erro->error = !patern ? GAB_NULL_POINTER_ERROR : GAB_INVALID_PARAM;
 		return self->erro->error;
 	}
 	if (self->flag.ram) {
@@ -400,7 +400,7 @@ int Tensor_copy(Tensor self, Tensor b) {
 	ECXPUSH(self->erro);
 	if (self->bytes != b->bytes) {
 		fprintf(stderr, "O tensor b deve possuir o mesmo tamanho\n");
-		self->erro->error = INDEX_OUT_OF_BOUNDS;
+		self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
 		return self->erro->error;
 	}
 	void *mem = NULL;
@@ -526,13 +526,13 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 	if (self->flag.inteiro && self->flag.caractere) {
 		Tensor_registreError(self, "flag invalida: inteiro e caractere = 1");
 		free(self);
-		ecx->error = INVALID_PARAM;
+		ecx->error = GAB_INVALID_PARAM;
 		return NULL;
 	}
 	if (self->flag.ram && self->flag.shared) {
 		Tensor_registreError(self, "flag invalida: ram e shared = 1");
 		free(self);
-		ecx->error = INVALID_PARAM;
+		ecx->error = GAB_INVALID_PARAM;
 		return NULL;
 	}
 	self->x = x;
@@ -554,7 +554,7 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 		self->data = calloc(self->x * self->y * self->z * self->w, self->size_element);
 	} else if (self->flag.shared) {
 		fprintf(stderr, "Invalid flag: Shared memory not suported");
-		exit(INVALID_PARAM);
+		exit(GAB_INVALID_PARAM);
 	} else {
 		va_list v;
 		va_start(v, flag);

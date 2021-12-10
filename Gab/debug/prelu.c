@@ -2,20 +2,10 @@
 // Created by Henrique on 30/11/2021.
 //
 #include "cnn/cnn.h"
+#include "matlab.h"
 #include "camadas/CamadaRelu.h"
 #include<string.h>
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-#define matlabf(format, ...) fprintf(f,format,##__VA_ARGS__);fprintf(f,"\n")
-#define matlab(x) fprintf(f,"%s\n",x)
-
-#define matlabCmp(x, y)matlab("figure;hold on;"); \
-matlab("plot("x"(:),'DisplayName','"x"')");\
-matlab("plot("y"(:),'DisplayName','"y"')");      \
-matlab("title('"#x" vs "#y"');");\
-matlab("legend();");                                  \
-matlab("if gcf() == 1");\
-matlabf("print('%s.pdf')",__FILENAME__);                     \
-matlabf("else print('%s.pdf', '-append'); end;",__FILENAME__)
 
 
 int main() {

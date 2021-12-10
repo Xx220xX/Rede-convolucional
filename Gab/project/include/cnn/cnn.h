@@ -128,7 +128,7 @@ typedef struct Cnn_t {
 
 
 } *Cnn, Cnn_t;
-
+extern const char *Cnn_version();
 extern Cnn Cnn_new();
 
 #endif //GAB_CNN_CNN_H

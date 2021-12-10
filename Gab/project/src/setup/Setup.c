@@ -30,7 +30,7 @@ if(!lua_isnoneornil(L,-1)&&lua_isboolean(L,-1)) (cvar) = lua_toboolean(L,-1); \
 else fprintf(stderr,"warning: %s não instanciado em lua\n",name);\
 SET_DEBUG("%s %d\n",#cvar,cvar);
 
-#define SETUP_GETLUA_STR(cvar, name)lua_getglobal(L,name);    if(luaL_checkstring(L,-1)){                                 \
+#define SETUP_GETLUA_STR(cvar, name)lua_getglobal(L,name);if(luaL_checkstring(L,-1)){                                 \
 Free(cvar);                                                                                                                           \
 const char *__tmp__ = lua_tostring(L,-1);                                                                                        \
 size_t len  =  strlen(__tmp__);                                                                                            \
@@ -214,9 +214,13 @@ void Setup_treinar(Setup self) {
 	int classe = 0;
 	double imps = seconds();// imagens por segundo
 	int images=0;
+	int acertos=0;
 	double tres = self->itrain.timeRuning, t0 = seconds(); // tres: tempo residual de treinos anteriores na mesma sessão. t0: tempo inicial do treino
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->erro->error; self->epoca_atual++) {
-		if (self->imagem_atual_treino >= self->n_imagens_treinar)self->imagem_atual_treino = 0;
+		if (self->imagem_atual_treino >= self->n_imagens_treinar) {
+			self->imagem_atual_treino = 0;
+			acertos = 0;
+		}
 		localItrain.epAtual = self->epoca_atual;
 
 
@@ -239,7 +243,9 @@ void Setup_treinar(Setup self) {
 				imps = seconds();
 				images = 0;
 			}
+			acertos+= (cnn_label == label);
 			localItrain.timeRuning = tres + seconds() - t0;
+			localItrain.meanwinRate = acertos/(self->imagem_atual_treino+1.0);
 			localItrain.winRate = localItrain.winRate * alpha + beta * ((cnn_label == label) ? 100 : 0);
 			localItrain.mse = localItrain.mse * alpha + beta * self->cnn->mse(self->cnn);
 			localItrain.imAtual = self->imagem_atual_treino;
@@ -253,7 +259,7 @@ void Setup_treinar(Setup self) {
 void Setup_getLuaParams(Setup self) {
 	ECXPUSH(self->cnn->erro);
 	if (!self->cnn) {
-		self->cnn->erro->setError(self->cnn->erro, NULL_POINTER);
+		self->cnn->erro->setError(self->cnn->erro, GAB_NULL_POINTER_ERROR);
 		return;
 	}
 	if (self->cnn->erro->error)return;
@@ -280,7 +286,7 @@ void Setup_getLuaParams(Setup self) {
 void Setup_loadLua(Setup self, const char *lua_file) {
 	ECXPUSH(self->cnn->erro);
 	if (!lua_file) {
-		self->cnn->erro->setError(self->cnn->erro, NULL_POINTER);
+		self->cnn->erro->setError(self->cnn->erro, GAB_NULL_POINTER_ERROR);
 		return;
 	}
 	CnnLuaLoadFile(self->cnn, lua_file);

@@ -13,27 +13,12 @@
 
 #define LCNN "Cnn"
 
-#define checkLua(cond, format, ...) if(!(cond)){ \
-    luaL_error(L,format,## __VA_ARGS__) ;  \
-        c->erro->error = 40;                           \
-        return 0;}
+#define checkLua(cond, format, ...) if(!(cond)){ luaL_error(L,format,##__VA_ARGS__) ;c->erro->error = GAB_ERRO_LUA;return 0;}
 
-#define REGISTERC_L(state, func, name)lua_pushcfunction(state,func);\
-lua_setglobal(state,name)
+#define REGISTERC_L(state, func, name)lua_pushcfunction(state,func);lua_setglobal(state,name)
 
 #define RETURN_LUA_STATUS_FUNCTION() lua_pushinteger(L, c->erro->error);return 1;
 
-
-typedef struct Luac_function {
-	void *f;
-	const char *name;
-	const char *description;
-	const char *sintaxe;
-} Luac_function;
-typedef struct Luac_contantes {
-	uint32_t v;
-	const char *name;
-} Luac_contantes;
 
 int loadP3D(lua_State *L, int arg, P3d *p) {
 
@@ -470,7 +455,7 @@ static int l_DropOut(lua_State *L) {
 			luaL_error(L, "Invalid function\ntry\n"
 						  " DropOut(prob_saida)\n"
 						  " DropOut(prob_saida,seed)\n"
-						  );
+			);
 			return 0;
 	}
 	if (c->DropOut(c, prob, seed)) {
@@ -508,6 +493,7 @@ static int l_FullConnect(lua_State *L) {
 		case 5:
 			neuros = (int) luaL_checkinteger(L, arg++);
 			func = (int) luaL_checkinteger(L, arg++);
+			loadParams(L, arg++, &prm);
 			loadRdp(L, arg++, &rdpw);
 			loadRdp(L, arg++, &rdpb);
 
@@ -577,7 +563,7 @@ static int l_SoftMax(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
-	int8_t flag = SOFTNORM|SOFTLAST;
+	int8_t flag = SOFTNORM | SOFTLAST;
 	int arg = 1;
 	switch (nArgs) {
 		case 0:
@@ -723,18 +709,21 @@ static int l_learnCnn(lua_State *L) {
 static int l_helpCnn(lua_State *L);
 
 
-Luac_function globalFunctions[] = {
-		{l_createCnn,          "Entrada",         "Cria uma CNN para utilizar",                           "Entrada(x:int,y:int,z:int) "},
-		{l_CamadasetLearnable, "SetLearnable",    "Ativa ou desativa a correção de pesos",                "SetLearnable(camada_i:int,learn:boolean)"},
-		{l_CamadasetParam,     "SetParams",       "Modifica os parametros da camada",                     "SetParams(camada_i:int,hitlearn:float,momentum:float,decaimento:float"},
-		{l_removeLayer,        "RemoveLastLayer", "Remove a ultima camada",                               "RemoveLastLayer()"},
-		{l_PrintCnn,           "PrintCnn",        "mostra a rede",                                        "PrintCnn()"},
-		{l_callCnn,            "Call",            "Faz a propagação",                                     "Call(input:table)"},
-		{l_learnCnn,           "Learn",           "Faz a retro propagação",                               "Learn(target:table)"},
-		{l_helpCnn,            "helpCnn",         "Mostra detalhes sobre todas funções",                  "helpCnn()"},
+static struct {
+	void *f;
+	const char *name;
+} globalFunctions[] = {
+		{.f=l_createCnn, .name="Entrada"},
+		{l_CamadasetLearnable, "SetLearnable"},
+		{l_CamadasetParam,     "SetParams"},
+		{l_removeLayer,        "RemoveLastLayer"},
+		{l_PrintCnn,           "PrintCnn"},
+		{l_callCnn,            "Call"},
+		{l_learnCnn,           "Learn"},
+		{l_helpCnn,            "helpCnn"},
 		{l_sizeout,            "sizeOut"},
-		{l_Convolucao,         "Convolucao",      "Adiciona camada Convolucional",                        "Convolucao(step[x,y],filterSize[x,y],nfilters,randomParanm[pdf,a,bq])"},
-		{l_ConvolucaoF,        "ConvolucaoF",     "Adiciona camada Convolucional com função de ativacao", "Convolucao(step[x,y],filterSize[x,y],nfilters,ativacao,randomParanm[pdf,a,bq])"},
+		{l_Convolucao,         "Convolucao"},
+		{l_ConvolucaoF,        "ConvolucaoF"},
 		{l_ConvolucaoNC,       "ConvolucaoNC"},
 		{l_Pooling,            "Pooling"},
 		{l_Relu,               "Relu"},
@@ -746,18 +735,21 @@ Luac_function globalFunctions[] = {
 		{l_SoftMax,            "SoftMax"},
 		{NULL,}
 };
-Luac_contantes globalConstantes[] = {
-		{FSIGMOID, "SIGMOID"},
-		{FTANH,    "TANH"},
-		{FRELU,    "RELU"},
-		{FLIN,     "LIN"},
-		{FALAN,    "ALAN"},
+static struct {
+	uint32_t v;
+	const char *name;
+} globalConstantes[] = {
+		{FSIGMOID,       "SIGMOID"},
+		{FTANH,          "TANH"},
+		{FRELU,          "RELU"},
+		{FLIN,           "LIN"},
+		{FALAN,          "ALAN"},
 
-		{MAXPOOL,  "MAXPOOL"},
-		{MINPOOL,  "MINPOOL"},
-		{AVEPOOL,  "AVEPOOL"},
+		{MAXPOOL,        "MAXPOOL"},
+		{MINPOOL,        "MINPOOL"},
+		{AVEPOOL,        "AVEPOOL"},
 		{TENSOR_NORMAL,  "GAUSSIAN"},
-		{TENSOR_UNIFORM,  "UNIFORM"},
+		{TENSOR_UNIFORM, "UNIFORM"},
 
 		{0, NULL}
 };
@@ -766,12 +758,6 @@ static int l_helpCnn(lua_State *L) {
 	printf("Functions:\n");
 	for (int i = 0; globalFunctions[i].f; i++) {
 		printf("\t%s\n", globalFunctions[i].name);
-		if (globalFunctions[i].description) {
-			printf("\t\t%s\n", globalFunctions[i].description);
-		}
-		if (globalFunctions[i].sintaxe) {
-			printf("\t\t%s\n", globalFunctions[i].sintaxe);
-		}
 	}
 	printf("Constantes:\n");
 	for (int i = 0; globalConstantes[i].name; i++) {
@@ -851,7 +837,7 @@ int CnnLuaLoadString(Cnn c, const char *lua_program) {
 }
 
 int CnnLuaLoadFile(Cnn c, const char *file_name) {
-	if (!c) return NULL_POINTER;
+	if (!c) return GAB_NULL_POINTER_ERROR;
 	ECXPUSH(c->erro);
 	if (!c->LuaVm)CnnInitLuaVm(c);
 	c->erro->setError(c->erro, luaL_dofile(c->LuaVm, file_name));

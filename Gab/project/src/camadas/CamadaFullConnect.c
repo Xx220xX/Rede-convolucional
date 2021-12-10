@@ -54,6 +54,7 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 
 	if (self->super.da || !self->super.params.skipLearn) {
 		if (self->super.params.skipLearn) {
+
 			Execute(fullCalcDz, self->dz->length,
 					&self->dz->data, &ds->data, &self->z->data, &self->b->data, &self->db->data,
 					&self->dfa,
@@ -79,16 +80,18 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 					&self->w->y
 			);
 		}
-		Execute(fullCalcDWandFix, self->w->length,
-				&self->super.a->data,
-				&self->w->data,
-				&self->dw->data,
-				&self->dz->data,
-				&self->super.params.hitlearn,
-				&self->super.params.momento,
-				&self->super.params.decaimento,
-				&self->w->y
-		);
+		if (!self->super.params.skipLearn) {
+			Execute(fullCalcDWandFix, self->w->length,
+					&self->super.a->data,
+					&self->w->data,
+					&self->dw->data,
+					&self->dz->data,
+					&self->super.params.hitlearn,
+					&self->super.params.momento,
+					&self->super.params.decaimento,
+					&self->w->y
+			);
+		}
 	}
 }
 

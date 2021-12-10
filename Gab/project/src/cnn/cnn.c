@@ -111,7 +111,9 @@ int Cnn_BatchNorm(Cnn self, REAL epsilon, Parametros p, RandomParams randY, Rand
 
 
 
-
+const char *Cnn_version(){
+	return versao;
+}
 
 Cnn Cnn_new() {
 	Cnn self = alloc_mem(1, sizeof(Cnn_t));
@@ -256,7 +258,7 @@ void Cnn_removeLastLayer(Cnn self) {
 }
 
 int Cnn_predict(Cnn self, Tensor entrada) {
-	if (!self->l)self->erro->error = CNN_VAZIA;
+	if (!self->l)self->erro->error = GAB_CNN_NOT_INITIALIZED;
 	if (self->erro->error) return self->erro->error;
 	if (entrada->flag.ram || entrada->flag.shared) {
 		return Cnn_predictv(self, entrada->data);
@@ -269,8 +271,8 @@ int Cnn_predict(Cnn self, Tensor entrada) {
 }
 
 int Cnn_predictv(Cnn self, REAL *entrada) {
-	if (!entrada) self->erro->error = NULL_POINTER;
-	if (!self->l)self->erro->error = CNN_VAZIA;
+	if (!entrada) self->erro->error = GAB_NULL_POINTER_ERROR;
+	if (!self->l)self->erro->error = GAB_CNN_NOT_INITIALIZED;
 	if (self->erro->error) return self->erro->error;
 	self->entrada->setvalues(self->entrada, entrada);
 	return Cnn_predict(self, self->entrada);
@@ -279,7 +281,7 @@ int Cnn_predictv(Cnn self, REAL *entrada) {
 
 
 int Cnn_learn(Cnn self, Tensor target) {
-	if (!self->l)self->erro->error = CNN_VAZIA;
+	if (!self->l)self->erro->error = GAB_CNN_NOT_INITIALIZED;
 	if (self->erro->error) return self->erro->error;
 	if (target->flag.ram || target->flag.shared) {
 		return Cnn_learnv(self, target->data);
@@ -296,8 +298,8 @@ int Cnn_learn(Cnn self, Tensor target) {
 }
 
 int Cnn_learnv(Cnn self, REAL *target) {
-	if (!target) self->erro->error = NULL_POINTER;
-	if (!self->l)self->erro->error = CNN_VAZIA;
+	if (!target) self->erro->error = GAB_NULL_POINTER_ERROR;
+	if (!self->l)self->erro->error = GAB_CNN_NOT_INITIALIZED;
 	if (self->erro->error) return self->erro->error;
 	self->target->setvalues(self->entrada, target);
 	return Cnn_learn(self, self->target);

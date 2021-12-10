@@ -21,7 +21,7 @@ static void CamadaDropOut_release(CamadaDropOut *self_p) {
 
 static int CamadaDropOut_propagation(CamadaDropOut self) {
 	Execute(dropativa, self->super.s->length,
-			&self->super.a->data, &self->hitmap->data, &self->seed,
+			&self->super.a->data,&self->super.s->data, &self->hitmap->data, &self->seed,
 			&self->probabilidade_saida
 	);
 	self->seed += self->super.s->length;

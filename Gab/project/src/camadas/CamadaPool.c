@@ -194,7 +194,7 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 
 		if (self->super.erro->setError(self->super.erro, self->poolCalcGrads->error))goto methods;
 	} else {
-		ecx->setError(ecx, INVALID_PARAM);
+		ecx->setError(ecx, GAB_INVALID_PARAM);
 		fprintf(stderr, "Tipo invalido\n");
 		goto methods;
 	}

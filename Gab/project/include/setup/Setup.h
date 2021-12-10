@@ -18,6 +18,7 @@ typedef struct {
 	uint32_t epTotal;
 	double mse;
 	double winRate;
+	double meanwinRate;
 	double timeRuning;
 	double imps;
 } Itrain;

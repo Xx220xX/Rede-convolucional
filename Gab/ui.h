@@ -13,6 +13,7 @@
 #include <wchar.h>
 #include <strsafe.h>
 #include <commctrl.h>
+#include <locale.h>
 
 #define cnnMain _local_main_
 #define  USE_PROGRESS_BAR  0
@@ -23,6 +24,8 @@ int cnnMain(int, char **);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 void CreateLabels(HWND);
+
+void checkArgs();
 
 typedef HWND TextLabel;
 typedef HWND ProgressBar[2];
@@ -81,6 +84,7 @@ void run_main(PSTR pCmdLine) {
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 				   PSTR pCmdLine, int CmdShow) {
+	checkArgs();
 	GUI.hconsole = FindWindowA("ConsoleWindowClass", NULL);
 	HWND hwnd;
 	MSG msg;
@@ -111,16 +115,31 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	return (int) msg.wParam;
 }
 
+void checkArgs() {
+	int nargs = __argc;
+	char **args = __argv;
+	system("chcp 65001 | echo off");
+	for (int i = 1; i < nargs; ++i) {
+		if (!strcmp(args[i], "--v") || !strcmp(args[i], "--version")) {
+			printf("Gabriela IA\n");
+			printf("versão %s\n", Cnn_version());
+			printf("https://xx220xx.github.io/Rede-convolucional/\n\n");
+			exit(0);
+		}
+	}
+	if (nargs > 2) {
+		fprintf(stderr, "Argumentos invalidos\n");
+		exit(GAB_INVALID_PARAM);
+	}
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 //	Sleep(10);
 	switch (msg) {
-
 		case WM_CREATE:
-
 			CreateLabels(hwnd);
 			break;
-
 		case WM_MOVE:
 
 //			GetWindowRect(hwnd, &rect);
@@ -277,10 +296,9 @@ int dialogBox(char *title, char *msg) {
 }
 
 void getLuaFILE(char *dst, int len, int nargs, const char **args) {
-
 	if (nargs != 2) {
 		while (!getFileName(dst, len))
-			if (!dialogBox("Nenhum arquivo selecionado", "Deseja tentar novamente?"))exit(FAILED_OPEN_FILE);
+			if (!dialogBox("Nenhum arquivo selecionado", "Deseja tentar novamente?"))exit(GAB_FAILED_OPEN_FILE);
 		return;
 	}
 	snprintf(dst, len, "%s", args[1]);

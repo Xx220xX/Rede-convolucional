@@ -25,5 +25,5 @@ set(GAB_FILES_EXE ${GAB_CODE} project/include/error_list.h project/include/threa
         project/include/conio2/conio2.h project/src/conio2/conio2.c)
 add_executable(Gab main.c ${GAB_FILES_EXE} ${CNNLUA} project/src/setup/Setup.c project/include/setup/Setup.h)
 add_executable(DEBUG_KERNEL ${KERNEL_CODE} )
-add_executable(Debug debug/prelu.c ${GAB_FILES_EXE} )
+add_executable(Debug debug/dropout.c ${GAB_FILES_EXE} )
 
