@@ -10,7 +10,6 @@
 #include "lua/lualib.h"
 #include "lua/lauxlib.h"
 
-#define HISTORIC_SIZE 20
 
 extern void CnnInitLuaVm(Cnn self);
 

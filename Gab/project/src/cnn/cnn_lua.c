@@ -469,7 +469,8 @@ static int l_DropOut(lua_State *L) {
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
 						  " DropOut(prob_saida)\n"
-						  " DropOut(prob_saida,seed)\n");
+						  " DropOut(prob_saida,seed)\n"
+						  );
 			return 0;
 	}
 	if (c->DropOut(c, prob, seed)) {
@@ -561,7 +562,7 @@ static int l_BatchNorm(lua_State *L) {
 						  " BatchNorm()\n"
 						  " BatchNorm(epsilon)\n"
 						  " BatchNorm(epsilon,Params)\n"
-						  " BatchNorm(epsilon,,Params,RDPY,RDPB)\n");
+						  " BatchNorm(epsilon,Params,RDPY,RDPB)\n");
 			return 0;
 	}
 	if (c->BatchNorm(c, epsilon, Params(1e-3), randomY, randomB)) {
@@ -731,6 +732,7 @@ Luac_function globalFunctions[] = {
 		{l_callCnn,            "Call",            "Faz a propagação",                                     "Call(input:table)"},
 		{l_learnCnn,           "Learn",           "Faz a retro propagação",                               "Learn(target:table)"},
 		{l_helpCnn,            "helpCnn",         "Mostra detalhes sobre todas funções",                  "helpCnn()"},
+		{l_sizeout,            "sizeOut"},
 		{l_Convolucao,         "Convolucao",      "Adiciona camada Convolucional",                        "Convolucao(step[x,y],filterSize[x,y],nfilters,randomParanm[pdf,a,bq])"},
 		{l_ConvolucaoF,        "ConvolucaoF",     "Adiciona camada Convolucional com função de ativacao", "Convolucao(step[x,y],filterSize[x,y],nfilters,ativacao,randomParanm[pdf,a,bq])"},
 		{l_ConvolucaoNC,       "ConvolucaoNC"},
@@ -742,7 +744,6 @@ Luac_function globalFunctions[] = {
 		{l_FullConnect,        "FullConnect"},
 		{l_BatchNorm,          "BatchNorm"},
 		{l_SoftMax,            "SoftMax"},
-		{l_sizeout,            "sizeOut"},
 		{NULL,}
 };
 Luac_contantes globalConstantes[] = {

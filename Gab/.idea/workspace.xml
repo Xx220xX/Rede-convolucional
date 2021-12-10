@@ -16,6 +16,10 @@
   <component name="ChangeListManager">
     <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/cnn/cnn_lua.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/cnn/cnn_lua.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/cnn/cnn_lua.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/cnn/cnn_lua.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/css/custom.css" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/css/custom.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/css/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/css/style.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../docs/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -71,11 +75,6 @@
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="gabkernel" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="gabkernel" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -111,7 +110,10 @@
       <option name="presentableId" value="Default" />
       <updated>1639001963596</updated>
       <workItem from="1639001965422" duration="5162000" />
-      <workItem from="1639051006356" duration="394000" />
+      <workItem from="1639051006356" duration="594000" />
+      <workItem from="1639066466530" duration="609000" />
+      <workItem from="1639089584623" duration="39000" />
+      <workItem from="1639090299044" duration="5786000" />
     </task>
     <servers />
   </component>

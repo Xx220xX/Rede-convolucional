@@ -59,7 +59,7 @@ h4 {
 }
 
 h5 {
-    font-size: 14px;
+    font-size: 16px;
 }
 
 h6 {
@@ -80,7 +80,7 @@ p {
     font-weight: 400;
     line-height: 26px;
     letter-spacing: 0;
-    margin-top: 15px;
+    margin-top: 0;
 }
 
 img.aligncenter {
@@ -99,7 +99,7 @@ ul {
 }
 
 ol li ul li {
-    padding-left: 20px;
+    padding-left: 0px;
 }
 
 img.alignleft {
@@ -160,7 +160,7 @@ sub {
 }
 
 p {
-    padding: 0 0 20px 0;
+    padding: 0 0 0 0;
 }
 
 .check li:before {
@@ -175,7 +175,7 @@ p {
 }
 
 .check li {
-    font-size: 14px;
+    font-size: 12pt;
     list-style: none;
     margin-bottom: 4px;
 }
@@ -186,7 +186,7 @@ p {
 }
 
 .section {
-    padding: 180px 0;
+    /*padding: 180px 0;*/
     position: relative;
     display: block;
 }
@@ -231,7 +231,7 @@ h4 a {
 .dark-text hr {
     width: 130px;
     margin-left: 0;
-    margin-top: 40px;
+    margin-top: 4px;
     border-width: 1px;
     border-color: #030303;
 }
