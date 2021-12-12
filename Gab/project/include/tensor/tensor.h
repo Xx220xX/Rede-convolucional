@@ -126,7 +126,9 @@ typedef struct Tensor_t {
 
 	/// debug do tensor
 	void (*registreError)(struct Tensor_t *self, char *format, ...);
-
+	/// Enviar todas as informações do tensor em uma unica variavel
+	/// o ponteiro deve ser liberado com free_mem
+	void *(*serialize)(struct  Tensor_t *self, size_t *length);
 	/// coloca o tensor em uma imagem cinza , imagem[i0:h,j0:w] = tensor[:,:,z,l]
 	int (*imagegray)(struct Tensor_t *self, ubyte *image, size_t im_width, size_t im_height, size_t t_w, size_t t_h, size_t i0, size_t j0, size_t z, size_t l);
 	/// mapeia as posições do tensor

@@ -12,10 +12,10 @@
 
 typedef struct CamadaConvF_t {
 	Camada_t super;
-	Tensor w;
+	Tensor W;
 	Tensor z;
 	Tensor dz;
-	Tensor dw;
+	Tensor dW;
 	size_t passox, passoy;
 	Kernel convFSum;
 	Kernel convFCalcGradZ;

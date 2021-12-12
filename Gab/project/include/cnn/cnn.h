@@ -32,7 +32,7 @@
 #define CST_RELU(cnn,layer)((CamadaRelu )cnn->cm[layer])
 #define CST_PRELU(cnn,layer)((CamadaPRelu )cnn->cm[layer])
 #define CST_SOFTMAX(cnn,layer)((CamadaSoftMax)cnn->cm[layer])
-#define CST_BATCHNORM(clayer,cm)((CamadaBatchNormcnn->cm[layer])
+#define CST_BATCHNORM(cnn,layer)((CamadaBatchNorm)cnn->cm[layer])
 
 typedef struct Cnn_t {
 	///  versão da compilação

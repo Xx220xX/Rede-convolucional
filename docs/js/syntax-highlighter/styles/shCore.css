@@ -76,7 +76,7 @@
 }
 .syntaxhighlighter table caption {
   text-align: left !important;
-  padding: .5em 0 0.5em 1em !important;
+  padding: 0em 0 0.5em 1em !important;
 }
 .syntaxhighlighter table td.code {
   width: 100% !important;
@@ -105,7 +105,7 @@
   padding: 0 1em !important;
 }
 .syntaxhighlighter.nogutter td.code .container textarea, .syntaxhighlighter.nogutter td.code .line {
-  padding-left: 0em !important;
+  padding: 0em !important;
 }
 .syntaxhighlighter.show {
   display: block !important;

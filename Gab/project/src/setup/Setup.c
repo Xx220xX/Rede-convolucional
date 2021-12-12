@@ -234,7 +234,7 @@ void Setup_treinar(Setup self) {
 			self->cnn->predict(self->cnn, entrada);
 			self->cnn->learn(self->cnn, target);
 			cnn_label = self->cnn->maxIndex(self->cnn);
-//			if (localItrain.winRate > 70 && self->on_train)self->on_train(self, label);
+			if (self->on_train)self->on_train(self, label);
 
 				// #### informações do treinamento
 			if(images>=nimagesimps) {

@@ -13,8 +13,8 @@
 
 typedef struct CamadaConv_t {
 	Camada_t super;
-	Tensor filtros;
-	Tensor grad_filtros;
+	Tensor W;
+	Tensor dW;
 	size_t passox, passoy;
 	Kernel convSum;
 	Kernel convCalcGradAndFixWeight;

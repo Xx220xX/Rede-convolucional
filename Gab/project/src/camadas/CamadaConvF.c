@@ -11,8 +11,8 @@ static void CamadaConvF_release(CamadaConvF *self_p) {
 	if (!self_p)return;
 	if (!*self_p)return;
 	internal_Camada_release((Camada *) self_p);
-	Release((*self_p)->w);
-	Release((*self_p)->dw);
+	Release((*self_p)->W);
+	Release((*self_p)->dW);
 	Release((*self_p)->z);
 	Release((*self_p)->dz);
 	Release((*self_p)->convFSum);
@@ -26,11 +26,11 @@ static void CamadaConvF_release(CamadaConvF *self_p) {
 static int CamadaConvF_propagation(CamadaConvF self) {
 	Execute(convFSum, self->super.s->length,
 
-			&self->w->data, &self->super.a->data, &self->z->data, &self->super.s->data,
+			&self->W->data, &self->super.a->data, &self->z->data, &self->super.s->data,
 			&self->passox, &self->passoy,
 			&self->super.s->x, &self->super.s->y,
 			&self->super.a->x, &self->super.a->y,
-			&self->w->x, &self->w->y, &self->w->z,
+			&self->W->x, &self->W->y, &self->W->z,
 			&self->activationFuntion
 	);
 	return self->super.erro->error;
@@ -46,18 +46,18 @@ static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
 	if (self->super.da)
 		Execute(convFCalcGrads, self->super.da->length,
 
-				&self->w->data, &self->super.da->data, &self->dz->data,
-				&self->w->x, &self->w->y, &self->w->z,
+				&self->W->data, &self->super.da->data, &self->dz->data,
+				&self->W->x, &self->W->y, &self->W->z,
 				&self->passox, &self->passoy,
 				&self->super.da->x, &self->super.da->y,
 				&self->super.s->x, &self->super.s->y, &self->super.s->z
 		);
 	if (!self->super.params.skipLearn)
 		Execute(convFCalcGradAndFixWeight,
-				self->w->length,
-				&self->w->data, &self->dz->data,
-				&self->super.a->data, &self->dw->data,
-				&self->w->x, &self->w->y, &self->w->z,
+				self->W->length,
+				&self->W->data, &self->dz->data,
+				&self->super.a->data, &self->dW->data,
+				&self->W->x, &self->W->y, &self->W->z,
 				&self->super.a->x, &self->super.a->y,
 				&self->super.s->x, &self->super.s->y,
 				&self->passox, &self->passoy,
@@ -78,10 +78,10 @@ static char *CamadaConvF_json(CamadaConvF self, int showValues) {
 					 PAD"\"passo\":[%zu,%zu],\n"
 					 PAD"\"numero_filtros\":%zu", tmp,
 			 self->activationFuntion,
-			 self->passox, self->passoy, self->w->w);
+			 self->passox, self->passoy, self->W->w);
 	free_mem(tmp);
-	apendTensor("filtros", w, string, len, tmp, showValues);
-	apendTensor("grad_filtros", dw, string, len, tmp, showValues);
+	apendTensor("filtros", W, string, len, tmp, showValues);
+	apendTensor("grad_filtros", dW, string, len, tmp, showValues);
 	apendstr(string, len, "\n}");
 	return string;
 }
@@ -93,7 +93,7 @@ static char *CamadaConvF_getGenerate(CamadaConvF self) {
 			 "%s (P2D(%zu, %zu), P3D(%zu, %zu, %zu), %d, Params(%g, %g, %g, %d), RDP(%d, %g, %g))",
 			 lname,
 			 self->passox, self->passoy,
-			 self->w->x, self->w->y, self->w->w,
+			 self->W->x, self->W->y, self->W->w,
 			 self->activationFuntion,
 			 (double) self->super.params.hitlearn,
 			 (double) self->super.params.momento,
@@ -123,11 +123,11 @@ static int CamadaConvF_save(CamadaConvF self, FILE *f) {
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->passox, 1, sizeof(size_t), f);
 	fwrite(&self->passoy, 1, sizeof(size_t), f);
-	fwrite(&self->w->x, 1, sizeof(size_t), f);
-	fwrite(&self->w->y, 1, sizeof(size_t), f);
-	fwrite(&self->w->w, 1, sizeof(size_t), f);
+	fwrite(&self->W->x, 1, sizeof(size_t), f);
+	fwrite(&self->W->y, 1, sizeof(size_t), f);
+	fwrite(&self->W->w, 1, sizeof(size_t), f);
 	fwrite(&self->activationFuntion, 1, sizeof(uint32_t), f);
-	internal_saveTensor(f, self->w);
+	internal_saveTensor(f, self->W);
 	end:
 	self->super.erro->popstack(self->super.erro);
 	return self->super.erro->error;
@@ -150,7 +150,7 @@ Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 	fread(&fativacao, sizeof(uint32_t), 1, f);
 
 	CamadaConvF self = (CamadaConvF) CamadaConvF_new(gpu, queue, passo, filtro, size_in, fativacao, entrada, parametros, ecx, RDP(-1));
-	internal_loadTensor(f, self->w, size_element);
+	internal_loadTensor(f, self->W, size_element);
 	end:
 	ecx->popstack(ecx);
 	return (Camada) self;
@@ -163,9 +163,9 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAOF_ID, lname, params, entrada, size_in, size_out, ecx);
 	self->activationFuntion = ativacao;
 	self->derivationFuntion = ativacao | FLAGDIF;
-	self->dw = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
-	self->dw->fill(self->dw, 0);
-	self->w = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
+	self->dW = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
+	self->dW->fill(self->dW, 0);
+	self->W = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
 	self->z = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 	self->dz = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 
@@ -178,7 +178,7 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 			rdp_filtros.b = -(REAL) 0.5 * rdp_filtros.a;
 		}
 
-		self->super.erro->error = self->w->randomize(self->w, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
+		self->super.erro->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
 		if (ecx->error)goto methods;
 
 	}
