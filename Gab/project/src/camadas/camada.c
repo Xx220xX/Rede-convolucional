@@ -179,7 +179,7 @@ void internal_loadREAL(FILE *f, REAL *value, uint32_t size_element) {
 RdParams internal_getDefaultRDP(int is_reluActivation, size_t inputLength, size_t outLength) {
 	double a;
 	if (is_reluActivation) {
-		return RDP(TENSOR_UNIFORM, sqrt(2.0 / inputLength), 0);
+		return RDP(TENSOR_GAUSSIAN, sqrt(2.0 / inputLength), 0);
 	}
 	a = sqrt(6.0 / (inputLength + outLength));
 	return RDP(TENSOR_UNIFORM, 2 * a, -a);
