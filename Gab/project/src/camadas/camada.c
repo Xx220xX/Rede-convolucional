@@ -3,20 +3,20 @@
 //
 
 #include "camadas/camada.h"
+#include <math.h>
 
 P3d internnal_getOutSize(Camada self) {
 	return (P3d) {self->s->x, self->s->y, self->s->z};
 }
 
-void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const char *layer_name, Parametros params,
-						 Tensor entrada, P3d dim_in, P3d dim_out, Ecx erro) {
+void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const char *layer_name, Parametros params, Tensor entrada, P3d dim_in, P3d dim_out, Ecx erro) {
 	erro->addstack(erro, "internal_Camada_new");
-	self->erro = erro;
+	self->ecx = erro;
 	self->a = entrada;
 	self->size_in = dim_in;
 	if (entrada) {
 		self->da = Tensor_new(entrada->x, entrada->y, entrada->z, 1, erro, 0, gpu->context, queue);
-		if (self->erro->error)goto methods;
+		if (self->ecx->error) { goto methods; }
 	}
 	self->s = Tensor_new(dim_out.x, dim_out.y, dim_out.z, 1, erro, 0, gpu->context, queue);
 	methods:
@@ -30,8 +30,8 @@ void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const
 }
 
 void internal_Camada_release(Camada *self) {
-	if (!self)return;
-	if (!*self)return;
+	if (!self) { return; }
+	if (!*self) { return; }
 	Release((*self)->da);
 	Release((*self)->s);
 
@@ -64,10 +64,7 @@ char *internal_json(Camada self, int showValues) {
 		apendstr(string, len, ",\n"PAD"\"saida\":null");
 	}
 	apendstr(string, len, ",\n"PAD"\"max_compute\":%zu,\n"
-			PAD"\"params\":{\"hitlearn\":%g,\"momento\":%g,\"decaimento\":%g,\"treinavel\":%d}",
-			 *self->maxcompute, (double) self->params.hitlearn, (double) self->params.momento, (double) self->params.decaimento,
-			 !self->params.skipLearn
-	);
+			PAD"\"params\":{\"hitlearn\":%g,\"momento\":%g,\"decaimento\":%g,\"treinavel\":%d}", *self->maxcompute, (double) self->params.hitlearn, (double) self->params.momento, (double) self->params.decaimento, !self->params.skipLearn);
 
 	return string;
 
@@ -142,11 +139,13 @@ void internal_loadTensor(FILE *f, Tensor t, uint32_t size_element) {
 		if (size_element != sizeof(REAL)) {
 			dtaux = alloc_mem(length, sizeof(REAL));
 			if (size_element == sizeof(double)) {
-				for (int i = 0; i < length; ++i)
+				for (int i = 0; i < length; ++i) {
 					dtaux[i] = (REAL) ((double *) data)[i];
+				}
 			} else {
-				for (int i = 0; i < length; ++i)
+				for (int i = 0; i < length; ++i) {
 					dtaux[i] = (REAL) ((float *) data)[i];
+				}
 			}
 			free_mem(data);
 			data = dtaux;
@@ -168,10 +167,20 @@ void internal_loadREAL(FILE *f, REAL *value, uint32_t size_element) {
 		REAL auxR;
 	} aux;
 	fread(&aux, size_element, 1, f);
-	if (size_element == sizeof(REAL))
+	if (size_element == sizeof(REAL)) {
 		*value = aux.auxR;
-	else if (size_element != sizeof(double)) {
+	} else if (size_element != sizeof(double)) {
 		*value = (double) aux.auxf;
-	} else
+	} else {
 		*value = (float) aux.auxd;
+	}
+}
+
+RdParams internal_getDefaultRDP(int is_reluActivation, size_t inputLength, size_t outLength) {
+	double a;
+	if (is_reluActivation) {
+		return RDP(TENSOR_UNIFORM, sqrt(2.0 / inputLength), 0);
+	}
+	a = sqrt(6.0 / (inputLength + outLength));
+	return RDP(TENSOR_UNIFORM, 2 * a, -a);
 }

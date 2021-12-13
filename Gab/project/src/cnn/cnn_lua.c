@@ -739,17 +739,17 @@ static struct {
 	uint32_t v;
 	const char *name;
 } globalConstantes[] = {
-		{FSIGMOID,       "SIGMOID"},
-		{FTANH,          "TANH"},
-		{FRELU,          "RELU"},
-		{FLIN,           "LIN"},
-		{FALAN,          "ALAN"},
+		{FSIGMOID,        "SIGMOID"},
+		{FTANH,           "TANH"},
+		{FRELU,           "RELU"},
+		{FLIN,            "LIN"},
+		{FALAN,           "ALAN"},
 
-		{MAXPOOL,        "MAXPOOL"},
-		{MINPOOL,        "MINPOOL"},
-		{AVEPOOL,        "AVEPOOL"},
-		{TENSOR_NORMAL,  "GAUSSIAN"},
-		{TENSOR_UNIFORM, "UNIFORM"},
+		{MAXPOOL,         "MAXPOOL"},
+		{MINPOOL,         "MINPOOL"},
+		{AVEPOOL,         "AVEPOOL"},
+		{TENSOR_GAUSSIAN, "GAUSSIAN"},
+		{TENSOR_UNIFORM,  "UNIFORM"},
 
 		{0, NULL}
 };

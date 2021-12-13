@@ -14,8 +14,8 @@ int main() {
 	P3d sizeout = cnn->getSizeOut(cnn);
 	Tensor target = Tensor_new(unP3D(sizeout), 1, cnn->erro, 0, cnn->gpu->context, cnn->queue);
 	CamadaDropOut cf = CST_DROPOUT(cnn, 0);
-	entrada->randomize(entrada, TENSOR_NORMAL, 1, 0);
-	target->randomize(target, TENSOR_NORMAL, 1, 0);
+	entrada->randomize(entrada, TENSOR_GAUSSIAN, 1, 0);
+	target->randomize(target, TENSOR_GAUSSIAN, 1, 0);
 	cf->super.da = Tensor_new(entrada->x, entrada->y, entrada->z, 1, cnn->erro, 0, cnn->gpu->context, cnn->queue);
 	matlabInit();
 	cnn->predict(cnn, entrada);

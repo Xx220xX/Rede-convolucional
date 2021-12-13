@@ -25,7 +25,7 @@ static int CamadaPRelu_propagation(CamadaPRelu self) {
 			&self->super.a->data, &self->super.s->data,
 			&self->A->data
 	);
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 static int CamadaPRelu_backpropagation(CamadaPRelu self, Tensor ds) {
@@ -49,7 +49,7 @@ static int CamadaPRelu_backpropagation(CamadaPRelu self, Tensor ds) {
 		);
 	}
 
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 static char *CamadaPRelu_json(CamadaPRelu self, int showValues) {
@@ -95,13 +95,13 @@ static char *CamadaPRelu_getGenerate(CamadaPRelu self) {
  * @return 0 caso não detecte nenhuma falha
  */
 static int CamadaPRelu_save(CamadaPRelu self, FILE *f) {
-	if (self->super.erro->error)goto end;
-	self->super.erro->addstack(self->super.erro, "CamadaPRelu_save");
+	if (self->super.ecx->error)goto end;
+	self->super.ecx->addstack(self->super.ecx, "CamadaPRelu_save");
 	internal_saveCamada(f, (Camada) self);
 	internal_saveTensor(f, self->A);
 	end:
-	self->super.erro->popstack(self->super.erro);
-	return self->super.erro->error;
+	self->super.ecx->popstack(self->super.ecx);
+	return self->super.ecx->error;
 }
 
 Camada CamadaPRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
@@ -129,11 +129,12 @@ Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parame
 	self->dA = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
 	if (rdp_a.type != -1) {
 		if (rdp_a.type == 0) {
-			rdp_a.type = TENSOR_NORMAL;
-			rdp_a.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-			rdp_a.b = 0;
+			rdp_a = internal_getDefaultRDP(1, self->super.a->length, self->super.s->length);
+//			rdp_a.type = TENSOR_GAUSSIAN;
+//			rdp_a.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
+//			rdp_a.b = 0;
 		}
-		self->super.erro->error = self->A->randomize(self->A, rdp_a.type, rdp_a.a, rdp_a.b);
+		self->super.ecx->error = self->A->randomize(self->A, rdp_a.type, rdp_a.a, rdp_a.b);
 		if (ecx->error)goto methods;
 	}
 

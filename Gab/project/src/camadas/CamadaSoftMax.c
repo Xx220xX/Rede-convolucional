@@ -53,7 +53,7 @@ int CamadaSoftMax_propagation(CamadaSoftMax self) {
 			&self->super.s->data,
 			&self->super.s->x, &self->super.s->y
 	);
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 int CamadaSoftMax_backpropagation(CamadaSoftMax self, Tensor ds) {
@@ -72,7 +72,7 @@ int CamadaSoftMax_backpropagation(CamadaSoftMax self, Tensor ds) {
 		);
 	}
 
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 char *CamadaSoftMax_json(CamadaSoftMax self, int showValues) {
@@ -111,13 +111,13 @@ char *CamadaSoftMax_getGenerate(CamadaSoftMax self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaSoftMax_save(CamadaSoftMax self, FILE *f) {
-	if (self->super.erro->error)goto end;
-	ECXPUSH(self->super.erro);
+	if (self->super.ecx->error)goto end;
+	ECXPUSH(self->super.ecx);
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->flag, 1, 1, f);
 	end:
-	ECXPOP(self->super.erro);
-	return self->super.erro->error;
+	ECXPOP(self->super.ecx);
+	return self->super.ecx->error;
 }
 
 Camada CamadaSoftMax_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {

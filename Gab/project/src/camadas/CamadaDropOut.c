@@ -26,7 +26,7 @@ static int CamadaDropOut_propagation(CamadaDropOut self) {
 	);
 	self->seed += self->super.s->length;
 	self->seed = (self->seed * 0x5deece66dULL + 0xbULL) & ((1ULL << 31) - 1);
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 static int CamadaDropOut_backpropagation(CamadaDropOut self, Tensor ds) {
@@ -38,7 +38,7 @@ static int CamadaDropOut_backpropagation(CamadaDropOut self, Tensor ds) {
 		);
 	}
 
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 static char *CamadaDropOut_json(CamadaDropOut self, int showValues) {
@@ -84,14 +84,14 @@ static char *CamadaDropOut_getGenerate(CamadaDropOut self) {
  * @return 0 caso não detecte nenhuma falha
  */
 static int CamadaDropOut_save(CamadaDropOut self, FILE *f) {
-	if (self->super.erro->error)goto end;
-	self->super.erro->addstack(self->super.erro, "CamadaDropOut_save");
+	if (self->super.ecx->error)goto end;
+	self->super.ecx->addstack(self->super.ecx, "CamadaDropOut_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->seed, sizeof(cl_long), 1, f);
 	internal_saveREAL(f, self->probabilidade_saida);
 	end:
-	self->super.erro->popstack(self->super.erro);
-	return self->super.erro->error;
+	self->super.ecx->popstack(self->super.ecx);
+	return self->super.ecx->error;
 }
 
 Camada CamadaDropOut_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {

@@ -30,7 +30,7 @@ static int CamadaRelu_propagation(CamadaRelu self) {
 			&self->super.a->data, &self->super.s->data,
 			&self->lessoh, &self->greateroh
 	);
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 static int CamadaRelu_backpropagation(CamadaRelu self, Tensor ds) {
@@ -40,7 +40,7 @@ static int CamadaRelu_backpropagation(CamadaRelu self, Tensor ds) {
 				&self->lessoh, &self->greateroh
 		);
 	}
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 static char *CamadaRelu_json(CamadaRelu self, int showValues) {
@@ -83,14 +83,14 @@ static char *CamadaRelu_getGenerate(CamadaRelu self) {
  * @return 0 caso não detecte nenhuma falha
  */
 static int CamadaRelu_save(CamadaRelu self, FILE *f) {
-	if (self->super.erro->error)goto end;
-	self->super.erro->addstack(self->super.erro, "CamadaRelu_save");
+	if (self->super.ecx->error)goto end;
+	self->super.ecx->addstack(self->super.ecx, "CamadaRelu_save");
 	internal_saveCamada(f, (Camada) self);
 	internal_saveREAL(f,self->lessoh);
 	internal_saveREAL(f,self->greateroh);
 	end:
-	self->super.erro->popstack(self->super.erro);
-	return self->super.erro->error;
+	self->super.ecx->popstack(self->super.ecx);
+	return self->super.ecx->error;
 }
 
 Camada CamadaRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {

@@ -23,7 +23,7 @@ int CamadaPooling_propagation(CamadaPool self) {
 			&self->super.a->x, &self->super.a->y
 
 	);
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 int CamadaPooling_backpropagation(CamadaPool self, Tensor ds) {
@@ -38,7 +38,7 @@ int CamadaPooling_backpropagation(CamadaPool self, Tensor ds) {
 
 		);
 	}
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 char *CamadaPooling_json(CamadaPool self, int showValues) {
@@ -88,8 +88,8 @@ char *CamadaPooling_getGenerate(CamadaPool self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaPooling_save(CamadaPool self, FILE *f) {
-	if (self->super.erro->error)goto end;
-	self->super.erro->addstack(self->super.erro, "CamadaPooling_save");
+	if (self->super.ecx->error)goto end;
+	self->super.ecx->addstack(self->super.ecx, "CamadaPooling_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->type, 1, sizeof(uint32_t), f);
 	fwrite(&self->passox, 1, sizeof(size_t), f);
@@ -97,8 +97,8 @@ int CamadaPooling_save(CamadaPool self, FILE *f) {
 	fwrite(&self->filtrox, 1, sizeof(size_t), f);
 	fwrite(&self->filtroy, 1, sizeof(size_t), f);
 	end:
-	self->super.erro->popstack(self->super.erro);
-	return self->super.erro->error;
+	self->super.ecx->popstack(self->super.ecx);
+	return self->super.ecx->error;
 }
 Camada CamadaPool_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx){
 	ecx->addstack(ecx, "CamadaPooling_save");
@@ -143,7 +143,7 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 									  "int saidatx, int saidaty,\n"
 									  "int entradatx, int entradaty, int k0");
 
-		if (self->super.erro->setError(self->super.erro, self->poolativa->error))goto methods;
+		if (self->super.ecx->setError(self->super.ecx, self->poolativa->error))goto methods;
 
 		self->poolCalcGrads = Kernel_news(gpu->program, "poolCalcGrads",
 										  "Vector entrada, Vector gradEntrada,\n"
@@ -153,7 +153,7 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 										  "int saidatx, int saidaty,\n"
 										  "int k0");
 
-		if (self->super.erro->setError(self->super.erro, self->poolCalcGrads->error))goto methods;
+		if (self->super.ecx->setError(self->super.ecx, self->poolCalcGrads->error))goto methods;
 	}
 	else if (type_pooling == AVEPOOL) {
 		self->poolativa = Kernel_news(gpu->program, "poolAVativa",
@@ -163,7 +163,7 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 									  "int saidatx, int saidaty,\n"
 									  "int entradatx, int entradaty, int k0");
 
-		if (self->super.erro->setError(self->super.erro, self->poolativa->error))goto methods;
+		if (self->super.ecx->setError(self->super.ecx, self->poolativa->error))goto methods;
 		self->poolCalcGrads = Kernel_news(gpu->program, "poolAvCalcGrads",
 										  "Vector entrada, Vector gradEntrada,\n"
 										  "Vector gradNext, Vector saida,\n"
@@ -172,7 +172,7 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 										  "int saidatx, int saidaty,\n"
 										  "int k0");
 
-		if (self->super.erro->setError(self->super.erro, self->poolCalcGrads->error))goto methods;
+		if (self->super.ecx->setError(self->super.ecx, self->poolCalcGrads->error))goto methods;
 	}
 	else if (type_pooling == MINPOOL) {
 		self->poolativa = Kernel_news(gpu->program, "poolativaMin",
@@ -182,7 +182,7 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 									  "int saidatx, int saidaty,\n"
 									  "int entradatx, int entradaty, int k0");
 
-		if (self->super.erro->setError(self->super.erro, self->poolativa->error))goto methods;
+		if (self->super.ecx->setError(self->super.ecx, self->poolativa->error))goto methods;
 
 		self->poolCalcGrads = Kernel_news(gpu->program, "poolCalcGrads",
 										  "Vector entrada, Vector gradEntrada,\n"
@@ -192,7 +192,7 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 										  "int saidatx, int saidaty,\n"
 										  "int k0");
 
-		if (self->super.erro->setError(self->super.erro, self->poolCalcGrads->error))goto methods;
+		if (self->super.ecx->setError(self->super.ecx, self->poolCalcGrads->error))goto methods;
 	} else {
 		ecx->setError(ecx, GAB_INVALID_PARAM);
 		fprintf(stderr, "Tipo invalido\n");

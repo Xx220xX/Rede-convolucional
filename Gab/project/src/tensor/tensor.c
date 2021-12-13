@@ -227,7 +227,7 @@ int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
 	size_t len = self->bytes / self->size_element;
 	REAL x;
 	for (int i = 0; i < len; ++i) {
-		if (type == TENSOR_NORMAL) {
+		if (type == TENSOR_GAUSSIAN) {
 			x = Tensor_randn() * a + b;
 		} else {
 			x = Tensor_rand() * a + b;
@@ -542,7 +542,7 @@ void *Tensor_serialize(Tensor self, size_t *length) {
 	return data;
 }
 
-Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...) {
+Tensor ensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...) {
 	ECXPUSH(ecx);
 	Tensor self = calloc(1, sizeof(Tensor_t));
 	self->erro = ecx;

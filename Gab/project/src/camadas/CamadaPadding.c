@@ -23,7 +23,7 @@ int CamadaPadding_propagation(CamadaPadding self) {
 			&self->super.s->x, &self->super.s->y,
 			&self->top, &self->left
 	);
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 int CamadaPadding_backpropagation(CamadaPadding self, Tensor ds) {
@@ -39,7 +39,7 @@ int CamadaPadding_backpropagation(CamadaPadding self, Tensor ds) {
 				&self->left);
 	}
 
-	return self->super.erro->error;
+	return self->super.ecx->error;
 
 }
 
@@ -95,15 +95,15 @@ char *CamadaPadding_getGenerate(CamadaPadding self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaPadding_save(CamadaPadding self, FILE *f) {
-	self->super.erro->addstack(self->super.erro, "CamadaPadding_save");
+	self->super.ecx->addstack(self->super.ecx, "CamadaPadding_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->top, 1, sizeof(uint32_t), f);
 	fwrite(&self->bottom, 1, sizeof(uint32_t), f);
 	fwrite(&self->left, 1, sizeof(uint32_t), f);
 	fwrite(&self->right, 1, sizeof(uint32_t), f);
 	end:
-	self->super.erro->popstack(self->super.erro);
-	return self->super.erro->error;
+	self->super.ecx->popstack(self->super.ecx);
+	return self->super.ecx->error;
 }
 Camada CamadaPadding_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaPadding_load");

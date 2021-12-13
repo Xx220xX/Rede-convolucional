@@ -47,7 +47,7 @@ int CamadaFullConnect_propagation(CamadaFullConnect self) {
 			&self->super.s->data,
 			&self->fa, &self->w->x, &self->w->y
 	);
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
@@ -145,16 +145,16 @@ char *CamadaFullConnect_getGenerate(CamadaFullConnect self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaFullConnect_save(CamadaFullConnect self, FILE *f) {
-	if (self->super.erro->error)goto end;
-	self->super.erro->addstack(self->super.erro, "CamadaFullConnect_save");
+	if (self->super.ecx->error)goto end;
+	self->super.ecx->addstack(self->super.ecx, "CamadaFullConnect_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->fa, 1, sizeof(uint32_t), f);
 	fwrite(&self->super.s->y, 1, sizeof(size_t), f);
 	internal_saveTensor(f, self->w);
 	internal_saveTensor(f, self->b);
 	end:
-	self->super.erro->popstack(self->super.erro);
-	return self->super.erro->error;
+	self->super.ecx->popstack(self->super.ecx);
+	return self->super.ecx->error;
 }
 
 Camada CamadaFullConnect_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
@@ -197,27 +197,29 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 	self->rdp_bias = rdp_bias;
 	if (rdp_pesos.type != -1) {
 		if (rdp_pesos.type == 0) {
-			if (funcaoDeAtivacao == FRELU) {
-				rdp_pesos.type = TENSOR_NORMAL;
-				rdp_pesos.a = (REAL) (1.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-				rdp_pesos.b = 0;
-			} else {
-				rdp_pesos.type = TENSOR_UNIFORM;
-				rdp_pesos.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-				rdp_pesos.b = -(REAL) 0.5 * rdp_pesos.a;
-			}
+			rdp_pesos = internal_getDefaultRDP(funcaoDeAtivacao == FRELU, self->super.a->length, self->super.s->length);
+//			if (funcaoDeAtivacao == FRELU) {
+//				rdp_pesos.type = TENSOR_GAUSSIAN;
+//				rdp_pesos.a = (REAL) (1.0) / (REAL) (size_in.x * size_in.y * size_in.z);
+//				rdp_pesos.b = 0;
+//			} else {
+//				rdp_pesos.type = TENSOR_UNIFORM;
+//				rdp_pesos.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
+//				rdp_pesos.b = -(REAL) 0.5 * rdp_pesos.a;
+//			}
 		}
 
-		self->super.erro->error = self->w->randomize(self->w, rdp_pesos.type, rdp_pesos.a, rdp_pesos.b);
+		self->super.ecx->error = self->w->randomize(self->w, rdp_pesos.type, rdp_pesos.a, rdp_pesos.b);
 		if (ecx->error)goto methods;
 	}
 	if (rdp_bias.type != -1) {
 		if (rdp_bias.type == 0) {
-			rdp_bias.type = TENSOR_NORMAL;
-			rdp_bias.a = (REAL) (1.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-			rdp_bias.b = 0;
+			rdp_bias = internal_getDefaultRDP(1, self->super.a->length, self->super.s->length);
+//			rdp_bias.type = TENSOR_GAUSSIAN;
+//			rdp_bias.a = (REAL) (1.0) / (REAL) (size_in.x * size_in.y * size_in.z);
+//			rdp_bias.b = 0;
 		}
-		self->super.erro->error = self->b->randomize(self->b, rdp_bias.type, rdp_bias.a, rdp_bias.b);
+		self->super.ecx->error = self->b->randomize(self->b, rdp_bias.type, rdp_bias.a, rdp_bias.b);
 		if (ecx->error)goto methods;
 	}
 

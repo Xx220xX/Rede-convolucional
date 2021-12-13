@@ -19,7 +19,7 @@
 #include "exc.h"
 
 
-#define TENSOR_NORMAL 2
+#define TENSOR_GAUSSIAN 2
 #define TENSOR_UNIFORM 1
 
 extern REAL (*Tensor_randn)();
@@ -27,6 +27,7 @@ extern REAL (*Tensor_randn)();
 extern REAL (*Tensor_rand)();
 
 typedef unsigned char ubyte;
+
 typedef struct {
 	union {
 		struct {
@@ -109,7 +110,7 @@ typedef struct Tensor_t {
 	char *(*valuesStr)(struct Tensor_t *self);
 
 	/// coloca o tensor no arquivo
-	void(*tomatlab)(struct Tensor_t *self, FILE *f, char *name, char *reshapeF);
+	void (*tomatlab)(struct Tensor_t *self, FILE *f, char *name, char *reshapeF);
 
 
 	/// preenche o tensor com o valor
@@ -126,13 +127,17 @@ typedef struct Tensor_t {
 
 	/// debug do tensor
 	void (*registreError)(struct Tensor_t *self, char *format, ...);
+
 	/// Enviar todas as informações do tensor em uma unica variavel
 	/// o ponteiro deve ser liberado com free_mem
-	void *(*serialize)(struct  Tensor_t *self, size_t *length);
+	void *(*serialize)(struct Tensor_t *self, size_t *length);
+
 	/// coloca o tensor em uma imagem cinza , imagem[i0:h,j0:w] = tensor[:,:,z,l]
 	int (*imagegray)(struct Tensor_t *self, ubyte *image, size_t im_width, size_t im_height, size_t t_w, size_t t_h, size_t i0, size_t j0, size_t z, size_t l);
+
 	/// mapeia as posições do tensor
-	int (*map)(struct  Tensor_t * self,void (*fmap)(struct  Tensor_t * self,void *el,int i,int j,int z,int w,int k));
+	int (*map)(struct Tensor_t *self, void (*fmap)(struct Tensor_t *self, void *el, int i, int j, int z, int w, int k));
+
 	/// ponteiro utilizado para debugar stack
 	/// controle de erros internos
 	Ecx erro;
@@ -157,7 +162,7 @@ typedef struct Tensor_t {
  */
 Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...);
 
-#define _tomatlab(self,file, name, reshapeFunction)(self)->tomatlab(self,file, name, reshapeFunction)
+#define _tomatlab(self, file, name, reshapeFunction)(self)->tomatlab(self,file, name, reshapeFunction)
 
 #define PAD " "
 #define apendstr(str, len, format, ...) { \
@@ -169,6 +174,7 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
          sprintf(str+len,format,##__VA_ARGS__) ;                           \
          len = len+sz;\
 }
+
 #define FMAP (void (*)(struct Tensor_t *, void *, int, int, int, int, int))
 
 #define TS(self_tensor)((self_tensor)->data)

@@ -28,7 +28,7 @@ static int CamadaConv_propagation(CamadaConv self) {
 			&self->super.a->x, &self->super.a->y,
 			&self->W->x, &self->W->y, &self->W->z
 	);
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 static int CamadaConv_backpropagation(CamadaConv self, Tensor ds) {
@@ -52,7 +52,7 @@ static int CamadaConv_backpropagation(CamadaConv self, Tensor ds) {
 				&self->passox, &self->passoy,
 				&self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento
 		);
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 static char *CamadaConv_json(CamadaConv self, int showValues) {
@@ -103,7 +103,7 @@ static char *CamadaConv_getGenerate(CamadaConv self) {
  * @return 0 caso não detecte nenhuma falha
  */
 static int CamadaConv_save(CamadaConv self, FILE *f) {
-	if (self->super.erro->error)goto end;
+	if (self->super.ecx->error)goto end;
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->passox, sizeof(size_t),1,f);
 	fwrite(&self->passoy, sizeof(size_t),1,f);
@@ -112,8 +112,8 @@ static int CamadaConv_save(CamadaConv self, FILE *f) {
 	fwrite(&self->W->w, sizeof(size_t), 1, f);
 	internal_saveTensor(f,self->W);
 	end:
-	self->super.erro->popstack(self->super.erro);
-	return self->super.erro->error;
+	self->super.ecx->popstack(self->super.ecx);
+	return self->super.ecx->error;
 }
 
 Camada CamadaConv_load(FILE *f, Gpu gpu, Queue queue,  Tensor entrada, Ecx ecx) {
@@ -151,12 +151,13 @@ Camada CamadaConv_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, 
 	self->rdp_filtros = rdp_filtros;
 	if (rdp_filtros.type != -1) {
 		if (rdp_filtros.type == 0) {
-			rdp_filtros.type = TENSOR_UNIFORM;
-			rdp_filtros.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-			rdp_filtros.b = -(REAL) 0.5 * rdp_filtros.a;
+			rdp_filtros = internal_getDefaultRDP(0, self->super.a->length, self->super.s->length);
+//			rdp_filtros.type = TENSOR_UNIFORM;
+//			rdp_filtros.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
+//			rdp_filtros.b = -(REAL) 0.5 * rdp_filtros.a;
 		}
 
-		self->super.erro->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
+		self->super.ecx->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
 		if (ecx->error)goto methods;
 
 	}

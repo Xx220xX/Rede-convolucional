@@ -63,7 +63,7 @@ int CamadaBatchNorm_propagation(CamadaBatchNorm self) {
 			&self->diferenca->y
 	);
 
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 int CamadaBatchNorm_backpropagation(CamadaBatchNorm self, Tensor ds) {
@@ -96,7 +96,7 @@ int CamadaBatchNorm_backpropagation(CamadaBatchNorm self, Tensor ds) {
 				&self->super.a->x,
 				&self->super.a->y
 		);
-	return self->super.erro->error;
+	return self->super.ecx->error;
 }
 
 char *CamadaBatchNorm_json(CamadaBatchNorm self, int showValues) {
@@ -158,15 +158,15 @@ char *CamadaBatchNorm_getGenerate(CamadaBatchNorm self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaBatchNorm_save(CamadaBatchNorm self, FILE *f) {
-	if (self->super.erro->error)goto end;
-	self->super.erro->addstack(self->super.erro, "CamadaBatchNorm_save");
+	if (self->super.ecx->error)goto end;
+	self->super.ecx->addstack(self->super.ecx, "CamadaBatchNorm_save");
 	internal_saveCamada(f, (Camada) self);
 	internal_saveREAL(f,self->epsilon);
 	internal_saveTensor(f,self->Y);
 	internal_saveTensor(f,self->B);
 	end:
-	self->super.erro->popstack(self->super.erro);
-	return self->super.erro->error;
+	self->super.ecx->popstack(self->super.ecx);
+	return self->super.ecx->error;
 }
 
 Camada CamadaBatchNorm_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
@@ -211,20 +211,23 @@ extern Camada CamadaBatchNorm_new(Gpu gpu, Queue queue, Parametros params, P3d s
 	self->rdp_Y = randY;
 	self->rdp_B = randB;
 	if (randY.type != -1) {
+
 		if (randY.type == 0) {
-			randY.type = TENSOR_UNIFORM;
-			randY.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-			randY.b = -(REAL) 0.5 * randY.a;
+			randY = internal_getDefaultRDP(0, self->super.a->length, self->super.s->length);
+//			randY.type = TENSOR_UNIFORM;
+//			randY.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
+//			randY.b = -(REAL) 0.5 * randY.a;
 		}
-		self->super.erro->setError(self->super.erro, self->Y->randomize(self->Y, randY.type, randY.a, randY.b));
+		self->super.ecx->setError(self->super.ecx, self->Y->randomize(self->Y, randY.type, randY.a, randY.b));
 	}
 	if (randB.type != -1) {
 		if (randB.type == 0) {
-			randB.type = TENSOR_NORMAL;
-			randB.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-			randB.b = 0;
+			randB = internal_getDefaultRDP(1, self->super.a->length, self->super.s->length);
+//			randB.type = TENSOR_GAUSSIAN;
+//			randB.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
+//			randB.b = 0;
 		}
-		self->super.erro->setError(self->super.erro, self->B->randomize(self->B, randB.type, randB.a, randB.b));
+		self->super.ecx->setError(self->super.ecx, self->B->randomize(self->B, randB.type, randB.a, randB.b));
 	}
 
 	//kernels
