@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
 
-
-
 set(CAMADA
         project/include/camadas/camada.h
         project/include/camadas/CamadaBatchNorm.h

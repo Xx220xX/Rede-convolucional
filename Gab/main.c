@@ -6,6 +6,7 @@
 #include "setup/Setup.h"
 #include "conio2/conio2.h"
 #include "thread/Thread.h"
+#include "camadas/all_camadas.h"
 double  t0 = 0;
 void Cnn_asimage(Cnn c, char *file, int largura, int altura, ...) {
 	Tensor s = NULL;
@@ -50,6 +51,7 @@ void Cnn_asimage(Cnn c, char *file, int largura, int altura, ...) {
 //	}
 	free_mem(image);
 }
+/*
 void on_train(const struct Setup_t *self, int label) {
 	Cnn cnn = self->cnn;
 	double  b = seconds();
@@ -62,19 +64,19 @@ void on_train(const struct Setup_t *self, int label) {
 		cm = cnn->cm[i];
 		switch (cm->layer_id) {
 			case CONVOLUCAO_ID:
-				Client_sendTensor(CST_CONVOLUCAO(cnn, i)->dW, i + 1);
+				Client_sendTensor(CST_CONVOLUCAO(cnn, i)->W, i + 1);
 				if(!printed){
 					printf("CONVOLUCAO %d -> figure %d\n",i,i+1);
 				}
 				break;
 			case CONVOLUCAOF_ID:
-				Client_sendTensor(CST_CONVOLUCAOF(cnn, i)->dW, i + 1);
+				Client_sendTensor(CST_CONVOLUCAOF(cnn, i)->W, i + 1);
 				if(!printed){
 					printf("CONVOLUCAOF %d -> figure %d\n",i,i+1);
 				}
 				break;
 			case CONVOLUCAONC_ID:
-				Client_sendTensor(CST_CONVOLUCAONC(cnn, i)->dW,i+1);
+				Client_sendTensor(CST_CONVOLUCAONC(cnn, i)->W,i+1);
 				if(!printed){
 					printf("CONVOLUCAONC %d -> figure %d\n",i,i+1);
 				}
@@ -82,10 +84,10 @@ void on_train(const struct Setup_t *self, int label) {
 			case POOL_ID:
 				break;
 			case FULLCONNECT_ID:
-//				Client_sendTensor(CST_FULLCONNECT(cnn,i)->w,j++);
-//				if(!printed){
-//					printf("FULLCONNECT W %d -> figure %d\n",i,j-1);
-//				}
+				Client_sendTensor(CST_FULLCONNECT(cnn,i)->w,i+1);
+				if(!printed){
+					printf("FULLCONNECT W %d -> figure %d\n",i,i+1);
+				}
 //				Client_sendTensor(CST_FULLCONNECT(cnn,i)->b,j++);
 //				if(!printed){
 //					printf("FULLCONNECT B %d -> figure %d\n",i,j-1);
@@ -125,11 +127,11 @@ void on_train(const struct Setup_t *self, int label) {
 	printed = 1;
 //	Sleep(100);
 }
-
+*/
 int cnnMain(int nargs, char **args) {
 	LCG_setSeed(time(0));
 	Setup s = Setup_new();
-	s->on_train = on_train;
+//	s->on_train = on_train;
 	GUI.can_run = &s->can_run;
 	GUI.force_end = &s->force_end;
 	char luaFile[250] = {0};

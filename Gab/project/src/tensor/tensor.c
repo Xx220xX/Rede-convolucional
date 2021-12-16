@@ -542,7 +542,7 @@ void *Tensor_serialize(Tensor self, size_t *length) {
 	return data;
 }
 
-Tensor ensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...) {
+Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...) {
 	ECXPUSH(ecx);
 	Tensor self = calloc(1, sizeof(Tensor_t));
 	self->erro = ecx;

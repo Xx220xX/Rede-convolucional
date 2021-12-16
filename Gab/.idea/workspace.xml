@@ -15,7 +15,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../ui/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Gab.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/gabkernel.dll" beforeDir="false" afterPath="$PROJECT_DIR$/bin/gabkernel.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/libgabkernel.dll.a" beforeDir="false" afterPath="$PROJECT_DIR$/bin/libgabkernel.dll.a" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/show.py" beforeDir="false" afterPath="$PROJECT_DIR$/bin/show.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/CMakeLists.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/cnn/cnn.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/cnn/cnn.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaFullConnect.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaFullConnect.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/camada.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/camada.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/cnn/cnn.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/cnn/cnn.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/tensor/tensor.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/tensor/tensor.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ui/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../ui/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ui/SDL/include/SDL2/SDL_rect.h" beforeDir="false" afterPath="$PROJECT_DIR$/../ui/SDL/include/SDL2/SDL_rect.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ui/bin/ui.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../ui/bin/ui.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ui/bk.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ui/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/../ui/main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,6 +96,11 @@
     </key>
   </component>
   <component name="RunManager" selected="CMake Application.Gab">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="DEBUG_KERNEL" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="DEBUG_KERNEL" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gab" RUN_TARGET_NAME="DEBUG_KERNEL">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -89,11 +112,6 @@
       </method>
     </configuration>
     <configuration name="Gab" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="Gab" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gab" RUN_TARGET_NAME="Gab">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -184,7 +202,12 @@
       <workItem from="1639327582961" duration="2177000" />
       <workItem from="1639329795998" duration="13283000" />
       <workItem from="1639400095404" duration="2442000" />
-      <workItem from="1639405244389" duration="1000" />
+      <workItem from="1639405244389" duration="380000" />
+      <workItem from="1639412804452" duration="1674000" />
+      <workItem from="1639430510603" duration="22000" />
+      <workItem from="1639524882360" duration="610000" />
+      <workItem from="1639578983768" duration="610000" />
+      <workItem from="1639662278243" duration="1512000" />
     </task>
     <servers />
   </component>

@@ -10,29 +10,7 @@
 #include <camadas/camada.h>
 #include "lcg/lcg.h"
 
-#include"camadas/CamadaConv.h"
-#include"camadas/CamadaConvF.h"
-#include"camadas/CamadaConvNC.h"
-#include"camadas/CamadaPool.h"
-#include"camadas/CamadaRelu.h"
-#include"camadas/CamadaPRelu.h"
-#include"camadas/CamadaFullConnect.h"
-#include"camadas/CamadaPadding.h"
-#include"camadas/CamadaDropOut.h"
-#include"camadas/CamadaSoftMax.h"
-#include"camadas/CamadaBatchNorm.h"
 
-#define CST_CONVOLUCAO(cnn,layer)((CamadaConv)cnn->cm[layer])
-#define CST_CONVOLUCAOF(cnn,layer)((CamadaConvF)cnn->cm[layer])
-#define CST_CONVOLUCAONC(cnn,layer)((CamadaConvNC)cnn->cm[layer])
-#define CST_POOL(cnn,layer)((CamadaPool)cnn->cm[layer])
-#define CST_FULLCONNECT(cnn,layer)((CamadaFullConnect)cnn->cm[layer])
-#define CST_PADDING(cnn,layer)((CamadaPadding )cnn->cm[layer])
-#define CST_DROPOUT(cnn,layer)((CamadaDropOut )cnn->cm[layer])
-#define CST_RELU(cnn,layer)((CamadaRelu )cnn->cm[layer])
-#define CST_PRELU(cnn,layer)((CamadaPRelu )cnn->cm[layer])
-#define CST_SOFTMAX(cnn,layer)((CamadaSoftMax)cnn->cm[layer])
-#define CST_BATCHNORM(cnn,layer)((CamadaBatchNorm)cnn->cm[layer])
 
 typedef struct Cnn_t {
 	///  versão da compilação

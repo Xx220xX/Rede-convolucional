@@ -1,18 +1,17 @@
-#define SDL_MAIN_HANDLED
+//
+// Created by Henrique on 13/12/2021.
+//
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_timer.h>
-#include <stdio.h>
+#include "Imagem.h"
+#include "stdio.h"
 
 SDL_Surface *creategrayImg(int w, int h, unsigned char *red, unsigned char *green, unsigned char *blue) {
 	int *rgb = calloc(w * h, sizeof(int));
 	for (int i = w * h - 1; i >= 0; --i) {
-		rgb[i] = -1&(65536 * blue[i] + 256 * green[i] + red[i]);
+		rgb[i] = myRGB(red[i], green[i], blue[i]);
 	}
-	SDL_Surface *s = SDL_CreateRGBSurfaceFrom(rgb, 28, 28,32,4*);
+	SDL_Surface *s = SDL_CreateRGBSurfaceFrom(rgb, w, h, 32, 4 * w, _R, _G, _B, _A);
 	free(rgb);
-	printf("%p\n",s);
 	return s;
 }
 
@@ -24,66 +23,70 @@ SDL_Surface *createImg() {
 						   0, 0, 0, 0, 0, 24, 114, 221, 253, 253, 253, 253, 201, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 66, 213, 253, 253, 253, 253, 198, 81, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 171, 219, 253, 253, 253, 253, 195, 80, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 55, 172, 226, 253, 253, 253, 253, 244, 133, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 136, 253, 253, 253, 212, 135, 132, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 						   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-	return creategrayImg(28,28,img,img,img);
+	return creategrayImg(28, 28, img, img, img);
 }
 
-int main(int argc, char **argv) {
-// variables
-	int quit = 0;
-	SDL_Event event;
-	int x = 360;
-	int y = 240;
-// init SDL
-	SDL_Init(SDL_INIT_VIDEO);
-	SDL_Window *window = SDL_CreateWindow("SDL2 Keyboard/Mouse events", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, 0);
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
+void Img_setImaage(Img img, uint8_t *red, uint8_t *green, uint8_t *blue, uint8_t *alpha) {
+//	Uint32* pixels = nullptr;
+	int pitch = 0;
+	uint32_t format = SDL_PIXELFORMAT_RGBA32;
+	uint32_t *pixels;
 
-	SDL_Surface *image = createImg();//SDL_LoadBMP("Star.bmp");
-	if (!image) {
-		fprintf(stderr, "Erro ao criar imagem %s\n", SDL_GetError());
-		exit(-1);
+// Get the size of the texture.
+	int w, h;
+	SDL_QueryTexture(img->texture, &format, NULL, &w, &h);
+
+// Now let's make our "pixels" pointer point to the texture data.
+	if (SDL_LockTexture(img->texture, NULL, (void **) &pixels, &pitch)) {
+		// If the locking fails, you might want to handle it somehow. SDL_GetError(); or something here.
+		fprintf(stderr, "Falha %s\n", SDL_GetError());
+		return;
 	}
-	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, image);
-	SDL_FreeSurface(image);
+	SDL_PixelFormat pixelFormat = {0};
+	pixelFormat.format = format;
 
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 
-// handle events
+// Now you want to format the color to a correct format that SDL can use.
+// Basically we convert our RGB color to a hex-like BGR color.
+//	Uint32 color = SDL_MapRGB(&pixelFormat, R, G, B);
+// Before setting the color, we need to know where we have to place it.
+	Uint32 pixelPosition;
+	unsigned int ww = pitch / sizeof(unsigned int);
+	for (int y = 0; y < ww; ++y) {
+		for (int x = 0; x < ww; ++x) {
+			pixelPosition = y * (ww) + x;
+			uint32_t cor = SDL_MapRGBA(&pixelFormat, red[y * w + x], green ? green[y * w + x] : 0, blue ? blue[y * w + x] : 0, alpha ? alpha[y * w + x] : 0xff);
+			pixels[pixelPosition] = cor;
 
-	while (!quit) {
-		switch (event.type) {
-			case SDL_QUIT:
-				quit = 1;
-				break;
-			case SDL_KEYDOWN:
-				switch (event.key.keysym.sym) {
-					case SDLK_1:
-						x -= 4;
-						break;
-					case SDLK_2:
-						x += 4;
-						break;
-					case SDLK_3:
-						y -= 4;
-						break;
-					case SDLK_4:
-						y += 4;
-						break;
-				}
-				break;
+//			pixels[pixelPosition] = SDL_MapRGBA(&pixelFormat, red ? red[y * w + x] : 0, green ? green[y * w + x] : 0, blue ? blue[y * w + x] : 0, alpha ? alpha[y * w + x] : 0xff);
 		}
-		SDL_Rect dstrect = {x, y, 75, 75};
-		SDL_RenderClear(renderer);
-		SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-		SDL_RenderPresent(renderer);
 	}
+// Now we can set the pixel(s) we want.
+// Also don't forget to unlock your texture once you're done.
+	SDL_UnlockTexture(img->texture);
+}
 
-// cleanup SDL
+void Img_release(Img *selfp) {
+	if (!selfp || !*selfp) { return; }
+	SDL_DestroyTexture((*selfp)->texture);
+	free(*selfp);
+	*selfp = 0;
+}
 
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	SDL_Quit();
+void Img_render(Img self, SDL_Renderer *renderer) {
+	SDL_RenderCopy(renderer, self->texture, NULL, &self->rt);
+}
 
-	return 0;
+Img Img_new(int w, int h, SDL_Renderer *renderer) {
+	Img self = calloc(1, sizeof(struct Img_t));
+	self->w = self->rt.w = w;
+	self->h = self->rt.h = h;
+	self->rt.x = 100;
+	self->rt.y = 100;
+	self->texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, w, h);
+	if (!self->texture) { exit(-100);}
+	self->setPixels = Img_setImaage;
+	self->release = CREALIZABLE Img_release;
+	self->render = CRENDERIZABLE Img_render;
+	return self;
 }

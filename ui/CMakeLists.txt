@@ -8,7 +8,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../bin)
 
 
-include_directories(SDL/include)
+include_directories(SDL/include ui)
 link_directories(SDL/lib)
 link_libraries(-lshell32 -lole32 -lkernel32 -luser32 -lgdi32)
 link_libraries(
@@ -18,4 +18,4 @@ link_libraries(
         SDL2_test
         )
 #link_libraries(gdiplus)
-add_executable(ui main.c)
+add_executable(ui main.c ui/imagem/Imagem.c ui/imagem/Imagem.h ui/gaphic/Graph.c ui/gaphic/Graph.h ui/renderizable.h ui/list/list.h ui/list/list.c)

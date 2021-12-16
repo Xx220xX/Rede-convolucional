@@ -5,20 +5,8 @@
 #include <math.h>
 #include <error_list.h>
 #include "cnn/cnn.h"
-
-#include"camadas/CamadaConv.h"
-#include"camadas/CamadaConvF.h"
-#include"camadas/CamadaConvNC.h"
-#include"camadas/CamadaPool.h"
-#include"camadas/CamadaRelu.h"
-#include"camadas/CamadaPRelu.h"
-#include"camadas/CamadaFullConnect.h"
-#include"camadas/CamadaPadding.h"
-#include"camadas/CamadaDropOut.h"
-#include"camadas/CamadaSoftMax.h"
-#include"camadas/CamadaBatchNorm.h"
 #include "cnn/kernel_lib.h"
-
+#include "camadas/all_camadas.h"
 
 #define NKERNELS 3
 #define CNN_KERNEL_SUB 0

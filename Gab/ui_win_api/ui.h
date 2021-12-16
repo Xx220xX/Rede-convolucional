@@ -13,7 +13,7 @@
 
 #include <commctrl.h>
 #include <locale.h>
-#include "client.h"
+//#include "client.h"
 //#undef REAL
 //#include <gdiplus.h>
 
@@ -80,9 +80,9 @@ int wstrlen(const LPWSTR lpwstr) {
 }
 
 void run_main(PSTR pCmdLine) {
-	Client_connect();
+//	Client_connect();
 	cnnMain(__argc, __argv);
-	Client_close();
+//	Client_close();
 	PostMessageA(GUI.hmain, WM_DESTROY, 0, 0);
 
 }

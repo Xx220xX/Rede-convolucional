@@ -30,7 +30,7 @@ def bar(id, x):
 	# print(id ,"u = %f, o = %f"%(np.mean(x),np.std(x)))
 	axe.clear()
 	axe.hist(x,bins=50, weights=weights)
-	axe.set_ylim([0, 1])
+	axe.set_ylim([0, 0.5])
 
 
 def recvcdata(conn, n, tipo, bytes):

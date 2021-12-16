@@ -13,12 +13,15 @@ set_target_properties(gabkernel PROPERTIES PREFIX "")
 
 include_directories(external/include project/include project)
 link_directories(external/lib bin)
-
-
 include(project/CMakeLists.txt)
 
 link_libraries(png OpenCL gabkernel)
 link_libraries(lua543)
+
+
+
+
+
 set(GAB_FILES_EXE ${GAB_CODE} project/include/error_list.h project/include/thread/Thread.h project/src/thread/Thread.c
         project/include/conio2/conio2.h project/src/conio2/conio2.c)
 add_executable(DEBUG_KERNEL ${KERNEL_CODE} )
