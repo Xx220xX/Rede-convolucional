@@ -2,4 +2,4 @@
 Iniciacao cientifíca ufu 2020
 Rede convolucional em c com computacao paralela
 
-#### [Documentação](CNN_GPU/documentation)
+#### [Documentação](https://xx220xx.github.io/Rede-convolucional/)
