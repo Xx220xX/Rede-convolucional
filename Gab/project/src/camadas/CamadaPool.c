@@ -10,7 +10,7 @@ void CamadaPooling_release(CamadaPool *selfp) {
 	internal_Camada_release((Camada *) (selfp));
 	Release((*selfp)->poolCalcGrads);
 	Release((*selfp)->poolativa);
-	free_mem(*selfp);
+	gab_free(*selfp);
 }
 
 int CamadaPooling_propagation(CamadaPool self) {
@@ -57,7 +57,7 @@ char *CamadaPooling_json(CamadaPool self, int showValues) {
 			 self->filtrox, self->filtroy,
 			 self->type == MAXPOOL ? "Max Poling" : (self->type == MINPOOL ? "Min Poling" : "Average Pooling")
 	);
-	free_mem(tmp);
+	gab_free(tmp);
 	return string;
 }
 
@@ -124,7 +124,7 @@ Camada CamadaPool_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx){
 
 Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, uint32_t type_pooling, Tensor entrada, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaPool_new");
-	CamadaPool self = alloc_mem(1, sizeof(CamadaPool_t));
+	CamadaPool self = gab_alloc(1, sizeof(CamadaPool_t));
 
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1,
 					size_in.z};

@@ -45,21 +45,21 @@ char *internal_json(Camada self, int showValues) {
 	if (self->a) {
 		tmp = self->a->json(self->a, showValues);
 		apendstr(string, len, ",\n"PAD"\"entrada\":%s", tmp);
-		free_mem(tmp);
+		gab_free(tmp);
 	} else {
 		apendstr(string, len, ",\n"PAD"\"entrada\":null");
 	}
 	if (self->da) {
 		tmp = self->da->json(self->da, showValues);
 		apendstr(string, len, ",\n"PAD"\"grad_entrada\":%s", tmp);
-		free_mem(tmp);
+		gab_free(tmp);
 	} else {
 		apendstr(string, len, ",\n"PAD"\"grad_entrada\":null");
 	}
 	if (self->s) {
 		tmp = self->s->json(self->s, showValues);
 		apendstr(string, len, ",\n"PAD"\"saida\":%s", tmp);
-		free_mem(tmp);
+		gab_free(tmp);
 	} else {
 		apendstr(string, len, ",\n"PAD"\"saida\":null");
 	}
@@ -121,7 +121,7 @@ void internal_saveTensor(FILE *f, Tensor t) {
 	fwrite(&t->bytes, sizeof(size_t), 1, f);
 	void *data = t->getvalues(t, NULL);
 	fwrite(data, 1, t->bytes, f);
-	free_mem(data);
+	gab_free(data);
 }
 
 void internal_loadTensor(FILE *f, Tensor t, uint32_t size_element) {
@@ -132,12 +132,12 @@ void internal_loadTensor(FILE *f, Tensor t, uint32_t size_element) {
 	fread(&flag.flag, sizeof(char), 1, f);
 	fread(&length, sizeof(size_t), 1, f);
 	fread(&bytes, sizeof(size_t), 1, f);
-	void *data = alloc_mem(bytes, 1);
+	void *data = gab_alloc(bytes, 1);
 	REAL *dtaux;
 	fread(data, 1, bytes, f);
 	if (!(flag.inteiro || flag.caractere)) {
 		if (size_element != sizeof(REAL)) {
-			dtaux = alloc_mem(length, sizeof(REAL));
+			dtaux = gab_alloc(length, sizeof(REAL));
 			if (size_element == sizeof(double)) {
 				for (int i = 0; i < length; ++i) {
 					dtaux[i] = (REAL) ((double *) data)[i];
@@ -147,13 +147,13 @@ void internal_loadTensor(FILE *f, Tensor t, uint32_t size_element) {
 					dtaux[i] = (REAL) ((float *) data)[i];
 				}
 			}
-			free_mem(data);
+			gab_free(data);
 			data = dtaux;
 
 		}
 	}
 	t->setvalues(t, data);
-	free_mem(data);
+	gab_free(data);
 }
 
 void internal_saveREAL(FILE *f, REAL value) {

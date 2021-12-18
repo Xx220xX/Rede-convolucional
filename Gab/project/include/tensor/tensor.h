@@ -168,7 +168,7 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 #define apendstr(str, len, format, ...) { \
          size_t sz = snprintf(NULL,0,format,##__VA_ARGS__); \
          if(!str)                         \
-         str = alloc_mem(1,sz+1);    \
+         str = gab_alloc(1,sz+1);    \
          else                                 \
          str = realloc(str,len+sz+1);                              \
          sprintf(str+len,format,##__VA_ARGS__) ;                           \

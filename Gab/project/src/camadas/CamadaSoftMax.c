@@ -20,7 +20,7 @@ void CamadaSoftMax_release(CamadaSoftMax *selfp) {
 	Release((*selfp)->indice_maximos);
 
 	internal_Camada_release((Camada *) (selfp));
-	free_mem(*selfp);
+	gab_free(*selfp);
 }
 
 int CamadaSoftMax_propagation(CamadaSoftMax self) {
@@ -83,7 +83,7 @@ char *CamadaSoftMax_json(CamadaSoftMax self, int showValues) {
 			 "{"
 					 PAD"%s",
 			 tmp);
-	free_mem(tmp);
+	gab_free(tmp);
 	apendTensor("exponencial", exponent, string, len, tmp, showValues);
 	apendTensor("soma", soma, string, len, tmp, showValues);
 	apendstr(string, len, "\n}");
@@ -136,7 +136,7 @@ Camada CamadaSoftMax_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx
 
 Camada CamadaSoftMax_new(Gpu gpu, Queue queue, char flag, P3d size_in, Tensor entrada, Ecx ecx) {
 	ECXPUSH(ecx);
-	CamadaSoftMax self = alloc_mem(1, sizeof(CamadaSoftMax_t));
+	CamadaSoftMax self = gab_alloc(1, sizeof(CamadaSoftMax_t));
 
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, SOFTMAX_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);

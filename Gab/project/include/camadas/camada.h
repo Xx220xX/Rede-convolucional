@@ -128,6 +128,6 @@ self->kernel->runRecursive(self->kernel, self->super.queue,len,*self->super.maxc
 if(self->t)  {                                                     \
 tmp = self->t->json(self->t, showValues);\
 apendstr(string, len, ",\n"PAD"\""name"\":%s", tmp);\
-free_mem(tmp);}\
+gab_free(tmp);}\
 else apendstr(string, len, ",\n"PAD"\""name"\": null")
 #endif //GAB_CNN_CAMADA_H

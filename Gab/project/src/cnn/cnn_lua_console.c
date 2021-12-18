@@ -20,7 +20,7 @@ typedef struct {
 
 char *String_copy(char *str) {
 	size_t len = strlen(str);
-	char *string = alloc_mem(len + 1, 1);
+	char *string = gab_alloc(len + 1, 1);
 	memmove(string, str, len);
 	string[len] = 0;
 	return string;
@@ -37,25 +37,27 @@ int l_closeConsole(lua_State *L) {
 
 #define  LUA_CONSOLE_INFO(c) printf("Gabriela cnn versão %s. " \
         LUA_VERSION "\n"                                                      \
-		"console commands:\n"\
-		"cls      : clear screen\n"\
-		"clc      : clear screen\n"\
-		"clear    : remove all layers\n"\
-		"show     : show cnn\n"\
-		"exit     : close console\n"\
-		"help     : call helpCnn()\n", c->version)
-void enableUtf8(){
+        "console commands:\n"\
+        "cls      : clear screen\n"\
+        "clc      : clear screen\n"\
+        "clear    : remove all layers\n"\
+        "show     : show cnn\n"\
+        "exit     : close console\n"\
+        "help     : call helpCnn()\n", c->version)
+
+void enableUtf8() {
 	system("chcp 65001|echo off");
 	system("echo on");
 }
+
 int CnnLuaConsole(Cnn c) {
-	if (!c)return 2;
-	if (!c->LuaVm)CnnInitLuaVm(c);
-	if(c->erro->error) return c->erro->error;
+	if (!c) { return 2; }
+	if (!c->LuaVm) { CnnInitLuaVm(c); }
+	if (c->erro->error) { return c->erro->error; }
 	enableUtf8();
 	lua_State *L = c->LuaVm;
-	int console_run= 1;
-	lua_pushlightuserdata(L,&console_run);
+	int console_run = 1;
+	lua_pushlightuserdata(L, &console_run);
 	lua_setglobal(L, "CONSOLE_CAN_RUN");
 	lua_pushcfunction(L, l_closeConsole);
 	lua_setglobal(L, "closeConsole");
@@ -64,7 +66,7 @@ int CnnLuaConsole(Cnn c) {
 	Comando cmd = {0};
 	int error;
 	int ch = 0;
-	cmd.str = alloc_mem(1, 0);
+	cmd.str = gab_alloc(1, 0);
 	cmd.len = 1;
 	LUA_CONSOLE_INFO(c);
 	while (console_run) {
@@ -86,15 +88,15 @@ int CnnLuaConsole(Cnn c) {
 
 			if (cmd.n <= cmd.len - 1) {
 				cmd.len++;
-				cmd.str = realloc_mem(cmd.str, cmd.len);
+				cmd.str = gab_realloc(cmd.str, cmd.len);
 			}
 			cmd.str[cmd.n] = ch;
 			cmd.n++;
 			cmd.str[cmd.n] = 0;
 		}
-		if (!cmd.str[0])continue;
+		if (!cmd.str[0]) { continue; }
 		fflush(stdout);
-		if (!strcmp(cmd.str, "exit"))break;
+		if (!strcmp(cmd.str, "exit")) { break; }
 		if (!strcmp(cmd.str, "cls") || !strcmp(cmd.str, "clc")) {
 			system("cls");
 			LUA_CONSOLE_INFO(c);
@@ -125,7 +127,7 @@ int CnnLuaConsole(Cnn c) {
 		}
 	}
 
-	free_mem(cmd.str);
+	gab_free(cmd.str);
 
 
 	lua_pushnil(L);

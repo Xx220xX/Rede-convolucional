@@ -6,11 +6,11 @@
 #include <string.h>
 #include <math.h>
 
-#ifndef free_mem
-#define free_mem free
+#ifndef gab_free
+#define gab_free free
 #endif
-#ifndef alloc_mem
-#define alloc_mem calloc
+#ifndef gab_alloc
+#define gab_alloc calloc
 #endif
 
 #define MAX_LCG_RAND ((1ULL << 48)-1)
@@ -63,7 +63,7 @@ Bytes64 LCG_randB() {
 }
 
 void pLCG_shuffle(LCG *self, void *d, size_t n, size_t size_element) {
-	void *tmp = alloc_mem(1, size_element);
+	void *tmp = gab_alloc(1, size_element);
 	void *arr = d;
 	if (n > 1) {
 		size_t i, rnd, j;
@@ -75,7 +75,7 @@ void pLCG_shuffle(LCG *self, void *d, size_t n, size_t size_element) {
 			memcpy(arr + i * size_element, tmp, size_element);
 		}
 	}
-	free_mem(tmp);
+	gab_free(tmp);
 }
 
 void LCG_shuffle(void *d, size_t n, size_t size_element) {

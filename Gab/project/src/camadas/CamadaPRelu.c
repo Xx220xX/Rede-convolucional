@@ -16,7 +16,7 @@ static void CamadaPRelu_release(CamadaPRelu *self_p) {
 	internal_Camada_release((Camada *) self_p);
 	Release((*self_p)->A);
 	Release((*self_p)->dA);
-	free_mem(*self_p);
+	gab_free(*self_p);
 	*self_p = NULL;
 }
 
@@ -59,7 +59,7 @@ static char *CamadaPRelu_json(CamadaPRelu self, int showValues) {
 	apendstr(string, len, "{\n");
 	tmp = internal_json((Camada) self, showValues);
 	apendstr(string, len, PAD"%s", tmp);
-	free_mem(tmp);
+	gab_free(tmp);
 	apendTensor("A", A, string, len, tmp, showValues);
 	apendTensor("dA", dA, string, len, tmp, showValues);
 	apendstr(string, len, "\n}");
@@ -121,7 +121,7 @@ Camada CamadaPRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 
 Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parametros params, RandomParams rdp_a, Ecx ecx) {
 	ECXPUSH(ecx);
-	CamadaPRelu self = alloc_mem(1, sizeof(CamadaPRelu_t));
+	CamadaPRelu self = gab_alloc(1, sizeof(CamadaPRelu_t));
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, PRELU_ID, lname, params, entrada, size_in, size_out, ecx);
 	self->rdp_a = rdp_a;
@@ -129,10 +129,7 @@ Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parame
 	self->dA = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
 	if (rdp_a.type != -1) {
 		if (rdp_a.type == 0) {
-			rdp_a = internal_getDefaultRDP(1, self->super.a->length, self->super.s->length);
-//			rdp_a.type = TENSOR_GAUSSIAN;
-//			rdp_a.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-//			rdp_a.b = 0;
+			rdp_a = internal_getDefaultRDP(1,size_in.x*size_in.y*size_in.z, self->super.s->length);
 		}
 		self->super.ecx->error = self->A->randomize(self->A, rdp_a.type, rdp_a.a, rdp_a.b);
 		if (ecx->error)goto methods;

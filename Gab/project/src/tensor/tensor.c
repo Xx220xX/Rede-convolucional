@@ -141,7 +141,7 @@ char *Tensor_json(Tensor self, int showValues) {
 
 			)
 	if (showValues)
-		free_mem(tmp);
+		gab_free(tmp);
 	ECXPOP(self->erro);
 	return string;
 }
@@ -158,7 +158,7 @@ void Tensor_release(Tensor *self) {
 			clReleaseMemObject((*self)->data);
 		}
 	}
-	free_mem(self[0]);
+	gab_free(self[0]);
 	*self = NULL;
 }
 
@@ -399,7 +399,7 @@ int Tensor_copy(Tensor self, Tensor b) {
 	} else if (self->flag.ram) {
 		mem = b->getvalues(b, NULL);
 		self->setvalues(self, mem);
-		free_mem(mem);
+		gab_free(mem);
 	} else {
 		self->erro->error = clEnqueueCopyBuffer(self->queue, b->data, self->data, 0, 0, self->bytes, 0, NULL, NULL);
 		clFinish(self->queue);
@@ -416,7 +416,7 @@ int Tensor_copyM(Tensor self, Tensor b, size_t self_ofset, size_t b_ofset, size_
 	} else if (self->flag.ram) {
 		mem = b->getvaluesM(b, b_ofset, NULL, bytes);
 		self->setvaluesM(self, self_ofset, mem, bytes);
-		free_mem(mem);
+		gab_free(mem);
 	} else {
 		self->erro->error = clEnqueueCopyBuffer(self->queue, b->data, self->data, b_ofset, self_ofset, bytes, 0, NULL, NULL);
 //		clFlush(self->queue);
@@ -430,7 +430,7 @@ void Tensor_print(Tensor self) {
 	ECXPUSH(self->erro);
 	char *json = Tensor_putvaluesAsstr(self);
 	printf("%u : %s\n", self->size_element, json);
-	free_mem(json);
+	gab_free(json);
 	ECXPOP(self->erro);
 }
 
@@ -464,7 +464,7 @@ void Tensor_tomatlab(Tensor self, FILE *f, char *name, char *reshapeF) {
 			fprintf(f, "%s = %s(%s,[%zu,%zu,%zu]);\n", name, reshapeF, name, self->x, self->y, self->z);
 		}
 	}
-	free_mem(memory.mem);
+	gab_free(memory.mem);
 	ECXPOP(self->erro);
 }
 
@@ -472,7 +472,7 @@ void Tensor_tomatlab(Tensor self, FILE *f, char *name, char *reshapeF) {
 
 void Tensor_png(Tensor self, const char *file) {
 	ECXPUSH(self->erro);
-	ubyte *img = alloc_mem(self->length, 1);
+	ubyte *img = gab_alloc(self->length, 1);
 	size_t largura = self->y * self->z;
 	size_t altura = self->x * self->w;
 	for (int w = 0; w < self->w; ++w) {
@@ -483,7 +483,7 @@ void Tensor_png(Tensor self, const char *file) {
 
 	pngGRAY(file, img, largura, altura);
 
-	free_mem(img);
+	gab_free(img);
 	ECXPOP(self->erro);
 }
 
@@ -502,7 +502,7 @@ int Tensor_map(Tensor self, void (*fmap)(Tensor self, void *el, int i, int j, in
 		}
 	}
 	self->setvalues(self, data);
-	free_mem(data);
+	gab_free(data);
 	ECXPOP(self->erro);
 	return self->erro->error;
 }
@@ -525,7 +525,7 @@ void *Tensor_serialize(Tensor self, size_t *length) {
 	size_t len = self->bytes + 5 * sizeof(size_t) + 1;
 	if (length) { *length = len; }
 	char type = USEFLOAT;
-	void *data = alloc_mem(len, 1);
+	void *data = gab_alloc(len, 1);
 	self->getvalues(self, data + (5 * sizeof(size_t) + 1));
 	memcpy(data + 0 * sizeof(size_t), &self->length, sizeof(size_t));
 	memcpy(data + 1 * sizeof(size_t), &self->x, sizeof(size_t));

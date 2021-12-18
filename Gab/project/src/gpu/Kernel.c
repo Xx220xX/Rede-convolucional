@@ -11,7 +11,7 @@
 #define apendstr(str, len, format, ...) { \
          size_t sz = snprintf(NULL,0,format,##__VA_ARGS__); \
          if(!str)                         \
-         str = alloc_mem(1,sz+1);    \
+         str = gab_alloc(1,sz+1);    \
          else                                 \
          str = realloc(str,len+sz+1);                              \
          char *tmp = str+len;               \
@@ -21,7 +21,7 @@
 
 #define check_error(error, end, format, ...)if(error){char *msg = Gpu_errormsg(error);fflush(stdout); \
 fprintf(stderr,"Error %d  in file %s at line %d.\n%s\n",error,__FILE__,__LINE__,msg);           \
-fprintf(stderr,format,## __VA_ARGS__);free_mem(msg);goto end;}
+fprintf(stderr,format,## __VA_ARGS__);gab_free(msg);goto end;}
 
 
 
@@ -31,10 +31,10 @@ void Kernel_release(Kernel *self) {
 	if ((*self)->kernel)
 		clReleaseKernel((*self)->kernel);
 	if ((*self)->l_args)
-		free_mem((*self)->l_args);
+		gab_free((*self)->l_args);
 	if ((*self)->name)
-		free_mem((*self)->name);
-	free_mem(*self);
+		gab_free((*self)->name);
+	gab_free(*self);
 }
 
 int Kernel_run(Kernel self, cl_command_queue queue, size_t globals, size_t locals, ...) {
@@ -118,14 +118,14 @@ char *Kernel_json(Kernel self) {
 
 
 Kernel Kernel_new(cl_program clProgram, char *funcname, int nargs, ...) {
-	Kernel self = (Kernel) alloc_mem(1, sizeof(Kernel_t));
+	Kernel self = (Kernel) gab_alloc(1, sizeof(Kernel_t));
 	size_t len_name = strlen(funcname);
-	self->name = alloc_mem(len_name + 1, 1);
+	self->name = gab_alloc(len_name + 1, 1);
 	memcpy(self->name, funcname, len_name);
 	self->kernel = clCreateKernel(clProgram, funcname, &self->error);
 	check_error(self->error, metods, "Kernel: %s\n", funcname);
 
-	self->l_args = alloc_mem(nargs, sizeof(size_t));
+	self->l_args = gab_alloc(nargs, sizeof(size_t));
 	self->nArgs = nargs;
 	va_list vaList;
 	va_start(vaList, nargs);
@@ -153,10 +153,10 @@ int cmp(char *str1, char *str2, size_t maxLen) {
 }
 
 Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
-	Kernel self = (Kernel) alloc_mem(1, sizeof(Kernel_t));
+	Kernel self = (Kernel) gab_alloc(1, sizeof(Kernel_t));
 	size_t len_name = strlen(funcname);
 	char *p0 = NULL;
-	self->name = alloc_mem(len_name + 1, 1);
+	self->name = gab_alloc(len_name + 1, 1);
 	memcpy(self->name, funcname, len_name);
 	self->kernel = clCreateKernel(clProgram, funcname, &self->error);
 	check_error(self->error, metods, "Kernel: %s\n", funcname);

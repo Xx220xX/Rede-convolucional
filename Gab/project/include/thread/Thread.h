@@ -15,22 +15,25 @@ typedef int (*ifvi)(void *, int);
 
 typedef int (*ifv)(void *);
 
+
 typedef struct {
 	vfvv newThread;
 	ifvi killThread;
 	ifv releaseThread;
+	ifv isAlive;
 } ManageThread;
 
 extern ManageThread Thread;
 
 void setDefaultManageThread();
 
-void setManageThread(vfvv newthread, ifvi killThread, ifv releaseThread);
+void setManageThread(vfvv newthread, ifvi killThread, ifv releaseThread, ifv isAlive);
 
 
 #define Thread_new(func, arg) Thread.newThread(func,arg)
 #define Thread_Kill(handle, exit_code) Thread.killThread(handle,exit_code)
 #define Thread_Release(handle) Thread.releaseThread(handle)
+#define Thread_IsAlive(handle) Thread.isAlive(handle)
 
 //#define newThreadSuspend(func, arg, id) CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) func, arg, CREATE_SUSPENDED, &(id))
 //#define ThreadResume(handle)ResumeThread(handle)

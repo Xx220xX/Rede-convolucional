@@ -38,7 +38,7 @@ void CamadaFullConnect_release(CamadaFullConnect *self) {
 	Release((*self)->fullCalcDz);
 	Release((*self)->fullCalcDzandFixB);
 	Release((*self)->fullcalcin);
-	free_mem(*self);
+	gab_free(*self);
 }
 
 int CamadaFullConnect_propagation(CamadaFullConnect self) {
@@ -72,7 +72,7 @@ char *CamadaFullConnect_json(CamadaFullConnect self, int showValues) {
 	apendstr(string, len, "{"
 			PAD"%s,\n"
 			PAD"\"funcaoAtivacao\":%d", tmp, self->fa);
-	free_mem(tmp);
+	gab_free(tmp);
 
 	apendTensor("z", z, string, len, tmp, showValues);
 	apendTensor("dz", dz, string, len, tmp, showValues);
@@ -138,7 +138,7 @@ Camada CamadaFullConnect_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx
 
 Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSaida, Tensor entrada, Parametros params, uint32_t funcaoDeAtivacao, Ecx ecx, RandomParams rdp_pesos, RandomParams rdp_bias) {
 	ecx->addstack(ecx, "CamadaFullConnect_new");
-	CamadaFullConnect self = alloc_mem(1, sizeof(CamadaFullConnect_t));
+	CamadaFullConnect self = gab_alloc(1, sizeof(CamadaFullConnect_t));
 	P3d size_out = {1, tamanhoSaida, 1};
 	internal_Camada_new((Camada) self, gpu, queue, FULLCONNECT_ID, lname, params, entrada, size_in, size_out, ecx);
 	self->z = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
@@ -153,16 +153,7 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 	self->rdp_bias = rdp_bias;
 	if (rdp_pesos.type != -1) {
 		if (rdp_pesos.type == 0) {
-			rdp_pesos = internal_getDefaultRDP(funcaoDeAtivacao == FRELU, self->super.a->length, self->super.s->length);
-//			if (funcaoDeAtivacao == FRELU) {
-//				rdp_pesos.type = TENSOR_GAUSSIAN;
-//				rdp_pesos.a = (REAL) (1.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-//				rdp_pesos.b = 0;
-//			} else {
-//				rdp_pesos.type = TENSOR_UNIFORM;
-//				rdp_pesos.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-//				rdp_pesos.b = -(REAL) 0.5 * rdp_pesos.a;
-//			}
+			rdp_pesos = internal_getDefaultRDP(funcaoDeAtivacao == FRELU, size_in.x*size_in.y*size_in.z, self->super.s->length);
 		}
 
 		self->super.ecx->error = self->w->randomize(self->w, rdp_pesos.type, rdp_pesos.a, rdp_pesos.b);
@@ -173,7 +164,7 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 			if (funcaoDeAtivacao == FRELU) {
 				self->b->fill(self->b, 0);
 			} else {
-				rdp_bias = internal_getDefaultRDP(1, self->super.a->length, self->super.s->length);
+				rdp_bias = internal_getDefaultRDP(1, size_in.x*size_in.y*size_in.z, self->super.s->length);
 				self->super.ecx->error = self->b->randomize(self->b, rdp_bias.type, rdp_bias.a, rdp_bias.b);
 			}
 		}

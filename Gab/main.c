@@ -7,11 +7,11 @@
 #include "conio2/conio2.h"
 #include "thread/Thread.h"
 #include "camadas/all_camadas.h"
-double  t0 = 0;
+
 void Cnn_asimage(Cnn c, char *file, int largura, int altura, ...) {
 	Tensor s = NULL;
 	va_list v;
-	uint8_t *image = alloc_mem(altura, largura);
+	uint8_t *image = gab_alloc(altura, largura);
 	va_start(v, altura);
 	s = va_arg(v, Tensor);
 	int nTensors = 0;
@@ -36,21 +36,15 @@ void Cnn_asimage(Cnn c, char *file, int largura, int altura, ...) {
 					s->imagegray(s, image, largura, altura, sz, sz, j * h, k * w, z, l);
 				} else {
 					s->imagegray(s, image, largura, altura, w, h, j * h, k * w, z, l);
-
 				}
 			}
 		}
 	}
 	va_end(v);
-//	FILE *f = fopen(file,"wb");
-//	if(f) {
 	pngGRAY(file, image, largura, altura);
-//		fclose(f);
-//	}else{
-//		fprintf(stderr,"erro %d: Falha ao abrir arquivo %s\n",FAILED_OPEN_FILE,file);
-//	}
-	free_mem(image);
+	gab_free(image);
 }
+
 /*
 void on_train(const struct Setup_t *self, int label) {
 	Cnn cnn = self->cnn;
@@ -129,74 +123,94 @@ void on_train(const struct Setup_t *self, int label) {
 }
 */
 int cnnMain(int nargs, char **args) {
-	LCG_setSeed(time(0));
+	char luaFile[250] = {0};
+	double t0;
+	double im;
+	HANDLE hload;
+	HANDLE htreino;
+	HANDLE hteste;
 	Setup s = Setup_new();
-//	s->on_train = on_train;
+
+	LCG_setSeed(time(0));
+
 	GUI.can_run = &s->can_run;
 	GUI.force_end = &s->force_end;
-	char luaFile[250] = {0};
 	getLuaFILE(luaFile, 250, nargs, (const char **) args);
 	s->loadLua(s, luaFile);
-	String cnn_description = s->cnn->printstr(s->cnn, "->");
-	GUI.setText(GUI.rede, cnn_description);
-	Free(cnn_description);
-
+	s->cnn->print(s->cnn, "--");
 	if (s->ok(s)) {
-		double t0 = seconds();
-		s->runing = 1;
-		Handle hload = Thread_new(s->loadImagens, s);
-		while (s->runing) {
-			GUI.setText(GUI.status, "Carregando Imagens: %d de %d  \n", s->iLoad.imAtual, s->iLoad.imTotal);
-			GUI.setProgress(GUI.progress, s->iLoad.imAtual * 100.0 / s->iLoad.imTotal);
+		t0 = seconds(); // captura o tempo incial
+		s->runing = 1; // informa que está rodando
+		hload = Thread_new(s->loadImagens, s); // inicia thread hload
+		GUI.make_loadImages();
+		while (s->runing) { // enquanto a thread hload estiver rodando, (é mais eficiente que Thread_IsAlive(hload)
+			GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - t0);
 			Sleep(100);
 		}
-		GUI.setProgress(GUI.progress, s->iLoad.imAtual * 100.0 / s->iLoad.imTotal);
+		GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - t0);
 		Thread_Release(hload);
 		t0 = seconds() - t0;
-		printf("Tempo para leitura de imagens %.3lf s\n", t0);
+		printf("Tempo para leitura de imagens %.3lf , imagens por segundo %.2lf\n", t0, s->iLoad.imTotal / t0);
 	}
-
 	if (s->ok(s)) {
-		double t0 = seconds();
+		t0 = seconds();
 		s->runing = 1;
-		HANDLE hload = Thread_new(s->loadLabels, s);
+		hload = Thread_new(s->loadLabels, s);
+		GUI.make_loadLabels();
 		while (s->runing) {
-			GUI.setText(GUI.status, "Carregando labels: %d de %d        \n", s->iLoad.imAtual, s->iLoad.imTotal);
-			GUI.setProgress(GUI.progress, s->iLoad.imAtual * 100.0 / s->iLoad.imTotal);
+			GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - t0);
 			Sleep(100);
 		}
-		GUI.setProgress(GUI.progress, s->iLoad.imAtual * 100.0 / s->iLoad.imTotal);
+		GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - t0);
 		showCursor(1);
 		Thread_Release(hload);
 		t0 = seconds() - t0;
-		printf("Tempo para leitura de labels %.3lf s\n", t0);
+		printf("Tempo para leitura de labels %.3lf s, imagens por segundo %.2lf\n", t0, s->iLoad.imTotal / t0);
 	}
 
-	double im;
 	if (s->ok(s)) {
-		double t0 = seconds();
+		t0 = seconds();
 		s->runing = 1;
-		Handle htreino = Thread_new(s->treinar, s);
+		htreino = Thread_new(s->treinar, s);
 		Itrain treino;
-		GUI.setText(GUI.status, "Treinando");
+		GUI.make_train();
 		while (s->runing) {
 			treino = s->itrain;
-			im = treino.imAtual + treino.epAtual * treino.imTotal;
-			GUI.setProgress(GUI.progress, im * 100.0 / (treino.imTotal * treino.epTotal));
-			GUI.setText(GUI.epoca, "%d de %d", treino.epAtual, treino.epTotal);
-			GUI.setText(GUI.imagem, "%d de %d", treino.imAtual, treino.imTotal);
-			GUI.setText(GUI.mse, "%.14lf", treino.mse);
-			GUI.setText(GUI.winHate, "%.4lf | %.4lf ", treino.winRate, 100 * treino.meanwinRate);
-
-			GUI.setText(GUI.imps, "%.2lf | %.2lf ", treino.imps, im / treino.timeRuning);
+			GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, seconds() - t0);
 			Sleep(100);
 		}
 		Thread_Release(htreino);
+		treino = s->itrain;
+		GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, seconds() - t0);
 		t0 = seconds() - t0;
 		printf("Tempo para treino %.3lf s\n", t0);
+		GUI.capture(s->treino_out);
 	}
+	char nome[250];
+	snprintf(nome, 250, "%s.cnn", s->nome);
+	GUI.setText(GUI.status, "Salvando cnn em %s", nome);
+	s->cnn->save(s->cnn, nome);
+	if (s->ok(s)) {
+		t0 = seconds();
+		s->runing = 1;
+		hteste = Thread_new(s->avaliar, s);
+		Iteste teste;
+		GUI.make_teste();
+		while (s->runing) {
+			teste = s->iteste;
+			GUI.updateTeste(teste.imAtual, teste.imTotal, teste.mse, teste.winRate, seconds() - t0);
+			Sleep(100);
+		}
+		GUI.updateTeste(teste.imAtual, teste.imTotal, teste.mse, teste.winRate, seconds() - t0);
+		Thread_Release(htreino);
+		t0 = seconds() - t0;
+		printf("Tempo para treino %.3lf s\n", t0);
+		GUI.capture(s->teste_out);
+	}
+
 	char *tmp = asprintf(NULL, "MSE %lf\nwin hate %lf.\n", s->itrain.mse, s->itrain.winRate);
 	dialogBox("Treino terminado!", tmp);
-	free_mem(tmp);
+	gab_free(tmp);
+	end:
 	return s->release(&s);
 }

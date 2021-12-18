@@ -19,7 +19,7 @@ static void CamadaConvNC_release(CamadaConvNC *self_p) {
 	Release((*self_p)->convncCalcFiltro);
 	Release((*self_p)->convncCalcGradZ);
 	Release((*self_p)->convncCalcGrads);
-	free_mem(*self_p);
+	gab_free(*self_p);
 	*self_p = NULL;
 }
 
@@ -131,7 +131,7 @@ Camada CamadaConvNC_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx)
 
 Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros) {
 	ecx->addstack(ecx, "CamadaConvNC_new");
-	CamadaConvNC self = alloc_mem(1, sizeof(CamadaConvNC_t));
+	CamadaConvNC self = gab_alloc(1, sizeof(CamadaConvNC_t));
 	P3d size_out = {(size_in.x - 1 - (filtro.x - 1) * abertura.x) / passo.x + 1, (size_in.y - 1 - (filtro.y - 1) * abertura.y) / passo.y + 1, filtro.z};
 	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAONC_ID, lname, params, entrada, size_in, size_out, ecx);
 	self->activationFuntion = ativacao;
@@ -146,10 +146,7 @@ Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtr
 	self->rdp_filtros = rdp_filtros;
 	if (rdp_filtros.type != -1) {
 		if (rdp_filtros.type == 0) {
-			rdp_filtros = internal_getDefaultRDP(ativacao == FRELU, self->super.a->length, self->super.s->length);
-//			rdp_filtros.type = TENSOR_UNIFORM;
-//			rdp_filtros.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-//			rdp_filtros.b = -(REAL) 0.5 * rdp_filtros.a;
+			rdp_filtros = internal_getDefaultRDP(ativacao == FRELU, size_in.x * size_in.y * size_in.z, self->super.s->length);
 		}
 		self->super.ecx->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
 		if (ecx->error) { goto methods; }

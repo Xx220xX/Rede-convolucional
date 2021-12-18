@@ -29,7 +29,7 @@ void CamadaBatchNorm_release(CamadaBatchNorm *selfp) {
 	Release((*selfp)->batchNormCalcGrads1);
 	Release((*selfp)->batchNormCalcGrads2);
 
-	free_mem(*selfp);
+	gab_free(*selfp);
 }
 
 int CamadaBatchNorm_propagation(CamadaBatchNorm self) {
@@ -110,7 +110,7 @@ char *CamadaBatchNorm_json(CamadaBatchNorm self, int showValues) {
 			 tmp,
 			 (double) self->epsilon
 	);
-	free_mem(tmp);
+	gab_free(tmp);
 	apendTensor("Y",Y,string,len,tmp,showValues);
 	apendTensor("dY",gradY,string,len,tmp,showValues);
 	apendTensor("B",B,string,len,tmp,showValues);
@@ -189,7 +189,7 @@ Camada CamadaBatchNorm_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx e
 extern Camada CamadaBatchNorm_new(Gpu gpu, Queue queue, Parametros params, P3d size_in, Tensor entrada,
 								  REAL epsilon, Ecx ecx, RandomParams randY, RandomParams randB) {
 	ecx->addstack(ecx, "CamadaBatchNorm_new");
-	CamadaBatchNorm self = alloc_mem(1, sizeof(CamadaBatchNorm_t));
+	CamadaBatchNorm self = gab_alloc(1, sizeof(CamadaBatchNorm_t));
 
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, BATCHNORM_ID, lname, params, entrada, size_in, size_out, ecx);
@@ -213,19 +213,13 @@ extern Camada CamadaBatchNorm_new(Gpu gpu, Queue queue, Parametros params, P3d s
 	if (randY.type != -1) {
 
 		if (randY.type == 0) {
-			randY = internal_getDefaultRDP(0, self->super.a->length, self->super.s->length);
-//			randY.type = TENSOR_UNIFORM;
-//			randY.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-//			randY.b = -(REAL) 0.5 * randY.a;
+			randY = internal_getDefaultRDP(0,size_in.x*size_in.y*size_in.z, self->super.s->length);
 		}
 		self->super.ecx->setError(self->super.ecx, self->Y->randomize(self->Y, randY.type, randY.a, randY.b));
 	}
 	if (randB.type != -1) {
 		if (randB.type == 0) {
-			randB = internal_getDefaultRDP(1, self->super.a->length, self->super.s->length);
-//			randB.type = TENSOR_GAUSSIAN;
-//			randB.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
-//			randB.b = 0;
+			randB = internal_getDefaultRDP(1, size_in.x*size_in.y*size_in.z, self->super.s->length);
 		}
 		self->super.ecx->setError(self->super.ecx, self->B->randomize(self->B, randB.type, randB.a, randB.b));
 	}

@@ -15,7 +15,7 @@ static void CamadaConv_release(CamadaConv *self_p) {
 	Release((*self_p)->convSum);
 	Release((*self_p)->convCalcGradIn);
 	Release((*self_p)->convCalcGradAndFixWeight);
-	free_mem(*self_p);
+	gab_free(*self_p);
 	*self_p = NULL;
 }
 
@@ -66,7 +66,7 @@ static char *CamadaConv_json(CamadaConv self, int showValues) {
 					 PAD"\"numero_filtros\":%zu",
 			 tmp, self->passox, self->passoy, self->W->w
 	);
-	free_mem(tmp);
+	gab_free(tmp);
 	apendTensor("filtros", W, string, len, tmp, showValues);
 	apendTensor("grad_filtros", dW, string, len, tmp, showValues);
 	apendstr(string, len, "\n}");
@@ -139,7 +139,7 @@ Camada CamadaConv_load(FILE *f, Gpu gpu, Queue queue,  Tensor entrada, Ecx ecx) 
 Camada CamadaConv_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, Tensor entrada,
 					  Parametros params, Ecx ecx, RandomParams rdp_filtros) {
 	ecx->addstack(ecx, "CamadaConv_new");
-	CamadaConv self = alloc_mem(1, sizeof(CamadaConv_t));
+	CamadaConv self = gab_alloc(1, sizeof(CamadaConv_t));
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1,
 					filtro.z};
 	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAO_ID, lname, params, entrada, size_in, size_out, ecx);
@@ -151,7 +151,7 @@ Camada CamadaConv_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, 
 	self->rdp_filtros = rdp_filtros;
 	if (rdp_filtros.type != -1) {
 		if (rdp_filtros.type == 0) {
-			rdp_filtros = internal_getDefaultRDP(0, self->super.a->length, self->super.s->length);
+			rdp_filtros = internal_getDefaultRDP(0, size_in.x*size_in.y*size_in.z, self->super.s->length);
 //			rdp_filtros.type = TENSOR_UNIFORM;
 //			rdp_filtros.a = (REAL) (2.0) / (REAL) (size_in.x * size_in.y * size_in.z);
 //			rdp_filtros.b = -(REAL) 0.5 * rdp_filtros.a;

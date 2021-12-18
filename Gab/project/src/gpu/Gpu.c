@@ -8,17 +8,17 @@
 
 
 #define check_error(error, end)if(error){char *err = Gpu_errormsg(error);fflush(stdout); fprintf(stderr,"Error %d  in file %s at line %d\n%s\n",error,__FILE__,__LINE__,err); \
-fflush(stderr);free_mem(err);goto end;}
+fflush(stderr);gab_free(err);goto end;}
 
 #define asprintf(str, format, ...){int len = snprintf(NULL,0,format,## __VA_ARGS__);\
-str = alloc_mem(len+1,1);                                                           \
+str = gab_alloc(len+1,1);                                                           \
 snprintf(str,len,format,## __VA_ARGS__);}
 
 #define PAD " "
 #define apendstr(str, len, format, ...) { \
          size_t sz = snprintf(NULL,0,format,##__VA_ARGS__); \
          if(!str)                         \
-         str = alloc_mem(1,sz+1);    \
+         str = gab_alloc(1,sz+1);    \
          else                                 \
          str = realloc(str,len+sz+1);                              \
          char *tmp = str+len;               \
@@ -30,40 +30,41 @@ int Gpu_compileProgram(Gpu self, char *program);
 
 int Gpu_compileProgramFile(Gpu self, char *file_program);
 
-Queue Gpu_Queue_new(Gpu self,cl_int *error);
+Queue Gpu_Queue_new(Gpu self, cl_int *error);
+
 void Gpu_release(Gpu *self) {
-	if (!self)return;
-	if (!*self)return;
-	if ((*self)->program)clReleaseProgram((*self)->program);
-	if ((*self)->context)clReleaseContext((*self)->context);
-	if ((*self)->device)clReleaseDevice((*self)->device);
-	free_mem(*self);
+	if (!self) { return; }
+	if (!*self) { return; }
+	if ((*self)->program) { clReleaseProgram((*self)->program); }
+	if ((*self)->context) { clReleaseContext((*self)->context); }
+	if ((*self)->device) { clReleaseDevice((*self)->device); }
+	gab_free(*self);
 }
 
 CLInfo Gpu_getClinfo(Gpu cl);
 
 cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source, int *error) {
-	if (!source)return NULL;
+	if (!source) { return NULL; }
 	size_t length = strlen(source);
 	int _error_ = 0;
-	if (!error)error = &_error_;
+	if (!error) { error = &_error_; }
 	cl_program program = clCreateProgramWithSource(ct, // contexto
 												   1,       // numero de strings
 												   &source,    // strings
 												   &length, // tamanho de cada string
 												   error   // error check
-	);
+												  );
 	check_error(*error, end);
 	*error = clBuildProgram(program, 1, &dv, NULL, NULL, NULL);
 	if (*error != CL_SUCCESS) {
 		char *buff = NULL;
 		size_t len = 0;
 		clGetProgramBuildInfo(program, dv, CL_PROGRAM_BUILD_LOG, 0, buff, &len);
-		buff = alloc_mem(len + 1, 1);
+		buff = gab_alloc(len + 1, 1);
 		clGetProgramBuildInfo(program, dv, CL_PROGRAM_BUILD_LOG, len, buff, NULL);
 		fprintf(stderr, "CNN_ERROR: %s\n", buff);
 		clReleaseProgram(program);
-		free_mem(buff);
+		gab_free(buff);
 		return NULL;
 	}
 	end:
@@ -71,7 +72,7 @@ cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source, in
 }
 
 Gpu Gpu_new() {
-	Gpu self = alloc_mem(1, sizeof(Gpu_t));
+	Gpu self = gab_alloc(1, sizeof(Gpu_t));
 
 	self->type_device = CL_DEVICE_TYPE_GPU;
 	// get platform
@@ -94,17 +95,17 @@ Gpu Gpu_new() {
 
 	// metodos
 	metodos:
-	self->release =Gpu_release;
+	self->release = Gpu_release;
 	self->errorMsg = Gpu_errormsg;
-	self->compileProgram =  Gpu_compileProgram;
-	self->compileProgramFile =  Gpu_compileProgramFile;
-	self->getClInfo =  Gpu_getClinfo;
-	self->Queue_new =  Gpu_Queue_new;
+	self->compileProgram = Gpu_compileProgram;
+	self->compileProgramFile = Gpu_compileProgramFile;
+	self->getClInfo = Gpu_getClinfo;
+	self->Queue_new = Gpu_Queue_new;
 
 	return self;
 }
 
-#define allocprint(dst, format, ...) {int len = snprintf(NULL,0,format,##__VA_ARGS__); dst = alloc_mem(1,len+1);snprintf(dst,len+1,format,##__VA_ARGS__);}
+#define allocprint(dst, format, ...) {int len = snprintf(NULL,0,format,##__VA_ARGS__); dst = gab_alloc(1,len+1);snprintf(dst,len+1,format,##__VA_ARGS__);}
 
 char *Gpu_errormsg(int error) {
 	char *msg;
@@ -227,8 +228,7 @@ char *Gpu_errormsg(int error) {
 			break;
 		case -68: allocprint(msg, "%s", "INVALID_DEVICE_PARTITION_COUNT");
 			break;
-		default:
-		allocprint(msg, "Error ID: %d, The error was not elapsed in the OpenCL api\n", error);
+		default: allocprint(msg, "Error ID: %d, The error was not elapsed in the OpenCL api\n", error);
 			break;
 	}
 
@@ -236,7 +236,7 @@ char *Gpu_errormsg(int error) {
 }
 
 int Gpu_compileProgram(Gpu self, char *program) {
-	if (self->error)goto end;
+	if (self->error) { goto end; }
 	// compile program kernel
 	self->program = compileProgram(self->context, self->device, program, &self->error);
 	check_error(self->error, end);
@@ -245,7 +245,7 @@ int Gpu_compileProgram(Gpu self, char *program) {
 }
 
 int Gpu_compileProgramFile(Gpu self, char *file_program) {
-	if (self->error)return self->error;
+	if (self->error) { return self->error; }
 
 	char *program = NULL;
 	FILE *f;
@@ -258,13 +258,13 @@ int Gpu_compileProgramFile(Gpu self, char *file_program) {
 	long int size = 0;
 	fseek(f, 0L, SEEK_END);
 	size = ftell(f);
-	program = alloc_mem(size + 1, sizeof(char));
+	program = gab_alloc(size + 1, sizeof(char));
 	fseek(f, 0L, SEEK_SET);
 	fread(program, sizeof(char), size, f);
 	program[size] = 0;
 	fclose(f);
 	int error = self->compileProgram(self, program);
-	free_mem(program);
+	gab_free(program);
 	return error;
 }
 
@@ -286,7 +286,7 @@ char *CLInfo_json(CLInfo *self) {
 			PAD"\"max_work_group_size\":%llu,\n"
 			PAD"\"max_work_item_sizes\":[%zu,%zu,%zu]\n"
 			   "}", self->device_name, self->hardware_version, self->software_version, self->openCL_version, self->global_mem_cache_size, self->global_mem_cache_line_size, self->global_mem_size, self->local_mem_size, self->max_freq_mhz, self->max_mem_alloc_size, self->max_work_group_size, self->max_work_item_sizes[0], self->max_work_item_sizes[1], self->max_work_item_sizes[2]
-	);
+			);
 	return json;
 }
 
@@ -308,7 +308,21 @@ CLInfo Gpu_getClinfo(Gpu cl) {
 	return cif;
 }
 
-Queue Gpu_Queue_new(Gpu self,cl_int *error){
-	return clCreateCommandQueueWithProperties(self->context,self->device,NULL,error);
+Queue Gpu_Queue_new(Gpu self, cl_int *error) {
+	return clCreateCommandQueueWithProperties(self->context, self->device, NULL, error);
 }
 
+
+int gab_free(void *mem) {
+	if (!mem) { return 1; }
+	free(mem);
+	return 0;
+}
+
+void *gab_realloc(void *mem, size_t len) {
+	return realloc(mem, len);
+}
+
+void *gab_alloc(size_t n, size_t size_n) {
+	return calloc(n, size_n);
+}

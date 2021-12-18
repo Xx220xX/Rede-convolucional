@@ -13,7 +13,7 @@ void CamadaPadding_release(CamadaPadding *self) {
 	Release((*self)->paddingBack);
 	Release((*self)->paddingfeed);
 	internal_Camada_release((Camada *) self);
-	free_mem(*self);
+	gab_free(*self);
 }
 
 int CamadaPadding_propagation(CamadaPadding self) {
@@ -60,7 +60,7 @@ char *CamadaPadding_json(CamadaPadding self, int showValues) {
 			 self->bottom,
 			 self->left,
 			 self->right);
-	free_mem(tmp);
+	gab_free(tmp);
 
 
 	return string;
@@ -130,7 +130,7 @@ Camada CamadaPadding_new(Gpu gpu, Queue queue, P3d size_in, uint32_t top, uint32
 						 uint32_t left, uint32_t right, Tensor entrada, Ecx ecx) {
 
 	ecx->addstack(ecx, "CamadaPadding_new");
-	CamadaPadding self = alloc_mem(1, sizeof(CamadaPadding_t));
+	CamadaPadding self = gab_alloc(1, sizeof(CamadaPadding_t));
 	P3d size_out = {size_in.x + top + bottom, size_in.y + left + right, size_in.z};
 	internal_Camada_new((Camada) self, gpu, queue, PADDING_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);
 

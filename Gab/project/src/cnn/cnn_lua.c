@@ -205,7 +205,7 @@ static int l_Convolucao(lua_State *L) {
 	if (c->Convolucao(c, p, f, prm, rdp)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada Convolucao: %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 
@@ -252,7 +252,7 @@ static int l_ConvolucaoF(lua_State *L) {
 	if (c->ConvolucaoF(c, p, f, fativacao, prm, rdp)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada ConvolucaoF:  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 
@@ -305,7 +305,7 @@ static int l_ConvolucaoNC(lua_State *L) {
 	if (c->ConvolucaoNC(c, p, a, f, fativacao, prm, rdp)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada ConvolucaoNC:  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 }
@@ -338,7 +338,7 @@ static int l_Pooling(lua_State *L) {
 	if (c->Pooling(c, p, f, type)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada Pooling:  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 
@@ -370,7 +370,7 @@ static int l_Relu(lua_State *L) {
 	if (c->Relu(c, less, greater)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada Relu:  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 
@@ -406,7 +406,7 @@ static int l_PRelu(lua_State *L) {
 	if (c->PRelu(c, prm, rdp)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada PRelu:  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 
@@ -429,7 +429,7 @@ static int l_Padding(lua_State *L) {
 	if (c->Padding(c, top, bottom, left, right)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada Padding:  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 
@@ -461,7 +461,7 @@ static int l_DropOut(lua_State *L) {
 	if (c->DropOut(c, prob, seed)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada DropOut:  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 
@@ -512,7 +512,7 @@ static int l_FullConnect(lua_State *L) {
 	if (c->FullConnect(c, neuros, prm, func, rdpw, rdpb)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada FullConnect:  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 
@@ -554,7 +554,7 @@ static int l_BatchNorm(lua_State *L) {
 	if (c->BatchNorm(c, epsilon, Params(1e-3), randomY, randomB)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada DropOut:  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 }
@@ -585,7 +585,7 @@ static int l_SoftMax(lua_State *L) {
 	if (c->SoftMax(c, flag)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada SoftMax:  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 }
@@ -610,7 +610,7 @@ REAL *getNumbers(lua_State *L, uint32_t *n) {
 	lua_settop(L, 1);
 	luaL_checktype(L, 1, LUA_TTABLE);
 	*n = luaL_len(L, 1);
-	REAL *v = alloc_mem(*n, sizeof(REAL));
+	REAL *v = gab_alloc(*n, sizeof(REAL));
 	for (int i = 0; i < *n; i++) {
 		lua_rawgeti(L, 1, i + 1);
 		v[i] = lua_tonumber(L, -1);
@@ -625,11 +625,11 @@ static int l_callCnn(lua_State *L) {
 	uint32_t len = 0;
 	REAL *input = getNumbers(L, &len);
 	c->predictv(c, input);
-	free_mem(input);
+	gab_free(input);
 	if (c->erro->error) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao chamar CnnCall  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 }
@@ -697,11 +697,11 @@ static int l_learnCnn(lua_State *L) {
 	uint32_t len = 0;
 	REAL *target = getNumbers(L, &len);
 	c->learnv(c, target);
-	free_mem(target);
+	gab_free(target);
 	if (c->erro->error) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao chamar CnnLearn  %d %s", c->erro->error, msg);
-		free_mem(msg);
+		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 }

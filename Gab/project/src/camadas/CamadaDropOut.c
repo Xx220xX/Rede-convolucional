@@ -15,7 +15,7 @@ static void CamadaDropOut_release(CamadaDropOut *self_p) {
 	if (!*self_p)return;
 	internal_Camada_release((Camada *) self_p);
 	Release((*self_p)->hitmap);
-	free_mem(*self_p);
+	gab_free(*self_p);
 	*self_p = NULL;
 }
 
@@ -54,7 +54,7 @@ static char *CamadaDropOut_json(CamadaDropOut self, int showValues) {
 			 (double) self->probabilidade_saida);
 
 
-	free_mem(tmp);
+	gab_free(tmp);
 
 	apendTensor("hitmap", hitmap, string, len, tmp, showValues);
 	apendstr(string, len, "\n}");
@@ -116,7 +116,7 @@ Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in,
 						 REAL probabilidade_saida, cl_ulong seed,
 						 Tensor entrada, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaDropOut_new");
-	CamadaDropOut self = alloc_mem(1, sizeof(CamadaDropOut_t));
+	CamadaDropOut self = gab_alloc(1, sizeof(CamadaDropOut_t));
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, DROPOUT_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);
 	self->seed = seed;

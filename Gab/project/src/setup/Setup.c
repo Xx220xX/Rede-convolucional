@@ -6,14 +6,12 @@
 
 #include <windows.h>
 #include <unistd.h>
-#include "thread/Thread.h"
 #include "conio2/conio2.h"
 #include "error_list.h"
 
 
 #define alpha 0.99
 #define beta  (1-alpha)
-
 
 #if (MANAGE_DEBUG_LOAD_LUA == 1)
 #define SET_DEBUG(format,...)printf(format,##__VA_ARGS__)
@@ -34,7 +32,7 @@ SET_DEBUG("%s %d\n",#cvar,cvar);
 Free(cvar);                                                                                                                           \
 const char *__tmp__ = lua_tostring(L,-1);                                                                                        \
 size_t len  =  strlen(__tmp__);                                                                                            \
- (cvar) = alloc_mem(len+1,1);                                                                                              \
+ (cvar) = gab_alloc(len+1,1);                                                                                              \
  memcpy(cvar,__tmp__,len);\
 } else fprintf(stderr,"warning: %s não instanciado em lua\n",name);                                                        \
 SET_DEBUG("%s %s\n",#cvar,cvar);
@@ -45,14 +43,14 @@ char *asprintf(size_t *tlen, const char *format, ...) {
 	va_list v;
 	va_start(v, format);
 	len = vsnprintf(NULL, 0, format, v) + 1;
-	tmp = alloc_mem(len, 1);
+	tmp = gab_alloc(len, 1);
 	vsnprintf(tmp, len, format, v) + 1;
 	va_end(v);
-	if (tlen)
+	if (tlen) {
 		*tlen = len;
+	}
 	return tmp;
 }
-
 
 double seconds() {
 	FILETIME ft;
@@ -78,8 +76,8 @@ void Setup_checkStop(Setup self, const char *stopPattern) {
 }
 
 int Setup_release(Setup *selfp) {
-	if (!selfp)return 1;
-	if (!*(selfp))return 2;
+	if (!selfp) { return 1; }
+	if (!*(selfp)) { return 2; }
 
 	for (int i = 0; i < (*selfp)->n_imagens; ++i) {
 		if ((*selfp)->imagens) {
@@ -107,68 +105,36 @@ int Setup_release(Setup *selfp) {
 	return erro;
 }
 
-
-void Setup_loadImagens2(Setup self) {
-	if (!self->file_image)return;
-	self->iLoad.imTotal = self->n_imagens;
-	P3d im_dim = self->cnn->size_in;
-	FILE *f = fopen(self->file_image, "rb");
-	for (int i = 0; i < self->header_image; ++i)fgetc(f);
-	Tensor imram = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR_RAM | TENSOR_CHAR | TENSOR4D);
-	Tensor imgpu = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR_CHAR | TENSOR4D, self->cnn->gpu->context, self->cnn->queue);
-	self->imagens = alloc_mem(sizeof(Tensor), self->n_imagens);
-	for (int i = 0; self->can_run && i < self->n_imagens; ++i) {
-		self->iLoad.imAtual = i + 1;
-		fread(imram->data, imram->length, 1, f);
-		imgpu->setvalues(imgpu, imram->data);
-		self->imagens[i] = Tensor_new(unP3D(im_dim), 1, self->cnn->erro, 0, self->cnn->gpu->context, self->cnn->queue);
-		self->cnn->normalizeIMAGE(self->cnn, self->imagens[i], imgpu);
-	}
-	fclose(f);
-	Release(imgpu);
-	Release(imram);
-	self->force_end = 1;
-	self->runing = 0;
-}
-
 void Setup_loadImagens(Setup self) {
-	if (!self->file_image)return;
-	P3d im_dim = self->cnn->size_in;
-	FILE *f;
-	self->iLoad.imTotal = self->n_imagens;
-	Tensor imgpuReal;
-	f = fopen(self->file_image, "rb");
-	Tensor imgpu;
-	Tensor imram = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR_RAM | TENSOR_CHAR | TENSOR4D);
-//	double t0 = seconds();
-	for (int i = 0; i < self->header_image; ++i)fgetc(f);
-	fread(imram->data, 1, imram->bytes, f);
-	fclose(f);
-//	printf("leitura %lf s\n", seconds() - t0);
-//	t0 = seconds();
-	imgpu = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR_CHAR | TENSOR4D | TENSOR_CPY, self->cnn->gpu->context, self->cnn->queue, imram->data);
-	imgpuReal = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR4D, self->cnn->gpu->context, self->cnn->queue, imram->data);
-	self->cnn->normalizeIMAGE(self->cnn, imgpuReal, imgpu);
-//	printf("processar %lf s\n", seconds() - t0);
-//	t0 = seconds();
-	Release(imram);
-	Release(imgpu);
+	if (!self->file_image) { return; }
+	P3d im_dim = self->cnn->size_in; // dimensao da entrada
+	FILE *f; // arquivo para leitura das imagens
+	self->iLoad.imTotal = self->n_imagens;// atualiza o iload para leitura em outra thread
+	Tensor imgpuReal; // tensor com imagem em valores IR¹
+	f = fopen(self->file_image, "rb"); // abre o aquivo
+	Tensor imgpu; // imagem 8 bits na gpu
+	Tensor imram = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR_RAM | TENSOR_CHAR | TENSOR4D); // imagem no hos
+	for (int i = 0; i < self->header_image; ++i) { fgetc(f); }// pula o cabeçalho
+	fread(imram->data, 1, imram->bytes, f);// le a imagem
+	fclose(f);// fecha o arquivo
+	imgpu = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR_CHAR | TENSOR4D | TENSOR_CPY, self->cnn->gpu->context, self->cnn->queue, imram->data); // instancia a imagem na gpu
+	imgpuReal = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR4D, self->cnn->gpu->context, self->cnn->queue, imram->data);// instancia a imagem real
+	self->cnn->normalizeIMAGE(self->cnn, imgpuReal, imgpu);// calcula imagem[i]/255
+	Release(imram);// libera a imagem da ram
+	Release(imgpu);// libera a imagem da gpu
 
-	self->imagens = alloc_mem(sizeof(Tensor), self->n_imagens);
-	for (int i = 0; i < self->n_imagens; ++i) {
-		self->iLoad.imAtual = i + 1;
-		self->imagens[i] = Tensor_new(unP3D(im_dim), 1, self->cnn->erro, 0, self->cnn->gpu->context, self->cnn->queue);
-		self->imagens[i]->copyM(self->imagens[i], imgpuReal, 0, i * self->imagens[i]->bytes, self->imagens[i]->bytes);
+	self->imagens = gab_alloc(self->n_imagens, sizeof(Tensor));// intancia vetor de imagens
+	for (int i = 0; i < self->n_imagens; ++i) { // itera nas imagens
+		self->iLoad.imAtual = i + 1; // atualiza status
+		self->imagens[i] = Tensor_new(unP3D(im_dim), 1, self->cnn->erro, 0, self->cnn->gpu->context, self->cnn->queue);//instancia novo tensor
+		self->imagens[i]->copyM(self->imagens[i], imgpuReal, 0, i * self->imagens[i]->bytes, self->imagens[i]->bytes);// fz a copia da imagem para o tensor
 	}
-//	printf("copia %lf s\n", seconds() - t0);
-
-	Release(imgpuReal);
-
-	self->runing = 0;
+	Release(imgpuReal);// libera o tensor imreal
+	self->runing = 0; // terminou a leitura de imagens
 }
 
 void Setup_loadLabel(Setup self) {
-	if (!self->file_label)return;
+	if (!self->file_label) { return; }
 	self->iLoad.imTotal = self->n_imagens;
 	// ### variaveis
 	FILE *f = fopen(self->file_label, "rb");
@@ -176,13 +142,13 @@ void Setup_loadLabel(Setup self) {
 	Tensor lbgpuREAL = Tensor_new(1, self->n_classes, 1, self->n_imagens, self->cnn->erro, TENSOR4D, self->cnn->gpu->context, self->cnn->queue);
 	Tensor lbgpu;
 	// ### ler cabeçalho do arquivo
-	for (int i = 0; i < self->header_label; ++i)fgetc(f);
+	for (int i = 0; i < self->header_label; ++i) { fgetc(f); }
 	fread(lbram->data, 1, lbram->bytes, f);
 	fclose(f);
 	// ### copia para gpu e converter para vetor
 	lbgpu = Tensor_new(1, self->n_imagens, 1, 1, self->cnn->erro, TENSOR_CPY | TENSOR_CHAR, self->cnn->gpu->context, self->cnn->queue, lbram->data);
 	self->cnn->extractVectorLabelClass(self->cnn, lbgpuREAL, lbgpu);
-	self->targets = alloc_mem(sizeof(Tensor), self->n_imagens);
+	self->targets = gab_alloc(sizeof(Tensor), self->n_imagens);
 	// ### separar imagens
 	for (int i = 0; i < self->n_imagens; ++i) {
 		self->iLoad.imAtual = i + 1;
@@ -204,29 +170,22 @@ void Setup_treinar(Setup self) {
 	Tensor entrada, target;
 	ubyte label, cnn_label;
 
-
 	self->itrain.epTotal = self->n_epocas;
 	self->itrain.imTotal = self->n_imagens_treinar;
-	self->itrain.imps = 1e-14;
+//	self->itrain.imps = 1e-14;
 	Itrain localItrain = self->itrain;
 	int indice = 0;
-	int nimagesimps  = self->n_imagens_treinar/1000;
 	int classe = 0;
-	double imps = seconds();// imagens por segundo
-	int images=0;
-	int acertos=0;
-	double tres = self->itrain.timeRuning, t0 = seconds(); // tres: tempo residual de treinos anteriores na mesma sessão. t0: tempo inicial do treino
+	int images = 0;
+	int acertos = 0;
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->erro->error; self->epoca_atual++) {
 		if (self->imagem_atual_treino >= self->n_imagens_treinar) {
 			self->imagem_atual_treino = 0;
 			acertos = 0;
 		}
-		localItrain.epAtual = self->epoca_atual;
-
-
+		localItrain.epAtual = self->epoca_atual+1;
 		for (; self->can_run && self->imagem_atual_treino < self->n_imagens_treinar && !self->cnn->erro->error; self->imagem_atual_treino++) {
 			images++;
-//			Sleep(1000);
 			indice = self->imagem_atual_treino;
 			entrada = self->imagens[indice];
 			target = self->targets[indice];
@@ -234,24 +193,53 @@ void Setup_treinar(Setup self) {
 			self->cnn->predict(self->cnn, entrada);
 			self->cnn->learn(self->cnn, target);
 			cnn_label = self->cnn->maxIndex(self->cnn);
-			if (self->on_train)self->on_train(self, label);
+			if (self->on_train) { self->on_train(self, label); }
 
-				// #### informações do treinamento
-			if(images>=nimagesimps) {
-				imps = images/(seconds() - imps);
-				localItrain.imps = imps;
-				imps = seconds();
-				images = 0;
-			}
-			acertos+= (cnn_label == label);
-			localItrain.timeRuning = tres + seconds() - t0;
-			localItrain.meanwinRate = acertos/(self->imagem_atual_treino+1.0);
+			// #### informações do treinamento
+			acertos += (cnn_label == label);
+			localItrain.meanwinRate = acertos / (self->imagem_atual_treino + 1.0);
 			localItrain.winRate = localItrain.winRate * alpha + beta * ((cnn_label == label) ? 100 : 0);
 			localItrain.mse = localItrain.mse * alpha + beta * self->cnn->mse(self->cnn);
-			localItrain.imAtual = self->imagem_atual_treino;
+			localItrain.imAtual = self->imagem_atual_treino+1;
 			self->itrain = localItrain;
 			classe++;
 		}
+	}
+	self->runing = 0;
+}
+
+void Setup_avaliar(Setup self) {
+	// ###  thread de alta prioridade
+	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+	// ### variaveis usadas na avaliação
+	Tensor entrada, target;
+	ubyte label, cnn_label;
+	int indice;
+	self->iteste.imTotal = self->n_imagens_testar;
+	Iteste localIteste = self->iteste;
+	int64_t acertos = 0;
+	double t0 = seconds();
+	double t1;
+	for (; self->can_run && self->imagem_atual_teste < self->n_imagens_testar; self->imagem_atual_teste++) {
+		indice = self->n_imagens_treinar + self->imagem_atual_teste;
+		entrada = self->imagens[indice];
+		target = self->targets[indice];
+		label = ((char *) self->labels->data)[indice];
+
+		self->cnn->predict(self->cnn, entrada);
+		cnn_label = self->cnn->maxIndex(self->cnn);
+
+		t1 = seconds();
+		localIteste.imps = localIteste.imps * alpha + beta / (t1 - t0);
+		t0 = t1;
+		acertos += (cnn_label == label);
+		localIteste.imAtual = self->imagem_atual_teste + 1;
+		localIteste.meanwinRate = acertos / (self->imagem_atual_teste + 1.0);
+		localIteste.winRate = localIteste.winRate * alpha + beta * ((cnn_label == label) ? 100 : 0);
+		localIteste.mse = localIteste.mse * alpha + beta * self->cnn->mseT(self->cnn, target);
+		self->iteste = localIteste;
+
 	}
 	self->runing = 0;
 }
@@ -262,9 +250,9 @@ void Setup_getLuaParams(Setup self) {
 		self->cnn->erro->setError(self->cnn->erro, GAB_NULL_POINTER_ERROR);
 		return;
 	}
-	if (self->cnn->erro->error)return;
+	if (self->cnn->erro->error) { return; }
 	lua_State *L = self->cnn->LuaVm;
-	if (!L)return;
+	if (!L) { return; }
 	SETUP_GETLUA_INT(self->n_epocas, "Numero_epocas");
 	SETUP_GETLUA_STR(self->home, "home");
 	SETUP_GETLUA_STR(self->nome, "nome");
@@ -291,8 +279,9 @@ void Setup_loadLua(Setup self, const char *lua_file) {
 	}
 	CnnLuaLoadFile(self->cnn, lua_file);
 	Setup_getLuaParams(self);
-	if (self->home)
+	if (self->home) {
 		SetCurrentDirectoryA(self->home);
+	}
 	ECXPOP(self->cnn->erro);
 }
 
@@ -301,13 +290,14 @@ int Setup_ok(Setup self) {
 }
 
 Setup Setup_new() {
-	Setup setup = alloc_mem(sizeof(Setup_t), 1);
+	Setup setup = gab_alloc(sizeof(Setup_t), 1);
 	setup->can_run = 1;
 	setup->cnn = Cnn_new();
 	setup->checkStop = Setup_checkStop;
 	setup->loadImagens = Setup_loadImagens;
 	setup->loadLabels = Setup_loadLabel;
 	setup->treinar = Setup_treinar;
+	setup->avaliar = Setup_avaliar;
 	setup->release = Setup_release;
 	setup->loadLua = Setup_loadLua;
 	setup->ok = Setup_ok;

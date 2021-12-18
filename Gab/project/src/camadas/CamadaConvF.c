@@ -19,7 +19,7 @@ static void CamadaConvF_release(CamadaConvF *self_p) {
 	Release((*self_p)->convFCalcGrads);
 	Release((*self_p)->convFCalcGradZ);
 	Release((*self_p)->convFCalcGradAndFixWeight);
-	free_mem(*self_p);
+	gab_free(*self_p);
 	*self_p = NULL;
 }
 
@@ -54,7 +54,7 @@ static char *CamadaConvF_json(CamadaConvF self, int showValues) {
 			PAD"\"functionActivation\":%d,\n"
 			PAD"\"passo\":[%zu,%zu],\n"
 			PAD"\"numero_filtros\":%zu", tmp, self->activationFuntion, self->passox, self->passoy, self->W->w);
-	free_mem(tmp);
+	gab_free(tmp);
 	apendTensor("filtros", W, string, len, tmp, showValues);
 	apendTensor("grad_filtros", dW, string, len, tmp, showValues);
 	apendstr(string, len, "\n}");
@@ -119,9 +119,10 @@ Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 	return (Camada) self;
 }
 
+
 Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros) {
 	ECXPOP(ecx);
-	CamadaConvF self = alloc_mem(1, sizeof(CamadaConvF_t));
+	CamadaConvF self = gab_alloc(1, sizeof(CamadaConvF_t));
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1, filtro.z};
 	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAOF_ID, lname, params, entrada, size_in, size_out, ecx);
 	self->activationFuntion = ativacao;
@@ -136,11 +137,7 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	self->rdp_filtros = rdp_filtros;
 	if (rdp_filtros.type != -1) {
 		if (rdp_filtros.type == 0) {
-			rdp_filtros = internal_getDefaultRDP(ativacao == FRELU, self->super.a->length, self->super.s->length);
-
-//			rdp_filtros.type = TENSOR_UNIFORM;
-//			rdp_filtros.a = (REAL) (2.0) / (REAL) (filtro.x * filtro.y * size_in.z);
-//			rdp_filtros.b = -(REAL) 0.5 * rdp_filtros.a;
+			rdp_filtros = internal_getDefaultRDP(ativacao == FRELU, size_in.x * size_in.y * size_in.z, self->super.s->length);
 		}
 
 		self->super.ecx->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);

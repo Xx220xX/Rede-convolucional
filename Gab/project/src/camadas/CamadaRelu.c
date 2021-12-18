@@ -21,7 +21,7 @@ static void CamadaRelu_release(CamadaRelu *self_p) {
 	Release((*self_p)->reluativa);
 	Release((*self_p)->relucalcgrad);
 
-	free_mem(*self_p);
+	gab_free(*self_p);
 	*self_p = NULL;
 }
 
@@ -55,7 +55,7 @@ static char *CamadaRelu_json(CamadaRelu self, int showValues) {
 			 tmp,
 			 (double) self->lessoh, (double) self->greateroh);
 
-	free_mem(tmp);
+	gab_free(tmp);
 	apendstr(string, len, "\n}");
 	return string;
 }
@@ -112,7 +112,7 @@ Camada CamadaRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 }
 Camada CamadaRelu_new(Gpu gpu, Queue queue, P3d size_in, REAL less, REAL greater, Tensor entrada, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaRelu_new");
-	CamadaRelu self = alloc_mem(1, sizeof(CamadaRelu_t));
+	CamadaRelu self = gab_alloc(1, sizeof(CamadaRelu_t));
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, RELU_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);
 	self->lessoh = less;

@@ -7,7 +7,7 @@
 
 #include "cnn/cnn_lua.h"
 
-#define Free(string)if(string)free_mem(string);(string)= NULL
+#define Free(string)if(string)gab_free(string);(string)= NULL
 #define Swap(a, b)do{typeof(a) _local__aux__swap_ = a;(a) = b;    (b) = __local__aux__swap__;}while(0)
 
 typedef char *String;
@@ -19,9 +19,16 @@ typedef struct {
 	double mse;
 	double winRate;
 	double meanwinRate;
+} Itrain;
+typedef struct {
+	uint32_t imAtual;
+	uint32_t imTotal;
+	double mse;
+	double winRate;
+	double meanwinRate;
 	double timeRuning;
 	double imps;
-} Itrain;
+} Iteste;
 typedef struct {
 	uint32_t imAtual;
 	uint32_t imTotal;
@@ -63,6 +70,7 @@ typedef struct Setup_t {
 	String rede_out;
 	ILoad iLoad;
 	Itrain itrain;
+	Iteste iteste;
 
 
 	/// Rede neural
@@ -80,6 +88,7 @@ typedef struct Setup_t {
 	int (*ok)(struct Setup_t *self);
 
 	void (*treinar)(struct Setup_t *self);
+	void (*avaliar)(struct Setup_t *self);
 
 	int (*release)(struct Setup_t **self);
 
