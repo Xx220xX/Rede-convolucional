@@ -14,9 +14,12 @@ Rede convolucional em c com computacao paralela
 - Corrigido vanish gradiente para todas camadas
 - Mudanças na inteface lua, veja a [documentação](https://xx220xx.github.io/Rede-convolucional/) para mais detalhes.
 - Grafico de aprendizado 
+
+
 #### Futuras atualizações
-[ ] Menu com opções
-[ ] Testar imagens na rede
-[ ] Criar Imagens e testa-la em diferentes redes
-[ ] Fix PRelu's fields.
-[ ] Criar documentação C completa
+
+- [ ] Menu com opções
+- [ ] Testar imagens na rede
+- [ ] Criar Imagens e testa-la em diferentes redes
+- [ ] Fix PRelu's fields.
+- [ ] Criar documentação C completa
