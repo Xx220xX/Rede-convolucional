@@ -204,6 +204,7 @@ int Tensor_setvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 
 void *Tensor_getvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 	ECXPUSH(self->erro);
+
 	if (self->erro->error) { return NULL; }
 	if (!data) {
 		data = calloc(bytes, 1);
@@ -214,6 +215,7 @@ void *Tensor_getvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 		fprintf(stderr, "ERROR: shared memory not implanted\n");
 
 	} else {
+
 		self->erro->error = clEnqueueReadBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
 	}
 	ECXPOP(self->erro);

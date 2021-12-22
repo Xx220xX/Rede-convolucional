@@ -6,4 +6,5 @@
 #define GAB_CPY_H
 #include "cnn/cnn_lua.h"
 int PY_Cnn_new(Cnn *self);
+void PY_Cnn_out(Cnn self,float *p);
 #endif //GAB_CPY_H

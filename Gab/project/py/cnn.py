@@ -1,30 +1,28 @@
 import ctypes
 
-
 class RDP(ctypes.Structure):
 	_fields_ = [('typpe', ctypes.c_int32), ('a', ctypes.c_float), ('b', ctypes.c_float)]
 
 	def __init__(self, *args, **kw):
 		super().__init__(*args, **kw)
 
-
 class Params(ctypes.Structure):
-	_fields_ = [('hitlearn', ctypes.c_float), ('momento', ctypes.c_float), ('decaimento', ctypes.c_float), ('learnable', ctypes.c_int32)]
-
-	def __init__(self, *args, **kw):
+	_fields_ = [('hitlearn', ctypes.c_float), ('momento', ctypes.c_float), ('decaimento', ctypes.c_float), ('learnable', ctypes.c_int32) ]	
+	
+	def __init__(self,  *args, **kw):
 		super().__init__(*args, **kw)
-
+		
 
 class P2D(ctypes.Structure):
 	_fields_ = [('x', ctypes.c_uint64), ('y', ctypes.c_uint64)]
-
-	def __init__(self, *args, **kw):
+	
+	def __init__(self,  *args, **kw):
 		super().__init__(*args, **kw)
 
 
 class P3D(ctypes.Structure):
 	_fields_ = [('x', ctypes.c_uint64), ('y', ctypes.c_uint64), ('z', ctypes.c_uint64)]
-
+	
 	def __init__(self, *args, **kw):
 		super().__init__(*args, **kw)
 
@@ -38,105 +36,102 @@ class Cnn_t(ctypes.Structure):
 	cm: ctypes.c_void_p
 	kernels: ctypes.c_void_p
 	LuaVm: ctypes.c_void_p
-	size_in: P3d
+	size_in: P3D
 	erro: ctypes.c_void_p
 	gpu: ctypes.c_void_p
 	release_gpu: ctypes.c_int8
 	queue: ctypes.c_void_p
 	cdll_releaseL: ctypes.CFUNCTYPE(None, ctypes.c_void_p)
-	cdll_setInput: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_uint64)
+	cdll_setInput: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_uint64,ctypes.c_uint64,ctypes.c_uint64)
 	cdll_release: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p)
-	cdll_getSizeOut: ctypes.CFUNCTYPE(P3d, ctypes.c_void_p)
-	cdll_json: ctypes.CFUNCTYPE(ctypes.POINTER(ctypes.c_char), ctypes.c_void_p, ctypes.c_int32)
-	cdll_jsonF: ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_int32, ctypes.c_char_p)
-	cdll_save: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_char_p)
-	cdll_load: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_char_p)
-	cdll_predict: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p)
-	cdll_predictv: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p)
-	cdll_learn: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p)
-	cdll_learnv: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p)
+	cdll_getSizeOut: ctypes.CFUNCTYPE(P3D, ctypes.c_void_p)
+	cdll_json: ctypes.CFUNCTYPE(ctypes.POINTER(ctypes.c_char), ctypes.c_void_p,ctypes.c_int32)
+	cdll_jsonF: ctypes.CFUNCTYPE(None, ctypes.c_void_p,ctypes.c_int32,ctypes.c_char_p)
+	cdll_save: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_char_p)
+	cdll_load: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_char_p)
+	cdll_predict: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p)
+	cdll_predictv: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p)
+	cdll_learn: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p)
+	cdll_learnv: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p)
 	cdll_mse: ctypes.CFUNCTYPE(ctypes.c_float, ctypes.c_void_p)
-	cdll_mseT: ctypes.CFUNCTYPE(ctypes.c_float, ctypes.c_void_p, ctypes.c_void_p)
+	cdll_mseT: ctypes.CFUNCTYPE(ctypes.c_float, ctypes.c_void_p,ctypes.c_void_p)
 	cdll_maxIndex: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p)
-	cdll_print: ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_char_p)
-	cdll_printstr: ctypes.CFUNCTYPE(ctypes.POINTER(ctypes.c_char), ctypes.c_void_p, ctypes.c_char_p)
-	cdll_normalizeIMAGE: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)
-	cdll_extractVectorLabelClass: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)
-	cdll_Convolucao: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, P2d, P3d, Params, RDP)
-	cdll_ConvolucaoF: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, P2d, P3d, ctypes.c_void_p, Params, RDP)
-	cdll_ConvolucaoNC: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, P2d, P2d, P3d, ctypes.c_void_p, Params, RDP)
-	cdll_Pooling: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, P2d, P2d, ctypes.c_void_p)
-	cdll_Relu: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_float, ctypes.c_float)
-	cdll_PRelu: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, Params, RDP)
-	cdll_FullConnect: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_uint64, Params, ctypes.c_void_p, RDP, RDP)
-	cdll_Padding: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)
-	cdll_DropOut: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_float, ctypes.c_void_p)
-	cdll_SoftMax: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_int8)
-	cdll_BatchNorm: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_float, Params, RDP, RDP)
+	cdll_print: ctypes.CFUNCTYPE(None, ctypes.c_void_p,ctypes.c_char_p)
+	cdll_printstr: ctypes.CFUNCTYPE(ctypes.POINTER(ctypes.c_char), ctypes.c_void_p,ctypes.c_char_p)
+	cdll_normalizeIMAGE: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p)
+	cdll_extractVectorLabelClass: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p)
+	cdll_Convolucao: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,P2D,P3D,Params,RDP)
+	cdll_ConvolucaoF: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,P2D,P3D,ctypes.c_void_p,Params,RDP)
+	cdll_ConvolucaoNC: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,P2D,P2D,P3D,ctypes.c_void_p,Params,RDP)
+	cdll_Pooling: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,P2D,P2D,ctypes.c_void_p)
+	cdll_Relu: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_float,ctypes.c_float)
+	cdll_PRelu: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,Params,RDP)
+	cdll_FullConnect: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_uint64,Params,ctypes.c_void_p,RDP,RDP)
+	cdll_Padding: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p)
+	cdll_DropOut: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_float,ctypes.c_void_p)
+	cdll_SoftMax: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_int8)
+	cdll_BatchNorm: ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_float,Params,RDP,RDP)
 	cdll_removeLastLayer: ctypes.CFUNCTYPE(None, ctypes.c_void_p)
 	_fields_ = [('version', ctypes.c_char_p),
-				('entrada', ctypes.c_void_p),
-				('ds', ctypes.c_void_p),
-				('target', ctypes.c_void_p),
-				('l', ctypes.c_uint64),
-				('cm', ctypes.c_void_p),
-				('kernels', ctypes.c_void_p),
-				('LuaVm', ctypes.c_void_p),
-				('size_in', P3d),
-				('erro', ctypes.c_void_p),
-				('gpu', ctypes.c_void_p),
-				('release_gpu', ctypes.c_int8),
-				('queue', ctypes.c_void_p),
-				('cdll_releaseL', ctypes.CFUNCTYPE(None, ctypes.c_void_p)),
-				('cdll_setInput', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_uint64)),
-				('cdll_release', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p)),
-				('cdll_getSizeOut', ctypes.CFUNCTYPE(P3d, ctypes.c_void_p)),
-				('cdll_json', ctypes.CFUNCTYPE(ctypes.POINTER(ctypes.c_char), ctypes.c_void_p, ctypes.c_int32)),
-				('cdll_jsonF', ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_int32, ctypes.c_char_p)),
-				('cdll_save', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_char_p)),
-				('cdll_load', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_char_p)),
-				('cdll_predict', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p)),
-				('cdll_predictv', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p)),
-				('cdll_learn', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p)),
-				('cdll_learnv', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p)),
-				('cdll_mse', ctypes.CFUNCTYPE(ctypes.c_float, ctypes.c_void_p)),
-				('cdll_mseT', ctypes.CFUNCTYPE(ctypes.c_float, ctypes.c_void_p, ctypes.c_void_p)),
-				('cdll_maxIndex', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p)),
-				('cdll_print', ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_char_p)),
-				('cdll_printstr', ctypes.CFUNCTYPE(ctypes.POINTER(ctypes.c_char), ctypes.c_void_p, ctypes.c_char_p)),
-				('cdll_normalizeIMAGE', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)),
-				('cdll_extractVectorLabelClass', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)),
-				('cdll_Convolucao', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, P2d, P3d, Params, RDP)),
-				('cdll_ConvolucaoF', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, P2d, P3d, ctypes.c_void_p, Params, RDP)),
-				('cdll_ConvolucaoNC', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, P2d, P2d, P3d, ctypes.c_void_p, Params, RDP)),
-				('cdll_Pooling', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, P2d, P2d, ctypes.c_void_p)),
-				('cdll_Relu', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_float, ctypes.c_float)),
-				('cdll_PRelu', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, Params, RDP)),
-				('cdll_FullConnect', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_uint64, Params, ctypes.c_void_p, RDP, RDP)),
-				('cdll_Padding', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)),
-				('cdll_DropOut', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_float, ctypes.c_void_p)),
-				('cdll_SoftMax', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_int8)),
-				('cdll_BatchNorm', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_float, Params, RDP, RDP)),
-				('cdll_removeLastLayer', ctypes.CFUNCTYPE(None, ctypes.c_void_p))]
-
+			('entrada', ctypes.c_void_p),
+			('ds', ctypes.c_void_p),
+			('target', ctypes.c_void_p),
+			('l', ctypes.c_uint64),
+			('cm', ctypes.c_void_p),
+			('kernels', ctypes.c_void_p),
+			('LuaVm', ctypes.c_void_p),
+			('size_in', P3D),
+			('erro', ctypes.c_void_p),
+			('gpu', ctypes.c_void_p),
+			('release_gpu', ctypes.c_int8),
+			('queue', ctypes.c_void_p),
+			('cdll_releaseL', ctypes.CFUNCTYPE(None, ctypes.c_void_p)),
+			('cdll_setInput', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_uint64,ctypes.c_uint64,ctypes.c_uint64)),
+			('cdll_release', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p)),
+			('cdll_getSizeOut', ctypes.CFUNCTYPE(P3D, ctypes.c_void_p)),
+			('cdll_json', ctypes.CFUNCTYPE(ctypes.POINTER(ctypes.c_char), ctypes.c_void_p,ctypes.c_int32)),
+			('cdll_jsonF', ctypes.CFUNCTYPE(None, ctypes.c_void_p,ctypes.c_int32,ctypes.c_char_p)),
+			('cdll_save', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_char_p)),
+			('cdll_load', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_char_p)),
+			('cdll_predict', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p)),
+			('cdll_predictv', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p)),
+			('cdll_learn', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p)),
+			('cdll_learnv', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p)),
+			('cdll_mse', ctypes.CFUNCTYPE(ctypes.c_float, ctypes.c_void_p)),
+			('cdll_mseT', ctypes.CFUNCTYPE(ctypes.c_float, ctypes.c_void_p,ctypes.c_void_p)),
+			('cdll_maxIndex', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p)),
+			('cdll_print', ctypes.CFUNCTYPE(None, ctypes.c_void_p,ctypes.c_char_p)),
+			('cdll_printstr', ctypes.CFUNCTYPE(ctypes.POINTER(ctypes.c_char), ctypes.c_void_p,ctypes.c_char_p)),
+			('cdll_normalizeIMAGE', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p)),
+			('cdll_extractVectorLabelClass', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p)),
+			('cdll_Convolucao', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,P2D,P3D,Params,RDP)),
+			('cdll_ConvolucaoF', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,P2D,P3D,ctypes.c_void_p,Params,RDP)),
+			('cdll_ConvolucaoNC', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,P2D,P2D,P3D,ctypes.c_void_p,Params,RDP)),
+			('cdll_Pooling', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,P2D,P2D,ctypes.c_void_p)),
+			('cdll_Relu', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_float,ctypes.c_float)),
+			('cdll_PRelu', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,Params,RDP)),
+			('cdll_FullConnect', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_uint64,Params,ctypes.c_void_p,RDP,RDP)),
+			('cdll_Padding', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p)),
+			('cdll_DropOut', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_float,ctypes.c_void_p)),
+			('cdll_SoftMax', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_int8)),
+			('cdll_BatchNorm', ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p,ctypes.c_float,Params,RDP,RDP)),
+			('cdll_removeLastLayer', ctypes.CFUNCTYPE(None, ctypes.c_void_p))]
 	@property
 	def selfp(self):
-		return ctypes.cast(ctypes.addressof(self), ctypes.POINTER(Cnn_t))
+		return  ctypes.cast(ctypes.addressof(self),ctypes.POINTER(Cnn_t))
 
 	@property
 	def selfpp(self):
 		return ctypes.addressof(self.selfp)
 
-
-gab_dll = ctypes.CDLL(r"D:\Henrique\Rede-convolucional\Gab\bin\libgab_cnn.dll")
+gab_dll = ctypes.CDLL(r"C:\Users\hslhe\CLionProjects\Rede-convolucional\Gab\bin\libgab_library_cnn.dll")
 
 gab_dll.Cnn_new.restype = ctypes.POINTER(ctypes.c_void_p)
 
 gab_dll.gab_realloc.restype = ctypes.POINTER(ctypes.c_void_p)
-gab_dll.gab_realloc.argtypes = [ctypes.POINTER(ctypes.c_void_p), ctypes.c_uint64]
-
-
+gab_dll.gab_realloc.argtypes = [ctypes.POINTER(ctypes.c_void_p),ctypes.c_uint64]
 class Cnn(ctypes.c_void_p):
+
 	version: ctypes.c_char_p
 	entrada: ctypes.c_void_p
 	ds: ctypes.c_void_p
@@ -145,7 +140,7 @@ class Cnn(ctypes.c_void_p):
 	cm: ctypes.c_void_p
 	kernels: ctypes.c_void_p
 	LuaVm: ctypes.c_void_p
-	size_in: P3d
+	size_in: P3D
 	erro: ctypes.c_void_p
 	gpu: ctypes.c_void_p
 	release_gpu: ctypes.c_int8
@@ -171,6 +166,7 @@ class Cnn(ctypes.c_void_p):
 	def __del__(self):
 		self.cdll_release(self)
 		pass
+	
 
 	def releaseL(self, L) -> None:
 		rt_value = self.cdll_releaseL(L)
@@ -184,14 +180,14 @@ class Cnn(ctypes.c_void_p):
 		rt_value = self.cdll_release(self)
 		return rt_value
 
-	def getSizeOut(self, ) -> P3d:
+	def getSizeOut(self, ) -> P3D:
 		rt_value = self.cdll_getSizeOut(self)
 		return rt_value
 
 	def json(self, showValue) -> ctypes.POINTER(ctypes.c_char):
 		rt_value = self.cdll_json(self, showValue)
 		v = rt_value
-		rt_value = ctypes.cast(v, ctypes.c_char_p).value.decode('utf-8')
+		rt_value = ctypes.cast(v,ctypes.c_char_p).value.decode('utf-8')
 		gab_dll.gab_free(v)
 		return rt_value
 
@@ -242,7 +238,7 @@ class Cnn(ctypes.c_void_p):
 	def printstr(self, comment) -> ctypes.POINTER(ctypes.c_char):
 		rt_value = self.cdll_printstr(self, comment)
 		v = rt_value
-		rt_value = ctypes.cast(v, ctypes.c_char_p).value.decode('utf-8')
+		rt_value = ctypes.cast(v,ctypes.c_char_p).value.decode('utf-8')
 		gab_dll.gab_free(v)
 		return rt_value
 
@@ -302,8 +298,5 @@ class Cnn(ctypes.c_void_p):
 		rt_value = self.cdll_removeLastLayer(self)
 		return rt_value
 
-
-c = Cnn()
-c.setInput(28, 28, 1)
-c.ConvolucaoF(P2D(2, 2), P3D(2, 2, 5), 2, Params(1e-3), RDP(0))
-print(c.printstr(None))
+a = Cnn()
+a.print(None)

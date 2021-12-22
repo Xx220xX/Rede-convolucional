@@ -11,4 +11,6 @@
 #define FALAN 8
 #define FLAGDIF 1
 
+#define CHECK_F_ATIVACAO(f)((f)==FALAN)||((f)==FLIN)||((f)==FRELU)||((f)==FTANH)||((f)==FSIGMOID)
+
 #endif //CNN_GPU_FUNCOESDEATIVACAO_H

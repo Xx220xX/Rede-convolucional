@@ -248,6 +248,7 @@ static int l_ConvolucaoF(lua_State *L) {
 						  " ConvolucaoF(step,filter,ativacao,Params,RDP)\n"
 			);
 	}
+	checkLua(CHECK_F_ATIVACAO(fativacao), "FUNCAO DE ATIVACAO INVALIDA");
 
 	if (c->ConvolucaoF(c, p, f, fativacao, prm, rdp)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
@@ -302,6 +303,7 @@ static int l_ConvolucaoNC(lua_State *L) {
 			);
 
 	}
+	checkLua(CHECK_F_ATIVACAO(fativacao), "FUNCAO DE ATIVACAO INVALIDA");
 	if (c->ConvolucaoNC(c, p, a, f, fativacao, prm, rdp)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada ConvolucaoNC:  %d %s", c->erro->error, msg);
@@ -508,15 +510,15 @@ static int l_FullConnect(lua_State *L) {
 			return 0;
 	}
 
-	checkLua(func == FTANH || func == FSIGMOID || func == FRELU, "FUNCAO DE ATIVACAO INVALIDA");
+
+	checkLua(CHECK_F_ATIVACAO(func), "FUNCAO DE ATIVACAO INVALIDA");
 	if (c->FullConnect(c, neuros, prm, func, rdpw, rdpb)) {
 		char *msg = c->gpu->errorMsg(c->erro->error);
 		luaL_error(L, "falha ao adicionar camada FullConnect:  %d %s", c->erro->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
-
-}
+ }
 
 static int l_BatchNorm(lua_State *L) {
 	int nArgs = lua_gettop(L);
@@ -733,7 +735,7 @@ static struct {
 		{l_FullConnect,        "FullConnect"},
 		{l_BatchNorm,          "BatchNorm"},
 		{l_SoftMax,            "SoftMax"},
-		{NULL,}
+		{NULL,NULL}
 };
 static struct {
 	uint32_t v;
@@ -822,7 +824,6 @@ int CnnLuaLoadString(Cnn c, const char *lua_program) {
 	if (!c)return 10;
 	if (!c->LuaVm)CnnInitLuaVm(c);
 	int error = luaL_dostring(c->LuaVm, lua_program);
-
 	if (error) {
 		fflush(stdout);
 		fprintf(stderr, "\nError: %d %d %s\n", lua_gettop(c->LuaVm), error, lua_tostring(c->LuaVm, -1));

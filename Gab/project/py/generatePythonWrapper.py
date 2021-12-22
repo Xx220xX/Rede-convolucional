@@ -122,7 +122,7 @@ _MTYPES_ = {
 	'int': 'ctypes.c_int32',
 	'REAL': 'ctypes.c_float',
 	'void': 'None',
-	'P3d': 'P3d',
+	'P3d': 'P3D',
 	'Parametros': 'Params',
 	'const P3d': 'P3D',
 	'P2d': 'P2D',
