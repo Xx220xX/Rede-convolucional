@@ -17,77 +17,12 @@
 #define CHECKDIN(input, filtro, abertura, passo) \
     (((((input-1) - (filtro - 1) * abertura) / passo +1)>0) && \
     (((((input-1) - (filtro - 1) * abertura) / passo)*passo + (filtro-1)*abertura) == (input-1)))
-const char *versao = "3.0.0";
+const char *versao = "3.0.0002";
 
-int Cnn_release(Cnn *selfp);
-
-void internal_Cnn_getKernels(Cnn self);
-
-int internal_Cnn_addlayer(Cnn self, Camada newLayer);
-
-Tensor internal_Cnn_getEntrada(Cnn self);
-
-
-P3d Cnn_getSizeOut(Cnn self);
-
-void Cnn_removeLastLayer(Cnn self);
-
-int Cnn_predict(Cnn self, Tensor entrada);
-
-int Cnn_predictv(Cnn self, REAL *entrada);
-
-int Cnn_learn(Cnn self, Tensor target);
-
-int Cnn_learnv(Cnn self, REAL *target);
-
-REAL Cnn_mse(Cnn self);
-
-REAL Cnn_mseT(Cnn self, Tensor target);
-
-int Cnn_maxIndex(Cnn self);
-
-int Cnn_normalizeIMAGE(Cnn self, Tensor dst, Tensor src);
-
-int Cnn_extractVectorLabelClass(Cnn self, Tensor dst, Tensor label);
-
-char *Cnn_json(Cnn self, int showValues);
-
-void Cnn_jsonF(Cnn self, int showValues, const char *filename);
-
-int Cnn_setInput(Cnn self, size_t x, size_t y, size_t z);
-
-int Cnn_save(Cnn self, const char *filename);
-
-int Cnn_load(Cnn self, const char *filename);
-
-void Cnn_print(Cnn self, const char *comment);
-
-char *Cnn_printstr(Cnn self, const char *comment);
 
 //#####################################################################################
 //							FUNÇÕES PARA ADICIONA CAMADAS
 //#####################################################################################
-int Cnn_Convolucao(Cnn self, P2d passo, P3d filtro, Parametros p, RandomParams filtros);
-
-int Cnn_ConvolucaoF(Cnn self, P2d passo, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros);
-
-int Cnn_ConvolucaoNC(Cnn self, P2d passo, P2d abertura, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros);
-
-int Cnn_Pooling(Cnn self, P2d passo, P2d filtro, uint32_t type);
-
-int Cnn_Relu(Cnn self, REAL fator_menor0, REAL fator_maior0);
-
-int Cnn_PRelu(Cnn self, Parametros params, RandomParams rdp_a);
-
-int Cnn_FullConnect(Cnn self, size_t numero_neuronios, Parametros p, uint32_t funcaoAtivacao, RandomParams rdp_pesos, RandomParams rdp_bias);
-
-int Cnn_Padding(Cnn self, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right);
-
-int Cnn_DropOut(Cnn self, REAL probabilidadeSaida, cl_ulong seed);
-
-int Cnn_SoftMax(Cnn self, int8_t flag);
-
-int Cnn_BatchNorm(Cnn self, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB);
 
 
 
@@ -103,64 +38,16 @@ const char *Cnn_version() {
 	return versao;
 }
 
-Cnn Cnn_new() {
-	Cnn self = gab_alloc(1, sizeof(Cnn_t));
-	self->erro = Ecx_new(0);
-	memcpy(&self->version, &versao, sizeof(char *));
-
-	self->gpu = Gpu_new();
-	self->erro->error = self->gpu->compileProgram(self->gpu, (char *) KERNEL_LIB_get_defaultKernel());
-	self->release_gpu = 1;
-
-	self->queue = self->gpu->Queue_new(self->gpu, self->erro->perro);
-	internal_Cnn_getKernels(self);
-	methods:
-	self->Convolucao = Cnn_Convolucao;
-	self->ConvolucaoF = Cnn_ConvolucaoF;
-	self->ConvolucaoNC = Cnn_ConvolucaoNC;
-	self->Pooling = Cnn_Pooling;
-	self->Relu = Cnn_Relu;
-	self->PRelu = Cnn_PRelu;
-	self->FullConnect = Cnn_FullConnect;
-	self->Padding = Cnn_Padding;
-	self->DropOut = Cnn_DropOut;
-	self->SoftMax = Cnn_SoftMax;
-	self->BatchNorm = Cnn_BatchNorm;
-
-	self->print = Cnn_print;
-	self->printstr = Cnn_printstr;
-	self->load = Cnn_load;
-	self->save = Cnn_save;
-	self->predict = Cnn_predict;
-	self->predictv = Cnn_predictv;
-	self->learn = Cnn_learn;
-	self->learnv = Cnn_learnv;
-	self->mse = Cnn_mse;
-	self->mseT = Cnn_mseT;
-	self->maxIndex = Cnn_maxIndex;
-	self->normalizeIMAGE = Cnn_normalizeIMAGE;
-	self->extractVectorLabelClass = Cnn_extractVectorLabelClass;
-	self->json = Cnn_json;
-	self->jsonF = Cnn_jsonF;
-	self->setInput = Cnn_setInput;
-
-	self->removeLastLayer = Cnn_removeLastLayer;
-	self->getSizeOut = Cnn_getSizeOut;
-	self->release = Cnn_release;
-
-	return self;
-}
-
 int Cnn_release(Cnn *selfp) {
 	if (!selfp) { return 10; }
 	if (!(*selfp)) { return 10; }
-	(*selfp)->erro->print((*selfp)->erro);
-	if ((*selfp)->erro->error) {
-		char *tmp = Gpu_errormsg((*selfp)->erro->error);
+	(*selfp)->ecx->print((*selfp)->ecx);
+	if ((*selfp)->ecx->error) {
+		char *tmp = Gpu_errormsg((*selfp)->ecx->error);
 		fprintf(stderr, "%s\n", tmp);
 		gab_free(tmp);
 	}
-	int erro = (*selfp)->erro->error;
+	int erro = (*selfp)->ecx->error;
 	for (int l = 0; l < (*selfp)->l; ++l) {
 		(*selfp)->cm[l]->release(&(*selfp)->cm[l]);
 	}
@@ -188,11 +75,11 @@ int Cnn_release(Cnn *selfp) {
 void internal_Cnn_getKernels(Cnn self) {
 	Kernel sub = Kernel_news(self->gpu->program, "kernel_sub", "Vector ds, Vector s, Vector t, int k0");
 	Kernel normalizechar2real = Kernel_news(self->gpu->program, "kernel_normalizechar2real", "Vector dst, __global char *src, REAL a, REAL b, int k0");
-	self->erro->setError(self->erro, normalizechar2real->error);
+	self->ecx->setError(self->ecx, normalizechar2real->error);
 	Kernel getVetorClassFromChar = Kernel_news(self->gpu->program, "kernel_getVetorClassFromChar", " Vector dst, __global unsigned char *ints,unsigned int noptiobs, int k0");
-	self->erro->setError(self->erro, normalizechar2real->error);
+	self->ecx->setError(self->ecx, normalizechar2real->error);
 	Kernel *allkernels = gab_alloc(NKERNELS, sizeof(Kernel));
-	self->erro->setError(self->erro, normalizechar2real->error);
+	self->ecx->setError(self->ecx, normalizechar2real->error);
 
 	allkernels[CNN_KERNEL_SUB] = sub;
 	allkernels[CNN_KERNEL_NORMALIZE_CHAR_2_REAL] = normalizechar2real;
@@ -201,9 +88,9 @@ void internal_Cnn_getKernels(Cnn self) {
 }
 
 int internal_Cnn_addlayer(Cnn self, Camada newLayer) {
-	if (self->erro->error) {
+	if (self->ecx->error) {
 		newLayer->release(newLayer);
-		return self->erro->error;
+		return self->ecx->error;
 	}
 	self->l = self->l + 1;
 	self->cm = realloc(self->cm, self->l * sizeof(Camada));
@@ -211,9 +98,9 @@ int internal_Cnn_addlayer(Cnn self, Camada newLayer) {
 	Release(self->target);
 	Release(self->ds);
 	P3d size_out = newLayer->getOutSize(newLayer);
-	self->target = Tensor_new(size_out.x, size_out.y, size_out.z, 1, self->erro, 0, self->gpu->context, self->queue);
-	self->ds = Tensor_new(size_out.x, size_out.y, size_out.z, 1, self->erro, 0, self->gpu->context, self->queue);
-	return self->erro->error;
+	self->target = Tensor_new(size_out.x, size_out.y, size_out.z, 1, self->ecx, 0, self->gpu->context, self->queue);
+	self->ds = Tensor_new(size_out.x, size_out.y, size_out.z, 1, self->ecx, 0, self->gpu->context, self->queue);
+	return self->ecx->error;
 }
 
 Tensor internal_Cnn_getEntrada(Cnn self) {
@@ -242,59 +129,63 @@ void Cnn_removeLastLayer(Cnn self) {
 	Release(self->target);
 	Release(self->ds);
 	P3d size_out = self->getSizeOut(self);
-	self->target = Tensor_new(size_out.x, size_out.y, size_out.z, 1, self->erro, 0, self->gpu->context, self->queue);
-	self->ds = Tensor_new(size_out.x, size_out.y, size_out.z, 1, self->erro, 0, self->gpu->context, self->queue);
+	self->target = Tensor_new(size_out.x, size_out.y, size_out.z, 1, self->ecx, 0, self->gpu->context, self->queue);
+	self->ds = Tensor_new(size_out.x, size_out.y, size_out.z, 1, self->ecx, 0, self->gpu->context, self->queue);
 }
 
-int Cnn_predict(Cnn self, Tensor entrada) {
-	if (!self->l) { self->erro->error = GAB_CNN_NOT_INITIALIZED; }
-	if (self->erro->error) { return self->erro->error; }
-	if (entrada->flag.ram || entrada->flag.shared) {
-		return Cnn_predictv(self, entrada->data);
-	}
-	self->cm[0]->a = entrada;
-	for (int l = 0; l < self->l && !self->erro->error; ++l) {
-		self->cm[l]->propagation(self->cm[l]);
-	}
-	return self->erro->error;
+int Cnn_learn(Cnn self, Tensor target);
+
+int Cnn_predict(Cnn self, Tensor entrada);
+
+int Cnn_learnv(Cnn self, REAL *target) {
+	if (!target) { self->ecx->error = GAB_NULL_POINTER_ERROR; }
+	if (!self->l) { self->ecx->error = GAB_CNN_NOT_INITIALIZED; }
+	if (self->ecx->error) { return self->ecx->error; }
+	self->target->setvalues(self->target, target);
+	return Cnn_learn(self, self->target);
 }
 
 int Cnn_predictv(Cnn self, REAL *entrada) {
-	if (!entrada) { self->erro->error = GAB_NULL_POINTER_ERROR; }
-	if (!self->l) { self->erro->error = GAB_CNN_NOT_INITIALIZED; }
-	if (self->erro->error) { return self->erro->error; }
+	if (!entrada) { self->ecx->error = GAB_NULL_POINTER_ERROR; }
+	if (!self->l) { self->ecx->error = GAB_CNN_NOT_INITIALIZED; }
+	if (self->ecx->error) { return self->ecx->error; }
 	self->entrada->setvalues(self->entrada, entrada);
 	return Cnn_predict(self, self->entrada);
 
 }
 
-
 int Cnn_learn(Cnn self, Tensor target) {
-	if (!self->l) { self->erro->error = GAB_CNN_NOT_INITIALIZED; }
-	if (self->erro->error) { return self->erro->error; }
+	if (!self->l) { self->ecx->error = GAB_CNN_NOT_INITIALIZED; }
+	if (self->ecx->error) { return self->ecx->error; }
 	if (target->flag.ram || target->flag.shared) {
 		return Cnn_learnv(self, target->data);
 	}
 	Kernel sub = ((Kernel *) self->kernels)[CNN_KERNEL_SUB];
 	sub->runRecursive(sub, self->queue, self->ds->length, self->gpu->maxworks, &self->ds->data, &self->cm[self->l - 1]->s->data, &target->data);
 	Tensor ds = self->ds;
-	for (int l = self->l - 1; l >= 0 && !self->erro->error; l--) {
+	for (int l = self->l - 1; l >= 0 && !self->ecx->error; l--) {
 		self->cm[l]->retroPropagation(self->cm[l], ds);
 		ds = self->cm[l]->da;
 	}
-	return self->erro->error;
+	return self->ecx->error;
 }
 
-int Cnn_learnv(Cnn self, REAL *target) {
-	if (!target) { self->erro->error = GAB_NULL_POINTER_ERROR; }
-	if (!self->l) { self->erro->error = GAB_CNN_NOT_INITIALIZED; }
-	if (self->erro->error) { return self->erro->error; }
-	self->target->setvalues(self->entrada, target);
-	return Cnn_learn(self, self->target);
+
+int Cnn_predict(Cnn self, Tensor entrada) {
+	if (!self->l) { self->ecx->error = GAB_CNN_NOT_INITIALIZED; }
+	if (self->ecx->error) { return self->ecx->error; }
+	if (entrada->flag.ram || entrada->flag.shared) {
+		return Cnn_predictv(self, entrada->data);
+	}
+	self->cm[0]->a = entrada;
+	for (int l = 0; l < self->l && !self->ecx->error; ++l) {
+		self->cm[l]->propagation(self->cm[l]);
+	}
+	return self->ecx->error;
 }
 
 REAL Cnn_mse(Cnn self) {
-	if (self->erro->error) { return NAN; }
+	if (self->ecx->error) { return NAN; }
 	if (self->l <= 0) { return NAN; }
 	REAL mse = 0;
 	REAL *data = self->ds->getvalues(self->ds, NULL);
@@ -335,14 +226,14 @@ int Cnn_maxIndex(Cnn self) {
 }
 
 int Cnn_normalizeIMAGE(Cnn self, Tensor dst, Tensor src) {
-	if (self->erro->error) { return self->erro->error; }
+	if (self->ecx->error) { return self->ecx->error; }
 	REAL maximo = 255.0;
 	REAL minimo = 0;
 
 	Kernel normalizeChar2Real = ((Kernel *) self->kernels)[CNN_KERNEL_NORMALIZE_CHAR_2_REAL];
-	self->erro->error = normalizeChar2Real->runRecursive(normalizeChar2Real, self->queue, src->length, self->gpu->maxworks, &dst->data, &src->data, &maximo, &minimo);
+	self->ecx->error = normalizeChar2Real->runRecursive(normalizeChar2Real, self->queue, src->length, self->gpu->maxworks, &dst->data, &src->data, &maximo, &minimo);
 	clFinish(self->queue);
-	return self->erro->error;
+	return self->ecx->error;
 }
 
 char *Cnn_json(Cnn self, int showValues) {
@@ -371,11 +262,11 @@ char *Cnn_json(Cnn self, int showValues) {
 }
 
 int Cnn_extractVectorLabelClass(Cnn self, Tensor dst, Tensor label) {
-	if (self->erro->error) { return self->erro->error; }
+	if (self->ecx->error) { return self->ecx->error; }
 	dst->fill(dst, 0);
 	Kernel extract = ((Kernel *) self->kernels)[CNN_KERNEL_EXTRACT_VECTOR_CLASS_FROM_CHAR];
-	self->erro->error = extract->runRecursive(extract, self->queue, dst->w, self->gpu->maxworks, &dst->data, &label->data, &dst->y);
-	return self->erro->error;
+	self->ecx->error = extract->runRecursive(extract, self->queue, dst->w, self->gpu->maxworks, &dst->data, &label->data, &dst->y);
+	return self->ecx->error;
 }
 
 int Cnn_setInput(Cnn self, size_t x, size_t y, size_t z) {
@@ -383,7 +274,7 @@ int Cnn_setInput(Cnn self, size_t x, size_t y, size_t z) {
 	P3d size_in = P3D(x, y, z);
 	memcpy((void *) &self->size_in, &size_in, sizeof(P3d));
 	Release(self->entrada);
-	self->entrada = Tensor_new(size_in.x, size_in.y, size_in.z, 1, self->erro, 0, self->gpu->context, self->queue);
+	self->entrada = Tensor_new(size_in.x, size_in.y, size_in.z, 1, self->ecx, 0, self->gpu->context, self->queue);
 	return 0;
 }
 
@@ -396,15 +287,15 @@ void Cnn_jsonF(Cnn self, int showValues, const char *filename) {
 }
 
 int Cnn_save(Cnn self, const char *filename) {
-	if (self->erro->error) { return self->erro->error; }
+	if (self->ecx->error) { return self->ecx->error; }
 	FILE *f = fopen(filename, "wb");
 	fwrite(&self->size_in, sizeof(P3d), 1, f);
 	fwrite(&self->l, sizeof(size_t), 1, f);
-	for (int i = 0; i < self->l && !self->erro->error; ++i) {
+	for (int i = 0; i < self->l && !self->ecx->error; ++i) {
 		self->cm[i]->save(self->cm[i], f);
 	}
 	fclose(f);
-	return self->erro->error;
+	return self->ecx->error;
 }
 
 int Cnn_load(Cnn self, const char *filename) {
@@ -422,71 +313,76 @@ int Cnn_load(Cnn self, const char *filename) {
 		sizeoutcnn = self->getSizeOut(self);
 		switch (layerid) {
 			case CONVOLUCAO_ID:
-				c = CamadaConv_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaConv_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case CONVOLUCAOF_ID:
-				c = CamadaConvF_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaConvF_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case CONVOLUCAONC_ID:
-				c = CamadaConvNC_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaConvNC_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case POOL_ID:
-				c = CamadaPool_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaPool_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case FULLCONNECT_ID:
-				c = CamadaFullConnect_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaFullConnect_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case PADDING_ID:
-				c = CamadaPadding_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaPadding_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case DROPOUT_ID:
-				c = CamadaDropOut_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaDropOut_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case RELU_ID:
-				c = CamadaRelu_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaRelu_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case PRELU_ID:
-				c = CamadaPRelu_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaPRelu_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case SOFTMAX_ID:
-				c = CamadaSoftMax_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaSoftMax_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case BATCHNORM_ID:
-				c = CamadaBatchNorm_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->erro);
+				c = CamadaBatchNorm_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			default:
 				c = NULL;
 		}
 
 		if (c == NULL) {
-			self->erro->setError(self->erro, 46);
+			self->ecx->setError(self->ecx, 46);
 			break;
 		}
 		sizeinlayer = c->size_in;
 		if (sizeinlayer.x != sizeoutcnn.x || sizeinlayer.y != sizeoutcnn.y || sizeinlayer.z != sizeoutcnn.z) {
-			self->erro->setError(self->erro, 47);
+			self->ecx->setError(self->ecx, 47);
 			break;
 		}
 		internal_Cnn_addlayer(self, c);
 	}
 
 	fclose(f);
-	return self->erro->error;
+	return self->ecx->error;
 }
 
-void Cnn_print(Cnn self, const char *comment) {
+void Cnn_fprint(Cnn self, FILE *f, const char *comment) {
 	char *tmp;
 	if (comment == NULL) {
 		comment = "//";
 	}
 	P3d out = self->size_in;
-	printf("Entrada(%zu,%zu,%zu)\n", out.x, out.y, out.z);
+	fprintf(f, "Entrada(%zu,%zu,%zu)\n", out.x, out.y, out.z);
 	for (int i = 0; i < self->l; ++i) {
 		tmp = self->cm[i]->getGenerate(self->cm[i]);
 		out = self->cm[i]->getOutSize(self->cm[i]);
-		printf("%s %s saida [%zu,%zu,%zu]\n", tmp, comment, out.x, out.y, out.z);
+		fprintf(f, "%s %s saida [%zu,%zu,%zu]\n", tmp, comment, out.x, out.y, out.z);
 		gab_free(tmp);
 	}
+}
+
+
+void Cnn_print(Cnn self, const char *comment) {
+	Cnn_fprint(self, stdout, comment);
 }
 
 char *Cnn_printstr(Cnn self, const char *comment) {
@@ -524,7 +420,7 @@ int Cnn_Convolucao(Cnn self, P2d passo, P3d filtro, Parametros p, RandomParams f
 		fprintf(stderr, "Convolucao:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n", size_in.x, size_in.y, size_in.z, (size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1, (size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1, size_in.z);
 		return 25;
 	}
-	Camada c = CamadaConv_new(self->gpu, self->queue, passo, filtro, size_in, internal_Cnn_getEntrada(self), p, self->erro, filtros);
+	Camada c = CamadaConv_new(self->gpu, self->queue, passo, filtro, size_in, internal_Cnn_getEntrada(self), p, self->ecx, filtros);
 	return internal_Cnn_addlayer(self, c);
 }
 
@@ -534,7 +430,7 @@ int Cnn_ConvolucaoF(Cnn self, P2d passo, P3d filtro, uint32_t funcaoAtivacao, Pa
 		fprintf(stderr, "ConvolucaoF:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n", size_in.x, size_in.y, size_in.z, (size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1, (size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1, size_in.z);
 		return GAB_INVALID_PARAM;
 	}
-	Camada c = CamadaConvF_new(self->gpu, self->queue, passo, filtro, size_in, funcaoAtivacao, internal_Cnn_getEntrada(self), p, self->erro, filtros);
+	Camada c = CamadaConvF_new(self->gpu, self->queue, passo, filtro, size_in, funcaoAtivacao, internal_Cnn_getEntrada(self), p, self->ecx, filtros);
 
 	return internal_Cnn_addlayer(self, c);
 }
@@ -545,7 +441,7 @@ int Cnn_ConvolucaoNC(Cnn self, P2d passo, P2d abertura, P3d filtro, uint32_t fun
 		fprintf(stderr, "ConvolucaoNC:Invalid params\nsize in : %zu %zu %zu\nsize out : %zu %zu %zu\n", size_in.x, size_in.y, size_in.z, (size_in.x - 1 - (filtro.x - 1) * abertura.x) / passo.x + 1, (size_in.y - 1 - (filtro.y - 1) * abertura.y) / passo.y + 1, size_in.z);
 		return GAB_INVALID_PARAM;
 	}
-	Camada c = CamadaConvNC_new(self->gpu, self->queue, passo, abertura, filtro, size_in, funcaoAtivacao, internal_Cnn_getEntrada(self), p, self->erro, filtros);
+	Camada c = CamadaConvNC_new(self->gpu, self->queue, passo, abertura, filtro, size_in, funcaoAtivacao, internal_Cnn_getEntrada(self), p, self->ecx, filtros);
 	return internal_Cnn_addlayer(self, c);
 }
 
@@ -555,43 +451,91 @@ int Cnn_Pooling(Cnn self, P2d passo, P2d filtro, uint32_t type) {
 		fprintf(stderr, "Pooling:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n", size_in.x, size_in.y, size_in.z, (size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1, (size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1, size_in.z);
 		return GAB_INVALID_PARAM;
 	}
-	Camada c = CamadaPool_new(self->gpu, self->queue, passo, filtro, size_in, type, internal_Cnn_getEntrada(self), self->erro);
+	Camada c = CamadaPool_new(self->gpu, self->queue, passo, filtro, size_in, type, internal_Cnn_getEntrada(self), self->ecx);
 	return internal_Cnn_addlayer(self, c);
 }
 
 int Cnn_Relu(Cnn self, REAL fator_menor0, REAL fator_maior0) {
-	Camada c = CamadaRelu_new(self->gpu, self->queue, self->getSizeOut(self), fator_menor0, fator_maior0, internal_Cnn_getEntrada(self), self->erro);
+	Camada c = CamadaRelu_new(self->gpu, self->queue, self->getSizeOut(self), fator_menor0, fator_maior0, internal_Cnn_getEntrada(self), self->ecx);
 	return internal_Cnn_addlayer(self, c);
 }
 
 int Cnn_PRelu(Cnn self, Parametros params, RandomParams rdp_a) {
-	Camada c = CamadaPRelu_new(self->gpu, self->queue, self->getSizeOut(self), internal_Cnn_getEntrada(self), params, rdp_a, self->erro);
+	Camada c = CamadaPRelu_new(self->gpu, self->queue, self->getSizeOut(self), internal_Cnn_getEntrada(self), params, rdp_a, self->ecx);
 	return internal_Cnn_addlayer(self, c);
 }
 
 int Cnn_FullConnect(Cnn self, size_t numero_neuronios, Parametros p, uint32_t funcaoAtivacao, RandomParams rdp_pesos, RandomParams rdp_bias) {
-	Camada c = CamadaFullConnect_new(self->gpu, self->queue, self->getSizeOut(self), numero_neuronios, internal_Cnn_getEntrada(self), p, funcaoAtivacao, self->erro, rdp_pesos, rdp_bias);
+	Camada c = CamadaFullConnect_new(self->gpu, self->queue, self->getSizeOut(self), numero_neuronios, internal_Cnn_getEntrada(self), p, funcaoAtivacao, self->ecx, rdp_pesos, rdp_bias);
 	return internal_Cnn_addlayer(self, c);
 }
 
 int Cnn_Padding(Cnn self, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right) {
-	Camada c = CamadaPadding_new(self->gpu, self->queue, self->getSizeOut(self), top, bottom, left, right, internal_Cnn_getEntrada(self), self->erro);
+	Camada c = CamadaPadding_new(self->gpu, self->queue, self->getSizeOut(self), top, bottom, left, right, internal_Cnn_getEntrada(self), self->ecx);
 	return internal_Cnn_addlayer(self, c);
 }
 
 int Cnn_DropOut(Cnn self, REAL probabilidadeSaida, cl_ulong seed) {
-	Camada c = CamadaDropOut_new(self->gpu, self->queue, self->getSizeOut(self), probabilidadeSaida, seed, internal_Cnn_getEntrada(self), self->erro);
+	Camada c = CamadaDropOut_new(self->gpu, self->queue, self->getSizeOut(self), probabilidadeSaida, seed, internal_Cnn_getEntrada(self), self->ecx);
 	return internal_Cnn_addlayer(self, c);
 }
 
 int Cnn_SoftMax(Cnn self, int8_t flag) {
-	Camada c = CamadaSoftMax_new(self->gpu, self->queue, flag, self->getSizeOut(self), internal_Cnn_getEntrada(self), self->erro);
+	Camada c = CamadaSoftMax_new(self->gpu, self->queue, flag, self->getSizeOut(self), internal_Cnn_getEntrada(self), self->ecx);
 	return internal_Cnn_addlayer(self, c);
 }
 
 int Cnn_BatchNorm(Cnn self, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB) {
-	Camada c = CamadaBatchNorm_new(self->gpu, self->queue, p, self->getSizeOut(self), internal_Cnn_getEntrada(self), epsilon, self->erro, randY, randB);
+	Camada c = CamadaBatchNorm_new(self->gpu, self->queue, p, self->getSizeOut(self), internal_Cnn_getEntrada(self), epsilon, self->ecx, randY, randB);
 	return internal_Cnn_addlayer(self, c);
 }
 
 
+Cnn Cnn_new() {
+	Cnn self = gab_alloc(1, sizeof(Cnn_t));
+	self->ecx = Ecx_new(0);
+	memcpy(&self->version, &versao, sizeof(char *));
+
+	self->gpu = Gpu_new();
+	self->ecx->error = self->gpu->compileProgram(self->gpu, (char *) KERNEL_LIB_get_defaultKernel());
+	self->release_gpu = 1;
+
+	self->queue = self->gpu->Queue_new(self->gpu, self->ecx->perro);
+	internal_Cnn_getKernels(self);
+	methods:
+	self->Convolucao = Cnn_Convolucao;
+	self->ConvolucaoF = Cnn_ConvolucaoF;
+	self->ConvolucaoNC = Cnn_ConvolucaoNC;
+	self->Pooling = Cnn_Pooling;
+	self->Relu = Cnn_Relu;
+	self->PRelu = Cnn_PRelu;
+	self->FullConnect = Cnn_FullConnect;
+	self->Padding = Cnn_Padding;
+	self->DropOut = Cnn_DropOut;
+	self->SoftMax = Cnn_SoftMax;
+	self->BatchNorm = Cnn_BatchNorm;
+
+	self->print = Cnn_print;
+	self->fprint = Cnn_fprint;
+	self->printstr = Cnn_printstr;
+	self->load = Cnn_load;
+	self->save = Cnn_save;
+	self->predict = Cnn_predict;
+	self->predictv = Cnn_predictv;
+	self->learn = Cnn_learn;
+	self->learnv = Cnn_learnv;
+	self->mse = Cnn_mse;
+	self->mseT = Cnn_mseT;
+	self->maxIndex = Cnn_maxIndex;
+	self->normalizeIMAGE = Cnn_normalizeIMAGE;
+	self->extractVectorLabelClass = Cnn_extractVectorLabelClass;
+	self->json = Cnn_json;
+	self->jsonF = Cnn_jsonF;
+	self->setInput = Cnn_setInput;
+
+	self->removeLastLayer = Cnn_removeLastLayer;
+	self->getSizeOut = Cnn_getSizeOut;
+	self->release = Cnn_release;
+
+	return self;
+}

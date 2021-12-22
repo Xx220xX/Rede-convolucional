@@ -427,6 +427,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				if (GUI.can_run && GUI.force_end) {
 					*GUI.can_run = 0;
 					*GUI.force_end = 1;
+					return 0;
 				}
 				break;
 			}
@@ -567,10 +568,16 @@ int CaptureAnImage() {
 	SetStretchBltMode(hdcWindow, HALFTONE);
 
 	// The source DC is the entire screen, and the destination DC is the current window (HWND).
-	if (!StretchBlt(hdcWindow, 0, 0, rcClient.right, rcClient.bottom, hdcScreen, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SRCCOPY)) {
+	RECT myrec;
+	GetWindowRect(hWnd,&myrec);
+	if (!StretchBlt(hdcWindow, 0, 0, rcClient.right, rcClient.bottom, hdcScreen, myrec.left, myrec.top, myrec.right,myrec.bottom,SRCCOPY)) {
 		MessageBoxW(hWnd, L"StretchBlt has failed", L"Failed", MB_OK);
 		goto done;
 	}
+//	if (!StretchBlt(hdcWindow, 0, 0, rcClient.right, rcClient.bottom, hdcScreen, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SRCCOPY)) {
+//		MessageBoxW(hWnd, L"StretchBlt has failed", L"Failed", MB_OK);
+//		goto done;
+//	}
 
 	// Create a compatible bitmap from the Window DC.
 	hbmScreen = CreateCompatibleBitmap(hdcWindow, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);

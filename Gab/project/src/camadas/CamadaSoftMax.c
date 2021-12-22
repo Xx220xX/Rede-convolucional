@@ -27,32 +27,17 @@ int CamadaSoftMax_propagation(CamadaSoftMax self) {
 
 	if ((self->flag & 0b10) == SOFTNORM) { // é normalizado
 		// encontrar o maximo da entrada
-		Execute(softmaxFindMax, self->super.s->z,
-				&self->super.a->data, &self->maximos->data,
-				&self->indice_maximos->data, &self->super.a->x, &self->super.a->y
-		);
+		Execute(softmaxFindMax, self->super.s->z, &self->super.a->data, &self->maximos->data, &self->indice_maximos->data, &self->super.a->x, &self->super.a->y);
 		//calcular exponencial normalizada
-		Execute(softmaxExp, self->super.s->length,
-				&self->super.a->data, &self->exponent->data,
-				&self->maximos->data, &self->super.a->x, &self->super.a->y
-		);
+		Execute(softmaxExp, self->super.s->length, &self->super.a->data, &self->exponent->data, &self->maximos->data, &self->super.a->x, &self->super.a->y);
 	} else {// não é normalizado
 		// faz a exponencial da entrada
-		Execute(softmaxExp, self->super.s->length,
-				&self->super.a->data, &self->exponent->data
-		);
+		Execute(softmaxExp, self->super.s->length, &self->super.a->data, &self->exponent->data);
 	}
 	// soma as exponenciais
-	Execute(softmaxSomaExp, self->super.s->z,
-			&self->exponent->data, &self->soma->data,
-			&self->super.s->x, &self->super.s->y
-	);
+	Execute(softmaxSomaExp, self->super.s->z, &self->exponent->data, &self->soma->data, &self->super.s->x, &self->super.s->y);
 	// divide as exponenciais e armazena na saída
-	Execute(softmaxNormaliza, self->super.s->length,
-			&self->exponent->data, &self->soma->data,
-			&self->super.s->data,
-			&self->super.s->x, &self->super.s->y
-	);
+	Execute(softmaxNormaliza, self->super.s->length, &self->exponent->data, &self->soma->data, &self->super.s->data, &self->super.s->x, &self->super.s->y);
 	return self->super.ecx->error;
 }
 
@@ -66,10 +51,7 @@ int CamadaSoftMax_backpropagation(CamadaSoftMax self, Tensor ds) {
 		// ds vai ser escrito
 		// se não for normalizado ds e da são os mesmos
 		// calcula a derivada da camada usando o jacobiano
-		Execute(softMaxcalcgrad, self->super.da->length,
-				&ds, &self->super.s->data,
-				&ds->data, &self->super.s->x, &self->super.s->y
-		);
+		Execute(softMaxcalcgrad, self->super.da->length, &ds, &self->super.s->data, &ds->data, &self->super.s->x, &self->super.s->y);
 	}
 
 	return self->super.ecx->error;
@@ -79,10 +61,8 @@ char *CamadaSoftMax_json(CamadaSoftMax self, int showValues) {
 	char *string = NULL;
 	int len = 0;
 	char *tmp = internal_json((Camada) self, showValues);
-	apendstr(string, len,
-			 "{"
-					 PAD"%s",
-			 tmp);
+	apendstr(string, len, "{"
+			PAD"%s", tmp);
 	gab_free(tmp);
 	apendTensor("exponencial", exponent, string, len, tmp, showValues);
 	apendTensor("soma", soma, string, len, tmp, showValues);
@@ -94,10 +74,7 @@ char *CamadaSoftMax_json(CamadaSoftMax self, int showValues) {
 char *CamadaSoftMax_getGenerate(CamadaSoftMax self) {
 	char *string = NULL;
 	int len = 0;
-	apendstr(string, len,
-			 "%s (%d)",
-			 lname, (int) self->flag
-	);
+	apendstr(string, len, "%s (%s)", lname, self->flag == SOFTNORM ? "SOFTNORM" : (self->flag == SOFTLAST ? "SOFTLAST" : (self->flag == (SOFTLAST | SOFTNORM) ? "SOFTLAST|SOFTNORM" : "0")));
 	return string;
 }
 
@@ -111,7 +88,7 @@ char *CamadaSoftMax_getGenerate(CamadaSoftMax self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaSoftMax_save(CamadaSoftMax self, FILE *f) {
-	if (self->super.ecx->error)goto end;
+	if (self->super.ecx->error) { goto end; }
 	ECXPUSH(self->super.ecx);
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->flag, 1, 1, f);

@@ -87,10 +87,7 @@ char *CamadaFullConnect_json(CamadaFullConnect self, int showValues) {
 char *CamadaFullConnect_getGenerate(CamadaFullConnect self) {
 	char *string = NULL;
 	int len = 0;
-	apendstr(string, len, "%s (%zu, %d, Params(%g, %g, %g, %d), RDP(%d, %g, %g), RDP(%d, %g, %g))", lname, self->w->x, self->fa, (double) self->super.params.hitlearn, (double) self->super.params.momento, (double) self->super.params.decaimento, self->super.params.skipLearn, self->rdp_pesos.type, self->rdp_pesos.a, self->rdp_pesos.b, self->rdp_bias.type, self->rdp_bias.a, self->rdp_bias.b
-
-			);
-
+	apendstr(string, len, "%s (%zu, %s, Params(%g, %g, %g, %d), RDP(%d, %g, %g), RDP(%d, %g, %g))", lname, self->w->x, F_ATIVACAO_NAME(self->fa), (double) self->super.params.hitlearn, (double) self->super.params.momento, (double) self->super.params.decaimento, self->super.params.skipLearn, self->rdp_pesos.type, self->rdp_pesos.a, self->rdp_pesos.b, self->rdp_bias.type, self->rdp_bias.a, self->rdp_bias.b);
 	return string;
 }
 
@@ -153,7 +150,7 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 	self->rdp_bias = rdp_bias;
 	if (rdp_pesos.type != -1) {
 		if (rdp_pesos.type == 0) {
-			rdp_pesos = internal_getDefaultRDP(funcaoDeAtivacao == FRELU, size_in.x*size_in.y*size_in.z, self->super.s->length);
+			rdp_pesos = internal_getDefaultRDP(funcaoDeAtivacao == FRELU, size_in.x * size_in.y * size_in.z, self->super.s->length);
 		}
 
 		self->super.ecx->error = self->w->randomize(self->w, rdp_pesos.type, rdp_pesos.a, rdp_pesos.b);
@@ -164,7 +161,7 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 			if (funcaoDeAtivacao == FRELU) {
 				self->b->fill(self->b, 0);
 			} else {
-				rdp_bias = internal_getDefaultRDP(1, size_in.x*size_in.y*size_in.z, self->super.s->length);
+				rdp_bias = internal_getDefaultRDP(1, size_in.x * size_in.y * size_in.z, self->super.s->length);
 				self->super.ecx->error = self->b->randomize(self->b, rdp_bias.type, rdp_bias.a, rdp_bias.b);
 			}
 		}

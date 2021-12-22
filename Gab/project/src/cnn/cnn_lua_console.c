@@ -53,7 +53,7 @@ void enableUtf8() {
 int CnnLuaConsole(Cnn c) {
 	if (!c) { return 2; }
 	if (!c->LuaVm) { CnnInitLuaVm(c); }
-	if (c->erro->error) { return c->erro->error; }
+	if (c->ecx->error) { return c->ecx->error; }
 	enableUtf8();
 	lua_State *L = c->LuaVm;
 	int console_run = 1;

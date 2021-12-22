@@ -13,11 +13,11 @@
 
 #define LCNN "Cnn"
 
-#define checkLua(cond, format, ...) if(!(cond)){ luaL_error(L,format,##__VA_ARGS__) ;c->erro->error = GAB_ERRO_LUA;return 0;}
+#define checkLua(cond, format, ...) if(!(cond)){ luaL_error(L,format,##__VA_ARGS__) ;c->ecx->error = GAB_ERRO_LUA;return 0;}
 
 #define REGISTERC_L(state, func, name)lua_pushcfunction(state,func);lua_setglobal(state,name)
 
-#define RETURN_LUA_STATUS_FUNCTION() lua_pushinteger(L, c->erro->error);return 1;
+#define RETURN_LUA_STATUS_FUNCTION() lua_pushinteger(L, c->ecx->error);return 1;
 
 
 int loadP3D(lua_State *L, int arg, P3d *p) {
@@ -200,11 +200,11 @@ static int l_Convolucao(lua_State *L) {
 						  " Convolucao(step,filter,Params)\n"
 						  " Convolucao(step,filter,Params,RDP)\n"
 
-			);
+					  );
 	}
 	if (c->Convolucao(c, p, f, prm, rdp)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada Convolucao: %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada Convolucao: %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -245,14 +245,13 @@ static int l_ConvolucaoF(lua_State *L) {
 			luaL_error(L, "Invalid function\ntry\n"
 						  " ConvolucaoF(step,filter,ativacao)\n"
 						  " ConvolucaoF(step,filter,ativacao,Params)\n"
-						  " ConvolucaoF(step,filter,ativacao,Params,RDP)\n"
-			);
+						  " ConvolucaoF(step,filter,ativacao,Params,RDP)\n");
 	}
 	checkLua(CHECK_F_ATIVACAO(fativacao), "FUNCAO DE ATIVACAO INVALIDA");
 
 	if (c->ConvolucaoF(c, p, f, fativacao, prm, rdp)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada ConvolucaoF:  %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada ConvolucaoF:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -300,13 +299,13 @@ static int l_ConvolucaoNC(lua_State *L) {
 						  " ConvolucaoNC(step,abertura,filter,fativacao,params)\n"
 						  " ConvolucaoNC(step,abertura,filter,fativacao,params,RDP)\n"
 
-			);
+					  );
 
 	}
 	checkLua(CHECK_F_ATIVACAO(fativacao), "FUNCAO DE ATIVACAO INVALIDA");
 	if (c->ConvolucaoNC(c, p, a, f, fativacao, prm, rdp)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada ConvolucaoNC:  %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada ConvolucaoNC:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -333,13 +332,13 @@ static int l_Pooling(lua_State *L) {
 			luaL_error(L, "Invalid function\ntry\n"
 						  " Pooling(step,filter,type)\n"
 
-			);
+					  );
 
 	}
 
 	if (c->Pooling(c, p, f, type)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada Pooling:  %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada Pooling:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -363,15 +362,14 @@ static int l_Relu(lua_State *L) {
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
 						  " Relu()\n"
-						  " Relu(lessoh,greateroh)\n"
-			);
+						  " Relu(lessoh,greateroh)\n");
 			return 0;
 	}
 
 
 	if (c->Relu(c, less, greater)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada Relu:  %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada Relu:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -399,15 +397,14 @@ static int l_PRelu(lua_State *L) {
 			luaL_error(L, "Invalid function\ntry\n"
 						  " PRelu()\n"
 						  " PRelu(Params)\n"
-						  " PRelu(Params,RDP)\n"
-			);
+						  " PRelu(Params,RDP)\n");
 			return 0;
 	}
 
 
 	if (c->PRelu(c, prm, rdp)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada PRelu:  %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada PRelu:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -424,13 +421,12 @@ static int l_Padding(lua_State *L) {
 	uint32_t right = luaL_checkinteger(L, 4);
 	if (nArgs != 4) {
 		luaL_error(L, "Invalid function\ntry\n"
-					  " Padding(pad_top,pad_bottom,pad_left,pad_right)\n"
-		);
+					  " Padding(pad_top,pad_bottom,pad_left,pad_right)\n");
 		RETURN_LUA_STATUS_FUNCTION();
 	}
 	if (c->Padding(c, top, bottom, left, right)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada Padding:  %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada Padding:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -456,13 +452,12 @@ static int l_DropOut(lua_State *L) {
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
 						  " DropOut(prob_saida)\n"
-						  " DropOut(prob_saida,seed)\n"
-			);
+						  " DropOut(prob_saida,seed)\n");
 			return 0;
 	}
 	if (c->DropOut(c, prob, seed)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada DropOut:  %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada DropOut:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -505,20 +500,19 @@ static int l_FullConnect(lua_State *L) {
 						  " FullConnect(out_size)\n"
 						  " FullConnect(out_size,func)\n"
 						  " FullConnect(out_size,func,params)\n"
-						  " FullConnect(out_size,func,params,RDPW,RDPB)\n"
-			);
+						  " FullConnect(out_size,func,params,RDPW,RDPB)\n");
 			return 0;
 	}
 
 
 	checkLua(CHECK_F_ATIVACAO(func), "FUNCAO DE ATIVACAO INVALIDA");
 	if (c->FullConnect(c, neuros, prm, func, rdpw, rdpb)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada FullConnect:  %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada FullConnect:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
- }
+}
 
 static int l_BatchNorm(lua_State *L) {
 	int nArgs = lua_gettop(L);
@@ -554,8 +548,8 @@ static int l_BatchNorm(lua_State *L) {
 			return 0;
 	}
 	if (c->BatchNorm(c, epsilon, Params(1e-3), randomY, randomB)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada DropOut:  %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada DropOut:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -571,22 +565,17 @@ static int l_SoftMax(lua_State *L) {
 		case 0:
 			break;
 		case 1:
-			flag |= luaL_checkinteger(L, arg++) ? SOFTLAST : 0;
-			break;
-		case 2:
-			flag = luaL_checkinteger(L, arg++) ? SOFTLAST : 0;
-			flag |= luaL_checkinteger(L, arg++) ? SOFTNORM : 0;
+			flag = luaL_checkinteger(L, arg++);
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
 						  " SoftMax()\n"
-						  " SoftMax(islastLayer)\n"
-						  " SoftMax(islastLayer,normalize)\n");
+						  " SoftMax(flag)\n");
 			return 0;
 	}
 	if (c->SoftMax(c, flag)) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao adicionar camada SoftMax:  %d %s", c->erro->error, msg);
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada SoftMax:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -628,9 +617,9 @@ static int l_callCnn(lua_State *L) {
 	REAL *input = getNumbers(L, &len);
 	c->predictv(c, input);
 	gab_free(input);
-	if (c->erro->error) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao chamar CnnCall  %d %s", c->erro->error, msg);
+	if (c->ecx->error) {
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao chamar CnnCall  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -646,9 +635,9 @@ static int l_CamadasetParam(lua_State *L) {
 	Cnn c = lua_touserdata(L, -1);
 	cm = c->l - 1;
 	switch (nArgs) {
-		case 4:
+		case 5:
 			cm = lua_tointeger(L, arg++) - 1;
-		case 3:
+		case 4:
 			ht = lua_tonumber(L, arg++);
 			mm = lua_tonumber(L, arg++);
 			dc = lua_tonumber(L, arg++);
@@ -663,8 +652,7 @@ static int l_CamadasetParam(lua_State *L) {
 	}
 
 	if (cm < 0 || cm >= c->l) {
-		luaL_error(L, "Violação de memória, acesso a posição %d  de %d.\nA posição válida é 1<= i <= %d\n", cm + 1,
-				   c->l, c->l);
+		luaL_error(L, "Violação de memória, acesso a posição %d  de %d.\nA posição válida é 1<= i <= %d\n", cm + 1, c->l, c->l);
 		return 0;
 	}
 
@@ -683,8 +671,7 @@ static int l_CamadasetLearnable(lua_State *L) {
 	int learn;
 	int cm = lua_tointeger(L, 1) - 1;
 	if (cm < 0 || cm >= c->l) {
-		luaL_error(L, "Violação de memória, acesso a posição %d  de %d.\nA posição válida é 1<= i <= %d\n", cm + 1,
-				   c->l, c->l);
+		luaL_error(L, "Violação de memória, acesso a posição %d  de %d.\nA posição válida é 1<= i <= %d\n", cm + 1, c->l, c->l);
 		return 0;
 	}
 	learn = lua_tointeger(L, 2);
@@ -700,9 +687,9 @@ static int l_learnCnn(lua_State *L) {
 	REAL *target = getNumbers(L, &len);
 	c->learnv(c, target);
 	gab_free(target);
-	if (c->erro->error) {
-		char *msg = c->gpu->errorMsg(c->erro->error);
-		luaL_error(L, "falha ao chamar CnnLearn  %d %s", c->erro->error, msg);
+	if (c->ecx->error) {
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao chamar CnnLearn  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -714,57 +701,73 @@ static int l_helpCnn(lua_State *L);
 static struct {
 	void *f;
 	const char *name;
-} globalFunctions[] = {
-		{.f=l_createCnn, .name="Entrada"},
-		{l_CamadasetLearnable, "SetLearnable"},
-		{l_CamadasetParam,     "SetParams"},
-		{l_removeLayer,        "RemoveLastLayer"},
-		{l_PrintCnn,           "PrintCnn"},
-		{l_callCnn,            "Call"},
-		{l_learnCnn,           "Learn"},
-		{l_helpCnn,            "helpCnn"},
-		{l_sizeout,            "sizeOut"},
-		{l_Convolucao,         "Convolucao"},
-		{l_ConvolucaoF,        "ConvolucaoF"},
-		{l_ConvolucaoNC,       "ConvolucaoNC"},
-		{l_Pooling,            "Pooling"},
-		{l_Relu,               "Relu"},
-		{l_PRelu,              "PRelu"},
-		{l_Padding,            "Padding"},
-		{l_DropOut,            "DropOut"},
-		{l_FullConnect,        "FullConnect"},
-		{l_BatchNorm,          "BatchNorm"},
-		{l_SoftMax,            "SoftMax"},
-		{NULL,NULL}
-};
+	const char *args;
+} globalFunctions[] = {{.f=l_createCnn, .name="Entrada",         "(x:int, y:int, z:int)"},
+					   {l_CamadasetLearnable, "SetLearnable",    "(cm = 1:int, learnable:bool)"},
+					   {l_CamadasetParam,     "SetParams",       "(cm=1:int, hitlearn:float, momento:float, decaimento:float, skipLearn:bool )"},
+					   {l_removeLayer,        "RemoveLastLayer", "()"},
+					   {l_PrintCnn,           "PrintCnn",        ""},
+					   {l_callCnn,            "Call",            "(entrada:table)"},
+					   {l_learnCnn,           "Learn",           "(entrada:table)"},
+					   {l_helpCnn,            "helpCnn",         "()"},
+					   {l_sizeout,            "sizeOut",         "()"},
+					   {l_Convolucao,         "Convolucao",      "(step:P2D, filter:P3D, params=Params(0):Params,rdp=RDP(0):RDP)"},
+					   {l_ConvolucaoF,        "ConvolucaoF",     "(step:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
+					   {l_ConvolucaoNC,       "ConvolucaoNC","(step:P2D, abertura:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
+					   {l_Pooling,            "Pooling","(step:P2D, filter:P2D, type:int)"},
+					   {l_Relu,               "Relu","(menorQ0=0:float, maiorQ0=1:float)"},
+					   {l_PRelu,              "PRelu","(params=Params(0):Params, rdp=RDP(0):RDP)"},
+					   {l_Padding,            "Padding","(top:int, bottom:int, left:int, right:int)"},
+					   {l_DropOut,            "DropOut","(prob_saida:float,seed=os.time():int64)"},
+					   {l_FullConnect,        "FullConnect","(out_size:int, func:int, params=Params(0):Params, RDPW=RDP(0):RDP, RDPB=RDP(0):RDP)"},
+					   {l_BatchNorm,          "BatchNorm","(epsilon=1e-12,params=Params(0):Params, RDPY=RDP(0):RDP, RDPB=RDP(0):RDP)"},
+					   {l_SoftMax,            "SoftMax","(flag=SOFTNORM|SOFTLAST:int)"},
+					   {NULL, NULL}};
 static struct {
 	uint32_t v;
 	const char *name;
 } globalConstantes[] = {
-		{FSIGMOID,        "SIGMOID"},
-		{FTANH,           "TANH"},
-		{FRELU,           "RELU"},
-		{FLIN,            "LIN"},
-		{FALAN,           "ALAN"},
+						{FSIGMOID,        "SIGMOID"},
+						{FTANH,           "TANH"},
+						{FRELU,           "RELU"},
+						{FLIN,            "LIN"},
+						{FALAN,           "ALAN"},
+						{SOFTLAST,        "LAST"},
+						{SOFTNORM,        "SFNORM"},
+						{MAXPOOL,         "MAXPOOL"},
+						{MINPOOL,         "MINPOOL"},
+						{AVEPOOL,         "AVEPOOL"},
+						{TENSOR_GAUSSIAN, "GAUSSIAN"},
+						{TENSOR_UNIFORM,  "UNIFORM"},
 
-		{MAXPOOL,         "MAXPOOL"},
-		{MINPOOL,         "MINPOOL"},
-		{AVEPOOL,         "AVEPOOL"},
-		{TENSOR_GAUSSIAN, "GAUSSIAN"},
-		{TENSOR_UNIFORM,  "UNIFORM"},
+						{FSIGMOID,        "FSIGMOID"},
+						{FTANH,           "FTANH"},
+						{FRELU,           "FRELU"},
+						{FLIN,            "FLIN"},
+						{FALAN,           "FALAN"},
+						{SOFTLAST,        "SOFTLAST"},
+						{SOFTNORM,        "SOFTNORM"},
+						{MAXPOOL,         "MAXPOOL"},
+						{MINPOOL,         "MINPOOL"},
+						{AVEPOOL,         "AVEPOOL"},
+						{TENSOR_GAUSSIAN, "TENSOR_GAUSSIAN"},
+						{TENSOR_UNIFORM,  "TENSOR_UNIFORM"},
 
-		{0, NULL}
-};
+						{0, NULL}};
+
+void helpCnn(FILE *f, char *pre) {
+	fprintf(f, "%sFunctions:\n", pre);
+	for (int i = 0; globalFunctions[i].f; i++) {
+		fprintf(f, "%s\t%s %s\n", pre, globalFunctions[i].name, globalFunctions[i].args);
+	}
+	fprintf(f, "%sConstantes:\n", pre);
+	for (int i = 0; globalConstantes[i].name; i++) {
+		fprintf(f, "%s\t%s\n", pre, globalConstantes[i].name);
+	}
+}
 
 static int l_helpCnn(lua_State *L) {
-	printf("Functions:\n");
-	for (int i = 0; globalFunctions[i].f; i++) {
-		printf("\t%s\n", globalFunctions[i].name);
-	}
-	printf("Constantes:\n");
-	for (int i = 0; globalConstantes[i].name; i++) {
-		printf("\t%s\n", globalConstantes[i].name);
-	}
+	helpCnn(stdout, "");
 	return 0;
 }
 
@@ -787,68 +790,67 @@ void CnnInitLuaVm(Cnn c) {
 	lua_setglobal(L, LCNN);
 	c->LuaVm = L;
 	c->releaseL = (void (*)(void *)) lua_close;
-	luaL_dostring(c->LuaVm,
-				  "function P3D(x, y, z)\n"
-				  "    if z == nil then\n"
-				  "        z, y = y, x;\n"
-				  "    end\n"
-				  "    return { x = x, y = y, z = z }\n"
-				  "end\n"
-				  "function P2D(x, y)\n"
-				  "    if y == nil then\n"
-				  "        y = x;\n"
-				  "    end\n"
-				  "    return { x = x, y = y }\n"
-				  "end\n"
-				  "function Params(hitlearn, momento, decaimento, skip)\n"
-				  "    momento = momento or 0.0\n"
-				  "    decaimento = decaimento or 0.0\n"
-				  "    skip = skip or 0.0\n"
-				  "    return {\n"
-				  "        hitlearn = hitlearn,\n"
-				  "        momento = momento,\n"
-				  "        decaimento = decaimento,\n"
-				  "        skipLearn = skip\n"
-				  "    }\n"
-				  "end\n"
-				  "function RDP(type, a, b)\n"
-				  "    type = type or 0.0\n"
-				  "    a = a or 0.0\n"
-				  "    b = b or 0.0\n"
-				  "    return { type = type, a = a, b = b }\n"
-				  "end");
+	luaL_dostring(c->LuaVm, "function P3D(x, y, z)\n"
+							"    if z == nil then\n"
+							"        z, y = y, x;\n"
+							"    end\n"
+							"    return { x = x, y = y, z = z }\n"
+							"end\n"
+							"function P2D(x, y)\n"
+							"    if y == nil then\n"
+							"        y = x;\n"
+							"    end\n"
+							"    return { x = x, y = y }\n"
+							"end\n"
+							"function Params(hitlearn, momento, decaimento, skip)\n"
+							"    momento = momento or 0.0\n"
+							"    decaimento = decaimento or 0.0\n"
+							"    skip = skip or 0.0\n"
+							"    return {\n"
+							"        hitlearn = hitlearn,\n"
+							"        momento = momento,\n"
+							"        decaimento = decaimento,\n"
+							"        skipLearn = skip\n"
+							"    }\n"
+							"end\n"
+							"function RDP(type, a, b)\n"
+							"    type = type or 0.0\n"
+							"    a = a or 0.0\n"
+							"    b = b or 0.0\n"
+							"    return { type = type, a = a, b = b }\n"
+							"end");
 }
 
 
 int CnnLuaLoadString(Cnn c, const char *lua_program) {
-	if (!c)return 10;
-	if (!c->LuaVm)CnnInitLuaVm(c);
+	if (!c) { return 10; }
+	if (!c->LuaVm) { CnnInitLuaVm(c); }
 	int error = luaL_dostring(c->LuaVm, lua_program);
 	if (error) {
 		fflush(stdout);
 		fprintf(stderr, "\nError: %d %d %s\n", lua_gettop(c->LuaVm), error, lua_tostring(c->LuaVm, -1));
 		fflush(stderr);
-		c->erro->error = error;
+		c->ecx->error = error;
 		return error;
 	}
-	if (c->erro->error) {
+	if (c->ecx->error) {
 
-		return c->erro->error;
+		return c->ecx->error;
 	}
 }
 
 int CnnLuaLoadFile(Cnn c, const char *file_name) {
-	if (!c) return GAB_NULL_POINTER_ERROR;
-	ECXPUSH(c->erro);
-	if (!c->LuaVm)CnnInitLuaVm(c);
-	c->erro->setError(c->erro, luaL_dofile(c->LuaVm, file_name));
-	if (c->erro->error) {
+	if (!c) { return GAB_NULL_POINTER_ERROR; }
+	ECXPUSH(c->ecx);
+	if (!c->LuaVm) { CnnInitLuaVm(c); }
+	c->ecx->setError(c->ecx, luaL_dofile(c->LuaVm, file_name));
+	if (c->ecx->error) {
 		fflush(stdout);
-		fprintf(stderr, "\nError: %d %d %s\n", lua_gettop(c->LuaVm), c->erro->error, lua_tostring(c->LuaVm, -1));
+		fprintf(stderr, "\nError: %d %d %s\n", lua_gettop(c->LuaVm), c->ecx->error, lua_tostring(c->LuaVm, -1));
 		fflush(stderr);
 	}
-	ECXPOP(c->erro);
-	return c->erro->error;
+	ECXPOP(c->ecx);
+	return c->ecx->error;
 }
 
 

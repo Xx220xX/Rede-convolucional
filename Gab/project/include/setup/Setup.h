@@ -27,12 +27,21 @@ typedef struct {
 	double winRate;
 	double meanwinRate;
 	double timeRuning;
-	double imps;
 } Iteste;
 typedef struct {
 	uint32_t imAtual;
 	uint32_t imTotal;
 } ILoad;
+typedef struct {
+	int classe;
+	char name[50];
+	int acertos;
+	uint32_t *answers;
+} TesteClasseEstatisticas;
+typedef struct {
+	TesteClasseEstatisticas *tce;
+	int nclasses;
+} TesteEstatisticas;
 typedef struct Setup_t {
 	// #### nome
 	String nome;
@@ -63,7 +72,7 @@ typedef struct Setup_t {
 	// ##### Configurações do teste
 	uint32_t n_imagens_testar;
 	uint32_t imagem_atual_teste;
-
+	TesteEstatisticas te;
 	// informações para serem lidas em outras threads
 	String treino_out;
 	String teste_out;
@@ -88,7 +97,10 @@ typedef struct Setup_t {
 	int (*ok)(struct Setup_t *self);
 
 	void (*treinar)(struct Setup_t *self);
+
 	void (*avaliar)(struct Setup_t *self);
+
+	void (*saveStatistic)(struct Setup_t *self);
 
 	int (*release)(struct Setup_t **self);
 

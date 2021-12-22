@@ -12,5 +12,6 @@
 #define FLAGDIF 1
 
 #define CHECK_F_ATIVACAO(f)((f)==FALAN)||((f)==FLIN)||((f)==FRELU)||((f)==FTANH)||((f)==FSIGMOID)
+#define F_ATIVACAO_NAME(f)f==FSIGMOID?"FSIGMOID":(f==FTANH?"FTANH":(f==FRELU?"FRELU":(f==FLIN?"FLIN":(f==FALAN?"FALAN":"INVALID"))))
 
 #endif //CNN_GPU_FUNCOESDEATIVACAO_H

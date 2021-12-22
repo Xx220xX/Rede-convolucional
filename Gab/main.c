@@ -122,6 +122,8 @@ void on_train(const struct Setup_t *self, int label) {
 //	Sleep(100);
 }
 */
+#define  TMP_FILE_NAME_ARCH "edit_archtmp_lua.lua"
+
 int cnnMain(int nargs, char **args) {
 	char luaFile[250] = {0};
 	double t0;
@@ -137,6 +139,7 @@ int cnnMain(int nargs, char **args) {
 	GUI.force_end = &s->force_end;
 	getLuaFILE(luaFile, 250, nargs, (const char **) args);
 	s->loadLua(s, luaFile);
+	init:
 	s->cnn->print(s->cnn, "--");
 	if (s->ok(s)) {
 		t0 = seconds(); // captura o tempo incial
@@ -167,7 +170,6 @@ int cnnMain(int nargs, char **args) {
 		t0 = seconds() - t0;
 		printf("Tempo para leitura de labels %.3lf s, imagens por segundo %.2lf\n", t0, s->iLoad.imTotal / t0);
 	}
-
 	if (s->ok(s)) {
 		t0 = seconds();
 		s->runing = 1;
@@ -206,11 +208,68 @@ int cnnMain(int nargs, char **args) {
 		t0 = seconds() - t0;
 		printf("Tempo para treino %.3lf s\n", t0);
 		GUI.capture(s->teste_out);
+		s->saveStatistic(s);
 	}
 
-	char *tmp = asprintf(NULL, "MSE %lf\nwin hate %lf.\n", s->itrain.mse, s->itrain.winRate);
-	dialogBox("Treino terminado!", tmp);
-	gab_free(tmp);
+	char *tmp = asprintf(NULL, "MSE %lf\nwin hate %lf.\n Deseja mudar a arquitetura da rede?", s->itrain.mse, s->itrain.winRate);
+	if (dialogBox("Treino terminado!", tmp)) {
+		gab_free(tmp);
+		s->force_end = 0;
+		s->can_run = 1;
+		s->cnn->ecx->error = 0;
+
+		// criar arquivo temporario
+		FILE *tmpf = fopen(TMP_FILE_NAME_ARCH, "w");
+		// copiar help
+		helpCnn(tmpf, "-- ");
+		//copiar arquitetura
+		s->cnn->fprint(s->cnn, tmpf, "--");
+		fclose(tmpf);
+		// limpar cnn
+		while (s->cnn->l > 0) {
+			s->cnn->removeLastLayer(s->cnn);
+		}
+		{
+			STARTUPINFO si;
+			PROCESS_INFORMATION pi;
+
+			ZeroMemory(&si, sizeof(si));
+			si.cb = sizeof(si);
+			ZeroMemory(&pi, sizeof(pi));
+
+			// Start the child process.
+			if (!CreateProcess(NULL,   // No module name (use command line)
+							   "notepad "TMP_FILE_NAME_ARCH,        // Command line
+							   NULL,           // Process handle not inheritable
+							   NULL,           // Thread handle not inheritable
+							   FALSE,          // Set handle inheritance to FALSE
+							   0,              // No creation flags
+							   NULL,           // Use parent's environment block
+							   NULL,           // Use parent's starting directory
+							   &si,            // Pointer to STARTUPINFO structure
+							   &pi)           // Pointer to PROCESS_INFORMATION structure
+					) {
+				printf("CreateProcess failed (%lu).\n", GetLastError());
+				goto end;
+			}
+
+			// Wait until child process exits.
+			WaitForSingleObject(pi.hProcess, INFINITE);
+
+			// Close process and thread handles.
+			CloseHandle(pi.hProcess);
+			CloseHandle(pi.hThread);
+		}
+		CnnLuaLoadFile(s->cnn, TMP_FILE_NAME_ARCH);
+		remove(TMP_FILE_NAME_ARCH);
+		if (s->ok(s)) {
+			s->epoca_atual = 0;
+			s->imagem_atual_teste = 0;
+			s->imagem_atual_treino = 0;
+			goto init;
+		}
+	}
+
 	end:
 	return s->release(&s);
 }

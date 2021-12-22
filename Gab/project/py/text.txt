@@ -15,7 +15,7 @@ void *kernels;
 void *LuaVm;
 void (*releaseL)(void *L);
 const P3d size_in;
-Ecx erro;
+Ecx ecx;
 Gpu gpu;
 int8_t release_gpu;
 Queue queue;

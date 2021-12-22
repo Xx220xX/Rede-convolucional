@@ -35,7 +35,7 @@ typedef struct Cnn_t {
 
 	/// entrada da rede
 	const P3d size_in;
-	Ecx erro;
+	Ecx ecx;
 
 	Gpu gpu;
 	int8_t release_gpu;
@@ -73,6 +73,7 @@ typedef struct Cnn_t {
 	int (*maxIndex)(struct Cnn_t *self);
 
 	void (*print)(struct Cnn_t *self, const char *comment);
+	void (*fprint)(struct Cnn_t *self,FILE *fdst, const char *comment);
 
 	char *(*printstr)(struct Cnn_t *self, const char *comment);
 

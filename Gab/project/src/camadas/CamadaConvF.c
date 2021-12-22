@@ -64,7 +64,7 @@ static char *CamadaConvF_json(CamadaConvF self, int showValues) {
 static char *CamadaConvF_getGenerate(CamadaConvF self) {
 	char *string = NULL;
 	int len = 0;
-	apendstr(string, len, "%s (P2D(%zu, %zu), P3D(%zu, %zu, %zu), %d, Params(%g, %g, %g, %d), RDP(%d, %g, %g))", lname, self->passox, self->passoy, self->W->x, self->W->y, self->W->w, self->activationFuntion, (double) self->super.params.hitlearn, (double) self->super.params.momento, (double) self->super.params.decaimento, self->super.params.skipLearn, self->rdp_filtros.type, (double) self->rdp_filtros.a, (double) self->rdp_filtros.b);
+	apendstr(string, len, "%s (P2D(%zu, %zu), P3D(%zu, %zu, %zu), %s, Params(%g, %g, %g, %d), RDP(%d, %g, %g))", lname, self->passox, self->passoy, self->W->x, self->W->y, self->W->w, F_ATIVACAO_NAME(self->activationFuntion), (double) self->super.params.hitlearn, (double) self->super.params.momento, (double) self->super.params.decaimento, self->super.params.skipLearn, self->rdp_filtros.type, (double) self->rdp_filtros.a, (double) self->rdp_filtros.b);
 
 	return string;
 }

@@ -24,5 +24,5 @@ extern int CnnLuaLoadString(Cnn c, const char *lua_program);
 
 extern int CnnLuaLoadFile(Cnn c, const char *file_name);
 
-
+extern void helpCnn(FILE *f, char *pre);
 #endif //GAB_CNN_CNN_LUA_H

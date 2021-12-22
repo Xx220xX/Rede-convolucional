@@ -90,7 +90,7 @@ int Setup_release(Setup *selfp) {
 	Free((*selfp)->imagens);
 	Free((*selfp)->targets);
 	Release((*selfp)->labels);
-	int erro = (*selfp)->cnn->erro->error;
+	int erro = (*selfp)->cnn->ecx->error;
 	Release((*selfp)->cnn);
 
 	Free((*selfp)->nome);
@@ -101,6 +101,13 @@ int Setup_release(Setup *selfp) {
 	Free((*selfp)->treino_out);
 	Free((*selfp)->teste_out);
 	Free((*selfp)->rede_out);
+	if ((*selfp)->te.tce) {
+		for (int i = 0; i < (*selfp)->te.nclasses; ++i) {
+			Free((*selfp)->te.tce[i].answers);
+		}
+		Free((*selfp)->te.tce);
+	}
+
 	Free(*selfp);
 	return erro;
 }
@@ -113,21 +120,29 @@ void Setup_loadImagens(Setup self) {
 	Tensor imgpuReal; // tensor com imagem em valores IR¹
 	f = fopen(self->file_image, "rb"); // abre o aquivo
 	Tensor imgpu; // imagem 8 bits na gpu
-	Tensor imram = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR_RAM | TENSOR_CHAR | TENSOR4D); // imagem no hos
+	Tensor imram = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->ecx, TENSOR_RAM | TENSOR_CHAR | TENSOR4D); // imagem no hos
 	for (int i = 0; i < self->header_image; ++i) { fgetc(f); }// pula o cabeçalho
 	fread(imram->data, 1, imram->bytes, f);// le a imagem
 	fclose(f);// fecha o arquivo
-	imgpu = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR_CHAR | TENSOR4D | TENSOR_CPY, self->cnn->gpu->context, self->cnn->queue, imram->data); // instancia a imagem na gpu
-	imgpuReal = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->erro, TENSOR4D, self->cnn->gpu->context, self->cnn->queue, imram->data);// instancia a imagem real
+	imgpu = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->ecx, TENSOR_CHAR | TENSOR4D | TENSOR_CPY, self->cnn->gpu->context, self->cnn->queue, imram->data); // instancia a imagem na gpu
+	imgpuReal = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->ecx, TENSOR4D, self->cnn->gpu->context, self->cnn->queue, imram->data);// instancia a imagem real
 	self->cnn->normalizeIMAGE(self->cnn, imgpuReal, imgpu);// calcula imagem[i]/255
 	Release(imram);// libera a imagem da ram
 	Release(imgpu);// libera a imagem da gpu
 
 	self->imagens = gab_alloc(self->n_imagens, sizeof(Tensor));// intancia vetor de imagens
-	for (int i = 0; i < self->n_imagens; ++i) { // itera nas imagens
-		self->iLoad.imAtual = i + 1; // atualiza status
-		self->imagens[i] = Tensor_new(unP3D(im_dim), 1, self->cnn->erro, 0, self->cnn->gpu->context, self->cnn->queue);//instancia novo tensor
-		self->imagens[i]->copyM(self->imagens[i], imgpuReal, 0, i * self->imagens[i]->bytes, self->imagens[i]->bytes);// fz a copia da imagem para o tensor
+	if (self->use_gpu) {
+		for (int i = 0; i < self->n_imagens; ++i) { // itera nas imagens
+			self->iLoad.imAtual = i + 1; // atualiza status
+			self->imagens[i] = Tensor_new(unP3D(im_dim), 1, self->cnn->ecx, 0, self->cnn->gpu->context, self->cnn->queue);//instancia novo tensor
+			self->imagens[i]->copyM(self->imagens[i], imgpuReal, 0, i * self->imagens[i]->bytes, self->imagens[i]->bytes);// fz a copia da imagem para o tensor
+		}
+	} else {
+		for (int i = 0; i < self->n_imagens; ++i) { // itera nas imagens
+			self->iLoad.imAtual = i + 1; // atualiza status
+			self->imagens[i] = Tensor_new(unP3D(im_dim), 1, self->cnn->ecx, TENSOR_RAM);//instancia novo tensor
+			self->imagens[i]->copyM(self->imagens[i], imgpuReal, 0, i * self->imagens[i]->bytes, self->imagens[i]->bytes);// fz a copia da imagem para o tensor
+		}
 	}
 	Release(imgpuReal);// libera o tensor imreal
 	self->runing = 0; // terminou a leitura de imagens
@@ -138,22 +153,30 @@ void Setup_loadLabel(Setup self) {
 	self->iLoad.imTotal = self->n_imagens;
 	// ### variaveis
 	FILE *f = fopen(self->file_label, "rb");
-	Tensor lbram = Tensor_new(1, self->n_imagens, 1, 1, self->cnn->erro, TENSOR_RAM | TENSOR_CHAR, self->cnn->gpu->context, self->cnn->queue);
-	Tensor lbgpuREAL = Tensor_new(1, self->n_classes, 1, self->n_imagens, self->cnn->erro, TENSOR4D, self->cnn->gpu->context, self->cnn->queue);
+	Tensor lbram = Tensor_new(1, self->n_imagens, 1, 1, self->cnn->ecx, TENSOR_RAM | TENSOR_CHAR, self->cnn->gpu->context, self->cnn->queue);
+	Tensor lbgpuREAL = Tensor_new(1, self->n_classes, 1, self->n_imagens, self->cnn->ecx, TENSOR4D, self->cnn->gpu->context, self->cnn->queue);
 	Tensor lbgpu;
 	// ### ler cabeçalho do arquivo
 	for (int i = 0; i < self->header_label; ++i) { fgetc(f); }
 	fread(lbram->data, 1, lbram->bytes, f);
 	fclose(f);
 	// ### copia para gpu e converter para vetor
-	lbgpu = Tensor_new(1, self->n_imagens, 1, 1, self->cnn->erro, TENSOR_CPY | TENSOR_CHAR, self->cnn->gpu->context, self->cnn->queue, lbram->data);
+	lbgpu = Tensor_new(1, self->n_imagens, 1, 1, self->cnn->ecx, TENSOR_CPY | TENSOR_CHAR, self->cnn->gpu->context, self->cnn->queue, lbram->data);
 	self->cnn->extractVectorLabelClass(self->cnn, lbgpuREAL, lbgpu);
 	self->targets = gab_alloc(sizeof(Tensor), self->n_imagens);
 	// ### separar imagens
-	for (int i = 0; i < self->n_imagens; ++i) {
-		self->iLoad.imAtual = i + 1;
-		self->targets[i] = Tensor_new(1, self->n_classes, 1, 1, self->cnn->erro, 0, self->cnn->gpu->context, self->cnn->queue);
-		self->targets[i]->copyM(self->targets[i], lbgpuREAL, 0, i * self->targets[i]->bytes, self->targets[i]->bytes);
+	if (self->use_gpu) {
+		for (int i = 0; i < self->n_imagens; ++i) {
+			self->iLoad.imAtual = i + 1;
+			self->targets[i] = Tensor_new(1, self->n_classes, 1, 1, self->cnn->ecx, 0, self->cnn->gpu->context, self->cnn->queue);
+			self->targets[i]->copyM(self->targets[i], lbgpuREAL, 0, i * self->targets[i]->bytes, self->targets[i]->bytes);
+		}
+	} else {
+		for (int i = 0; i < self->n_imagens; ++i) {
+			self->iLoad.imAtual = i + 1;
+			self->targets[i] = Tensor_new(1, self->n_classes, 1, 1, self->cnn->ecx, TENSOR_RAM);
+			self->targets[i]->copyM(self->targets[i], lbgpuREAL, 0, i * self->targets[i]->bytes, self->targets[i]->bytes);
+		}
 	}
 	Release(lbgpuREAL);
 	Release(lbgpu);
@@ -178,13 +201,13 @@ void Setup_treinar(Setup self) {
 	int classe = 0;
 	int images = 0;
 	int acertos = 0;
-	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->erro->error; self->epoca_atual++) {
+	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		if (self->imagem_atual_treino >= self->n_imagens_treinar) {
 			self->imagem_atual_treino = 0;
 			acertos = 0;
 		}
-		localItrain.epAtual = self->epoca_atual+1;
-		for (; self->can_run && self->imagem_atual_treino < self->n_imagens_treinar && !self->cnn->erro->error; self->imagem_atual_treino++) {
+		localItrain.epAtual = self->epoca_atual + 1;
+		for (; self->can_run && self->imagem_atual_treino < self->n_imagens_treinar && !self->cnn->ecx->error; self->imagem_atual_treino++) {
 			images++;
 			indice = self->imagem_atual_treino;
 			entrada = self->imagens[indice];
@@ -200,13 +223,26 @@ void Setup_treinar(Setup self) {
 			localItrain.meanwinRate = acertos / (self->imagem_atual_treino + 1.0);
 			localItrain.winRate = localItrain.winRate * alpha + beta * ((cnn_label == label) ? 100 : 0);
 			localItrain.mse = localItrain.mse * alpha + beta * self->cnn->mse(self->cnn);
-			localItrain.imAtual = self->imagem_atual_treino+1;
+			localItrain.imAtual = self->imagem_atual_treino + 1;
 			self->itrain = localItrain;
 			classe++;
 		}
 	}
 	self->runing = 0;
 }
+
+
+void TE_new(Setup self) {
+	if (self->te.tce != NULL) { return; }
+	self->te.nclasses = self->n_classes;
+	self->te.tce = gab_alloc(self->n_classes, sizeof(TesteClasseEstatisticas));
+	for (int i = 0; i < self->te.nclasses; ++i) {
+		self->te.tce[i].classe = i;
+		self->te.tce[i].answers = gab_alloc(self->n_classes, sizeof(int));
+	}
+}
+
+#define PUSHTE(label, cnnlabel)self->te.tce[label].answers[cnnlabel]++
 
 void Setup_avaliar(Setup self) {
 	// ###  thread de alta prioridade
@@ -216,11 +252,10 @@ void Setup_avaliar(Setup self) {
 	Tensor entrada, target;
 	ubyte label, cnn_label;
 	int indice;
+	TE_new(self);
 	self->iteste.imTotal = self->n_imagens_testar;
 	Iteste localIteste = self->iteste;
 	int64_t acertos = 0;
-	double t0 = seconds();
-	double t1;
 	for (; self->can_run && self->imagem_atual_teste < self->n_imagens_testar; self->imagem_atual_teste++) {
 		indice = self->n_imagens_treinar + self->imagem_atual_teste;
 		entrada = self->imagens[indice];
@@ -229,28 +264,59 @@ void Setup_avaliar(Setup self) {
 
 		self->cnn->predict(self->cnn, entrada);
 		cnn_label = self->cnn->maxIndex(self->cnn);
-
-		t1 = seconds();
-		localIteste.imps = localIteste.imps * alpha + beta / (t1 - t0);
-		t0 = t1;
+		PUSHTE(label, cnn_label);
 		acertos += (cnn_label == label);
 		localIteste.imAtual = self->imagem_atual_teste + 1;
 		localIteste.meanwinRate = acertos / (self->imagem_atual_teste + 1.0);
 		localIteste.winRate = localIteste.winRate * alpha + beta * ((cnn_label == label) ? 100 : 0);
 		localIteste.mse = localIteste.mse * alpha + beta * self->cnn->mseT(self->cnn, target);
 		self->iteste = localIteste;
-
 	}
 	self->runing = 0;
 }
 
+void Setup_saveStatistic(Setup self) {
+	char *file_name = asprintf(NULL, "%s.csv", self->nome);
+	FILE *file = fopen(file_name, "w");
+	int k;
+	// colocar todos nomes
+	int j;
+	int len = strlen(self->nome_classes);
+	for (int i = 0; i < self->te.nclasses; ++i) {
+		k = 0;
+		for (; j < len; j++) {
+			if (self->nome_classes[j] == ' ') {
+				self->te.tce[i].name[k] = 0;
+				j++;
+				break;
+			} else {
+				self->te.tce[i].name[k] = self->nome_classes[j];
+				k++;
+			}
+		}
+	}
+	fprintf(file, "classe");
+
+	for (int i = 0; i < self->te.nclasses; ++i) {
+		fprintf(file, ",%s", self->te.tce[i].name);
+	}
+	for (int i = 0; i < self->te.nclasses; ++i) {
+		fprintf(file, "\n%s", self->te.tce[i].name);
+		for (int l = 0; l < self->te.nclasses; ++l) {
+			fprintf(file, ",%d", self->te.tce[i].answers[l]);
+		}
+	}
+	fclose(file);
+	Free(file_name);
+}
+
 void Setup_getLuaParams(Setup self) {
-	ECXPUSH(self->cnn->erro);
+	ECXPUSH(self->cnn->ecx);
 	if (!self->cnn) {
-		self->cnn->erro->setError(self->cnn->erro, GAB_NULL_POINTER_ERROR);
+		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR);
 		return;
 	}
-	if (self->cnn->erro->error) { return; }
+	if (self->cnn->ecx->error) { return; }
 	lua_State *L = self->cnn->LuaVm;
 	if (!L) { return; }
 	SETUP_GETLUA_INT(self->n_epocas, "Numero_epocas");
@@ -268,13 +334,16 @@ void Setup_getLuaParams(Setup self) {
 	SETUP_GETLUA_STR(self->teste_out, "estatiscasDeAvaliacao");
 	SETUP_GETLUA_STR(self->file_image, "arquivoContendoImagens");
 	SETUP_GETLUA_STR(self->file_label, "arquivoContendoRespostas");
-	ECXPOP(self->cnn->erro);
+
+	ECXPOP(self->cnn->ecx);
 }
 
+#define PFIELD(FIELD, TYPE, f, setup)fprintf(f,#FIELD " = "TYPE"\n",setup->FIELD)
+
 void Setup_loadLua(Setup self, const char *lua_file) {
-	ECXPUSH(self->cnn->erro);
+	ECXPUSH(self->cnn->ecx);
 	if (!lua_file) {
-		self->cnn->erro->setError(self->cnn->erro, GAB_NULL_POINTER_ERROR);
+		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR);
 		return;
 	}
 	CnnLuaLoadFile(self->cnn, lua_file);
@@ -282,11 +351,31 @@ void Setup_loadLua(Setup self, const char *lua_file) {
 	if (self->home) {
 		SetCurrentDirectoryA(self->home);
 	}
-	ECXPOP(self->cnn->erro);
+	ECXPOP(self->cnn->ecx);
+	// log
+	FILE *f = fopen("setup.log", "w");
+	PFIELD(n_epocas, "%u", f, self);
+	PFIELD(home, "'%s'", f, self);
+	PFIELD(nome, "'%s'", f, self);
+	PFIELD(n_imagens, "%u", f, self);
+	PFIELD(n_imagens_treinar, "%u", f, self);
+	PFIELD(n_imagens_testar, "%u", f, self);
+	PFIELD(n_classes, "%u", f, self);
+	PFIELD(nome_classes, "'%s'", f, self);
+	PFIELD(header_image, "%u", f, self);
+	PFIELD(use_gpu, "%d", f, self);
+	PFIELD(header_label, "%u", f, self);
+	PFIELD(treino_out, "'%s'", f, self);
+	PFIELD(teste_out, "'%s'", f, self);
+	PFIELD(file_image, "'%s'", f, self);
+	PFIELD(file_label, "'%s'", f, self);
+
+
+	fclose(f);
 }
 
 int Setup_ok(Setup self) {
-	return !(self->force_end || self->cnn->erro->error);
+	return !(self->force_end || self->cnn->ecx->error);
 }
 
 Setup Setup_new() {
@@ -300,6 +389,7 @@ Setup Setup_new() {
 	setup->avaliar = Setup_avaliar;
 	setup->release = Setup_release;
 	setup->loadLua = Setup_loadLua;
+	setup->saveStatistic = Setup_saveStatistic;
 	setup->ok = Setup_ok;
 	return setup;
 }
