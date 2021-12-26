@@ -187,10 +187,13 @@ int Cnn_predict(Cnn self, Tensor entrada) {
 REAL Cnn_mse(Cnn self) {
 	if (self->ecx->error) { return NAN; }
 	if (self->l <= 0) { return NAN; }
-	REAL mse = 0;
+	double mse = 0;
+	double tmp;
 	REAL *data = self->ds->getvalues(self->ds, NULL);
+
 	for (int i = 0; i < self->ds->length; ++i) {
-		mse += data[i] * data[i];
+		tmp = data[i];
+		mse += (double) tmp * tmp;
 	}
 	gab_free(data);
 	return mse / 2;
@@ -420,7 +423,7 @@ int Cnn_Convolucao(Cnn self, P2d passo, P3d filtro, Parametros p, RandomParams f
 		fprintf(stderr, "Convolucao:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n", size_in.x, size_in.y, size_in.z, (size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1, (size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1, size_in.z);
 		return 25;
 	}
-	Camada c = CamadaConv_new(self->gpu, self->queue, passo, filtro, size_in, internal_Cnn_getEntrada(self), p, self->ecx, filtros);
+	Camada c = CamadaConv_new(self->gpu, self->queue, size_in, internal_Cnn_getEntrada(self), self->ecx, passo, filtro, p, filtros);
 	return internal_Cnn_addlayer(self, c);
 }
 
@@ -485,8 +488,8 @@ int Cnn_SoftMax(Cnn self, int8_t flag) {
 	return internal_Cnn_addlayer(self, c);
 }
 
-int Cnn_BatchNorm(Cnn self, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB) {
-	Camada c = CamadaBatchNorm_new(self->gpu, self->queue, p, self->getSizeOut(self), internal_Cnn_getEntrada(self), epsilon, self->ecx, randY, randB);
+int Cnn_BatchNorm(Cnn self, size_t batch_size, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB) {
+	Camada c = CamadaBatchNorm_new(self->gpu, self->queue, self->getSizeOut(self), internal_Cnn_getEntrada(self), self->ecx, p, epsilon, batch_size, randY, randB);
 	return internal_Cnn_addlayer(self, c);
 }
 

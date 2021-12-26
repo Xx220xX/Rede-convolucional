@@ -1,4 +1,3 @@
-
 //
 // Created by Xx220xX on 24/10/2020.
 //
@@ -22,8 +21,8 @@ typedef struct CamadaConv_t {
 	RandomParams rdp_filtros;
 } *CamadaConv, CamadaConv_t;
 
-extern Camada CamadaConv_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, Tensor entrada,
-							 Parametros params, Ecx ecx, RandomParams rdp_filtros);
-extern Camada CamadaConv_load(FILE *f, Gpu gpu, Queue queue,  Tensor entrada, Ecx ecx);
+extern Camada CamadaConv_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, Parametros params, RandomParams rdp_filtros);
+
+extern Camada CamadaConv_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx);
 
 #endif //CNN_GPU_CAMADACONV_H

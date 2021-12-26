@@ -16,6 +16,7 @@
 str = calloc(len+1,1);                                                           \
 snprintf(str,len,format,## __VA_ARGS__);}
 
+
 char *Tensor_putvaluesAsstr(Tensor self) {
 	ECXPUSH(self->erro);
 	if (self->erro->error) { return NULL; }
@@ -45,7 +46,7 @@ char *Tensor_putvaluesAsstr(Tensor self) {
 //						apendstr(string, len, "\"0x%02X\"", (int) m.caractere[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 						apendstr(string, len, "%d", (int) m.caractere[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 					} else {
-						apendstr(string, len, "%.3lf", (double) m.real[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
+						apendstr(string, len, "%g", (double) m.real[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 					}
 				}
 				apendstr(string, len, "]")
@@ -61,7 +62,6 @@ char *Tensor_putvaluesAsstr(Tensor self) {
 	ECXPOP(self->erro);
 	return string;
 }
-
 
 char *Tensor_printhex(Tensor self) {
 	ECXPUSH(self->erro);
@@ -140,8 +140,9 @@ char *Tensor_json(Tensor self, int showValues) {
 			   "}", (int) self->flag.dimensao4D, (int) self->flag.ram, (int) self->flag.caractere, (int) self->flag.inteiro, (int) self->flag.shared, sizeof(TensorFlag), (int) self->flag.flag, self->x, self->y, self->z, self->w, self->length, self->bytes, self->size_element, tmp, sizeof(Tensor_t)
 
 			)
-	if (showValues)
+	if (showValues) {
 		gab_free(tmp);
+	}
 	ECXPOP(self->erro);
 	return string;
 }
@@ -195,6 +196,8 @@ int Tensor_setvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 	} else if (self->flag.shared) {
 		fprintf(stderr, "ERROR: shared memory not implanted\n");
 	} else {
+		clFlush(self->queue);
+		clFinish(self->queue);
 		self->erro->error = clEnqueueWriteBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
 	}
 	ECXPOP(self->erro);
@@ -204,7 +207,6 @@ int Tensor_setvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 
 void *Tensor_getvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 	ECXPUSH(self->erro);
-
 	if (self->erro->error) { return NULL; }
 	if (!data) {
 		data = calloc(bytes, 1);
@@ -215,7 +217,8 @@ void *Tensor_getvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 		fprintf(stderr, "ERROR: shared memory not implanted\n");
 
 	} else {
-
+		clFlush(self->queue);
+		clFinish(self->queue);
 		self->erro->error = clEnqueueReadBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
 	}
 	ECXPOP(self->erro);
@@ -428,11 +431,16 @@ int Tensor_copyM(Tensor self, Tensor b, size_t self_ofset, size_t b_ofset, size_
 	return self->erro->error;
 }
 
-void Tensor_print(Tensor self) {
+void Tensor_fprint(Tensor self,FILE *f) {
 	ECXPUSH(self->erro);
 	char *json = Tensor_putvaluesAsstr(self);
-	printf("%u : %s\n", self->size_element, json);
+	fprintf(f,"%u : %s\n", self->size_element, json);
 	gab_free(json);
+	ECXPOP(self->erro);
+}
+void Tensor_print(Tensor self) {
+	ECXPUSH(self->erro);
+	Tensor_fprint(self,stdout);
 	ECXPOP(self->erro);
 }
 
@@ -509,6 +517,70 @@ int Tensor_map(Tensor self, void (*fmap)(Tensor self, void *el, int i, int j, in
 	return self->erro->error;
 }
 
+REAL Tensor_media(Tensor self) {
+	ECXPUSH(self->erro);
+	REAL media = 0;
+	void *dt = self->getvalues(self, NULL);
+	if (self->flag.inteiro) {
+		int *idt = dt;
+		for (int i = 0; i < self->length; ++i) {
+			media += idt[i];
+		}
+	} else if (self->flag.caractere) {
+		unsigned char *cdt = dt;
+
+		for (int i = 0; i < self->length; ++i) {
+			media += cdt[i];
+		}
+	} else {
+		REAL *rdt = dt;
+		for (int i = 0; i < self->length; ++i) {
+			media += rdt[i];
+		}
+	}
+	gab_free(dt);
+	ECXPOP(self->erro);
+	return media / self->length;
+}
+
+REAL Tensor_var(Tensor self) {
+	ECXPUSH(self->erro);
+	REAL media = self->media(self);
+	REAL var = 0;
+	REAL tmp;
+	void *dt = self->getvalues(self, NULL);
+	if (self->flag.inteiro) {
+		int *idt = dt;
+		for (int i = 0; i < self->length; ++i) {
+			tmp = (idt[i] - media);
+			var += tmp * tmp;
+		}
+	} else if (self->flag.caractere) {
+		unsigned char *cdt = dt;
+
+		for (int i = 0; i < self->length; ++i) {
+			tmp = (cdt[i] - media);
+			var += tmp * tmp;
+		}
+	} else {
+		REAL *rdt = dt;
+		for (int i = 0; i < self->length; ++i) {
+			tmp = (rdt[i] - media);
+			var += tmp * tmp;
+		}
+	}
+	gab_free(dt);
+	ECXPOP(self->erro);
+	return var / self->length;
+}
+
+REAL Tensor_std(Tensor self) {
+	ECXPUSH(self->erro);
+	REAL var = self->var(self);
+	ECXPOP(self->erro);
+	return sqrt(var);
+}
+
 /**
  * 8 bytes -> tamanho total do tensor
  * 8 bytes -> dimensão x
@@ -548,7 +620,7 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 	ECXPUSH(ecx);
 	Tensor self = calloc(1, sizeof(Tensor_t));
 	self->erro = ecx;
-	memset(self, flag, 1);
+	memset((void*)&self->flag, flag, 1);
 	// verificando flag
 	if (self->flag.inteiro && self->flag.caractere) {
 		Tensor_registreError(self, "flag invalida: inteiro e caractere = 1");
@@ -610,6 +682,8 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 	self->map = Tensor_map;
 	self->copyM = Tensor_copyM;
 	self->print = Tensor_print;
+	self->fprint = Tensor_fprint;
+
 	self->valuesStr = Tensor_putvaluesAsstr;
 	self->tomatlab = Tensor_tomatlab;
 	self->setvalues = Tensor_setvalues;
@@ -620,6 +694,10 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 	self->fill = Tensor_fill;
 	self->fillM = Tensor_fillM;
 	self->png = Tensor_png;
+	self->media = Tensor_media;
+	self->var = Tensor_var;
+	self->std = Tensor_std;
+
 	if (self->flag.inteiro) {
 		self->imagegray = Tensor_imagegrayINT;
 	} else if (self->flag.caractere) {

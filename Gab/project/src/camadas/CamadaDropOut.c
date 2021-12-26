@@ -125,15 +125,13 @@ Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in,
 
 	if (ecx->error)goto methods;
 
-	self->dropativa = Kernel_news(gpu->program, "dropativa",
+	KRN_new(self->dropativa , "dropativa",
 								  "Vector entrada, Vector saida, __global char *hitmap, long seed,\n"
 								  "REAL pativa, int k0");
-	CheckKernel(dropativa);
 
-	self->dropcalcgrad = Kernel_news(gpu->program, "dropcalcgrad",
+	KRN_new(self->dropcalcgrad , "dropcalcgrad",
 									 "Vector gradentrada, __global char *hitmap, Vector gradnext, int k0");
 
-	CheckKernel(dropcalcgrad);
 
 	ecx->popstack(ecx);
 	methods:

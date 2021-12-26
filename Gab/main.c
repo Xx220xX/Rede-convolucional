@@ -212,7 +212,7 @@ int cnnMain(int nargs, char **args) {
 	}
 
 	char *tmp = asprintf(NULL, "MSE %lf\nwin hate %lf.\n Deseja mudar a arquitetura da rede?", s->itrain.mse, s->itrain.winRate);
-	if (dialogBox("Treino terminado!", tmp)) {
+	if (!s->cnn->ecx->error && dialogBox("Treino terminado!", tmp)) {
 		gab_free(tmp);
 		s->force_end = 0;
 		s->can_run = 1;

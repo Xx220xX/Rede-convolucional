@@ -11,8 +11,8 @@
 static const char *lname = "PRelu";
 
 static void CamadaPRelu_release(CamadaPRelu *self_p) {
-	if (!self_p)return;
-	if (!*self_p)return;
+	if (!self_p) { return; }
+	if (!*self_p) { return; }
 	internal_Camada_release((Camada *) self_p);
 	Release((*self_p)->A);
 	Release((*self_p)->dA);
@@ -21,32 +21,16 @@ static void CamadaPRelu_release(CamadaPRelu *self_p) {
 }
 
 static int CamadaPRelu_propagation(CamadaPRelu self) {
-	Execute(preluativa, self->super.s->length,
-			&self->super.a->data, &self->super.s->data,
-			&self->A->data
-	);
+	Execute(preluativa, self->super.s->length, &self->super.a->data, &self->super.s->data, &self->A->data);
 	return self->super.ecx->error;
 }
 
 static int CamadaPRelu_backpropagation(CamadaPRelu self, Tensor ds) {
 	if (self->super.da) {
 		int learn = !self->super.params.skipLearn;
-		Execute(prelucalcgrad, self->super.da->length,
-				&self->super.da->data, &self->super.a->data,
-				&ds->data, &self->A->data, &self->dA->data,
-				&learn,
-				&self->super.params.hitlearn,
-				&self->super.params.momento,
-				&self->super.params.decaimento
-		);
+		Execute(prelucalcgrad, self->super.da->length, &self->super.da->data, &self->super.a->data, &ds->data, &self->A->data, &self->dA->data, &learn, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 	} else if (!self->super.params.skipLearn) {
-		Execute(preluonlyfix, self->dA->length,
-				&self->super.a->data, &ds->data,
-				&self->A->data, &self->dA->data,
-				&self->super.params.hitlearn,
-				&self->super.params.momento,
-				&self->super.params.decaimento
-		);
+		Execute(preluonlyfix, self->dA->length, &self->super.a->data, &ds->data, &self->A->data, &self->dA->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 	}
 
 	return self->super.ecx->error;
@@ -69,17 +53,7 @@ static char *CamadaPRelu_json(CamadaPRelu self, int showValues) {
 static char *CamadaPRelu_getGenerate(CamadaPRelu self) {
 	char *string = NULL;
 	int len = 0;
-	apendstr(string, len,
-			 "%s(Params(%g,%g,%g,%d),RDP(%d,%g,%g))",
-			 lname,
-			 (double) self->super.params.hitlearn,
-			 (double) self->super.params.momento,
-			 (double) self->super.params.decaimento,
-			 self->super.params.skipLearn,
-			 self->rdp_a.type,
-			 (double) self->rdp_a.a,
-			 (double) self->rdp_a.b
-	);
+	apendstr(string, len, "%s(Params(%g,%g,%g,%d),RDP(%d,%g,%g))", lname, (double) self->super.params.hitlearn, (double) self->super.params.momento, (double) self->super.params.decaimento, self->super.params.skipLearn, self->rdp_a.type, (double) self->rdp_a.a, (double) self->rdp_a.b);
 	return string;
 }
 
@@ -95,7 +69,7 @@ static char *CamadaPRelu_getGenerate(CamadaPRelu self) {
  * @return 0 caso não detecte nenhuma falha
  */
 static int CamadaPRelu_save(CamadaPRelu self, FILE *f) {
-	if (self->super.ecx->error)goto end;
+	if (self->super.ecx->error) { goto end; }
 	self->super.ecx->addstack(self->super.ecx, "CamadaPRelu_save");
 	internal_saveCamada(f, (Camada) self);
 	internal_saveTensor(f, self->A);
@@ -129,32 +103,26 @@ Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parame
 	self->dA = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
 	if (rdp_a.type != -1) {
 		if (rdp_a.type == 0) {
-			rdp_a = internal_getDefaultRDP(1,size_in.x*size_in.y*size_in.z, self->super.s->length);
+			rdp_a = internal_getDefaultRDP(1, size_in.x * size_in.y * size_in.z, self->super.s->length);
 		}
 		self->super.ecx->error = self->A->randomize(self->A, rdp_a.type, rdp_a.a, rdp_a.b);
-		if (ecx->error)goto methods;
+		if (ecx->error) { goto methods; }
 	}
 
-	if (ecx->error)goto methods;
-	self->preluativa = Kernel_news(gpu->program, "preluativa",
-								   "Vector entrada, Vector saida, Vector A, int k0");
-	CheckKernel(preluativa);
+	if (ecx->error) { goto methods; }
+	KRN_new(self->preluativa, "preluativa", "Vector entrada, Vector saida, Vector A, int k0");
 
-	self->prelucalcgrad = Kernel_news(gpu->program, "prelucalcgrad",
-									  "Vector gradentrada, Vector entrada, Vector gradnext,"
-									  "Vector A, Vector dA,\n"
-									  "int learn, REAL hitlearn, REAL momento,\n"
-									  "REAL decaimento,\n"
-									  "int k0");
-	CheckKernel(prelucalcgrad);
+	KRN_new(self->prelucalcgrad, "prelucalcgrad", "Vector gradentrada, Vector entrada, Vector gradnext,"
+												  "Vector A, Vector dA,\n"
+												  "int learn, REAL hitlearn, REAL momento,\n"
+												  "REAL decaimento,\n"
+												  "int k0");
 
-	self->preluonlyfix = Kernel_news(gpu->program, "preluonlyfix",
-									 "Vector entrada, Vector gradnext, Vector A, Vector dA,\n"
-									 "REAL hitlearn, REAL momento,\n"
-									 "REAL decaimento,\n"
-									 "int k0");
+	KRN_new(self->preluonlyfix, "preluonlyfix", "Vector entrada, Vector gradnext, Vector A, Vector dA,\n"
+												"REAL hitlearn, REAL momento,\n"
+												"REAL decaimento,\n"
+												"int k0");
 
-	CheckKernel(preluonlyfix);
 
 	ECXPOP(ecx);
 	methods:

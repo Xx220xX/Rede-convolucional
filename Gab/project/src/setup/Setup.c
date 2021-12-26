@@ -6,6 +6,7 @@
 
 #include <windows.h>
 #include <unistd.h>
+#include <math.h>
 #include "conio2/conio2.h"
 #include "error_list.h"
 
@@ -19,7 +20,7 @@
 #define SET_DEBUG
 #endif
 #define SETUP_GETLUA_INT(cvar, name)lua_getglobal(L,name);   \
-if(!lua_isnoneornil(L,-1)&&luaL_checkinteger(L,-1))    (cvar) = lua_tonumber(L,-1); \
+if(!lua_isnone(L,-1))  (cvar) = lua_tonumber(L,-1); \
 else fprintf(stderr,"warning: %s não instanciado em lua\n",name);\
 SET_DEBUG("%s %d\n",#cvar,cvar);
 
@@ -186,6 +187,7 @@ void Setup_loadLabel(Setup self) {
 
 
 void Setup_treinar(Setup self) {
+	ECXPUSH(self->cnn->ecx);
 	// ###  thread de alta prioridade
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
@@ -204,7 +206,6 @@ void Setup_treinar(Setup self) {
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		if (self->imagem_atual_treino >= self->n_imagens_treinar) {
 			self->imagem_atual_treino = 0;
-			acertos = 0;
 		}
 		localItrain.epAtual = self->epoca_atual + 1;
 		for (; self->can_run && self->imagem_atual_treino < self->n_imagens_treinar && !self->cnn->ecx->error; self->imagem_atual_treino++) {
@@ -220,14 +221,22 @@ void Setup_treinar(Setup self) {
 
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
-			localItrain.meanwinRate = acertos / (self->imagem_atual_treino + 1.0);
-			localItrain.winRate = localItrain.winRate * alpha + beta * ((cnn_label == label) ? 100 : 0);
-			localItrain.mse = localItrain.mse * alpha + beta * self->cnn->mse(self->cnn);
+			localItrain.winRate = acertos * 100.0 / (images + 1.0);
+
+			double mse = self->cnn->mse(self->cnn);
+			if (isnan(mse)) {
+				self->can_run = 0;
+				self->force_end = 1;
+				self->cnn->ecx->error = GAB_INVALID_PARAM;
+				fprintf(stderr, "Erro interno das camadas, encontrado nan\n");
+			}
+			localItrain.mse = localItrain.mse * alpha + beta * mse;
 			localItrain.imAtual = self->imagem_atual_treino + 1;
 			self->itrain = localItrain;
 			classe++;
 		}
 	}
+	ECXPOP(self->cnn->ecx);
 	self->runing = 0;
 }
 
@@ -328,8 +337,8 @@ void Setup_getLuaParams(Setup self) {
 	SETUP_GETLUA_INT(self->n_classes, "Numero_Classes");
 	SETUP_GETLUA_STR(self->nome_classes, "classes");
 	SETUP_GETLUA_INT(self->header_image, "bytes_remanessentes_imagem");
-	SETUP_GETLUA_BOLL(self->use_gpu, "gpu_mem");
 	SETUP_GETLUA_INT(self->header_label, "bytes_remanessentes_classes");
+	SETUP_GETLUA_BOLL(self->use_gpu, "gpu_mem");
 	SETUP_GETLUA_STR(self->treino_out, "estatisticasDeTreino");
 	SETUP_GETLUA_STR(self->teste_out, "estatiscasDeAvaliacao");
 	SETUP_GETLUA_STR(self->file_image, "arquivoContendoImagens");

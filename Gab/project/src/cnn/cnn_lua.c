@@ -39,8 +39,11 @@ int loadP3D(lua_State *L, int arg, P3d *p) {
 }
 
 int loadP2D(lua_State *L, int arg, P2d *p) {
-
 	if (!lua_istable(L, arg)) {
+		if(lua_isinteger(L,arg)){
+			p->x = p->y = luaL_checkinteger(L,arg);
+			return 0;
+		}
 		luaL_error(L, "Esperado um P2D\n");
 		return 1;
 	}
@@ -48,8 +51,7 @@ int loadP2D(lua_State *L, int arg, P2d *p) {
 	lua_getfield(L, arg, "y");
 	p->y = lua_tointeger(L, -1);
 	p->x = lua_tointeger(L, -2);
-//	lua_pop(L, -2);
-//	lua_pop(L, -1);
+
 	return 0;
 }
 
@@ -522,18 +524,23 @@ static int l_BatchNorm(lua_State *L) {
 	RdParams randomB = {0};
 	int arg = 1;
 	REAL epsilon = (REAL) 1e-12;
+	size_t batch = 1;
 	Parametros prm = Params(1e-3);
 	switch (nArgs) {
-		case 0:
-			break;
 		case 1:
-			epsilon = (REAL) luaL_checknumber(L, arg++);
+			batch =  luaL_checkinteger(L, arg++);
 			break;
 		case 2:
+			batch =  luaL_checkinteger(L, arg++);
+			epsilon = (REAL) luaL_checknumber(L, arg++);
+			break;
+		case 3:
+			batch =  luaL_checkinteger(L, arg++);
 			epsilon = (REAL) luaL_checknumber(L, arg++);
 			loadParams(L, arg++, &prm);
 			break;
-		case 4:
+		case 5:
+			batch =  luaL_checkinteger(L, arg++);
 			epsilon = (REAL) luaL_checknumber(L, arg++);
 			loadParams(L, arg++, &prm);
 			loadRdp(L, arg++, &randomY);
@@ -541,15 +548,15 @@ static int l_BatchNorm(lua_State *L) {
 			break;
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
-						  " BatchNorm()\n"
-						  " BatchNorm(epsilon)\n"
-						  " BatchNorm(epsilon,Params)\n"
-						  " BatchNorm(epsilon,Params,RDPY,RDPB)\n");
+						  " BatchNorm(batch_size)\n"
+						  " BatchNorm(batch_size, epsilon)\n"
+						  " BatchNorm(batch_size, epsilon,Params)\n"
+						  " BatchNorm(batch_size, epsilon,Params,RDPY,RDPB)\n");
 			return 0;
 	}
-	if (c->BatchNorm(c, epsilon, Params(1e-3), randomY, randomB)) {
+	if (c->BatchNorm(c, batch,epsilon, Params(1e-3), randomY, randomB)) {
 		char *msg = c->gpu->errorMsg(c->ecx->error);
-		luaL_error(L, "falha ao adicionar camada DropOut:  %d %s", c->ecx->error, msg);
+		luaL_error(L, "falha ao adicionar camada BatchNorm:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -720,7 +727,7 @@ static struct {
 					   {l_Padding,            "Padding","(top:int, bottom:int, left:int, right:int)"},
 					   {l_DropOut,            "DropOut","(prob_saida:float,seed=os.time():int64)"},
 					   {l_FullConnect,        "FullConnect","(out_size:int, func:int, params=Params(0):Params, RDPW=RDP(0):RDP, RDPB=RDP(0):RDP)"},
-					   {l_BatchNorm,          "BatchNorm","(epsilon=1e-12,params=Params(0):Params, RDPY=RDP(0):RDP, RDPB=RDP(0):RDP)"},
+					   {l_BatchNorm,          "BatchNorm","(batch_size, epsilon=1e-12,params=Params(0):Params, RDPY=RDP(0):RDP, RDPB=RDP(0):RDP)"},
 					   {l_SoftMax,            "SoftMax","(flag=SOFTNORM|SOFTLAST:int)"},
 					   {NULL, NULL}};
 static struct {

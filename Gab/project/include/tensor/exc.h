@@ -28,6 +28,7 @@ typedef struct Ecx_t {
 } *Ecx, Ecx_t;
 
 Ecx Ecx_new(int stack_len);
+#define ECXRUN(ecx,func,arg,...)ecx->addstack(ecx,#func);func( arg,##__VA_ARGS__ );ECXPOP(ecx)
 #define ECXPUSH(ecx)(ecx)->addstack(ecx,__FUNCTION__)
 #define ECXPOP(ecx)(ecx)->popstack(ecx)
 

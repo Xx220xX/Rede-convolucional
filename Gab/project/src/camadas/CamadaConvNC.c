@@ -156,42 +156,41 @@ Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtr
 	self->passoy = passo.y;
 	self->aberturax = abertura.x;
 	self->aberturay = abertura.y;
-	self->convncSum = Kernel_news(gpu->program, "convncSum", "Vector W, Vector A, Vector Z, Vector S,\n"
-															 "unsigned int fid,\n"
-															 "unsigned int passox, int passoy,\n"
-															 "unsigned int largx, unsigned int largy,\n"
-															 "unsigned int entradatx, unsigned int entradaty,\n"
-															 "unsigned int saidatx, unsigned int saidaty,\n"
-															 "unsigned int fx, unsigned int fy, unsigned int fz,\n"
-															 "int k0");
-	CheckKernel(convncSum);
+	KRN_new(self->convncSum, "convncSum", "Vector W, Vector A, Vector Z, Vector S,\n"
+										  "unsigned int fid,\n"
+										  "unsigned int passox, int passoy,\n"
+										  "unsigned int largx, unsigned int largy,\n"
+										  "unsigned int entradatx, unsigned int entradaty,\n"
+										  "unsigned int saidatx, unsigned int saidaty,\n"
+										  "unsigned int fx, unsigned int fy, unsigned int fz,\n"
+										  "int k0");
 
-	self->convncCalcGradZ = Kernel_news(gpu->program, "convncCalcGradZ", "Vector ds, Vector z, Vector dz, unsigned int fid, int k0");
-	CheckKernel(convncCalcGradZ);
 
-	self->convncCalcFiltro = Kernel_news(gpu->program, "convncCalcFiltro", "Vector dz,\n"
-																		   "Vector A,\n"
-																		   "Vector W,\n"
-																		   "Vector dW,\n"
-																		   "unsigned int dw_x, unsigned int dw_y, unsigned int dw_z,\n"
-																		   "unsigned int a_x, unsigned int a_y,\n"
-																		   "unsigned int s_x, unsigned int s_y,\n"
-																		   "unsigned int passox, unsigned int passoy,\n"
-																		   "unsigned int largx, unsigned int largy,\n"
-																		   "REAL hitlearn, REAL momento, REAL weightDecay,\n"
-																		   "int k0");
-	CheckKernel(convncCalcFiltro);
-	self->convncCalcGrads = Kernel_news(gpu->program, "convncCalcGrads", "Vector W,\n"
-																		 "Vector DA,\n"
-																		 "Vector dz,\n"
-																		 "unsigned int passox, unsigned int passoy,\n"
-																		 "unsigned int largx, unsigned int largy,\n"
-																		 "unsigned int entradatx, unsigned int entradaty,\n"
-																		 "unsigned int saidatx, unsigned int saidaty,\n"
-																		 "unsigned int fx, unsigned int fy, unsigned int fz,\n"
-																		 "int k0");
+	KRN_new(self->convncCalcGradZ, "convncCalcGradZ", "Vector ds, Vector z, Vector dz, unsigned int fid, int k0");
 
-	CheckKernel(convncCalcGrads);
+
+	KRN_new(self->convncCalcFiltro, "convncCalcFiltro", "Vector dz,\n"
+														"Vector A,\n"
+														"Vector W,\n"
+														"Vector dW,\n"
+														"unsigned int dw_x, unsigned int dw_y, unsigned int dw_z,\n"
+														"unsigned int a_x, unsigned int a_y,\n"
+														"unsigned int s_x, unsigned int s_y,\n"
+														"unsigned int passox, unsigned int passoy,\n"
+														"unsigned int largx, unsigned int largy,\n"
+														"REAL hitlearn, REAL momento, REAL weightDecay,\n"
+														"int k0");
+
+	KRN_new(self->convncCalcGrads, "convncCalcGrads", "Vector W,\n"
+													  "Vector DA,\n"
+													  "Vector dz,\n"
+													  "unsigned int passox, unsigned int passoy,\n"
+													  "unsigned int largx, unsigned int largy,\n"
+													  "unsigned int entradatx, unsigned int entradaty,\n"
+													  "unsigned int saidatx, unsigned int saidaty,\n"
+													  "unsigned int fx, unsigned int fy, unsigned int fz,\n"
+													  "int k0");
+
 	ecx->popstack(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaConvNC_release;

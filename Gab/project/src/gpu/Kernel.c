@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
 #define PAD " "
 #define apendstr(str, len, format, ...) { \
          size_t sz = snprintf(NULL,0,format,##__VA_ARGS__); \
@@ -20,20 +21,22 @@
 }
 
 #define check_error(error, end, format, ...)if(error){char *msg = Gpu_errormsg(error);fflush(stdout); \
-fprintf(stderr,"Error %d  in file %s at line %d.\n%s\n",error,__FILE__,__LINE__,msg);           \
+fprintf(stderr,"Error %d  in file %s:%d.\n%s\n",error,__FILE__,__LINE__,msg);           \
 fprintf(stderr,format,## __VA_ARGS__);gab_free(msg);goto end;}
 
 
-
 void Kernel_release(Kernel *self) {
-	if (!self)return;
-	if (!(*self))return;
-	if ((*self)->kernel)
+	if (!self) { return; }
+	if (!(*self)) { return; }
+	if ((*self)->kernel) {
 		clReleaseKernel((*self)->kernel);
-	if ((*self)->l_args)
+	}
+	if ((*self)->l_args) {
 		gab_free((*self)->l_args);
-	if ((*self)->name)
+	}
+	if ((*self)->name) {
 		gab_free((*self)->name);
+	}
 	gab_free(*self);
 }
 
@@ -52,7 +55,7 @@ int Kernel_run(Kernel self, cl_command_queue queue, size_t globals, size_t local
 }
 
 int Kernel_runRecursive(Kernel self, cl_command_queue queue, size_t globals, size_t max_works, ...) {
-	if (self->error)return self->error;
+	if (self->error) { return self->error; }
 	va_list vaList;
 	self->error = 0;
 	unsigned int i;
@@ -101,8 +104,7 @@ char *Kernel_json(Kernel self) {
 	apendstr(json, len, "{\n"
 			PAD"\"name\":\"%s\",\n"
 			PAD"nArgs:\"%d\",\n"
-			PAD"\"l_args\":[", self->name, self->nArgs
-	);
+			PAD"\"l_args\":[", self->name, self->nArgs);
 
 	for (int i = 0; i < self->nArgs; ++i) {
 		if (i == 0) {
@@ -143,8 +145,8 @@ Kernel Kernel_new(cl_program clProgram, char *funcname, int nargs, ...) {
 
 int cmp(char *str1, char *str2, size_t maxLen) {
 
-	if (!str1 && !str2)return 0;
-	if (!str1 || !str2)return -1;
+	if (!str1 && !str2) { return 0; }
+	if (!str1 || !str2) { return -1; }
 	int result = str1[0] - str2[0];
 	for (int i = 0; i < maxLen && str2[i] && str1[i] && !result; ++i) {
 		result = str1[i] - str2[i];
@@ -169,16 +171,18 @@ Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
 	int i, j = 0;
 	int nspace = 0;
 	for (i = 0; p[i]; ++i) {
-		if (p[i] == '\n' || p[i] == '\t')
+		if (p[i] == '\n' || p[i] == '\t') {
 			p[i] = ' ';
+		}
 		if (p[i] == ' ') {
 			nspace++;
 		} else {
 			nspace = 0;
 		}
 		if (nspace <= 1) {
-			if (i != j)
+			if (i != j) {
 				*(p + j) = p[i];
+			}
 			j++;
 		}
 	}
@@ -196,11 +200,11 @@ Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
 			i++;
 			continue;
 		}
-		for (j = 0; p[j] && p[j] != ','; ++j);
+		for (j = 0; p[j] && p[j] != ','; ++j) {}
 		self->nArgs++;
 		self->l_args = realloc(self->l_args, self->nArgs * sizeof(size_t));
 		p[j] = 0;
-		if (!cmp("Vector", p, j)){
+		if (!cmp("Vector", p, j)) {
 			self->l_args[self->nArgs - 1] = sizeof(void *);
 		} else if (!cmp("REAL", p, j)) {
 			self->l_args[self->nArgs - 1] = sizeof(CL_REAL);
@@ -232,7 +236,8 @@ Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
 	self->run = Kernel_run;
 	self->runRecursive = Kernel_runRecursive;
 	self->json = Kernel_json;
-	if (p0)
+	if (p0) {
 		free(p0);
+	}
 	return self;
 }

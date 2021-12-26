@@ -170,36 +170,31 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 
 	self->fa = funcaoDeAtivacao;
 	self->dfa = funcaoDeAtivacao | FLAGDIF;
-	self->fullfeed = Kernel_news(gpu->program, "fullfeed", "Vector entrada, Vector pesos, Vector b,"
-														   " Vector z, Vector saida,\n"
-														   "int funcaoativacao, int pesosx,"
-														   " int pesosy, int k0");
-	CheckKernel(fullfeed);
-	self->fullCalcDWandFix = Kernel_news(gpu->program, "fullCalcDWandFix", "Vector a,\n"
-																		   "Vector w,\n"
-																		   "Vector dw,\n"
-																		   "Vector dz,\n"
-																		   "REAL hitlearn,\n"
-																		   "REAL momento,\n"
-																		   "REAL decaimentoDePeso,\n"
-																		   "int pesosy,\n"
-																		   "int k0");
-	CheckKernel(fullCalcDWandFix);
-	self->fullCalcDz = Kernel_news(gpu->program, "fullCalcDz", "Vector dz, Vector ds, Vector z,"
-															   "Vector b, Vector db, int dfa, REAL hitlearn,"
-															   "REAL momento,"
-															   "REAL decaimentoDePeso,"
-															   "int k0");
-	CheckKernel(fullCalcDz);
-	self->fullCalcDzandFixB = Kernel_news(gpu->program, "fullCalcDzAndFixB", "Vector dz, Vector ds, Vector z,"
-																			 "Vector b, Vector db, int dfa, REAL hitlearn,"
-																			 "REAL momento,"
-																			 "REAL decaimentoDePeso,"
-																			 "int k0");
-	CheckKernel(fullCalcDzandFixB);
-	self->fullcalcin = Kernel_news(gpu->program, "fullcalcin", "Vector dz, Vector da, Vector w, int pesosx, int pesosy,\n"
-															   "int k0");
-	CheckKernel(fullcalcin);
+	KRN_new(self->fullfeed, "fullfeed", "Vector entrada, Vector pesos, Vector b,"
+										" Vector z, Vector saida,\n"
+										"int funcaoativacao, int pesosx,"
+										" int pesosy, int k0");
+	KRN_new(self->fullCalcDWandFix, "fullCalcDWandFix", "Vector a,\n"
+														"Vector w,\n"
+														"Vector dw,\n"
+														"Vector dz,\n"
+														"REAL hitlearn,\n"
+														"REAL momento,\n"
+														"REAL decaimentoDePeso,\n"
+														"int pesosy,\n"
+														"int k0");
+	KRN_new(self->fullCalcDz, "fullCalcDz", "Vector dz, Vector ds, Vector z,"
+											"Vector b, Vector db, int dfa, REAL hitlearn,"
+											"REAL momento,"
+											"REAL decaimentoDePeso,"
+											"int k0");
+	KRN_new(self->fullCalcDzandFixB, "fullCalcDzAndFixB", "Vector dz, Vector ds, Vector z,"
+														  "Vector b, Vector db, int dfa, REAL hitlearn,"
+														  "REAL momento,"
+														  "REAL decaimentoDePeso,"
+														  "int k0");
+	KRN_new(self->fullcalcin, "fullcalcin", "Vector dz, Vector da, Vector w, int pesosx, int pesosy,\n"
+											"int k0");
 
 	ecx->popstack(ecx);
 	methods:

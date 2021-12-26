@@ -29,10 +29,13 @@ char *getName(const char *string, int withpath) {
 			break;
 		}
 	}
+
 	if (withpath) {
-		char *path = "D:/Henrique/Rede-convolucional/Gab/matlab/";
-		memmove(_matlab_file_name_ + 42, _matlab_file_name_+p_barra, p_ponto-p_barra+2);
-		memcpy(_matlab_file_name_, path, 42);
+		char *path = "../matlab/";
+		memmove(_matlab_file_name_ + 10, _matlab_file_name_+p_barra, p_ponto-p_barra+2);
+		memset(_matlab_file_name_+10+p_ponto-p_barra+2,0,1);
+		memcpy(_matlab_file_name_, path, 10);
+
 	}else{
 		memmove(_matlab_file_name_, _matlab_file_name_+p_barra, p_ponto-p_barra+2);
 		memset(_matlab_file_name_+p_ponto-p_barra+2,0,1);
@@ -40,20 +43,24 @@ char *getName(const char *string, int withpath) {
 	return _matlab_file_name_;
 }
 
-#define matlabInit()FILE *_matlab_file_ = fopen(getName(__FILE__,1),"w")
+#define matlabInit()FILE *_matlab_file_ = fopen(getName(__FILE__,1),"w");matlab("clc;clear all;close all;")
 
 #define matlabf(format, ...) fprintf(_matlab_file_,format,##__VA_ARGS__);fprintf(_matlab_file_,"\n")
 #define matlab(x) fprintf(_matlab_file_,"%s\n",x)
-#define Tmatlab(tensor,name) _tomatlab(tensor,_matlab_file_, name, "")
+#define Tmatlab(tensor,name) _tomatlab(tensor,_matlab_file_, name, NULL)
 #define Trmatlab(tensor,name)_tomatlab(tensor,_matlab_file_, name, "mshape")
-#define Tsmatlab(tensor,name,shape)_tomatlab(tensor,_matlab_file_, name,"");matlab(name" = reshape("shape");")
+#define Tsmatlab(tensor,name,shape,...)_tomatlab(tensor,_matlab_file_, name,NULL);matlabf(name" = reshape("name","shape");",##__VA_ARGS__)
 
 
-#define matlabCmp(x, y)matlab("figure;hold on;"); \
-matlab("plot("x"(:),'DisplayName','"x"')");\
-matlab("plot("y"(:),'DisplayName','"y"')");      \
-matlab("title('"#x" vs "#y"');");\
-matlab("legend();");                                  \
+#define matlabCmp(x, y)matlab("figure"); \
+                                                  \
+matlab("for i = 1:size("x",3)");                  \
+matlab("	subplot(size("x",3),1,i);hold on;");\
+matlab("	plot("x"(:,:,i)(:),'DisplayName','"x"')");\
+matlab("	plot("y"(:,:,i)(:),'DisplayName','"y"')");      \
+matlab("	title('"x" vs "y"');");\
+matlab("	legend();");                              \
+matlab("end");\
 matlab("if gcf() == 1");\
 matlabf("print('%s.pdf')",getName(__FILE__,1));                     \
 matlabf("else print('%s.pdf', '-append'); end;",getName(__FILE__,1))

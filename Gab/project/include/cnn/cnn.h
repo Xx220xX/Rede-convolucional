@@ -11,7 +11,6 @@
 #include "lcg/lcg.h"
 
 
-
 typedef struct Cnn_t {
 	///  versão da compilação
 	const char *version;
@@ -73,7 +72,8 @@ typedef struct Cnn_t {
 	int (*maxIndex)(struct Cnn_t *self);
 
 	void (*print)(struct Cnn_t *self, const char *comment);
-	void (*fprint)(struct Cnn_t *self,FILE *fdst, const char *comment);
+
+	void (*fprint)(struct Cnn_t *self, FILE *fdst, const char *comment);
 
 	char *(*printstr)(struct Cnn_t *self, const char *comment);
 
@@ -101,13 +101,13 @@ typedef struct Cnn_t {
 
 	int (*SoftMax)(struct Cnn_t *self, int8_t flag);
 
-	int (*BatchNorm)(struct Cnn_t *self, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB);
+	int (*BatchNorm)(struct Cnn_t *self, size_t batch_size, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB);
 
 	void (*removeLastLayer)(struct Cnn_t *self);
-
-
 } *Cnn, Cnn_t;
+
 extern const char *Cnn_version();
+
 extern Cnn Cnn_new();
 
 #endif //GAB_CNN_CNN_H

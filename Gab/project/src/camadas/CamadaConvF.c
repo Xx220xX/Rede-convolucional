@@ -147,24 +147,24 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 
 	self->passox = passo.x;
 	self->passoy = passo.y;
-	self->convFSum = Kernel_news(gpu->program, "convFSum", "Vector filtro, Vector entrada, Vector Z, Vector saida,\n"
+	KRN_new(self->convFSum , "convFSum", "Vector filtro, Vector entrada, Vector Z, Vector saida,\n"
 														   "int passox, int passoy,\n"
 														   "int saidatx, int saidaty,\n"
 														   "int entradatx, int entradaty,\n"
 														   "int fx, int fy, int fz, int fid, int k0");
-	CheckKernel(convFSum);
 
-	self->convFCalcGradZ = Kernel_news(gpu->program, "convFCalcGradZ", "Vector ds, Vector z, Vector dz, int fid, int k0");
-	CheckKernel(convFCalcGradZ);
 
-	self->convFCalcGrads = Kernel_news(gpu->program, "convFCalcGradIn", "Vector filtro, Vector gradEntrada, Vector dz,\n"
+	KRN_new(self->convFCalcGradZ , "convFCalcGradZ", "Vector ds, Vector z, Vector dz, int fid, int k0");
+
+
+	KRN_new(self->convFCalcGrads , "convFCalcGradIn", "Vector filtro, Vector gradEntrada, Vector dz,\n"
 																		"int fx, int fy, int fz,\n"
 																		"int passox, int passoy,\n"
 																		"int entradatx, int entradaty,\n"
 																		"int saidatx, int saidaty, int saidatz,\n"
 																		"int k0");
-	CheckKernel(convFCalcGrads);
-	self->convFCalcGradAndFixWeight = Kernel_news(gpu->program, "convFCalcGradAndFixWeight", "Vector filtros, Vector dz,\n"
+
+	KRN_new(self->convFCalcGradAndFixWeight , "convFCalcGradAndFixWeight", "Vector filtros, Vector dz,\n"
 																							 "Vector entrada, Vector gradFiltro,\n"
 																							 "int fx, int fy, int fz,\n"
 																							 "int entrada_tx, int entrada_ty,\n"
@@ -173,7 +173,7 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 																							 "REAL hitLearn, REAL momento, REAL weightDecay,\n"
 																							 "int k0");
 
-	CheckKernel(convFCalcGrads);
+
 	ECXPOP(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaConvF_release;

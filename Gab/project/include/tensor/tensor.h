@@ -55,6 +55,8 @@ typedef union {
  * Tensor
  */
 typedef struct Tensor_t {
+	/// dados do tensor
+	void *data;
 	/// parametros do tensor
 	const TensorFlag flag;
 	/// debug do tensor
@@ -66,8 +68,7 @@ typedef struct Tensor_t {
 	size_t bytes;
 	/// tamanho de um elemento
 	unsigned int size_element;
-	/// dados do tensor
-	void *data;
+
 	/// cl_command_queue para quando GPU ativo
 	void *queue;
 	/// cl_context para quando GPU ativo
@@ -105,6 +106,8 @@ typedef struct Tensor_t {
 
 	/// printa o json do tensor
 	void (*print)(struct Tensor_t *self);
+	/// printa o json do tensor
+	void (*fprint)(struct Tensor_t *self,FILE *file);
 
 	/// mostra os valores
 	char *(*valuesStr)(struct Tensor_t *self);
@@ -134,6 +137,12 @@ typedef struct Tensor_t {
 
 	/// coloca o tensor em uma imagem cinza , imagem[i0:h,j0:w] = tensor[:,:,z,l]
 	int (*imagegray)(struct Tensor_t *self, ubyte *image, size_t im_width, size_t im_height, size_t t_w, size_t t_h, size_t i0, size_t j0, size_t z, size_t l);
+	/// devolve a media do tensor
+	REAL (*media)(struct Tensor_t *self);
+	/// devolve a variância do tensor
+	REAL (*var)(struct Tensor_t *self);
+	/// devolve o desvio padrão do tensor
+	REAL (*std)(struct Tensor_t *self);
 
 	/// mapeia as posições do tensor
 	int (*map)(struct Tensor_t *self, void (*fmap)(struct Tensor_t *self, void *el, int i, int j, int z, int w, int k));
@@ -179,4 +188,6 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 
 #define TS(self_tensor)((self_tensor)->data)
 
+#define VAR(t)printf("%f ",t->var(t))
+#define LN() printf("\n")
 #endif //TENSOR_TENSOR_H

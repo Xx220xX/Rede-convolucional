@@ -96,7 +96,7 @@ typedef struct Camada_t {
 typedef struct RdParams {
 	int type;
 	REAL a, b;
-} RandomParams, RdParams;
+} RandomParams, RdParams,Rdp;
 
 #define  RDP(type, ...)((RandomParams){type,## __VA_ARGS__})
 
@@ -120,10 +120,16 @@ void internal_loadREAL(FILE *f, REAL *value, uint32_t size_element);
 
 RdParams internal_getDefaultRDP(int is_reluActivation, size_t inputLength, size_t outLength);
 
+#define INTERNAL_DEFAULT_ARGS Gpu gpu, Queue queue, P3d size_in,Tensor entrada, Ecx ecx
+
 #define Execute(kernel, len, ...)if(!self->super.ecx->error)self->super.ecx->setError(self->super.ecx, \
 self->kernel->runRecursive(self->kernel, self->super.queue,len,*self->super.maxcompute, ##__VA_ARGS__))
 #define Release(self)if(self)(self)->release(&(self));(self)=NULL
-#define CheckKernel(kernel)if (self->super.ecx->setError(self->super.ecx, self->kernel->error))goto methods
+#define KRN_new(var_dst,fname,arg)var_dst = Kernel_news(gpu->program,fname,arg);CheckKernel(var_dst)
+#define CheckKernel(kernel)if (self->super.ecx->setError(self->super.ecx, kernel->error)){fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);goto methods;}
+
+
+
 #define apendTensor(name, t, string, len, tmp, showValues) \
 if(self->t)  {                                                     \
 tmp = self->t->json(self->t, showValues);\
