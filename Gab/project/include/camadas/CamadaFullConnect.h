@@ -25,6 +25,9 @@ typedef struct CamadaFullConnect_t {
 	Kernel fullCalcDz;
 	Kernel fullCalcDzandFixB;
 	Kernel fullcalcin;
+	Kernel fullCalcDWBatch;
+	Kernel fullCalcDzBath;
+	Kernel kernel_fixW;
 	RandomParams rdp_pesos;
 	RandomParams rdp_bias;
 } *CamadaFullConnect, CamadaFullConnect_t;

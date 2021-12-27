@@ -21,6 +21,8 @@ typedef struct CamadaConvF_t {
 	Kernel convFCalcGradZ;
 	Kernel convFCalcGradAndFixWeight;
 	Kernel convFCalcGrads;
+	Kernel convFCalcGradBatch;
+	Kernel kernel_fixW;
 	uint32_t activationFuntion;
 	uint32_t derivationFuntion;
 	RandomParams rdp_filtros;

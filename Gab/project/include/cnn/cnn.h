@@ -65,6 +65,10 @@ typedef struct Cnn_t {
 
 	int (*learnv)(struct Cnn_t *self, REAL *target);
 
+	int (*learnBatch)(struct Cnn_t *self, Tensor target, size_t batchSize);
+
+	int (*fixBatch)(struct Cnn_t *self);
+
 	REAL (*mse)(struct Cnn_t *self);
 
 	REAL (*mseT)(struct Cnn_t *self, Tensor target);

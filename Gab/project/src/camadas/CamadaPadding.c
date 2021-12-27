@@ -129,6 +129,8 @@ Camada CamadaPadding_new(Gpu gpu, Queue queue, P3d size_in, uint32_t top, uint32
 	self->super.release = (void (*)(void *)) CamadaPadding_release;
 	self->super.propagation = (int (*)(void *)) CamadaPadding_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPadding_backpropagation;
+	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) internal_notBatch;
+	self->super.retroPropagationBatchLearn = (int (*)(void *)) internal_unused;
 	self->super.json = (char *(*)(void *, int)) CamadaPadding_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaPadding_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaPadding_save;

@@ -8,8 +8,12 @@
 static const char *lname = "ConvolucaoNC";
 
 static void CamadaConvNC_release(CamadaConvNC *self_p) {
-	if (!self_p) { return; }
-	if (!*self_p) { return; }
+	if (!self_p) {
+		return;
+	}
+	if (!*self_p) {
+		return;
+	}
 	internal_Camada_release((Camada *) self_p);
 	Release((*self_p)->W);
 	Release((*self_p)->dW);
@@ -19,6 +23,8 @@ static void CamadaConvNC_release(CamadaConvNC *self_p) {
 	Release((*self_p)->convncCalcFiltro);
 	Release((*self_p)->convncCalcGradZ);
 	Release((*self_p)->convncCalcGrads);
+	Release((*self_p)->convncCalcFiltroBatch);
+	Release((*self_p)->kernel_fixW);
 	gab_free(*self_p);
 	*self_p = NULL;
 }
@@ -37,10 +43,30 @@ static int CamadaConvNC_backpropagation(CamadaConvNC self, Tensor ds) {
 
 				&self->W->data, &self->super.da->data, &self->dz->data, &self->passox, &self->passoy, &self->super.da->x, &self->super.da->y, &self->super.s->x, &self->super.s->y, &self->super.s->z, &self->W->x, &self->W->y, &self->W->z);
 	}
-	if (!self->super.params.skipLearn)
-		Execute(convncCalcFiltro, self->W->length, &self->dz->data, &self->super.a->data, &self->W->data, &self->dW->data, &self->dW->x, &self->dW->y, &self->dW->z, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y, &self->passox, &self->passoy, &self->aberturax, &self->aberturay, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento
+	if (!self->super.params.skipLearn) {
+		Execute(convncCalcFiltro, self->W->length, &self->dz->data, &self->super.a->data, &self->W->data, &self->dW->data, &self->dW->x, &self->dW->y, &self->dW->z, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y, &self->passox, &self->passoy, &self->aberturax, &self->aberturay, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
+	}
+	return self->super.ecx->error;
+}
 
-			   );
+static int CamadaConvNC_backpropagationBatch(CamadaConvNC self, Tensor ds, size_t bacthSize) {
+	if (self->super.da || !self->super.params.skipLearn) {
+		Execute(convncSum, self->super.s->length, &ds->data, &self->z->data, &self->dz->data, &self->derivationFunction);
+	}
+	if (self->super.da) {
+		Execute(convncCalcGrads, self->super.da->length, &self->W->data, &self->super.da->data, &self->dz->data, &self->passox, &self->passoy, &self->super.da->x, &self->super.da->y, &self->super.s->x, &self->super.s->y, &self->super.s->z, &self->W->x, &self->W->y, &self->W->z);
+	}
+	if (!self->super.params.skipLearn) {
+		Execute(convncCalcFiltroBatch, self->W->length, &self->dz->data, &self->super.a->data, &self->dW->data, &bacthSize, &self->dW->x, &self->dW->y, &self->dW->z, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y, &self->passox, &self->passoy, &self->aberturax, &self->aberturay);
+	}
+	return self->super.ecx->error;
+}
+
+static int CamadaConvNC_learnBatch(CamadaConvNC self) {
+	if (!self->super.params.skipLearn) {
+		//convncFixBatch(Vector W, Vector dW,REAL hitlearn, REAL momento, REAL weightDecay, int k0)
+		Execute(kernel_fixW, self->W->length, &self->W->data, &self->dW->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
+	}
 	return self->super.ecx->error;
 }
 
@@ -85,7 +111,9 @@ static char *CamadaConvNC_getGenerate(CamadaConvNC self) {
  * @return 0 caso não detecte nenhuma falha
  */
 static int CamadaConvNC_save(CamadaConvNC self, FILE *f) {
-	if (self->super.ecx->error) { goto end; }
+	if (self->super.ecx->error) {
+		goto end;
+	}
 	self->super.ecx->addstack(self->super.ecx, "CamadaConvF_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->passox, 1, sizeof(size_t), f);
@@ -129,7 +157,7 @@ Camada CamadaConvNC_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx)
 }
 
 Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros) {
-	ecx->addstack(ecx, "CamadaConvNC_new");
+	ECXPUSH(ecx);
 	CamadaConvNC self = gab_alloc(1, sizeof(CamadaConvNC_t));
 	P3d size_out = {(size_in.x - 1 - (filtro.x - 1) * abertura.x) / passo.x + 1, (size_in.y - 1 - (filtro.y - 1) * abertura.y) / passo.y + 1, filtro.z};
 	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAONC_ID, lname, params, entrada, size_in, size_out, ecx);
@@ -141,14 +169,18 @@ Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtr
 	self->z = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 	self->dz = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 
-	if (ecx->error) { goto methods; }
+	if (ecx->error) {
+		goto methods;
+	}
 	self->rdp_filtros = rdp_filtros;
 	if (rdp_filtros.type != -1) {
 		if (rdp_filtros.type == 0) {
 			rdp_filtros = internal_getDefaultRDP(ativacao == FRELU, size_in.x * size_in.y * size_in.z, self->super.s->length);
 		}
 		self->super.ecx->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
-		if (ecx->error) { goto methods; }
+		if (ecx->error) {
+			goto methods;
+		}
 
 	}
 
@@ -156,46 +188,20 @@ Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtr
 	self->passoy = passo.y;
 	self->aberturax = abertura.x;
 	self->aberturay = abertura.y;
-	KRN_new(self->convncSum, "convncSum", "Vector W, Vector A, Vector Z, Vector S,\n"
-										  "unsigned int fid,\n"
-										  "unsigned int passox, int passoy,\n"
-										  "unsigned int largx, unsigned int largy,\n"
-										  "unsigned int entradatx, unsigned int entradaty,\n"
-										  "unsigned int saidatx, unsigned int saidaty,\n"
-										  "unsigned int fx, unsigned int fy, unsigned int fz,\n"
-										  "int k0");
-
-
+	KRN_new(self->convncSum, "convncSum", "Vector W, Vector A, Vector Z, Vector S, unsigned int fid, unsigned int passox, int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0");
 	KRN_new(self->convncCalcGradZ, "convncCalcGradZ", "Vector ds, Vector z, Vector dz, unsigned int fid, int k0");
-
-
-	KRN_new(self->convncCalcFiltro, "convncCalcFiltro", "Vector dz,\n"
-														"Vector A,\n"
-														"Vector W,\n"
-														"Vector dW,\n"
-														"unsigned int dw_x, unsigned int dw_y, unsigned int dw_z,\n"
-														"unsigned int a_x, unsigned int a_y,\n"
-														"unsigned int s_x, unsigned int s_y,\n"
-														"unsigned int passox, unsigned int passoy,\n"
-														"unsigned int largx, unsigned int largy,\n"
-														"REAL hitlearn, REAL momento, REAL weightDecay,\n"
-														"int k0");
-
-	KRN_new(self->convncCalcGrads, "convncCalcGrads", "Vector W,\n"
-													  "Vector DA,\n"
-													  "Vector dz,\n"
-													  "unsigned int passox, unsigned int passoy,\n"
-													  "unsigned int largx, unsigned int largy,\n"
-													  "unsigned int entradatx, unsigned int entradaty,\n"
-													  "unsigned int saidatx, unsigned int saidaty,\n"
-													  "unsigned int fx, unsigned int fy, unsigned int fz,\n"
-													  "int k0");
+	KRN_new(self->convncCalcGrads, "convncCalcGrads", "Vector W, Vector DA, Vector dz, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0");
+	KRN_new(self->convncCalcFiltro, "convncCalcFiltro", "Vector dz, Vector A, Vector W, Vector dW, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, REAL hitlearn, REAL momento, REAL weightDecay, int k0");
+	KRN_new(self->convncCalcFiltroBatch, "convncCalcFiltroBatch", "Vector dz, Vector A, Vector dW,long batchSize, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, int k0");
+	KRN_new(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
 
 	ecx->popstack(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaConvNC_release;
 	self->super.propagation = (int (*)(void *)) CamadaConvNC_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaConvNC_backpropagation;
+	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaConvNC_backpropagationBatch;
+	self->super.retroPropagationBatchLearn = (int (*)(void *)) CamadaConvNC_learnBatch;
 	self->super.json = (char *(*)(void *, int)) CamadaConvNC_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaConvNC_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaConvNC_save;

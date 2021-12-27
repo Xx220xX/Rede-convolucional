@@ -237,18 +237,7 @@ kV createImg(__global unsigned char *out, Vector v, int vx, int vy, int imi, int
 	out[imi * imy + imj] = ((int) v[k]) & 0xff;
 }
 
-kV putIMG(__global unsigned char *imagem_saida,
-		  Vector v,
-		  int z,
-		  REAL px,
-		  REAL py,
-		  int imy,
-		  int width,
-		  int i0,
-		  int j0,
-		  int vx,
-		  int vy,
-		  int k0) {
+kV putIMG(__global unsigned char *imagem_saida, Vector v, int z, REAL px, REAL py, int imy, int width, int i0, int j0, int vx, int vy, int k0) {
 	int k = get_global_id(0) + k0;
 	int i, j;
 	KTensorRemap2D(k, i, j, imy)
@@ -257,8 +246,7 @@ kV putIMG(__global unsigned char *imagem_saida,
 }
 
 
-kV normalizeVector(Vector input, Vector saida, REAL multiplicador, REAL somador, REAL subtrator,
-				   int k0) {
+kV normalizeVector(Vector input, Vector saida, REAL multiplicador, REAL somador, REAL subtrator, int k0) {
 	int k = get_global_id(0) + k0;
 	saida[k] = (input[k] + somador) * multiplicador - subtrator;
 }
@@ -272,21 +260,21 @@ kV kernel_sub(Vector ds, Vector s, Vector t, int k0) {
 kV kernel_normalizechar2real(Vector dst, __global unsigned char *src, REAL a, REAL b, int k0) {
 	int k = get_global_id(0) + k0;
 //	printf("update\n");
-	dst[k] = ((REAL)src[k] - b) / a;
+	dst[k] = ((REAL) src[k] - b) / a;
 }
 
-kV kernel_getVetorClassFromChar( Vector dst, __global unsigned char *ints,unsigned int noptiobs, int k0) {
+kV kernel_getVetorClassFromChar(Vector dst, __global unsigned char *ints, unsigned int noptiobs, int k0) {
 	int w = get_global_id(0) + k0;
 	int y = ints[w];
 	dst[KTensorMap4D(0, y, 0, w, 1, noptiobs, 1)] = 1.0;
 }
-
+kV kernel_fixW(Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0) {
+	int k = get_global_id(0) + k0;
+	w[k] = w[k] - hitlearn * (dw[k] + w[k] * decaimentoDePeso);
+	dw[k] = dw[k] * momento;
+}
 //conv.h
-kV convSum(Vector filtro, Vector entrada, Vector saida,
-           int passox, int passoy,
-           int saidatx, int saidaty,
-           int entradatx, int entradaty,
-           int fx, int fy, int fz, int k0) {
+kV convSum(Vector filtro, Vector entrada, Vector saida, int passox, int passoy, int saidatx, int saidaty, int entradatx, int entradaty, int fx, int fy, int fz, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, filtrok;
 	KTensorRemap(k, x, y, filtrok, saidatx, saidaty)
@@ -307,14 +295,7 @@ kV convSum(Vector filtro, Vector entrada, Vector saida,
 }
 
 
-kV convCalcGradAndFixWeight(Vector filtros, Vector ds,
-                            Vector entrada, Vector gradFiltro,
-                            int fx, int fy, int fz,
-                            int entrada_tx, int entrada_ty,
-                            int saida_tx, int saida_ty,
-                            int passox, int passoy,
-                            REAL hitLearn, REAL momento, REAL weightDecay,
-                            int k0) {
+kV convCalcGradAndFixWeight(Vector filtros, Vector ds, Vector entrada, Vector gradFiltro, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, REAL hitLearn, REAL momento, REAL weightDecay, int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
 	KTensorRemap4D(k, m, n, z, l, fx, fy, fz)
@@ -324,8 +305,7 @@ kV convCalcGradAndFixWeight(Vector filtros, Vector ds,
 		for (int j = 0; j < saida_ty; ++j) {
 			le = KTensorMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty);
 			ls = KTensorMap(i, j, l, saida_tx, saida_ty);
-			soma += entrada[le]
-			        * ds[ls];
+			soma += entrada[le] * ds[ls];
 		}
 	}
 	REAL dw = soma + gradFiltro[k] * momento;
@@ -334,12 +314,8 @@ kV convCalcGradAndFixWeight(Vector filtros, Vector ds,
 	gradFiltro[k] = dw;
 }
 
-kV convCalcGradIn(Vector filtro, Vector gradEntrada, Vector gradNext,
-                  int fx, int fy, int fz,
-                  int passox, int passoy,
-                  int entradatx, int entradaty,
-                  int saidatx, int saidaty, int saidatz,
-                  int k0) {
+
+kV convCalcGradIn(Vector filtro, Vector gradEntrada, Vector gradNext, int fx, int fy, int fz, int passox, int passoy, int entradatx, int entradaty, int saidatx, int saidaty, int saidatz, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	KTensorRemap(k, x, y, z, entradatx, entradaty)
@@ -366,10 +342,10 @@ kV convCalcGradIn(Vector filtro, Vector gradEntrada, Vector gradNext,
 	int lf, ls;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		i = (x - m) / passox;
-		if (i * passox + m != x) continue;
+		if (i * passox + m != x) { continue; }
 		for (int n = range_filtro.min.y; n <= range_filtro.max.y; n++) {
 			j = (y - n) / passoy;
-			if (j * passoy + n != y) continue;
+			if (j * passoy + n != y) { continue; }
 			for (int w = 0; w < saidatz; w++) {
 				lf = KTensorMap4D(m, n, z, w, fx, fy, fz);
 				ls = KTensorMap(i, j, w, saidatx, saidaty);
@@ -381,13 +357,25 @@ kV convCalcGradIn(Vector filtro, Vector gradEntrada, Vector gradNext,
 	gradEntrada[k] = somaErro;
 }
 
+kV convCalcGradBatch(Vector ds, Vector entrada, Vector gradFiltro, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0) {
+	int k = get_global_id(0) + k0;
+	int m, n, z, l;
+	KTensorRemap4D(k, m, n, z, l, fx, fy, fz)
+	REAL soma = 0;
+	int le, ls;
+	for (int i = 0; i < saida_tx; ++i) {
+		for (int j = 0; j < saida_ty; ++j) {
+			le = KTensorMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty);
+			ls = KTensorMap(i, j, l, saida_tx, saida_ty);
+			soma += entrada[le] * ds[ls];
+		}
+	}
+	soma = soma / batchSize + gradFiltro[k];
+	gradFiltro[k] = soma;
+}
 
 //convf.h
-kV convFSum(Vector filtro, Vector entrada, Vector Z, Vector saida,
-			int passox, int passoy,
-			int saidatx, int saidaty,
-			int entradatx, int entradaty,
-			int fx, int fy, int fz, int fid, int k0) {
+kV convFSum(Vector filtro, Vector entrada, Vector Z, Vector saida, int passox, int passoy, int saidatx, int saidaty, int entradatx, int entradaty, int fx, int fy, int fz, int fid, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, filtrok;
 
@@ -415,13 +403,7 @@ kV convFCalcGradZ(Vector ds, Vector z, Vector dz, int fid, int k0) {
 }
 
 
-
-kV convFCalcGradIn(Vector filtro, Vector gradEntrada, Vector dz,
-				   int fx, int fy, int fz,
-				   int passox, int passoy,
-				   int entradatx, int entradaty,
-				   int saidatx, int saidaty, int saidatz,
-				   int k0) {
+kV convFCalcGradIn(Vector filtro, Vector gradEntrada, Vector dz, int fx, int fy, int fz, int passox, int passoy, int entradatx, int entradaty, int saidatx, int saidaty, int saidatz, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	KTensorRemap(k, x, y, z, entradatx, entradaty)
@@ -448,10 +430,14 @@ kV convFCalcGradIn(Vector filtro, Vector gradEntrada, Vector dz,
 	int lf, ls;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		i = (x - m) / passox;
-		if (i * passox + m != x) continue;
+		if (i * passox + m != x) {
+			continue;
+		}
 		for (int n = range_filtro.min.y; n <= range_filtro.max.y; n++) {
 			j = (y - n) / passoy;
-			if (j * passoy + n != y) continue;
+			if (j * passoy + n != y) {
+				continue;
+			}
 			for (int w = 0; w < saidatz; w++) {
 				lf = KTensorMap4D(m, n, z, w, fx, fy, fz);
 				ls = KTensorMap(i, j, w, saidatx, saidaty);
@@ -463,14 +449,7 @@ kV convFCalcGradIn(Vector filtro, Vector gradEntrada, Vector dz,
 	gradEntrada[k] = somaErro;
 }
 
-kV convFCalcGradAndFixWeight(Vector filtros, Vector dz,
-							 Vector entrada, Vector gradFiltro,
-							 int fx, int fy, int fz,
-							 int entrada_tx, int entrada_ty,
-							 int saida_tx, int saida_ty,
-							 int passox, int passoy,
-							 REAL hitLearn, REAL momento, REAL weightDecay,
-							 int k0) {
+kV convFCalcGradAndFixWeight(Vector filtros, Vector dz, Vector entrada, Vector gradFiltro, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, REAL hitLearn, REAL momento, REAL weightDecay, int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
 	KTensorRemap4D(k, m, n, z, l, fx, fy, fz)
@@ -480,8 +459,7 @@ kV convFCalcGradAndFixWeight(Vector filtros, Vector dz,
 		for (int j = 0; j < saida_ty; ++j) {
 			le = KTensorMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty);
 			ls = KTensorMap(i, j, l, saida_tx, saida_ty);
-			soma += entrada[le]
-					* dz[ls];
+			soma += entrada[le] * dz[ls];
 		}
 	}
 	REAL dw = soma + gradFiltro[k] * momento;
@@ -489,29 +467,41 @@ kV convFCalcGradAndFixWeight(Vector filtros, Vector dz,
 	filtros[k] = w - hitLearn * (dw + w * weightDecay);
 	gradFiltro[k] = dw;
 }
-//convNc.h
 
-kV convncSum(Vector W, Vector A, Vector Z, Vector S,
-			 unsigned int fid,
-			 unsigned int passox, int passoy,
-			 unsigned int largx, unsigned int largy,
-			 unsigned int entradatx, unsigned int entradaty,
-			 unsigned int saidatx, unsigned int saidaty,
-			 unsigned int fx, unsigned int fy, unsigned int fz,
-			 int k0) {
+kV convFCalcGradBatch(Vector dz, Vector entrada, Vector gradFiltro, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0) {
+	int k = get_global_id(0) + k0;
+	int m, n, z, l;
+	KTensorRemap4D(k, m, n, z, l, fx, fy, fz)
+	REAL soma = 0;
+	int le, ls;
+	for (int i = 0; i < saida_tx; ++i) {
+		for (int j = 0; j < saida_ty; ++j) {
+			le = KTensorMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty);
+			ls = KTensorMap(i, j, l, saida_tx, saida_ty);
+			soma += entrada[le] * dz[ls];
+		}
+	}
+	soma = soma / batchSize + gradFiltro[k];
+	gradFiltro[k] = soma;
+}
+
+
+//convNc.h
+kV convncSum(Vector W, Vector A, Vector Z, Vector S, unsigned int fid, unsigned int passox, int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, filtrok;
 	KTensorRemap(k, x, y, filtrok, saidatx, saidaty)
 	Ponto3d Kmapeado = {x * passox, y * passoy, 0};
 	REAL sum = 0, f, v;
-	for (int i = 0; i < fx; i++)
-		for (int j = 0; j < fy; j++)
+	for (int i = 0; i < fx; i++) {
+		for (int j = 0; j < fy; j++) {
 			for (int z = 0; z < fz; z++) {
 				f = W[KTensorMap4D(i, j, z, filtrok, fx, fy, fz)];
 				v = A[KTensorMap(Kmapeado.x + i * largx, Kmapeado.y + j * largy, z, entradatx, entradaty)];
-
 				sum += f * v;
 			}
+		}
+	}
 	Z[k] = sum;
 	S[k] = func(fid, sum);
 }
@@ -521,15 +511,7 @@ kV convncCalcGradZ(Vector ds, Vector z, Vector dz, unsigned int fid, int k0) {
 	dz[k] = ds[k] * func(fid, z[k]);
 }
 
-kV convncCalcGrads(Vector W,
-				   Vector DA,
-				   Vector dz,
-				   unsigned int passox, unsigned int passoy,
-				   unsigned int largx, unsigned int largy,
-				   unsigned int entradatx, unsigned int entradaty,
-				   unsigned int saidatx, unsigned int saidaty,
-				   unsigned int fx, unsigned int fy, unsigned int fz,
-				   int k0) {
+kV convncCalcGrads(Vector W, Vector DA, Vector dz, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0) {
 	/**
  * equacao a ser implementada \n
  * x = s*p + m*w \n
@@ -563,10 +545,14 @@ kV convncCalcGrads(Vector W,
 	REAL somaErro = 0, aux, pesoAplicado = 0;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		sx = (x - m * largx) / passox;
-		if (sx * passox + m * largx != x)continue;
+		if (sx * passox + m * largx != x) {
+			continue;
+		}
 		for (int n = range_filtro.min.y; n <= range_filtro.max.y; n++) {
 			sy = (y - n * largy) / passox;
-			if (sy * passoy + n * largy != y)continue;
+			if (sy * passoy + n * largy != y) {
+				continue;
+			}
 			for (int l = 0; l < fz; l++) {
 				pesoAplicado = W[KTensorMap4D(m, n, z, l, fx, fy, fz)];
 				aux = pesoAplicado * dz[KTensorMap(sx, sy, l, saidatx, saidaty)];
@@ -577,31 +563,32 @@ kV convncCalcGrads(Vector W,
 	DA[k] = somaErro;
 }
 
-kV convncCalcFiltro(Vector dz,
-					Vector A,
-					Vector W,
-					Vector dW,
-					unsigned int dw_x, unsigned int dw_y, unsigned int dw_z,
-					unsigned int a_x, unsigned int a_y,
-					unsigned int s_x, unsigned int s_y,
-					unsigned int passox, unsigned int passoy,
-					unsigned int largx, unsigned int largy,
-					REAL hitlearn, REAL momento, REAL weightDecay,
-					int k0) {
+kV convncCalcFiltro(Vector dz, Vector A, Vector W, Vector dW, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, REAL hitlearn, REAL momento, REAL weightDecay, int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
 	KTensorRemap4D(k, m, n, z, l, dw_x, dw_y, dw_z)
 	REAL soma = 0, aux;
 	for (int i = 0; i < s_x; ++i) {
 		for (int j = 0; j < s_y; ++j) {
-			aux = A[KTensorMap(i * passox + m * largx, j * passoy + n * largy, z, a_x, a_y)]
-				  * dz[KTensorMap(i, j, l, s_x, s_y)];
+			aux = A[KTensorMap(i * passox + m * largx, j * passoy + n * largy, z, a_x, a_y)] * dz[KTensorMap(i, j, l, s_x, s_y)];
 			soma += aux;
 		}
 	}
 	dW[k] = soma + dW[k] * momento;
 	W[k] = W[k] - hitlearn * (dW[k] + W[k] * weightDecay);
-
+}
+kV convncCalcFiltroBatch(Vector dz, Vector A, Vector dW,long batchSize, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, int k0) {
+	int k = get_global_id(0) + k0;
+	int m, n, z, l;
+	KTensorRemap4D(k, m, n, z, l, dw_x, dw_y, dw_z)
+	REAL soma = 0, aux;
+	for (int i = 0; i < s_x; ++i) {
+		for (int j = 0; j < s_y; ++j) {
+			aux = A[KTensorMap(i * passox + m * largx, j * passoy + n * largy, z, a_x, a_y)] * dz[KTensorMap(i, j, l, s_x, s_y)];
+			soma += aux;
+		}
+	}
+	dW[k] = soma/batchSize;
 }
 
 
@@ -634,40 +621,18 @@ kV dropcalcgrad(Vector gradentrada, __global char *hitmap, Vector gradnext, int 
 }
 
 //fullconnect.h
-
-/**
- *
- * @param entrada (N,1,1)
- * @param pesos (M,N,1)
- * @param b (N,1,1)
- * @param z (N,1,1)
- * @param saida (N,1,1)
- * @param funcaoativacao
- * @param pesosx M
- * @param pesosy N
- * @param k0
- */
-kV fullfeed(Vector entrada, Vector pesos, Vector b, Vector z, Vector saida,
-			int funcaoativacao, int pesosx, int pesosy, int k0) {
+kV fullfeed(Vector a, Vector w, Vector b, Vector z, Vector s, int fid, int w_x, int w_y, int k0) {
 	int m = get_global_id(0) + k0;
-	REAL valorEntrada = 0;
+	REAL sum = 0;
 	int n;
-	for (n = 0; n < pesosy; n++) {
-		valorEntrada += entrada[n] * pesos[KTensorMap(m, n, 0, pesosx, pesosy)];
+	for (n = 0; n < w_y; n++) {
+		sum += a[n] * w[KTensorMap(m, n, 0, w_x, w_y)];
 	}
-	z[m] = valorEntrada + b[m];
-	saida[m] = func(funcaoativacao, z[m]);
+	z[m] = sum + b[m];
+	s[m] = func(fid, z[m]);
 }
 
-kV fullCalcDWandFix(Vector a,
-					Vector w,
-					Vector dw,
-					Vector dz,
-					REAL hitlearn,
-					REAL momento,
-					REAL decaimentoDePeso,
-					int pesosy,
-					int k0) {
+kV fullCalcDWandFix(Vector a, Vector w, Vector dw, Vector dz, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int pesosy, int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n;
 	m = k / pesosy;
@@ -676,26 +641,26 @@ kV fullCalcDWandFix(Vector a,
 	w[k] = w[k] - hitlearn * (dw[k] + w[k] * decaimentoDePeso);
 }
 
-kV fullCalcDz(Vector dz, Vector ds, Vector z, Vector b, Vector db,
-			  int dfa, REAL hitlearn,
-			  REAL momento, REAL decaimentoDePeso,
-			  int k0) {
+
+kV fullCalcDz(Vector dz, Vector ds, Vector z,int dfa, int k0) {
 	int m = get_global_id(0) + k0;
 	dz[m] = ds[m] * func(dfa, z[m]);
 }
+kV fullCalcDzBath(Vector dz, Vector ds, Vector z,  Vector db, int dfa,long batchSize,  int k0) {
+	int m = get_global_id(0) + k0;
+	dz[m] = ds[m] * func(dfa, z[m]);
+	db[m] = dz[m]/batchSize + db[m];
+}
 
-kV fullCalcDzAndFixB(Vector dz, Vector ds, Vector z, Vector b,
-					 Vector db, int dfa, REAL hitlearn,
-					 REAL momento, REAL decaimentoDePeso,
-					 int k0) {
+kV fullCalcDzAndFixB(Vector dz, Vector ds, Vector z, Vector b, Vector db, int dfa, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0) {
 	int m = get_global_id(0) + k0;
 	dz[m] = ds[m] * func(dfa, z[m]);
 	db[m] = dz[m] + db[m] * momento;
 	b[m] = b[m] - hitlearn * (db[m] + b[m] * decaimentoDePeso);
 }
 
-kV fullcalcin(Vector dz, Vector da, Vector w, int pesosx, int pesosy,
-			  int k0) {
+
+kV fullcalcin(Vector dz, Vector da, Vector w, int pesosx, int pesosy, int k0) {
 	int m = get_global_id(0) + k0;
 	REAL soma = 0;
 	for (int n = 0; n < pesosx; ++n) {
@@ -703,6 +668,16 @@ kV fullcalcin(Vector dz, Vector da, Vector w, int pesosx, int pesosy,
 	}
 	da[m] = soma;
 }
+
+
+kV fullCalcDWBatch(Vector a, Vector dw, Vector dz, long batchSize, int pesosy, int k0) {
+	int k = get_global_id(0) + k0;
+	int m, n;
+	m = k / pesosy;
+	n = k % pesosy;
+	dw[k] = dz[m] * a[n] / batchSize + dw[k];
+}
+
 
 //padding.h
 
@@ -884,15 +859,13 @@ kV poolativaMin(Vector entrada, Vector saida,
 kV preluativa(Vector entrada, Vector saida, Vector A, int k0) {
 	int k = get_global_id(0) + k0;
 	REAL v = entrada[k];
-	if (v < 0)
+	if (v < 0) {
 		v = v * A[k];
+	}
 	saida[k] = v;
 }
 
-kV prelucalcgrad(Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA,
-				 int learn, REAL hitlearn, REAL momento,
-				 REAL decaimento,
-				 int k0) {
+kV prelucalcgrad(Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, int learn, REAL hitlearn, REAL momento, REAL decaimento, int k0) {
 	int k = get_global_id(0) + k0;
 	REAL v = entrada[k];
 	if (v < 0) {
@@ -902,14 +875,12 @@ kV prelucalcgrad(Vector gradentrada, Vector entrada, Vector gradnext, Vector A, 
 		gradentrada[k] = gradnext[k];
 		dA[k] = momento * dA[k];
 	}
-	if (learn)
+	if (learn) {
 		A[k] = A[k] - hitlearn * (dA[k] + A[k] * decaimento);
+	}
 }
 
-kV preluonlyfix(Vector entrada, Vector gradnext, Vector A, Vector dA,
-				REAL hitlearn, REAL momento,
-				REAL decaimento,
-				int k0) {
+kV preluonlyfix(Vector entrada, Vector gradnext, Vector A, Vector dA, REAL hitlearn, REAL momento, REAL decaimento, int k0) {
 	int k = get_global_id(0) + k0;
 	REAL v = entrada[k];
 	if (v < 0) {
@@ -920,6 +891,27 @@ kV preluonlyfix(Vector entrada, Vector gradnext, Vector A, Vector dA,
 	A[k] = A[k] - hitlearn * (dA[k] + A[k] * decaimento);
 }
 
+kV prelucalcgradBatch(Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize, int k0) {
+	int k = get_global_id(0) + k0;
+	REAL v = entrada[k];
+	if (v < 0) {
+		gradentrada[k] = gradnext[k] * A[k];
+		dA[k] = gradnext[k] / batchSize + dA[k];
+	} else {
+		gradentrada[k] = gradnext[k];
+		dA[k] = 1.0 / batchSize + dA[k];
+	}
+}
+
+kV preluonlyDABatch(Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize, int k0) {
+	int k = get_global_id(0) + k0;
+	REAL v = entrada[k];
+	if (v < 0) {
+		dA[k] = gradnext[k] / batchSize + dA[k];
+	} else {
+		dA[k] = 1.0 / batchSize + dA[k];
+	}
+}
 //relu.h
 
 kV reluativa(Vector entrada, Vector saida, REAL menor, REAL maior, int k0) {

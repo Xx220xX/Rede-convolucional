@@ -173,7 +173,11 @@ int cnnMain(int nargs, char **args) {
 	if (s->ok(s)) {
 		t0 = seconds();
 		s->runing = 1;
-		htreino = Thread_new(s->treinar, s);
+		if(s->useBatch) {
+			htreino = Thread_new(s->treinarBatch, s);
+		}else{
+			htreino = Thread_new(s->treinar, s);
+		}
 		Itrain treino;
 		GUI.make_train();
 		while (s->runing) {
@@ -217,7 +221,6 @@ int cnnMain(int nargs, char **args) {
 		s->force_end = 0;
 		s->can_run = 1;
 		s->cnn->ecx->error = 0;
-
 		// criar arquivo temporario
 		FILE *tmpf = fopen(TMP_FILE_NAME_ARCH, "w");
 		// copiar help

@@ -8,8 +8,12 @@
 static const char *lname = "ConvolucaoF";
 
 static void CamadaConvF_release(CamadaConvF *self_p) {
-	if (!self_p) { return; }
-	if (!*self_p) { return; }
+	if (!self_p) {
+		return;
+	}
+	if (!*self_p) {
+		return;
+	}
 	internal_Camada_release((Camada *) self_p);
 	Release((*self_p)->W);
 	Release((*self_p)->dW);
@@ -19,6 +23,8 @@ static void CamadaConvF_release(CamadaConvF *self_p) {
 	Release((*self_p)->convFCalcGrads);
 	Release((*self_p)->convFCalcGradZ);
 	Release((*self_p)->convFCalcGradAndFixWeight);
+	Release((*self_p)->convFCalcGradBatch);
+	Release((*self_p)->kernel_fixW);
 	gab_free(*self_p);
 	*self_p = NULL;
 }
@@ -42,6 +48,26 @@ static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
 		Execute(convFCalcGradAndFixWeight, self->W->length, &self->W->data, &self->dz->data, &self->super.a->data, &self->dW->data, &self->W->x, &self->W->y, &self->W->z, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y, &self->passox, &self->passoy, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento
 
 			   );
+	return self->super.ecx->error;
+}
+
+static int CamadaConvF_backpropagationBatch(CamadaConvF self, Tensor ds, size_t batchSize) {
+	if (self->super.da || !self->super.params.skipLearn) {
+		Execute(convFCalcGradZ, self->super.s->length, &ds->data, &self->z->data, &self->dz->data, &self->derivationFuntion);
+	}
+	if (self->super.da) {
+		Execute(convFCalcGrads, self->super.da->length, &self->W->data, &self->super.da->data, &self->dz->data, &self->W->x, &self->W->y, &self->W->z, &self->passox, &self->passoy, &self->super.da->x, &self->super.da->y, &self->super.s->x, &self->super.s->y, &self->super.s->z);
+	}
+	if (!self->super.params.skipLearn) {
+		Execute(convFCalcGradBatch, self->W->length, &self->dz->data, &self->super.a->data, &self->dW->data, &batchSize, &self->W->x, &self->W->y, &self->W->z, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y, &self->passox, &self->passoy);
+	}
+	return self->super.ecx->error;
+}
+
+static int CamadaConvF_learnBatch(CamadaConvF self) {
+	if (!self->super.params.skipLearn) {
+		Execute(kernel_fixW, self->W->length, &self->W->data, &self->dW->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
+	}
 	return self->super.ecx->error;
 }
 
@@ -81,7 +107,9 @@ static char *CamadaConvF_getGenerate(CamadaConvF self) {
  * @return 0 caso não detecte nenhuma falha
  */
 static int CamadaConvF_save(CamadaConvF self, FILE *f) {
-	if (self->super.ecx->error) { goto end; }
+	if (self->super.ecx->error) {
+		goto end;
+	}
 	self->super.ecx->addstack(self->super.ecx, "CamadaConvF_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->passox, 1, sizeof(size_t), f);
@@ -133,45 +161,28 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	self->z = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 	self->dz = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 
-	if (ecx->error) { goto methods; }
+	if (ecx->error) {
+		goto methods;
+	}
 	self->rdp_filtros = rdp_filtros;
 	if (rdp_filtros.type != -1) {
 		if (rdp_filtros.type == 0) {
 			rdp_filtros = internal_getDefaultRDP(ativacao == FRELU, size_in.x * size_in.y * size_in.z, self->super.s->length);
 		}
-
 		self->super.ecx->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
-		if (ecx->error) { goto methods; }
-
+		if (ecx->error) {
+			goto methods;
+		}
 	}
 
 	self->passox = passo.x;
 	self->passoy = passo.y;
-	KRN_new(self->convFSum , "convFSum", "Vector filtro, Vector entrada, Vector Z, Vector saida,\n"
-														   "int passox, int passoy,\n"
-														   "int saidatx, int saidaty,\n"
-														   "int entradatx, int entradaty,\n"
-														   "int fx, int fy, int fz, int fid, int k0");
-
-
-	KRN_new(self->convFCalcGradZ , "convFCalcGradZ", "Vector ds, Vector z, Vector dz, int fid, int k0");
-
-
-	KRN_new(self->convFCalcGrads , "convFCalcGradIn", "Vector filtro, Vector gradEntrada, Vector dz,\n"
-																		"int fx, int fy, int fz,\n"
-																		"int passox, int passoy,\n"
-																		"int entradatx, int entradaty,\n"
-																		"int saidatx, int saidaty, int saidatz,\n"
-																		"int k0");
-
-	KRN_new(self->convFCalcGradAndFixWeight , "convFCalcGradAndFixWeight", "Vector filtros, Vector dz,\n"
-																							 "Vector entrada, Vector gradFiltro,\n"
-																							 "int fx, int fy, int fz,\n"
-																							 "int entrada_tx, int entrada_ty,\n"
-																							 "int saida_tx, int saida_ty,\n"
-																							 "int passox, int passoy,\n"
-																							 "REAL hitLearn, REAL momento, REAL weightDecay,\n"
-																							 "int k0");
+	KRN_new(self->convFSum, "convFSum", "Vector filtro, Vector entrada, Vector Z, Vector saida, int passox, int passoy, int saidatx, int saidaty, int entradatx, int entradaty, int fx, int fy, int fz, int fid, int k0");
+	KRN_new(self->convFCalcGradZ, "convFCalcGradZ", "Vector ds, Vector z, Vector dz, int fid, int k0");
+	KRN_new(self->convFCalcGrads, "convFCalcGradIn", "Vector filtro, Vector gradEntrada, Vector dz, int fx, int fy, int fz, int passox, int passoy, int entradatx, int entradaty, int saidatx, int saidaty, int saidatz, int k0");
+	KRN_new(self->convFCalcGradAndFixWeight, "convFCalcGradAndFixWeight", "Vector filtros, Vector dz, Vector entrada, Vector gradFiltro, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, REAL hitLearn, REAL momento, REAL weightDecay, int k0");
+	KRN_new(self->convFCalcGradBatch, "convFCalcGradBatch", "Vector dz, Vector entrada, Vector gradFiltro, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0");
+	KRN_new(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
 
 
 	ECXPOP(ecx);
@@ -179,6 +190,8 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	self->super.release = (void (*)(void *)) CamadaConvF_release;
 	self->super.propagation = (int (*)(void *)) CamadaConvF_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaConvF_backpropagation;
+	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaConvF_backpropagationBatch;
+	self->super.retroPropagationBatchLearn = (int (*)(void *)) CamadaConvF_learnBatch;
 	self->super.json = (char *(*)(void *, int)) CamadaConvF_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaConvF_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaConvF_save;

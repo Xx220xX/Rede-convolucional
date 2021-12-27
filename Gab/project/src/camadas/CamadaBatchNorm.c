@@ -58,32 +58,41 @@ int CamadaBatchNorm_propagation(CamadaBatchNorm self) {
 	return self->super.ecx->error;
 }
 
-int CamadaBatchNorm_backpropagation(CamadaBatchNorm self, Tensor ds) {
+int CamadaBatchNorm_retroPropagationBatch(CamadaBatchNorm self, Tensor ds, size_t batchSize) {
 	if (self->super.da || !self->super.params.skipLearn) { //  calcular o gradiente da norma ds * dY
 		Execute(BatchNormaCalcDnorm, self->super.s->length, &self->dnorma->data, &ds->data, &self->Y->data, &self->super.a->x, &self->super.a->y);
 	}
+
 	if (self->super.da) {// calcular o gradiente de entrada
-
 		Execute(BatchNormMediadnorm_norma, self->super.s->z, &self->norma->data, &self->dnorma->data, &self->media_dnorma->data, &self->media_dnorma_norma->data, &self->super.s->x, &self->super.s->y);
-
-
 		//Vector da, Vector norm, Vector dnorm, Vector mdnorm, Vector mdnormnorm, Vector inv_std, int ax, int ay,
 		Execute(BatchNormaCalcDa, self->super.da->length, &self->super.da->data, &self->norma->data, &self->dnorma->data, &self->media_dnorma->data, &self->media_dnorma_norma->data, &self->inv_std->data, &self->super.a->x, &self->super.a->y);
-
-
-//		fprintf(f,"da ");self->super.da->fprint(self->super.da,f);
 	}
 
 	if (!self->super.params.skipLearn) {
 //		Vector ds, Vector norma, Vector gradY, Vector gradB, long batchSize, int ax, int ay, int k0
-		Execute(BatchNormaCalcdYdB, self->super.s->z, &ds->data, &self->norma->data, &self->dY->data, &self->dB->data, &self->batch_size, &self->super.s->x, &self->super.s->y);
+		Execute(BatchNormaCalcdYdB, self->super.s->z, &ds->data, &self->norma->data, &self->dY->data, &self->dB->data, &batchSize, &self->super.s->x, &self->super.s->y);
+	}
+	return self->super.ecx->error;
+}
+
+int CamadaBatchNorm_backpropagation(CamadaBatchNorm self, Tensor ds) {
+	CamadaBatchNorm_retroPropagationBatch(self, ds, self->batch_size);
+	if (!self->super.params.skipLearn) {
 		self->batch++;
 		if (self->batch >= self->batch_size) {
 			self->batch = 0;
 			Execute(BatchNormaLearn, self->Y->length, &self->Y->data, &self->B->data, &self->dY->data, &self->dB->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 		}
 	}
+	return self->super.ecx->error;
+}
 
+int CamadaBatchNorm_retroPropagationBatchLearn(CamadaBatchNorm self) {
+	if (!self->super.params.skipLearn) {
+		Execute(BatchNormaLearn, self->Y->length, &self->Y->data, &self->B->data, &self->dY->data, &self->dB->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
+
+	}
 	return self->super.ecx->error;
 }
 
@@ -123,7 +132,9 @@ char *CamadaBatchNorm_getGenerate(CamadaBatchNorm self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaBatchNorm_save(CamadaBatchNorm self, FILE *f) {
-	if (self->super.ecx->error) { goto end; }
+	if (self->super.ecx->error) {
+		goto end;
+	}
 	ECXPUSH(self->super.ecx);
 	internal_saveCamada(f, (Camada) self);
 	internal_saveREAL(f, self->epsilon);
@@ -136,7 +147,9 @@ int CamadaBatchNorm_save(CamadaBatchNorm self, FILE *f) {
 }
 
 Camada CamadaBatchNorm_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
-	if (ecx->error) { goto end; }
+	if (ecx->error) {
+		goto end;
+	}
 	ecx->addstack(ecx, "CamadaBatchNorm_load");
 	P3d size_in;
 	Parametros parametros;
@@ -183,9 +196,7 @@ extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL
 	KRN_new(self->BatchNormaCalcDnorm, "BatchNormaCalcDnorm", "Vector dnorm, Vector ds, Vector Y, int ax, int ay, int k0")
 	KRN_new(self->BatchNormMediadnorm_norma, "BatchNormMediadnorm_norma", "Vector norm, Vector dnorm, Vector mdnorm, Vector mdnormnorm, int ax, int ay, int k0")
 	KRN_new(self->BatchNormaCalcDa, "BatchNormaCalcDa", "Vector da, Vector norm, Vector dnorm, Vector mdnorm, Vector mdnormnorm, Vector inv_std, int ax, int ay, int k0")
-
 	KRN_new(self->BatchNormaCalcdYdB, "BatchNormaCalcdYdB", "Vector ds, Vector norma, Vector gradY, Vector gradB, long batchSize, int ax, int ay, int k0")
-
 	KRN_new(self->BatchNormaLearn, "BatchNormaLearn", "Vector Y, Vector B, Vector gradY, Vector gradB, REAL hit, REAL momento, REAL decaimento, int k0")
 
 
@@ -211,12 +222,13 @@ extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL
 	methods:
 	self->super.release = (void (*)(void *)) CamadaBatchNorm_release;
 	self->super.propagation = (int (*)(void *)) CamadaBatchNorm_propagation;
+	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaBatchNorm_retroPropagationBatch;
+	self->super.retroPropagationBatchLearn = (int (*)(void *)) CamadaBatchNorm_retroPropagationBatchLearn;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaBatchNorm_backpropagation;
 	self->super.json = (char *(*)(void *, int)) CamadaBatchNorm_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaBatchNorm_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaBatchNorm_save;
 	self->dY->fill(self->dY, 0);
 	self->dB->fill(self->dB, 0);
-
 	return (Camada) self;
 }

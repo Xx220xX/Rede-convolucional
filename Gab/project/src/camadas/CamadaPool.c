@@ -169,6 +169,8 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 	self->super.release = (void (*)(void *)) CamadaPooling_release;
 	self->super.propagation = (int (*)(void *)) CamadaPooling_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPooling_backpropagation;
+	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) internal_notBatch;
+	self->super.retroPropagationBatchLearn = (int (*)(void *)) internal_unused;
 	self->super.json = (char *(*)(void *, int)) CamadaPooling_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaPooling_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaPooling_save;

@@ -1,8 +1,4 @@
-kV convFSum(Vector filtro, Vector entrada, Vector Z, Vector saida,
-			int passox, int passoy,
-			int saidatx, int saidaty,
-			int entradatx, int entradaty,
-			int fx, int fy, int fz, int fid, int k0) {
+kV convFSum(Vector filtro, Vector entrada, Vector Z, Vector saida, int passox, int passoy, int saidatx, int saidaty, int entradatx, int entradaty, int fx, int fy, int fz, int fid, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, filtrok;
 
@@ -30,13 +26,7 @@ kV convFCalcGradZ(Vector ds, Vector z, Vector dz, int fid, int k0) {
 }
 
 
-
-kV convFCalcGradIn(Vector filtro, Vector gradEntrada, Vector dz,
-				   int fx, int fy, int fz,
-				   int passox, int passoy,
-				   int entradatx, int entradaty,
-				   int saidatx, int saidaty, int saidatz,
-				   int k0) {
+kV convFCalcGradIn(Vector filtro, Vector gradEntrada, Vector dz, int fx, int fy, int fz, int passox, int passoy, int entradatx, int entradaty, int saidatx, int saidaty, int saidatz, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	KTensorRemap(k, x, y, z, entradatx, entradaty)
@@ -63,10 +53,14 @@ kV convFCalcGradIn(Vector filtro, Vector gradEntrada, Vector dz,
 	int lf, ls;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		i = (x - m) / passox;
-		if (i * passox + m != x) continue;
+		if (i * passox + m != x) {
+			continue;
+		}
 		for (int n = range_filtro.min.y; n <= range_filtro.max.y; n++) {
 			j = (y - n) / passoy;
-			if (j * passoy + n != y) continue;
+			if (j * passoy + n != y) {
+				continue;
+			}
 			for (int w = 0; w < saidatz; w++) {
 				lf = KTensorMap4D(m, n, z, w, fx, fy, fz);
 				ls = KTensorMap(i, j, w, saidatx, saidaty);
@@ -78,14 +72,7 @@ kV convFCalcGradIn(Vector filtro, Vector gradEntrada, Vector dz,
 	gradEntrada[k] = somaErro;
 }
 
-kV convFCalcGradAndFixWeight(Vector filtros, Vector dz,
-							 Vector entrada, Vector gradFiltro,
-							 int fx, int fy, int fz,
-							 int entrada_tx, int entrada_ty,
-							 int saida_tx, int saida_ty,
-							 int passox, int passoy,
-							 REAL hitLearn, REAL momento, REAL weightDecay,
-							 int k0) {
+kV convFCalcGradAndFixWeight(Vector filtros, Vector dz, Vector entrada, Vector gradFiltro, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, REAL hitLearn, REAL momento, REAL weightDecay, int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
 	KTensorRemap4D(k, m, n, z, l, fx, fy, fz)
@@ -95,8 +82,7 @@ kV convFCalcGradAndFixWeight(Vector filtros, Vector dz,
 		for (int j = 0; j < saida_ty; ++j) {
 			le = KTensorMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty);
 			ls = KTensorMap(i, j, l, saida_tx, saida_ty);
-			soma += entrada[le]
-					* dz[ls];
+			soma += entrada[le] * dz[ls];
 		}
 	}
 	REAL dw = soma + gradFiltro[k] * momento;
@@ -104,3 +90,21 @@ kV convFCalcGradAndFixWeight(Vector filtros, Vector dz,
 	filtros[k] = w - hitLearn * (dw + w * weightDecay);
 	gradFiltro[k] = dw;
 }
+
+kV convFCalcGradBatch(Vector dz, Vector entrada, Vector gradFiltro, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0) {
+	int k = get_global_id(0) + k0;
+	int m, n, z, l;
+	KTensorRemap4D(k, m, n, z, l, fx, fy, fz)
+	REAL soma = 0;
+	int le, ls;
+	for (int i = 0; i < saida_tx; ++i) {
+		for (int j = 0; j < saida_ty; ++j) {
+			le = KTensorMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty);
+			ls = KTensorMap(i, j, l, saida_tx, saida_ty);
+			soma += entrada[le] * dz[ls];
+		}
+	}
+	soma = soma / batchSize + gradFiltro[k];
+	gradFiltro[k] = soma;
+}
+

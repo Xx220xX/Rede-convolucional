@@ -17,6 +17,8 @@ typedef struct CamadaConv_t {
 	size_t passox, passoy;
 	Kernel convSum;
 	Kernel convCalcGradAndFixWeight;
+	Kernel convCalcGradBatch;
+	Kernel kernel_fixW;
 	Kernel convCalcGradIn;
 	RandomParams rdp_filtros;
 } *CamadaConv, CamadaConv_t;

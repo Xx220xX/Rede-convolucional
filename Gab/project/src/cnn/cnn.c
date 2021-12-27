@@ -39,8 +39,12 @@ const char *Cnn_version() {
 }
 
 int Cnn_release(Cnn *selfp) {
-	if (!selfp) { return 10; }
-	if (!(*selfp)) { return 10; }
+	if (!selfp) {
+		return 10;
+	}
+	if (!(*selfp)) {
+		return 10;
+	}
 	(*selfp)->ecx->print((*selfp)->ecx);
 	if ((*selfp)->ecx->error) {
 		char *tmp = Gpu_errormsg((*selfp)->ecx->error);
@@ -51,7 +55,9 @@ int Cnn_release(Cnn *selfp) {
 	for (int l = 0; l < (*selfp)->l; ++l) {
 		(*selfp)->cm[l]->release(&(*selfp)->cm[l]);
 	}
-	if ((*selfp)->cm) { gab_free((*selfp)->cm); }
+	if ((*selfp)->cm) {
+		gab_free((*selfp)->cm);
+	}
 
 	Release((*selfp)->entrada);
 	Release((*selfp)->target);
@@ -67,7 +73,9 @@ int Cnn_release(Cnn *selfp) {
 	if ((*selfp)->release_gpu) {
 		Release((*selfp)->gpu);
 	}
-	if ((*selfp)->releaseL) { (*selfp)->releaseL((*selfp)->LuaVm); }
+	if ((*selfp)->releaseL) {
+		(*selfp)->releaseL((*selfp)->LuaVm);
+	}
 	gab_free(*selfp);
 	return erro;
 }
@@ -104,7 +112,9 @@ int internal_Cnn_addlayer(Cnn self, Camada newLayer) {
 }
 
 Tensor internal_Cnn_getEntrada(Cnn self) {
-	if (self->cm) { return self->cm[self->l - 1]->s; }
+	if (self->cm) {
+		return self->cm[self->l - 1]->s;
+	}
 	return NULL;
 }
 
@@ -116,7 +126,9 @@ P3d Cnn_getSizeOut(Cnn self) {
 }
 
 void Cnn_removeLastLayer(Cnn self) {
-	if (self->l <= 0) { return; }
+	if (self->l <= 0) {
+		return;
+	}
 	self->l = self->l - 1;
 	Release(self->cm[self->l]);
 	if (self->l == 0) {
@@ -138,25 +150,41 @@ int Cnn_learn(Cnn self, Tensor target);
 int Cnn_predict(Cnn self, Tensor entrada);
 
 int Cnn_learnv(Cnn self, REAL *target) {
-	if (!target) { self->ecx->error = GAB_NULL_POINTER_ERROR; }
-	if (!self->l) { self->ecx->error = GAB_CNN_NOT_INITIALIZED; }
-	if (self->ecx->error) { return self->ecx->error; }
+	if (!target) {
+		self->ecx->error = GAB_NULL_POINTER_ERROR;
+	}
+	if (!self->l) {
+		self->ecx->error = GAB_CNN_NOT_INITIALIZED;
+	}
+	if (self->ecx->error) {
+		return self->ecx->error;
+	}
 	self->target->setvalues(self->target, target);
 	return Cnn_learn(self, self->target);
 }
 
 int Cnn_predictv(Cnn self, REAL *entrada) {
-	if (!entrada) { self->ecx->error = GAB_NULL_POINTER_ERROR; }
-	if (!self->l) { self->ecx->error = GAB_CNN_NOT_INITIALIZED; }
-	if (self->ecx->error) { return self->ecx->error; }
+	if (!entrada) {
+		self->ecx->error = GAB_NULL_POINTER_ERROR;
+	}
+	if (!self->l) {
+		self->ecx->error = GAB_CNN_NOT_INITIALIZED;
+	}
+	if (self->ecx->error) {
+		return self->ecx->error;
+	}
 	self->entrada->setvalues(self->entrada, entrada);
 	return Cnn_predict(self, self->entrada);
 
 }
 
 int Cnn_learn(Cnn self, Tensor target) {
-	if (!self->l) { self->ecx->error = GAB_CNN_NOT_INITIALIZED; }
-	if (self->ecx->error) { return self->ecx->error; }
+	if (!self->l) {
+		self->ecx->error = GAB_CNN_NOT_INITIALIZED;
+	}
+	if (self->ecx->error) {
+		return self->ecx->error;
+	}
 	if (target->flag.ram || target->flag.shared) {
 		return Cnn_learnv(self, target->data);
 	}
@@ -170,10 +198,46 @@ int Cnn_learn(Cnn self, Tensor target) {
 	return self->ecx->error;
 }
 
+int Cnn_learnBatch(Cnn self,Tensor target,size_t batchSize){
+	if (!self->l) {
+		self->ecx->error = GAB_CNN_NOT_INITIALIZED;
+	}
+	if (self->ecx->error) {
+		return self->ecx->error;
+	}
+	if (target->flag.ram || target->flag.shared) {
+		return Cnn_learnv(self, target->data);
+	}
+	Kernel sub = ((Kernel *) self->kernels)[CNN_KERNEL_SUB];
+	sub->runRecursive(sub, self->queue, self->ds->length, self->gpu->maxworks, &self->ds->data, &self->cm[self->l - 1]->s->data, &target->data);
+	Tensor ds = self->ds;
+	for (int l = self->l - 1; l >= 0 && !self->ecx->error; l--) {
+		self->cm[l]->retroPropagationBatch(self->cm[l], ds,batchSize);
+		ds = self->cm[l]->da;
+	}
+	return self->ecx->error;
+}
+int Cnn_fixBatch(Cnn self){
+	if (!self->l) {
+		self->ecx->error = GAB_CNN_NOT_INITIALIZED;
+	}
+	if (self->ecx->error) {
+		return self->ecx->error;
+	}
+	for (int l = self->l - 1; l >= 0 && !self->ecx->error; l--) {
+		self->cm[l]->retroPropagationBatchLearn(self->cm[l]);
+	}
+	return self->ecx->error;
+}
+
 
 int Cnn_predict(Cnn self, Tensor entrada) {
-	if (!self->l) { self->ecx->error = GAB_CNN_NOT_INITIALIZED; }
-	if (self->ecx->error) { return self->ecx->error; }
+	if (!self->l) {
+		self->ecx->error = GAB_CNN_NOT_INITIALIZED;
+	}
+	if (self->ecx->error) {
+		return self->ecx->error;
+	}
 	if (entrada->flag.ram || entrada->flag.shared) {
 		return Cnn_predictv(self, entrada->data);
 	}
@@ -185,8 +249,12 @@ int Cnn_predict(Cnn self, Tensor entrada) {
 }
 
 REAL Cnn_mse(Cnn self) {
-	if (self->ecx->error) { return NAN; }
-	if (self->l <= 0) { return NAN; }
+	if (self->ecx->error) {
+		return NAN;
+	}
+	if (self->l <= 0) {
+		return NAN;
+	}
 	double mse = 0;
 	double tmp;
 	REAL *data = self->ds->getvalues(self->ds, NULL);
@@ -201,7 +269,9 @@ REAL Cnn_mse(Cnn self) {
 }
 
 REAL Cnn_mseT(Cnn self, Tensor target) {
-	if (self->l <= 0) { return NAN; }
+	if (self->l <= 0) {
+		return NAN;
+	}
 	REAL *data = self->cm[self->l - 1]->s->getvalues(self->ds, NULL);
 	REAL *dataT = target->getvalues(target, NULL);
 	REAL mse = 0;
@@ -216,7 +286,9 @@ REAL Cnn_mseT(Cnn self, Tensor target) {
 }
 
 int Cnn_maxIndex(Cnn self) {
-	if (self->l <= 0) { return 0; }
+	if (self->l <= 0) {
+		return 0;
+	}
 	REAL *data = self->cm[self->l - 1]->s->getvalues(self->cm[self->l - 1]->s, NULL);
 	int mindex = 0;
 	for (int i = 1; i < self->cm[self->l - 1]->s->length; ++i) {
@@ -229,7 +301,9 @@ int Cnn_maxIndex(Cnn self) {
 }
 
 int Cnn_normalizeIMAGE(Cnn self, Tensor dst, Tensor src) {
-	if (self->ecx->error) { return self->ecx->error; }
+	if (self->ecx->error) {
+		return self->ecx->error;
+	}
 	REAL maximo = 255.0;
 	REAL minimo = 0;
 
@@ -265,7 +339,9 @@ char *Cnn_json(Cnn self, int showValues) {
 }
 
 int Cnn_extractVectorLabelClass(Cnn self, Tensor dst, Tensor label) {
-	if (self->ecx->error) { return self->ecx->error; }
+	if (self->ecx->error) {
+		return self->ecx->error;
+	}
 	dst->fill(dst, 0);
 	Kernel extract = ((Kernel *) self->kernels)[CNN_KERNEL_EXTRACT_VECTOR_CLASS_FROM_CHAR];
 	self->ecx->error = extract->runRecursive(extract, self->queue, dst->w, self->gpu->maxworks, &dst->data, &label->data, &dst->y);
@@ -273,7 +349,9 @@ int Cnn_extractVectorLabelClass(Cnn self, Tensor dst, Tensor label) {
 }
 
 int Cnn_setInput(Cnn self, size_t x, size_t y, size_t z) {
-	if (self->l != 0) { return 10; }
+	if (self->l != 0) {
+		return 10;
+	}
 	P3d size_in = P3D(x, y, z);
 	memcpy((void *) &self->size_in, &size_in, sizeof(P3d));
 	Release(self->entrada);
@@ -290,7 +368,9 @@ void Cnn_jsonF(Cnn self, int showValues, const char *filename) {
 }
 
 int Cnn_save(Cnn self, const char *filename) {
-	if (self->ecx->error) { return self->ecx->error; }
+	if (self->ecx->error) {
+		return self->ecx->error;
+	}
 	FILE *f = fopen(filename, "wb");
 	fwrite(&self->size_in, sizeof(P3d), 1, f);
 	fwrite(&self->l, sizeof(size_t), 1, f);
@@ -503,6 +583,7 @@ Cnn Cnn_new() {
 	self->ecx->error = self->gpu->compileProgram(self->gpu, (char *) KERNEL_LIB_get_defaultKernel());
 	self->release_gpu = 1;
 
+
 	self->queue = self->gpu->Queue_new(self->gpu, self->ecx->perro);
 	internal_Cnn_getKernels(self);
 	methods:
@@ -527,6 +608,9 @@ Cnn Cnn_new() {
 	self->predictv = Cnn_predictv;
 	self->learn = Cnn_learn;
 	self->learnv = Cnn_learnv;
+	self->learnBatch = Cnn_learnBatch;
+	self->fixBatch = Cnn_fixBatch;
+
 	self->mse = Cnn_mse;
 	self->mseT = Cnn_mseT;
 	self->maxIndex = Cnn_maxIndex;

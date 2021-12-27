@@ -16,7 +16,9 @@ void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const
 	self->size_in = dim_in;
 	if (entrada) {
 		self->da = Tensor_new(entrada->x, entrada->y, entrada->z, 1, erro, 0, gpu->context, queue);
-		if (self->ecx->error) { goto methods; }
+		if (self->ecx->error) {
+			goto methods;
+		}
 	}
 	self->s = Tensor_new(dim_out.x, dim_out.y, dim_out.z, 1, erro, 0, gpu->context, queue);
 	methods:
@@ -30,8 +32,12 @@ void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const
 }
 
 void internal_Camada_release(Camada *self) {
-	if (!self) { return; }
-	if (!*self) { return; }
+	if (!self) {
+		return;
+	}
+	if (!*self) {
+		return;
+	}
 	Release((*self)->da);
 	Release((*self)->s);
 
@@ -174,6 +180,14 @@ void internal_loadREAL(FILE *f, REAL *value, uint32_t size_element) {
 	} else {
 		*value = (float) aux.auxd;
 	}
+}
+
+int internal_unused(void *a, ...) {
+	return 0;
+}
+
+int internal_notBatch(Camada self, Tensor ds, size_t batchSize) {
+	return self->retroPropagation(self, ds);
 }
 
 RdParams internal_getDefaultRDP(int is_reluActivation, size_t inputLength, size_t outLength) {

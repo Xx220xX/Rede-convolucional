@@ -38,11 +38,14 @@ void CamadaFullConnect_release(CamadaFullConnect *self) {
 	Release((*self)->fullCalcDz);
 	Release((*self)->fullCalcDzandFixB);
 	Release((*self)->fullcalcin);
+	Release((*self)->fullCalcDWBatch);
+	Release((*self)->fullCalcDzBath);
+	Release((*self)->kernel_fixW);
+
 	gab_free(*self);
 }
 
 int CamadaFullConnect_propagation(CamadaFullConnect self) {
-
 	Execute(fullfeed, self->super.s->length, &self->super.a->data, &self->w->data, &self->b->data, &self->z->data, &self->super.s->data, &self->fa, &self->w->x, &self->w->y);
 	return self->super.ecx->error;
 }
@@ -51,8 +54,7 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 
 	if (self->super.da || !self->super.params.skipLearn) {
 		if (self->super.params.skipLearn) {
-
-			Execute(fullCalcDz, self->dz->length, &self->dz->data, &ds->data, &self->z->data, &self->b->data, &self->db->data, &self->dfa, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
+			Execute(fullCalcDz, self->dz->length, &self->dz->data, &ds->data, &self->z->data, &self->dfa);
 		} else {
 			Execute(fullCalcDzandFixB, self->dz->length, &self->dz->data, &ds->data, &self->z->data, &self->b->data, &self->db->data, &self->dfa, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 		}
@@ -63,6 +65,32 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 			Execute(fullCalcDWandFix, self->w->length, &self->super.a->data, &self->w->data, &self->dw->data, &self->dz->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento, &self->w->y);
 		}
 	}
+	return self->super.ecx->error;
+
+}
+
+int CamadaFullConnect_backpropagationBatch(CamadaFullConnect self, Tensor ds, size_t batchSize) {
+
+	if (self->super.da || !self->super.params.skipLearn) {
+
+		Execute(fullCalcDzBath, self->dz->length, &self->dz->data, &ds->data, &self->z->data, &self->db->data, &self->dfa, &batchSize);
+		if (self->super.da) {
+			Execute(fullcalcin, self->super.da->length, &self->dz->data, &self->super.da->data, &self->w->data, &self->w->x, &self->w->y);
+		}
+		if (!self->super.params.skipLearn) {
+			Execute(fullCalcDWBatch, self->w->length, &self->super.a->data, &self->dw->data, &self->dz->data, &batchSize, &self->w->y);
+		}
+	}
+	return self->super.ecx->error;
+
+}
+
+int CamadaFullConnect_learnBatch(CamadaFullConnect self) {
+	if (!self->super.params.skipLearn) {
+		Execute(kernel_fixW, self->w->length, &self->w->data, &self->dw->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento, &self->w->y);
+		Execute(kernel_fixW, self->b->length, &self->b->data, &self->db->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento, &self->w->y);
+	}
+	return self->super.ecx->error;
 }
 
 char *CamadaFullConnect_json(CamadaFullConnect self, int showValues) {
@@ -91,17 +119,11 @@ char *CamadaFullConnect_getGenerate(CamadaFullConnect self) {
 	return string;
 }
 
-/**
- * Salva a camada conv em um arquivo
- * Camada
- * funcao de ativação
- * numero de neuronios de saída
- * @param self camada
- * @param f arquivo para salvar
- * @return 0 caso não detecte nenhuma falha
- */
+
 int CamadaFullConnect_save(CamadaFullConnect self, FILE *f) {
-	if (self->super.ecx->error) { goto end; }
+	if (self->super.ecx->error) {
+		goto end;
+	}
 	self->super.ecx->addstack(self->super.ecx, "CamadaFullConnect_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->fa, 1, sizeof(uint32_t), f);
@@ -134,7 +156,7 @@ Camada CamadaFullConnect_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx
 }
 
 Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSaida, Tensor entrada, Parametros params, uint32_t funcaoDeAtivacao, Ecx ecx, RandomParams rdp_pesos, RandomParams rdp_bias) {
-	ecx->addstack(ecx, "CamadaFullConnect_new");
+	ECXPUSH(ecx);
 	CamadaFullConnect self = gab_alloc(1, sizeof(CamadaFullConnect_t));
 	P3d size_out = {1, tamanhoSaida, 1};
 	internal_Camada_new((Camada) self, gpu, queue, FULLCONNECT_ID, lname, params, entrada, size_in, size_out, ecx);
@@ -152,9 +174,10 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 		if (rdp_pesos.type == 0) {
 			rdp_pesos = internal_getDefaultRDP(funcaoDeAtivacao == FRELU, size_in.x * size_in.y * size_in.z, self->super.s->length);
 		}
-
 		self->super.ecx->error = self->w->randomize(self->w, rdp_pesos.type, rdp_pesos.a, rdp_pesos.b);
-		if (ecx->error) { goto methods; }
+		if (ecx->error) {
+			goto methods;
+		}
 	}
 	if (rdp_bias.type != -1) {
 		if (rdp_bias.type == 0) {
@@ -165,42 +188,36 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 				self->super.ecx->error = self->b->randomize(self->b, rdp_bias.type, rdp_bias.a, rdp_bias.b);
 			}
 		}
-		if (ecx->error) { goto methods; }
+		if (ecx->error) {
+			goto methods;
+		}
 	}
 
 	self->fa = funcaoDeAtivacao;
 	self->dfa = funcaoDeAtivacao | FLAGDIF;
-	KRN_new(self->fullfeed, "fullfeed", "Vector entrada, Vector pesos, Vector b,"
-										" Vector z, Vector saida,\n"
-										"int funcaoativacao, int pesosx,"
-										" int pesosy, int k0");
-	KRN_new(self->fullCalcDWandFix, "fullCalcDWandFix", "Vector a,\n"
-														"Vector w,\n"
-														"Vector dw,\n"
-														"Vector dz,\n"
-														"REAL hitlearn,\n"
-														"REAL momento,\n"
-														"REAL decaimentoDePeso,\n"
-														"int pesosy,\n"
-														"int k0");
-	KRN_new(self->fullCalcDz, "fullCalcDz", "Vector dz, Vector ds, Vector z,"
-											"Vector b, Vector db, int dfa, REAL hitlearn,"
-											"REAL momento,"
-											"REAL decaimentoDePeso,"
-											"int k0");
-	KRN_new(self->fullCalcDzandFixB, "fullCalcDzAndFixB", "Vector dz, Vector ds, Vector z,"
-														  "Vector b, Vector db, int dfa, REAL hitlearn,"
-														  "REAL momento,"
-														  "REAL decaimentoDePeso,"
-														  "int k0");
-	KRN_new(self->fullcalcin, "fullcalcin", "Vector dz, Vector da, Vector w, int pesosx, int pesosy,\n"
-											"int k0");
-
-	ecx->popstack(ecx);
+	//fullfeed(Vector a, Vector w, Vector b, Vector z, Vector s, int fid, int w_x, int w_y, int k0)
+	KRN_new(self->fullfeed, "fullfeed", "Vector a, Vector w, Vector b, Vector z, Vector s, int fid, int w_x, int w_y, int k0");
+	//fullCalcDWandFix(Vector a, Vector w, Vector dw, Vector dz, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int pesosy, int k0)
+	KRN_new(self->fullCalcDWandFix, "fullCalcDWandFix", "Vector a, Vector w, Vector dw, Vector dz, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int pesosy, int k0");
+	//fullCalcDzBath(Vector dz, Vector ds, Vector z,  Vector db, int dfa,long batchSize,  int k0)
+	KRN_new(self->fullCalcDz, "fullCalcDz", "Vector dz, Vector ds, Vector z,  Vector db, int dfa,long batchSize,  int k0");
+	//Vector dz, Vector ds, Vector z, Vector b, Vector db, int dfa, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0
+	KRN_new(self->fullCalcDzandFixB, "fullCalcDzAndFixB", "Vector dz, Vector ds, Vector z, Vector b, Vector db, int dfa, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
+	//fullcalcin(Vector dz, Vector da, Vector w, int pesosx, int pesosy, int k0)
+	KRN_new(self->fullcalcin, "fullcalcin", "Vector dz, Vector da, Vector w, int pesosx, int pesosy, int k0");
+	//fullCalcDWBatch(Vector a, Vector dw, Vector dz, long batchSize, int pesosy, int k0)
+	KRN_new(self->fullCalcDWBatch, "fullCalcDWBatch", "Vector a, Vector dw, Vector dz, long batchSize, int pesosy, int k0");
+	//fullCalcDzBath(Vector dz, Vector ds, Vector z, Vector b, Vector db, int dfa,long batchSize,  int k0)
+	KRN_new(self->fullCalcDzBath, "fullCalcDzBath", "Vector dz, Vector ds, Vector z, Vector db, int dfa,long batchSize,  int k0");
+	//fullFixBatch(Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0)
+	KRN_new(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
+	ECXPOP(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaFullConnect_release;
 	self->super.propagation = (int (*)(void *)) CamadaFullConnect_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaFullConnect_backpropagation;
+	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaFullConnect_backpropagationBatch;
+	self->super.retroPropagationBatchLearn = (int (*)(void *)) CamadaFullConnect_learnBatch;
 	self->super.json = (char *(*)(void *, int)) CamadaFullConnect_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaFullConnect_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaFullConnect_save;

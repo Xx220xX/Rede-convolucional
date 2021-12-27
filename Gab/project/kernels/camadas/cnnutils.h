@@ -12,18 +12,7 @@ kV createImg(__global unsigned char *out, Vector v, int vx, int vy, int imi, int
 	out[imi * imy + imj] = ((int) v[k]) & 0xff;
 }
 
-kV putIMG(__global unsigned char *imagem_saida,
-		  Vector v,
-		  int z,
-		  REAL px,
-		  REAL py,
-		  int imy,
-		  int width,
-		  int i0,
-		  int j0,
-		  int vx,
-		  int vy,
-		  int k0) {
+kV putIMG(__global unsigned char *imagem_saida, Vector v, int z, REAL px, REAL py, int imy, int width, int i0, int j0, int vx, int vy, int k0) {
 	int k = get_global_id(0) + k0;
 	int i, j;
 	KTensorRemap2D(k, i, j, imy)
@@ -32,8 +21,7 @@ kV putIMG(__global unsigned char *imagem_saida,
 }
 
 
-kV normalizeVector(Vector input, Vector saida, REAL multiplicador, REAL somador, REAL subtrator,
-				   int k0) {
+kV normalizeVector(Vector input, Vector saida, REAL multiplicador, REAL somador, REAL subtrator, int k0) {
 	int k = get_global_id(0) + k0;
 	saida[k] = (input[k] + somador) * multiplicador - subtrator;
 }
@@ -47,11 +35,16 @@ kV kernel_sub(Vector ds, Vector s, Vector t, int k0) {
 kV kernel_normalizechar2real(Vector dst, __global unsigned char *src, REAL a, REAL b, int k0) {
 	int k = get_global_id(0) + k0;
 //	printf("update\n");
-	dst[k] = ((REAL)src[k] - b) / a;
+	dst[k] = ((REAL) src[k] - b) / a;
 }
 
-kV kernel_getVetorClassFromChar( Vector dst, __global unsigned char *ints,unsigned int noptiobs, int k0) {
+kV kernel_getVetorClassFromChar(Vector dst, __global unsigned char *ints, unsigned int noptiobs, int k0) {
 	int w = get_global_id(0) + k0;
 	int y = ints[w];
 	dst[KTensorMap4D(0, y, 0, w, 1, noptiobs, 1)] = 1.0;
+}
+kV kernel_fixW(Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0) {
+	int k = get_global_id(0) + k0;
+	w[k] = w[k] - hitlearn * (dw[k] + w[k] * decaimentoDePeso);
+	dw[k] = dw[k] * momento;
 }

@@ -19,10 +19,13 @@
 #else
 #define SET_DEBUG
 #endif
-#define SETUP_GETLUA_INT(cvar, name)lua_getglobal(L,name);   \
-if(!lua_isnone(L,-1))  (cvar) = lua_tonumber(L,-1); \
+#define SETUP_GETLUA_INT(cvar, name)lua_getglobal(L,name); if(!lua_isnone(L,-1))  (cvar) = lua_tonumber(L,-1); \
 else fprintf(stderr,"warning: %s não instanciado em lua\n",name);\
 SET_DEBUG("%s %d\n",#cvar,cvar);
+
+#define SETUP_GETLUA_INTE(cvar, name, e)lua_getglobal(L,name); if(!lua_isnoneornil(L,-1))  (cvar) = lua_tonumber(L,-1); \
+else {fprintf(stderr,"warning: %s não instanciado em lua\n",name);\
+SET_DEBUG("%s %d\n",#cvar,cvar);e}
 
 #define SETUP_GETLUA_BOLL(cvar, name)lua_getglobal(L,name);   \
 if(!lua_isnoneornil(L,-1)&&lua_isboolean(L,-1)) (cvar) = lua_toboolean(L,-1); \
@@ -77,8 +80,12 @@ void Setup_checkStop(Setup self, const char *stopPattern) {
 }
 
 int Setup_release(Setup *selfp) {
-	if (!selfp) { return 1; }
-	if (!*(selfp)) { return 2; }
+	if (!selfp) {
+		return 1;
+	}
+	if (!*(selfp)) {
+		return 2;
+	}
 
 	for (int i = 0; i < (*selfp)->n_imagens; ++i) {
 		if ((*selfp)->imagens) {
@@ -114,7 +121,9 @@ int Setup_release(Setup *selfp) {
 }
 
 void Setup_loadImagens(Setup self) {
-	if (!self->file_image) { return; }
+	if (!self->file_image) {
+		return;
+	}
 	P3d im_dim = self->cnn->size_in; // dimensao da entrada
 	FILE *f; // arquivo para leitura das imagens
 	self->iLoad.imTotal = self->n_imagens;// atualiza o iload para leitura em outra thread
@@ -122,7 +131,9 @@ void Setup_loadImagens(Setup self) {
 	f = fopen(self->file_image, "rb"); // abre o aquivo
 	Tensor imgpu; // imagem 8 bits na gpu
 	Tensor imram = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->ecx, TENSOR_RAM | TENSOR_CHAR | TENSOR4D); // imagem no hos
-	for (int i = 0; i < self->header_image; ++i) { fgetc(f); }// pula o cabeçalho
+	for (int i = 0; i < self->header_image; ++i) {
+		fgetc(f);
+	}// pula o cabeçalho
 	fread(imram->data, 1, imram->bytes, f);// le a imagem
 	fclose(f);// fecha o arquivo
 	imgpu = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->ecx, TENSOR_CHAR | TENSOR4D | TENSOR_CPY, self->cnn->gpu->context, self->cnn->queue, imram->data); // instancia a imagem na gpu
@@ -150,7 +161,9 @@ void Setup_loadImagens(Setup self) {
 }
 
 void Setup_loadLabel(Setup self) {
-	if (!self->file_label) { return; }
+	if (!self->file_label) {
+		return;
+	}
 	self->iLoad.imTotal = self->n_imagens;
 	// ### variaveis
 	FILE *f = fopen(self->file_label, "rb");
@@ -158,7 +171,9 @@ void Setup_loadLabel(Setup self) {
 	Tensor lbgpuREAL = Tensor_new(1, self->n_classes, 1, self->n_imagens, self->cnn->ecx, TENSOR4D, self->cnn->gpu->context, self->cnn->queue);
 	Tensor lbgpu;
 	// ### ler cabeçalho do arquivo
-	for (int i = 0; i < self->header_label; ++i) { fgetc(f); }
+	for (int i = 0; i < self->header_label; ++i) {
+		fgetc(f);
+	}
 	fread(lbram->data, 1, lbram->bytes, f);
 	fclose(f);
 	// ### copia para gpu e converter para vetor
@@ -217,7 +232,9 @@ void Setup_treinar(Setup self) {
 			self->cnn->predict(self->cnn, entrada);
 			self->cnn->learn(self->cnn, target);
 			cnn_label = self->cnn->maxIndex(self->cnn);
-			if (self->on_train) { self->on_train(self, label); }
+			if (self->on_train) {
+				self->on_train(self, label);
+			}
 
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
@@ -240,9 +257,73 @@ void Setup_treinar(Setup self) {
 	self->runing = 0;
 }
 
+void Setup_treinarBatch(Setup self) {
+	ECXPUSH(self->cnn->ecx);
+	// ###  thread de alta prioridade
+	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+	// ### variaveis usadas no treino
+	Tensor entrada, target;
+	ubyte label, cnn_label;
+
+	self->itrain.epTotal = self->n_epocas;
+	self->itrain.imTotal = self->n_imagens_treinar;
+//	self->itrain.imps = 1e-14;
+	Itrain localItrain = self->itrain;
+	int indice = 0;
+	int classe = 0;
+	int images = 0;
+	int acertos = 0;
+	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
+		self->batch = 0;
+		localItrain.epAtual = self->epoca_atual + 1;
+		for (self->imagem_atual_treino = 0; self->can_run && self->imagem_atual_treino < self->n_imagens_treinar && !self->cnn->ecx->error; self->imagem_atual_treino++) {
+			images++;
+			self->batch++;
+			indice = self->imagem_atual_treino;
+			entrada = self->imagens[indice];
+			target = self->targets[indice];
+			label = ((char *) self->labels->data)[indice];
+			self->cnn->predict(self->cnn, entrada);
+			self->cnn->learnBatch(self->cnn, target, self->batchSize);
+			if (self->batch >= self->batchSize) {
+				self->cnn->fixBatch(self->cnn);
+				self->batch = 0;
+			}
+			cnn_label = self->cnn->maxIndex(self->cnn);
+			if (self->on_train) {
+				self->on_train(self, label);
+			}
+
+			// #### informações do treinamento
+			acertos += (cnn_label == label);
+			localItrain.winRate = acertos * 100.0 / (images + 1.0);
+
+			double mse = self->cnn->mse(self->cnn);
+			if (isnan(mse)) {
+				self->can_run = 0;
+				self->force_end = 1;
+				self->cnn->ecx->error = GAB_INVALID_PARAM;
+				fprintf(stderr, "Erro interno das camadas, encontrado nan\n");
+			}
+			localItrain.mse = localItrain.mse * alpha + beta * mse;
+			localItrain.imAtual = self->imagem_atual_treino + 1;
+			self->itrain = localItrain;
+			classe++;
+		}
+		if (self->batch > 0) {
+			self->cnn->fixBatch(self->cnn);
+		}
+	}
+	ECXPOP(self->cnn->ecx);
+	self->runing = 0;
+}
+
 
 void TE_new(Setup self) {
-	if (self->te.tce != NULL) { return; }
+	if (self->te.tce != NULL) {
+		return;
+	}
 	self->te.nclasses = self->n_classes;
 	self->te.tce = gab_alloc(self->n_classes, sizeof(TesteClasseEstatisticas));
 	for (int i = 0; i < self->te.nclasses; ++i) {
@@ -325,9 +406,13 @@ void Setup_getLuaParams(Setup self) {
 		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR);
 		return;
 	}
-	if (self->cnn->ecx->error) { return; }
+	if (self->cnn->ecx->error) {
+		return;
+	}
 	lua_State *L = self->cnn->LuaVm;
-	if (!L) { return; }
+	if (!L) {
+		return;
+	}
 	SETUP_GETLUA_INT(self->n_epocas, "Numero_epocas");
 	SETUP_GETLUA_STR(self->home, "home");
 	SETUP_GETLUA_STR(self->nome, "nome");
@@ -339,6 +424,15 @@ void Setup_getLuaParams(Setup self) {
 	SETUP_GETLUA_INT(self->header_image, "bytes_remanessentes_imagem");
 	SETUP_GETLUA_INT(self->header_label, "bytes_remanessentes_classes");
 	SETUP_GETLUA_BOLL(self->use_gpu, "gpu_mem");
+	SETUP_GETLUA_BOLL(self->useBatch, "use_batch");
+	if (self->useBatch) {
+		SETUP_GETLUA_INTE(self->batchSize, "batch_size", self->cnn->ecx->addstack(self->cnn->ecx, "get batch_size");self->cnn->ecx->error = GAB_INVALID_PARAM;);
+		if(!self->cnn->ecx->error && self->batchSize<=0){
+			self->cnn->ecx->addstack(self->cnn->ecx, "get batch_size");
+			self->cnn->ecx->error = GAB_INVALID_PARAM;
+			fprintf(stderr,"O valor não pode ser 0\n");
+		}
+	}
 	SETUP_GETLUA_STR(self->treino_out, "estatisticasDeTreino");
 	SETUP_GETLUA_STR(self->teste_out, "estatiscasDeAvaliacao");
 	SETUP_GETLUA_STR(self->file_image, "arquivoContendoImagens");
@@ -395,6 +489,7 @@ Setup Setup_new() {
 	setup->loadImagens = Setup_loadImagens;
 	setup->loadLabels = Setup_loadLabel;
 	setup->treinar = Setup_treinar;
+	setup->treinarBatch = Setup_treinarBatch;
 	setup->avaliar = Setup_avaliar;
 	setup->release = Setup_release;
 	setup->loadLua = Setup_loadLua;

@@ -49,6 +49,8 @@ typedef struct Setup_t {
 	String home;
 	// ###### Imagens e Etiquetas
 	int use_gpu;
+	int useBatch;
+
 	uint32_t n_classes;
 	String nome_classes;
 	uint32_t n_imagens;
@@ -65,6 +67,8 @@ typedef struct Setup_t {
 	atomic_int force_end;
 
 	// ##### Configurações do treino
+	size_t batchSize;
+	size_t batch;
 	uint32_t n_epocas;
 	uint32_t n_imagens_treinar;
 	uint32_t epoca_atual;
@@ -97,6 +101,8 @@ typedef struct Setup_t {
 	int (*ok)(struct Setup_t *self);
 
 	void (*treinar)(struct Setup_t *self);
+
+	void (*treinarBatch)(struct Setup_t *self);
 
 	void (*avaliar)(struct Setup_t *self);
 
