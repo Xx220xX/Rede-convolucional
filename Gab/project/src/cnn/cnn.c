@@ -247,7 +247,12 @@ int Cnn_predict(Cnn self, Tensor entrada) {
 	}
 	return self->ecx->error;
 }
-
+int Cnn_setAllHitlearn(Cnn self,REAL hitlearn){
+	for (int i = 0; i < self->l; ++i) {
+		self->cm[i]->params.hitlearn = hitlearn;
+	}
+	return 0;
+}
 REAL Cnn_mse(Cnn self) {
 	if (self->ecx->error) {
 		return NAN;
@@ -611,6 +616,7 @@ Cnn Cnn_new() {
 	self->learnBatch = Cnn_learnBatch;
 	self->fixBatch = Cnn_fixBatch;
 
+	self->setAllHitlearn = Cnn_setAllHitlearn;
 	self->mse = Cnn_mse;
 	self->mseT = Cnn_mseT;
 	self->maxIndex = Cnn_maxIndex;

@@ -69,14 +69,17 @@ typedef struct Setup_t {
 	// ##### Configurações do treino
 	size_t batchSize;
 	size_t batch;
+	REAL a,b,lr_0;//  hitlearn = lr_0 *a^(iter/b)
 	uint32_t n_epocas;
 	uint32_t n_imagens_treinar;
 	uint32_t epoca_atual;
 	uint32_t imagem_atual_treino;
+
 	// ##### Configurações do teste
 	uint32_t n_imagens_testar;
 	uint32_t imagem_atual_teste;
 	TesteEstatisticas te;
+
 	// informações para serem lidas em outras threads
 	String treino_out;
 	String teste_out;

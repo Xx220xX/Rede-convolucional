@@ -69,6 +69,8 @@ typedef struct Cnn_t {
 
 	int (*fixBatch)(struct Cnn_t *self);
 
+	int (*setAllHitlearn)(struct Cnn_t *self, REAL hitlearn);
+
 	REAL (*mse)(struct Cnn_t *self);
 
 	REAL (*mseT)(struct Cnn_t *self, Tensor target);

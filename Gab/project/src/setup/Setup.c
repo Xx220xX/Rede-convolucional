@@ -23,6 +23,8 @@
 else fprintf(stderr,"warning: %s não instanciado em lua\n",name);\
 SET_DEBUG("%s %d\n",#cvar,cvar);
 
+
+
 #define SETUP_GETLUA_INTE(cvar, name, e)lua_getglobal(L,name); if(!lua_isnoneornil(L,-1))  (cvar) = lua_tonumber(L,-1); \
 else {fprintf(stderr,"warning: %s não instanciado em lua\n",name);\
 SET_DEBUG("%s %d\n",#cvar,cvar);e}
@@ -268,14 +270,18 @@ void Setup_treinarBatch(Setup self) {
 
 	self->itrain.epTotal = self->n_epocas;
 	self->itrain.imTotal = self->n_imagens_treinar;
-//	self->itrain.imps = 1e-14;
+
 	Itrain localItrain = self->itrain;
 	int indice = 0;
 	int classe = 0;
-	int images = 0;
+	size_t images = 0;
+	size_t iter = 0;
 	int acertos = 0;
+
+	size_t bathS = self->batchSize;
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		self->batch = 0;
+		bathS = self->n_imagens_treinar >= self->batchSize ? self->batchSize : self->n_imagens_treinar;
 		localItrain.epAtual = self->epoca_atual + 1;
 		for (self->imagem_atual_treino = 0; self->can_run && self->imagem_atual_treino < self->n_imagens_treinar && !self->cnn->ecx->error; self->imagem_atual_treino++) {
 			images++;
@@ -285,10 +291,16 @@ void Setup_treinarBatch(Setup self) {
 			target = self->targets[indice];
 			label = ((char *) self->labels->data)[indice];
 			self->cnn->predict(self->cnn, entrada);
-			self->cnn->learnBatch(self->cnn, target, self->batchSize);
+			self->cnn->learnBatch(self->cnn, target, bathS);
 			if (self->batch >= self->batchSize) {
+				if (self->a != 1.0 && self->a != 0.0) {
+					self->cnn->setAllHitlearn(self->cnn, self->lr_0 * pow(self->a, iter / self->b));
+				}
 				self->cnn->fixBatch(self->cnn);
+				iter++;
 				self->batch = 0;
+				bathS = self->n_imagens_treinar - self->imagem_atual_treino - 2 >= self->batchSize ? self->batchSize : self->n_imagens_treinar - self->imagem_atual_treino - 1;
+
 			}
 			cnn_label = self->cnn->maxIndex(self->cnn);
 			if (self->on_train) {
@@ -312,7 +324,11 @@ void Setup_treinarBatch(Setup self) {
 			classe++;
 		}
 		if (self->batch > 0) {
+			if (self->a != 1.0 && self->a != 0.0) {
+				self->cnn->setAllHitlearn(self->cnn, self->lr_0 * pow(self->a, iter / self->b));
+			}
 			self->cnn->fixBatch(self->cnn);
+			iter++;
 		}
 	}
 	ECXPOP(self->cnn->ecx);
@@ -427,12 +443,17 @@ void Setup_getLuaParams(Setup self) {
 	SETUP_GETLUA_BOLL(self->useBatch, "use_batch");
 	if (self->useBatch) {
 		SETUP_GETLUA_INTE(self->batchSize, "batch_size", self->cnn->ecx->addstack(self->cnn->ecx, "get batch_size");self->cnn->ecx->error = GAB_INVALID_PARAM;);
-		if(!self->cnn->ecx->error && self->batchSize<=0){
+		if (!self->cnn->ecx->error && self->batchSize <= 0) {
 			self->cnn->ecx->addstack(self->cnn->ecx, "get batch_size");
 			self->cnn->ecx->error = GAB_INVALID_PARAM;
-			fprintf(stderr,"O valor não pode ser 0\n");
+			fprintf(stderr, "O valor não pode ser 0\n");
 		}
 	}
+
+	SETUP_GETLUA_INT(self->lr_0, "treino_lr0");
+	SETUP_GETLUA_INT(self->a, "treino_a");
+	SETUP_GETLUA_INT(self->b, "treino_b");
+
 	SETUP_GETLUA_STR(self->treino_out, "estatisticasDeTreino");
 	SETUP_GETLUA_STR(self->teste_out, "estatiscasDeAvaliacao");
 	SETUP_GETLUA_STR(self->file_image, "arquivoContendoImagens");
