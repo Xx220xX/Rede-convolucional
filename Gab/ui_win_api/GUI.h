@@ -217,7 +217,7 @@ void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double 
 	GUI.setText(GUI.labels[9], "%lf", mse);
 	GUI.setText(GUI.labels[11], "%lf%%", winRateMedio);
 	GUI.setText(GUI.labels[13], "%.1lf", imps);
-	float epoca = nimages / (float) (eptotal * total);
+	float epoca = nimages/(float)total;
 	if (GUI.endDraw) {
 		if(GUI.figs[0].xmax != eptotal) {
 			GUI.figs[0].xmax = GUI.figs[1].xmax = eptotal;
