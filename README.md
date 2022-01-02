@@ -5,7 +5,7 @@ Rede convolucional em c com computacao paralela
 #### [Documentação](https://xx220xx.github.io/Rede-convolucional/)
 
 ## A versão 3.0.0 Está disponível
-#### [Download](https://github.com/Xx220xX/Rede-convolucional/releases/download/GAB_3_0_0/GAB.zip)
+#### [Download](https://github.com/Xx220xX/Rede-convolucional/releases)
 #### Notas:
 - Nova interface, utilizando win32 api
 - Bibliotecas internas reescritas e otimizadas
