@@ -203,6 +203,9 @@ void GUI_train() {
 }
 
 void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double winRate, double winRateMedio, double deltat) {
+	if (ep == 0 || im == 0) {
+		return;
+	}
 	double progresso = im * 100.0 / total;
 	int nimages = (ep - 1) * total + im;
 	char tempo_str[250];
@@ -217,12 +220,13 @@ void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double 
 	GUI.setText(GUI.labels[9], "%lf", mse);
 	GUI.setText(GUI.labels[11], "%lf%%", winRateMedio);
 	GUI.setText(GUI.labels[13], "%.1lf", imps);
-	float epoca = nimages/(float)total;
+	float epoca = nimages / (float) total;
 	if (GUI.endDraw) {
-		if(GUI.figs[0].xmax != eptotal) {
-			GUI.figs[0].xmax = GUI.figs[1].xmax = eptotal;
-			GUI.figs[0].draw(GUI.figs,NULL);
-			GUI.figs[1].draw(GUI.figs+1,NULL);
+		if (GUI.figs[0].xmax != ep) {
+//			GUI.figs[0].xmax = GUI.figs[1].xmax = eptotal;
+			GUI.figs[0].xmax = GUI.figs[1].xmax = ep;
+			GUI.figs[0].draw(GUI.figs, NULL);
+			GUI.figs[1].draw(GUI.figs + 1, NULL);
 		}
 		GUI.figs[0].axes[0].pushDraw(GUI.figs[0].axes, epoca, mse);
 		GUI.figs[1].axes[0].pushDraw(GUI.figs[1].axes, epoca, winRate);
@@ -292,6 +296,9 @@ void GUI_teste() {
 }
 
 void GUI_updateTeste(int im, int total, double mse, double winRate, double deltat) {
+	if (im == 0) {
+		return;
+	}
 	double progresso = im * 100.0 / total;
 	char tempo_str[250];
 	double imps = im / deltat;
@@ -304,10 +311,10 @@ void GUI_updateTeste(int im, int total, double mse, double winRate, double delta
 	GUI.setText(GUI.labels[7], "%lf%%", winRate);
 	GUI.setText(GUI.labels[9], "%.1lf", imps);
 	if (GUI.endDraw) {
-		if(GUI.figs[0].xmax != total) {
+		if (GUI.figs[0].xmax != total) {
 			GUI.figs[0].xmax = GUI.figs[1].xmax = total;
-			GUI.figs[0].draw(GUI.figs,NULL);
-			GUI.figs[1].draw(GUI.figs+1,NULL);
+			GUI.figs[0].draw(GUI.figs, NULL);
+			GUI.figs[1].draw(GUI.figs + 1, NULL);
 		}
 		GUI.figs[0].axes[0].pushDraw(GUI.figs[0].axes, im, mse);
 		GUI.figs[1].axes[0].pushDraw(GUI.figs[1].axes, im, winRate);

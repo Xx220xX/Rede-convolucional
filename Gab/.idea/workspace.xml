@@ -19,8 +19,8 @@
     <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Gab.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaConv2D.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaConv2D.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui_win_api/GUI.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/GUI.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../RELEASE/GAB.zip" beforeDir="false" afterPath="$PROJECT_DIR$/../RELEASE/GAB.zip" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../RELEASE/GAB/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../RELEASE/GAB/bin/Gab.exe" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -86,11 +86,6 @@
     </key>
   </component>
   <component name="RunManager" selected="CMake Application.Gab">
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="DEBUG_KERNEL" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="DEBUG_KERNEL" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gab" RUN_TARGET_NAME="DEBUG_KERNEL">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -102,6 +97,11 @@
       </method>
     </configuration>
     <configuration name="Gab" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="Gab" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gab" RUN_TARGET_NAME="Gab">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -308,6 +308,7 @@
       <workItem from="1640990418267" duration="3812000" />
       <workItem from="1641042026038" duration="2705000" />
       <workItem from="1641056604279" duration="27232000" />
+      <workItem from="1641135538662" duration="873000" />
     </task>
     <servers />
   </component>
