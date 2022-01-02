@@ -23,3 +23,12 @@ Rede convolucional em c com computacao paralela
 - [ ] Criar Imagens e testa-la em diferentes redes
 - [ ] Fix PRelu's fields.
 - [ ] Criar documentação C completa
+
+_____
+#### Screenshots
+
+##### Cifar 10
+![arquitetura](RELEASE/screenshots/cifar_10/arquitetura.jpg)
+![treino](RELEASE/screenshots/cifar_10/treino.jpg)
+![avaliacao](RELEASE/screenshots/cifar_10/avaliacao.jpg)
+
