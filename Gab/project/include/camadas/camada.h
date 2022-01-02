@@ -7,11 +7,15 @@
 
 #include <gpu/Gpu.h>
 #include <gpu/Kernel.h>
+#include "kernels/kernels.h"
 #include "tensor/tensor.h"
 #include "cnn/parametros.h"
 #include "cnn/ponto3d.h"
 #include "funcoesDeAtivacao.h"
 #include "error_list.h"
+#include "cwrap_kernels.h"
+
+#include <stdarg.h>
 
 #define CONVOLUCAO_ID         0x1
 #define CONVOLUCAOF_ID         0x2
@@ -24,6 +28,7 @@
 #define PRELU_ID                 0x9
 #define SOFTMAX_ID             0xA
 #define BATCHNORM_ID             0xB
+#define CONVOLUCAO2D_ID             0xC
 
 /// implementa a maxpooling
 #define MAXPOOL                 0x1
@@ -76,6 +81,9 @@ typedef struct Camada_t {
 	/// faz a retropropagação em lote, ds deve ser o gradiente da saída
 	int (*retroPropagationBatchLearn)(void *self);
 
+	/// atualiza o hitlearn
+	int (*updateHitLearn)(void *self, size_t iter);
+
 	/// retorna uma string (que deve ser liberada com free_mem) contendo o objeto no formato json
 	char *(*json)(void *self, int showTensorValues);
 
@@ -87,6 +95,9 @@ typedef struct Camada_t {
 
 	/// salva a camada no arquivo destino (apenas pesos são salvos, os gradientes são descartados)
 	int (*save)(void *self, FILE *destino);
+
+	/// print todos os tensores em um arquivo
+	int (*fprint)(void *self, FILE *destino, char *format, ...);
 
 	/// retorna o tamanho da saída dessa camada
 	P3d (*getOutSize)(void *self);
@@ -105,6 +116,8 @@ typedef struct RdParams {
 } RandomParams, RdParams, Rdp;
 
 #define  RDP(type, ...)((RandomParams){type,## __VA_ARGS__})
+
+void internal_Camada_fprint(void *self, FILE *destino, char *format, va_list v);
 
 void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const char *layer_name, Parametros params, Tensor entrada, P3d dim_in, P3d dim_out, Ecx erro);
 
@@ -129,6 +142,8 @@ RdParams internal_getDefaultRDP(int is_reluActivation, size_t inputLength, size_
 int internal_unused(void *a, ...);
 
 int internal_notBatch(Camada self, Tensor ds, size_t batchSize);
+
+int internal_updateHitLearn(Camada self, size_t iter);
 
 #define INTERNAL_DEFAULT_ARGS Gpu gpu, Queue queue, P3d size_in,Tensor entrada, Ecx ecx
 

@@ -28,6 +28,7 @@ void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const
 	self->params = params;
 	erro->popstack(erro);
 	self->getOutSize = (P3d (*)(void *)) internnal_getOutSize;
+	self->updateHitLearn = (int (*)(void *, size_t)) internal_updateHitLearn;
 	self->queue = queue;
 }
 
@@ -197,4 +198,26 @@ RdParams internal_getDefaultRDP(int is_reluActivation, size_t inputLength, size_
 	}
 	a = sqrt(6.0 / (inputLength + outLength));
 	return RDP(TENSOR_UNIFORM, 2 * a, -a);
+}
+
+int internal_updateHitLearn(Camada self, size_t iter) {
+	if (self->params.a == 0) {
+		return 0;
+	}
+	self->params.hitlearn = self->params.lr_0 * pow(self->params.a, iter / self->params.b);
+	printf("\n");
+	return 0;
+}
+
+void internal_Camada_fprint(void *selfp, FILE *destino, char *format, va_list v) {
+	vfprintf(destino,format,v);
+	va_end(v);
+	Camada  self = selfp;
+	fprintf(destino,"Params %f %f %f %d\n",self->params.hitlearn,self->params.momento,self->params.decaimento,self->params.skipLearn);
+	if(self->da){
+		fprintf(destino,"da ->");self->da->fprint(self->da,destino);
+	}if(self->a){
+		fprintf(destino,"a ->");self->a->fprint(self->a,destino);
+	}
+	fprintf(destino,"s ->");self->s->fprint(self->s,destino);
 }

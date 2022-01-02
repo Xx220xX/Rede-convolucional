@@ -1,4 +1,4 @@
-kV preluativa(Vector entrada, Vector saida, Vector A, int k0) {
+kV preluativa(Vr entrada, Vr saida, Vr A, int k0) {
 	int k = get_global_id(0) + k0;
 	REAL v = entrada[k];
 	if (v < 0) {
@@ -7,7 +7,7 @@ kV preluativa(Vector entrada, Vector saida, Vector A, int k0) {
 	saida[k] = v;
 }
 
-kV prelucalcgrad(Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, int learn, REAL hitlearn, REAL momento, REAL decaimento, int k0) {
+kV prelucalcgrad(Vr gradentrada, Vr entrada, Vr gradnext, Vr A, Vr dA, int learn, REAL hitlearn, REAL momento, REAL decaimento, int k0) {
 	int k = get_global_id(0) + k0;
 	REAL v = entrada[k];
 	if (v < 0) {
@@ -22,7 +22,7 @@ kV prelucalcgrad(Vector gradentrada, Vector entrada, Vector gradnext, Vector A, 
 	}
 }
 
-kV preluonlyfix(Vector entrada, Vector gradnext, Vector A, Vector dA, REAL hitlearn, REAL momento, REAL decaimento, int k0) {
+kV preluonlyfix(Vr entrada, Vr gradnext, Vr A, Vr dA, REAL hitlearn, REAL momento, REAL decaimento, int k0) {
 	int k = get_global_id(0) + k0;
 	REAL v = entrada[k];
 	if (v < 0) {
@@ -33,7 +33,7 @@ kV preluonlyfix(Vector entrada, Vector gradnext, Vector A, Vector dA, REAL hitle
 	A[k] = A[k] - hitlearn * (dA[k] + A[k] * decaimento);
 }
 
-kV prelucalcgradBatch(Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize, int k0) {
+kV prelucalcgradBatch(Vr gradentrada, Vr entrada, Vr gradnext, Vr A, Vr dA, long batchSize, int k0) {
 	int k = get_global_id(0) + k0;
 	REAL v = entrada[k];
 	if (v < 0) {
@@ -45,7 +45,7 @@ kV prelucalcgradBatch(Vector gradentrada, Vector entrada, Vector gradnext, Vecto
 	}
 }
 
-kV preluonlyDABatch(Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize, int k0) {
+kV preluonlyDABatch(Vr entrada, Vr gradnext, Vr A, Vr dA, long batchSize, int k0) {
 	int k = get_global_id(0) + k0;
 	REAL v = entrada[k];
 	if (v < 0) {

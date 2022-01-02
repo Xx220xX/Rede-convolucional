@@ -103,6 +103,12 @@ Camada CamadaPool_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 	return (Camada) self;
 }
 
+int CamadaPool_fprintf(CamadaPool self, FILE * destino, char *format, ...){
+	va_list  v;
+	va_start(v,format);
+	internal_Camada_fprint(self,destino,format,v);
+	return 0;
+}
 Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, uint32_t type_pooling, Tensor entrada, Ecx ecx) {
 	ECXPUSH(ecx);
 	CamadaPool self = gab_alloc(1, sizeof(CamadaPool_t));
@@ -174,5 +180,6 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 	self->super.json = (char *(*)(void *, int)) CamadaPooling_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaPooling_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaPooling_save;
+	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaPool_fprintf;
 	return (Camada) self;
 }

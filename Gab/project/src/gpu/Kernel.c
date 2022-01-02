@@ -26,8 +26,12 @@ fprintf(stderr,format,## __VA_ARGS__);gab_free(msg);goto end;}
 
 
 void Kernel_release(Kernel *self) {
-	if (!self) { return; }
-	if (!(*self)) { return; }
+	if (!self) {
+		return;
+	}
+	if (!(*self)) {
+		return;
+	}
 	if ((*self)->kernel) {
 		clReleaseKernel((*self)->kernel);
 	}
@@ -55,7 +59,9 @@ int Kernel_run(Kernel self, cl_command_queue queue, size_t globals, size_t local
 }
 
 int Kernel_runRecursive(Kernel self, cl_command_queue queue, size_t globals, size_t max_works, ...) {
-	if (self->error) { return self->error; }
+	if (self->error) {
+		return self->error;
+	}
 	va_list vaList;
 	self->error = 0;
 	unsigned int i;
@@ -145,8 +151,12 @@ Kernel Kernel_new(cl_program clProgram, char *funcname, int nargs, ...) {
 
 int cmp(char *str1, char *str2, size_t maxLen) {
 
-	if (!str1 && !str2) { return 0; }
-	if (!str1 || !str2) { return -1; }
+	if (!str1 && !str2) {
+		return 0;
+	}
+	if (!str1 || !str2) {
+		return -1;
+	}
 	int result = str1[0] - str2[0];
 	for (int i = 0; i < maxLen && str2[i] && str1[i] && !result; ++i) {
 		result = str1[i] - str2[i];
@@ -200,11 +210,18 @@ Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
 			i++;
 			continue;
 		}
-		for (j = 0; p[j] && p[j] != ','; ++j) {}
+		for (j = 0; p[j] && p[j] != ','; ++j) {
+		}
 		self->nArgs++;
 		self->l_args = realloc(self->l_args, self->nArgs * sizeof(size_t));
 		p[j] = 0;
-		if (!cmp("Vector", p, j)) {
+		if (!cmp("Vr", p, j)) {
+			self->l_args[self->nArgs - 1] = sizeof(void *);
+		} else if (!cmp("Vw", p, j)) {
+			self->l_args[self->nArgs - 1] = sizeof(void *);
+		} else if (!cmp("Vrw", p, j)) {
+			self->l_args[self->nArgs - 1] = sizeof(void *);
+		} else if (!cmp("Vector", p, j)) {
 			self->l_args[self->nArgs - 1] = sizeof(void *);
 		} else if (!cmp("REAL", p, j)) {
 			self->l_args[self->nArgs - 1] = sizeof(CL_REAL);

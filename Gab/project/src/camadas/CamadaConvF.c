@@ -147,7 +147,14 @@ Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 	return (Camada) self;
 }
 
-
+int CamadaConvF_fprintf(CamadaConvF self, FILE * destino, char *format, ...){
+	va_list  v;
+	va_start(v,format);
+	internal_Camada_fprint(self,destino,format,v);
+	fprintf(destino,"W -> ");self->W->fprint(self->W,destino);
+	fprintf(destino,"dW -> ");self->dW->fprint(self->dW,destino);
+	return 0;
+}
 Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros) {
 	ECXPOP(ecx);
 	CamadaConvF self = gab_alloc(1, sizeof(CamadaConvF_t));
@@ -195,6 +202,7 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	self->super.json = (char *(*)(void *, int)) CamadaConvF_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaConvF_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaConvF_save;
+	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaConvF_fprintf;
 	return (Camada) self;
 }
 

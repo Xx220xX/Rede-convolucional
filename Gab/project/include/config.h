@@ -7,7 +7,7 @@
 #include <crtdefs.h>
 
 #define USEFLOAT 1
-
+#define DEBUG_ALL_TREINO 0
 
 #if (USEFLOAT == 1)
 #define REAL float

@@ -18,7 +18,7 @@ typedef struct {
 	uint32_t epTotal;
 	double mse;
 	double winRate;
-	double meanwinRate;
+	double winRateMedio;
 } Itrain;
 typedef struct {
 	uint32_t imAtual;
@@ -61,6 +61,7 @@ typedef struct Setup_t {
 	String file_image;
 	uint32_t header_image;
 	uint32_t header_label;
+
 	// ##### Controle de loops
 	atomic_int can_run;
 	atomic_int runing;
@@ -69,7 +70,6 @@ typedef struct Setup_t {
 	// ##### Configurações do treino
 	size_t batchSize;
 	size_t batch;
-	REAL a,b,lr_0;//  hitlearn = lr_0 *a^(iter/b)
 	uint32_t n_epocas;
 	uint32_t n_imagens_treinar;
 	uint32_t epoca_atual;
@@ -114,6 +114,7 @@ typedef struct Setup_t {
 	int (*release)(struct Setup_t **self);
 
 	void (*checkStop)(struct Setup_t *self, const char *stopPattern);
+
 } *Setup, Setup_t;
 
 Setup Setup_new();

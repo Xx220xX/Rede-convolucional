@@ -154,7 +154,14 @@ Camada CamadaFullConnect_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx
 	ecx->popstack(ecx);
 	return (Camada) self;
 }
-
+int CamadaFullConnect_fprintf(CamadaFullConnect self, FILE * destino, char *format, ...){
+	va_list  v;
+	va_start(v,format);
+	internal_Camada_fprint(self,destino,format,v);
+	fprintf(destino,"W -> ");self->w->fprint(self->w,destino);
+	fprintf(destino,"dW -> ");self->dw->fprint(self->dw,destino);
+	return 0;
+}
 Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSaida, Tensor entrada, Parametros params, uint32_t funcaoDeAtivacao, Ecx ecx, RandomParams rdp_pesos, RandomParams rdp_bias) {
 	ECXPUSH(ecx);
 	CamadaFullConnect self = gab_alloc(1, sizeof(CamadaFullConnect_t));
@@ -221,6 +228,7 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 	self->super.json = (char *(*)(void *, int)) CamadaFullConnect_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaFullConnect_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaFullConnect_save;
+	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaFullConnect_fprintf;
 	return (Camada) self;
 }
 

@@ -79,7 +79,12 @@ int CamadaPadding_save(CamadaPadding self, FILE *f) {
 	self->super.ecx->popstack(self->super.ecx);
 	return self->super.ecx->error;
 }
-
+int CamadaPadding_fprintf(CamadaPadding self, FILE * destino, char *format, ...){
+	va_list  v;
+	va_start(v,format);
+	internal_Camada_fprint(self,destino,format,v);
+	return 0;
+}
 Camada CamadaPadding_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaPadding_load");
 	Parametros parametros;
@@ -107,8 +112,9 @@ Camada CamadaPadding_new(Gpu gpu, Queue queue, P3d size_in, uint32_t top, uint32
 	CamadaPadding self = gab_alloc(1, sizeof(CamadaPadding_t));
 	P3d size_out = {size_in.x + top + bottom, size_in.y + left + right, size_in.z};
 	internal_Camada_new((Camada) self, gpu, queue, PADDING_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);
-
+	self->super.s->fill(self->super.s,0);
 	self->top = top;
+
 	self->bottom = bottom;
 	self->left = left;
 	self->right = right;
@@ -134,5 +140,6 @@ Camada CamadaPadding_new(Gpu gpu, Queue queue, P3d size_in, uint32_t top, uint32
 	self->super.json = (char *(*)(void *, int)) CamadaPadding_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaPadding_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaPadding_save;
+	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaPadding_fprintf;
 	return (Camada) self;
 }

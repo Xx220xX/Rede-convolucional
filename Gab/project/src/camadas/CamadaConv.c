@@ -126,7 +126,14 @@ Camada CamadaConv_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 	ECXPOP(ecx);
 	return (Camada) self;
 }
-
+int CamadaConv_fprintf(CamadaConv self, FILE * destino, char *format, ...){
+	va_list  v;
+	va_start(v,format);
+	internal_Camada_fprint(self,destino,format,v);
+	fprintf(destino,"W -> ");self->W->fprint(self->W,destino);
+	fprintf(destino,"dW -> ");self->dW->fprint(self->dW,destino);
+	return 0;
+}
 Camada CamadaConv_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, Parametros params, RandomParams rdp_filtros) {
 	ECXPUSH(ecx);
 	CamadaConv self = gab_alloc(1, sizeof(CamadaConv_t));
@@ -154,12 +161,11 @@ Camada CamadaConv_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, Parametros p
 
 	self->passox = passo.x;
 	self->passoy = passo.y;
-
-	KRN_new(self->convSum, "convSum", "Vector filtro, Vector entrada, Vector saida,int passox, int passoy,int saidatx, int saidaty,int entradatx, int entradaty,int fx, int fy, int fz, int k0")
-	KRN_new(self->convCalcGradAndFixWeight, "convCalcGradAndFixWeight", "Vector filtros, Vector ds, Vector entrada, Vector gradFiltro,int fx, int fy, int fz,int entrada_tx, int entrada_ty,int saida_tx, int saida_ty,int passox, int passoy,REAL hitLearn, REAL momento, REAL weightDecay,int k0")
-	KRN_new(self->convCalcGradIn, "convCalcGradIn", "Vector filtro, Vector gradEntrada, Vector gradNext,int fx, int fy, int fz,int passox, int passoy,int entradatx, int entradaty,int saidatx, int saidaty, int saidatz,int k0")
-	KRN_new(self->convCalcGradBatch, "convCalcGradBatch", "Vector ds, Vector entrada, Vector gradFiltro, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0");
-	KRN_new(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
+	Knew_convSum(self->convSum);
+	Knew_convCalcGradAndFixWeight(self->convCalcGradAndFixWeight);
+	Knew_convCalcGradIn(self->convCalcGradIn);
+	Knew_convCalcGradBatch(self->convCalcGradBatch);
+	Knew_kernel_fixW(self->kernel_fixW)
 
 	ecx->popstack(ecx);
 	methods:
@@ -169,6 +175,7 @@ Camada CamadaConv_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, Parametros p
 	self->super.json = (char *(*)(void *, int)) CamadaConv_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaConv_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaConv_save;
+	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaConv_fprintf;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaConv_backpropagationBatch;
 	self->super.retroPropagationBatchLearn = (int (*)(void *)) CamadaConv_learnBatch;
 	return (Camada) self;

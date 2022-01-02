@@ -19,25 +19,23 @@ snprintf(str,len,format,## __VA_ARGS__);}
 
 char *Tensor_putvaluesAsstr(Tensor self) {
 	ECXPUSH(self->erro);
-	if (self->erro->error) { return NULL; }
-
+	if (self->erro->error) {
+		return NULL;
+	}
 	Memory m = {0};
 	m.mem = self->getvalues(self, NULL);
 	size_t len = 0;
 	char *string = NULL;
 	for (int w = 0; w < self->w; ++w) {
 		if (self->flag.dimensao4D) {
-			if (w == 0) apendstr(string, len, "[")
-			else apendstr(string, len, "\n,[")
+			if (w == 0) apendstr(string, len, "[") else apendstr(string, len, ", [")
 		}
 
 		for (int z = 0; z < self->z; ++z) {
-			if (z == 0) apendstr(string, len, "[")
-			else apendstr(string, len, ",[")
+			if (z == 0) apendstr(string, len, "[") else apendstr(string, len, ", [")
 
 			for (int x = 0; x < self->x; ++x) {
-				if (x == 0) apendstr(string, len, "[")
-				else apendstr(string, len, ",[")
+				if (x == 0) apendstr(string, len, "[") else apendstr(string, len, ", [")
 				for (int y = 0; y < self->y; ++y) {
 					if (y > 0) apendstr(string, len, ", ");
 					if (self->flag.inteiro) {
@@ -65,7 +63,9 @@ char *Tensor_putvaluesAsstr(Tensor self) {
 
 char *Tensor_printhex(Tensor self) {
 	ECXPUSH(self->erro);
-	if (self->erro->error) { return NULL; }
+	if (self->erro->error) {
+		return NULL;
+	}
 	size_t id;
 	Memory m = {0};
 	m.mem = self->getvalues(self, NULL);
@@ -73,17 +73,14 @@ char *Tensor_printhex(Tensor self) {
 	char *string = NULL;
 	for (int w = 0; w < self->w; ++w) {
 		if (self->flag.dimensao4D) {
-			if (w == 0) apendstr(string, len, "[")
-			else apendstr(string, len, "\n,[")
+			if (w == 0) apendstr(string, len, "[") else apendstr(string, len, "\n,[")
 		}
 
 		for (int z = 0; z < self->z; ++z) {
-			if (z == 0) apendstr(string, len, "[")
-			else apendstr(string, len, ",[")
+			if (z == 0) apendstr(string, len, "[") else apendstr(string, len, ",[")
 
 			for (int x = 0; x < self->x; ++x) {
-				if (x == 0) apendstr(string, len, "[")
-				else apendstr(string, len, ",[")
+				if (x == 0) apendstr(string, len, "[") else apendstr(string, len, ",[")
 				for (int y = 0; y < self->y; ++y) {
 					if (y > 0) apendstr(string, len, ", ");
 					id = y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y;
@@ -148,8 +145,12 @@ char *Tensor_json(Tensor self, int showValues) {
 }
 
 void Tensor_release(Tensor *self) {
-	if (!self) { return; }
-	if (!*self) { return; }
+	if (!self) {
+		return;
+	}
+	if (!*self) {
+		return;
+	}
 	if ((*self)->data) {
 		if ((*self)->flag.ram) {
 			free((*self)->data);
@@ -190,7 +191,9 @@ void *Tensor_getvalues(Tensor self, void *data) {
 
 int Tensor_setvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 	ECXPUSH(self->erro);
-	if (self->erro->error) { return self->erro->error; }
+	if (self->erro->error) {
+		return self->erro->error;
+	}
 	if (self->flag.ram) {
 		memcpy(self->data + offset, data, bytes);
 	} else if (self->flag.shared) {
@@ -207,7 +210,9 @@ int Tensor_setvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 
 void *Tensor_getvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 	ECXPUSH(self->erro);
-	if (self->erro->error) { return NULL; }
+	if (self->erro->error) {
+		return NULL;
+	}
 	if (!data) {
 		data = calloc(bytes, 1);
 	}
@@ -227,7 +232,9 @@ void *Tensor_getvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
 
 int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
 	ECXPUSH(self->erro);
-	if (self->erro->error) { return self->erro->error; }
+	if (self->erro->error) {
+		return self->erro->error;
+	}
 	void *m = calloc(self->bytes, 1);
 	size_t len = self->bytes / self->size_element;
 	REAL x;
@@ -255,8 +262,12 @@ int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
 void normalizeReal(REAL *data, size_t len, REAL a) {
 	REAL mx = data[0], mn = data[0];
 	for (int i = 1; i < len; ++i) {
-		if (mx < data[i]) { mx = data[i]; }
-		if (mn > data[i]) { mn = data[i]; }
+		if (mx < data[i]) {
+			mx = data[i];
+		}
+		if (mn > data[i]) {
+			mn = data[i];
+		}
 	}
 //	printf("%g %g\n", mx, mn);
 	mx = mx - mn;
@@ -270,8 +281,12 @@ void normalizeInt(int *data, size_t len, REAL a) {
 
 	int mx = data[0], mn = data[0];
 	for (int i = 1; i < len; ++i) {
-		if (mx < data[i]) { mx = data[i]; }
-		if (mn > data[i]) { mn = data[i]; }
+		if (mx < data[i]) {
+			mx = data[i];
+		}
+		if (mn > data[i]) {
+			mn = data[i];
+		}
 	}
 	mx = mx - mn;
 	a = a / (REAL) mx;
@@ -282,7 +297,9 @@ void normalizeInt(int *data, size_t len, REAL a) {
 
 int Tensor_imagegrayREAL(Tensor self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l) {
 	ECXPUSH(self->erro);
-	if (self->erro->error) { return self->erro->error; }
+	if (self->erro->error) {
+		return self->erro->error;
+	}
 	int x, y;
 	double px = ((double) self->x / (double) h), py = ((double) self->y / (double) w);
 	REAL *data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
@@ -310,7 +327,9 @@ int Tensor_imagegrayREAL(Tensor self, ubyte *image, size_t width, size_t height_
 
 
 int Tensor_imagegrayINT(Tensor self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l) {
-	if (self->erro->error) { return self->erro->error; }
+	if (self->erro->error) {
+		return self->erro->error;
+	}
 	ECXPUSH(self->erro);
 	int x, y;
 	double px = ((double) self->x / (double) h), py = ((double) self->y / (double) w);
@@ -338,7 +357,9 @@ int Tensor_imagegrayINT(Tensor self, ubyte *image, size_t width, size_t height_t
 }
 
 int Tensor_imagegrayCHAR(Tensor self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l) {
-	if (self->erro->error) { return self->erro->error; }
+	if (self->erro->error) {
+		return self->erro->error;
+	}
 	ECXPUSH(self->erro);
 	int x, y;
 	double px = ((double) self->x / (double) h), py = ((double) self->y / (double) w);
@@ -431,16 +452,39 @@ int Tensor_copyM(Tensor self, Tensor b, size_t self_ofset, size_t b_ofset, size_
 	return self->erro->error;
 }
 
-void Tensor_fprint(Tensor self,FILE *f) {
+void Tensor_fprint(Tensor self, FILE *f) {
 	ECXPUSH(self->erro);
-	char *json = Tensor_putvaluesAsstr(self);
-	fprintf(f,"%u : %s\n", self->size_element, json);
-	gab_free(json);
+//	char *json = Tensor_putvaluesAsstr(self);
+//	fprintf(f,"%u : %s\n", self->size_element, json);
+//	gab_free(json);
+	int len = 40;
+	int ofset = 0;
+	if (len >= self->length / 2) {
+		len = self->length;
+	} else {
+		ofset = self->length / 2;
+	}
+	void *data = gab_alloc(len, self->size_element);
+	self->getvaluesM(self, ofset * self->size_element, data, len * self->size_element);
+	fprintf(f,"[..., ");
+	for (int i = 0; i < len; ++i) {
+		if (self->flag.caractere) {
+			fprintf(f, "%d, ", (int)((unsigned char*) data)[i]);
+		} else if (self->flag.inteiro) {
+			fprintf(f, "%d, ", ((int *) data)[i]);
+		} else {
+			fprintf(f, "%.4f, ", ((REAL *) data)[i]);
+		}
+	}
+	fprintf(f," ...]\n");
+	gab_free(data);
+
 	ECXPOP(self->erro);
 }
+
 void Tensor_print(Tensor self) {
 	ECXPUSH(self->erro);
-	Tensor_fprint(self,stdout);
+	Tensor_fprint(self, stdout);
 	ECXPOP(self->erro);
 }
 
@@ -448,10 +492,14 @@ void Tensor_tomatlab(Tensor self, FILE *f, char *name, char *reshapeF) {
 	ECXPUSH(self->erro);
 	Memory memory;
 	memory.mem = self->getvalues(self, NULL);
-	if (!memory.mem) { return; }
+	if (!memory.mem) {
+		return;
+	}
 	fprintf(f, "%s = [", name);
 	for (int i = 0; i < self->length; ++i) {
-		if (i > 0) { fprintf(f, ", "); }
+		if (i > 0) {
+			fprintf(f, ", ");
+		}
 		if (self->flag.caractere) {
 			fprintf(f, "%d", (int) memory.caractere[i]);
 		} else if (self->flag.inteiro) {
@@ -597,7 +645,9 @@ REAL Tensor_std(Tensor self) {
  */
 void *Tensor_serialize(Tensor self, size_t *length) {
 	size_t len = self->bytes + 5 * sizeof(size_t) + 1;
-	if (length) { *length = len; }
+	if (length) {
+		*length = len;
+	}
 	char type = USEFLOAT;
 	void *data = gab_alloc(len, 1);
 	self->getvalues(self, data + (5 * sizeof(size_t) + 1));
@@ -620,7 +670,7 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 	ECXPUSH(ecx);
 	Tensor self = calloc(1, sizeof(Tensor_t));
 	self->erro = ecx;
-	memset((void*)&self->flag, flag, 1);
+	memset((void *) &self->flag, flag, 1);
 	// verificando flag
 	if (self->flag.inteiro && self->flag.caractere) {
 		Tensor_registreError(self, "flag invalida: inteiro e caractere = 1");

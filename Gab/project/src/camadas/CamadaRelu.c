@@ -110,6 +110,13 @@ Camada CamadaRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 	ecx->popstack(ecx);
 	return (Camada) self;
 }
+int CamadaRelu_fprintf(CamadaRelu self, FILE * destino, char *format, ...){
+	va_list  v;
+	va_start(v,format);
+	internal_Camada_fprint(self,destino,format,v);
+	fprintf(destino,"%f %f\n",self->lessoh,self->greateroh);
+	return 0;
+}
 Camada CamadaRelu_new(Gpu gpu, Queue queue, P3d size_in, REAL less, REAL greater, Tensor entrada, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaRelu_new");
 	CamadaRelu self = gab_alloc(1, sizeof(CamadaRelu_t));
@@ -136,6 +143,7 @@ Camada CamadaRelu_new(Gpu gpu, Queue queue, P3d size_in, REAL less, REAL greater
 	self->super.json = (char *(*)(void *, int)) CamadaRelu_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaRelu_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaRelu_save;
+	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaRelu_fprintf;
 	return (Camada) self;
 }
 

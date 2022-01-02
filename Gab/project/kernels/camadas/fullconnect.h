@@ -1,15 +1,15 @@
-kV fullfeed(Vector a, Vector w, Vector b, Vector z, Vector s, int fid, int w_x, int w_y, int k0) {
+kV fullfeed(Vr a, Vr w, Vr b, Vr z, Vr s, int fid, int w_x, int w_y, int k0) {
 	int m = get_global_id(0) + k0;
 	REAL sum = 0;
 	int n;
 	for (n = 0; n < w_y; n++) {
-		sum += a[n] * w[KTensorMap(m, n, 0, w_x, w_y)];
+		sum += a[n] * w[kMap(m, n, 0, w_x, w_y)];
 	}
 	z[m] = sum + b[m];
 	s[m] = func(fid, z[m]);
 }
 
-kV fullCalcDWandFix(Vector a, Vector w, Vector dw, Vector dz, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int pesosy, int k0) {
+kV fullCalcDWandFix(Vr a, Vr w, Vr dw, Vr dz, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int pesosy, int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n;
 	m = k / pesosy;
@@ -19,17 +19,17 @@ kV fullCalcDWandFix(Vector a, Vector w, Vector dw, Vector dz, REAL hitlearn, REA
 }
 
 
-kV fullCalcDz(Vector dz, Vector ds, Vector z,int dfa, int k0) {
+kV fullCalcDz(Vr dz, Vr ds, Vr z, int dfa, int k0) {
 	int m = get_global_id(0) + k0;
 	dz[m] = ds[m] * func(dfa, z[m]);
 }
-kV fullCalcDzBath(Vector dz, Vector ds, Vector z,  Vector db, int dfa,long batchSize,  int k0) {
+kV fullCalcDzBath(Vr dz, Vr ds, Vr z, Vr db, int dfa, long batchSize, int k0) {
 	int m = get_global_id(0) + k0;
 	dz[m] = ds[m] * func(dfa, z[m]);
 	db[m] = dz[m]/batchSize + db[m];
 }
 
-kV fullCalcDzAndFixB(Vector dz, Vector ds, Vector z, Vector b, Vector db, int dfa, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0) {
+kV fullCalcDzAndFixB(Vr dz, Vr ds, Vr z, Vr b, Vr db, int dfa, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0) {
 	int m = get_global_id(0) + k0;
 	dz[m] = ds[m] * func(dfa, z[m]);
 	db[m] = dz[m] + db[m] * momento;
@@ -37,17 +37,17 @@ kV fullCalcDzAndFixB(Vector dz, Vector ds, Vector z, Vector b, Vector db, int df
 }
 
 
-kV fullcalcin(Vector dz, Vector da, Vector w, int pesosx, int pesosy, int k0) {
+kV fullcalcin(Vr dz, Vr da, Vr w, int pesosx, int pesosy, int k0) {
 	int m = get_global_id(0) + k0;
 	REAL soma = 0;
 	for (int n = 0; n < pesosx; ++n) {
-		soma += dz[n] * w[KTensorMap(n, m, 0, pesosx, pesosy)];
+		soma += dz[n] * w[kMap(n, m, 0, pesosx, pesosy)];
 	}
 	da[m] = soma;
 }
 
 
-kV fullCalcDWBatch(Vector a, Vector dw, Vector dz, long batchSize, int pesosy, int k0) {
+kV fullCalcDWBatch(Vr a, Vr dw, Vr dz, long batchSize, int pesosy, int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n;
 	m = k / pesosy;

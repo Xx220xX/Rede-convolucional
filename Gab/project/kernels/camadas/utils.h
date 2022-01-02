@@ -5,7 +5,6 @@
 
 #if (USEFLOAT == 1)
 #define    REAL float
-#define    TANH tanh
 #define    EXP exp
 #define    SQRT sqrt
 #define    REALMAX FLT_MAX
@@ -14,31 +13,35 @@
 #define	REALMAX DBL_MAX
 #define	REALMIN DBL_MIN
 #define	REAL double
-#define	TANH tanh
 #define	EXP exp
 #define	SQRT sqrt
 #endif
-#define Vector __global REAL *
+/// memória de  escrita
+#define Vw __global REAL *
+/// memória de leitura
+#define Vr __global REAL *
+/// memória de leitura e ecrita
+#define Vrw __global REAL *
 
 #define kV __kernel void
 
-#define KTensorMap(x, y, z, tx, ty)((z)*(ty*tx)+(x)*ty+(y))
+#define kMap(x, y, z, tx, ty)((z)*(ty*tx)+(x)*ty+(y))
 
-#define KTensorMap4D(x, y, z, l, tx, ty, tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(x)*ty+(y))
+#define kMap4D(x, y, z, l, tx, ty, tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(x)*ty+(y))
 
-#define KTensorRemap4D(total, _x_, _y_, _z_, _l_, tx, ty, tz)\
+#define kRep4D(total, _x_, _y_, _z_, _l_, tx, ty, tz)\
 _y_ = total%ty      ;                                        \
 _x_ = (total - _y_)%(ty*tx)/ty ;                             \
 _z_ = (total- _x_*ty - _y_)%(tx*ty*tz)/(ty*tx)  ;            \
 _l_ = (total -_z_*tx*ty -_x_*ty - _y_)/(tx*ty*tz);
 
 
-#define KTensorRemap(total, _x_, _y_, _z_, tx, ty)\
+#define kRap(total, _x_, _y_, _z_, tx, ty)\
 _y_ = total % ty;\
 _x_ = ((total - _y_) % (ty * tx)) / ty;\
 _z_ = (k - _x_ * ty - _y_) / (tx * ty);
 
-#define KTensorRemap2D(total, x, y, ty)\
+#define KRap2D(total, x, y, ty)\
 y = total % ty;\
 x = total/ ty;
 
@@ -61,11 +64,11 @@ REAL difsigmoid(REAL x) {
 }
 
 REAL tanghG(REAL x) {
-	return TANH(x);
+	return tanh(x);
 }
 
 REAL diftanhG(REAL x) {
-	REAL tmp = TANH(x);
+	REAL tmp = tanh(x);
 	return (1.0 - tmp * tmp);
 }
 

@@ -18,8 +18,8 @@ static void CamadaPRelu_release(CamadaPRelu *self_p) {
 		return;
 	}
 	internal_Camada_release((Camada *) self_p);
-	Release((*self_p)->A);
-	Release((*self_p)->dA);
+	Release((*self_p)->W);
+	Release((*self_p)->dW);
 	Release((*self_p)->preluativa);
 	Release((*self_p)->preluonlyfix);
 	Release((*self_p)->prelucalcgrad);
@@ -31,16 +31,16 @@ static void CamadaPRelu_release(CamadaPRelu *self_p) {
 }
 
 static int CamadaPRelu_propagation(CamadaPRelu self) {
-	Execute(preluativa, self->super.s->length, &self->super.a->data, &self->super.s->data, &self->A->data);
+	Execute(preluativa, self->super.s->length, &self->super.a->data, &self->super.s->data, &self->W->data);
 	return self->super.ecx->error;
 }
 
 static int CamadaPRelu_backpropagation(CamadaPRelu self, Tensor ds) {
 	if (self->super.da) {
 		int learn = !self->super.params.skipLearn;
-		Execute(prelucalcgrad, self->super.da->length, &self->super.da->data, &self->super.a->data, &ds->data, &self->A->data, &self->dA->data, &learn, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
+		Execute(prelucalcgrad, self->super.da->length, &self->super.da->data, &self->super.a->data, &ds->data, &self->W->data, &self->dW->data, &learn, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 	} else if (!self->super.params.skipLearn) {
-		Execute(preluonlyfix, self->dA->length, &self->super.a->data, &ds->data, &self->A->data, &self->dA->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
+		Execute(preluonlyfix, self->dW->length, &self->super.a->data, &ds->data, &self->W->data, &self->dW->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 	}
 
 	return self->super.ecx->error;
@@ -49,10 +49,10 @@ static int CamadaPRelu_backpropagation(CamadaPRelu self, Tensor ds) {
 static int CamadaPRelu_backpropagationBatch(CamadaPRelu self, Tensor ds, size_t batchSize) {
 	if (self->super.da) {
 		//Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize
-		Execute(prelucalcgradBatch, self->super.da->length, &self->super.da->data, &self->super.a->data, &ds->data, &self->A->data, &self->dA->data, &batchSize);
+		Execute(prelucalcgradBatch, self->super.da->length, &self->super.da->data, &self->super.a->data, &ds->data, &self->W->data, &self->dW->data, &batchSize);
 	} else if (!self->super.params.skipLearn) {
 		//Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize
-		Execute(preluonlyDABatch, self->dA->length, &self->super.a->data, &ds->data, &self->A->data, &self->dA->data, &batchSize);
+		Execute(preluonlyDABatch, self->dW->length, &self->super.a->data, &ds->data, &self->W->data, &self->dW->data, &batchSize);
 	}
 
 	return self->super.ecx->error;
@@ -61,7 +61,7 @@ static int CamadaPRelu_backpropagationBatch(CamadaPRelu self, Tensor ds, size_t 
 static int CamadaPRelu_learnBatch(CamadaPRelu self) {
 	if (!self->super.params.skipLearn) {
 		//kernel_fixW(Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0)
-		Execute(kernel_fixW, self->dA->length, &self->A->data, &self->dA->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
+		Execute(kernel_fixW, self->dW->length, &self->W->data, &self->dW->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 	}
 	return self->super.ecx->error;
 }
@@ -74,8 +74,8 @@ static char *CamadaPRelu_json(CamadaPRelu self, int showValues) {
 	tmp = internal_json((Camada) self, showValues);
 	apendstr(string, len, PAD"%s", tmp);
 	gab_free(tmp);
-	apendTensor("A", A, string, len, tmp, showValues);
-	apendTensor("dA", dA, string, len, tmp, showValues);
+	apendTensor("A", W, string, len, tmp, showValues);
+	apendTensor("dA", dW, string, len, tmp, showValues);
 	apendstr(string, len, "\n}");
 	return string;
 }
@@ -104,7 +104,7 @@ static int CamadaPRelu_save(CamadaPRelu self, FILE *f) {
 	}
 	self->super.ecx->addstack(self->super.ecx, "CamadaPRelu_save");
 	internal_saveCamada(f, (Camada) self);
-	internal_saveTensor(f, self->A);
+	internal_saveTensor(f, self->W);
 	end:
 	self->super.ecx->popstack(self->super.ecx);
 	return self->super.ecx->error;
@@ -115,29 +115,34 @@ Camada CamadaPRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 	Parametros parametros;
 	P3d size_in;
 	uint32_t size_element;
-
-
 	internal_loadCamada(f, &parametros, &size_in, &size_element);
 	CamadaPRelu self = (CamadaPRelu) CamadaPRelu_new(gpu, queue, size_in, entrada, parametros, RDP(-1), ecx);
-	internal_loadTensor(f, self->A, size_element);
+	internal_loadTensor(f, self->W, size_element);
 	end:
 	ecx->popstack(ecx);
 	return (Camada) self;
 }
-
+int CamadaPRelu_fprintf(CamadaPRelu self, FILE * destino, char *format, ...){
+	va_list  v;
+	va_start(v,format);
+	internal_Camada_fprint(self,destino,format,v);
+	fprintf(destino,"W -> ");self->W->fprint(self->W,destino);
+	fprintf(destino,"dW -> ");self->dW->fprint(self->dW,destino);
+	return 0;
+}
 Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parametros params, RandomParams rdp_a, Ecx ecx) {
 	ECXPUSH(ecx);
 	CamadaPRelu self = gab_alloc(1, sizeof(CamadaPRelu_t));
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, PRELU_ID, lname, params, entrada, size_in, size_out, ecx);
 	self->rdp_a = rdp_a;
-	self->A = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
-	self->dA = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
+	self->W = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
+	self->dW = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, 0, gpu->context, queue);
 	if (rdp_a.type != -1) {
 		if (rdp_a.type == 0) {
 			rdp_a = internal_getDefaultRDP(1, size_in.x * size_in.y * size_in.z, self->super.s->length);
 		}
-		self->super.ecx->error = self->A->randomize(self->A, rdp_a.type, rdp_a.a, rdp_a.b);
+		self->super.ecx->error = self->W->randomize(self->W, rdp_a.type, rdp_a.a, rdp_a.b);
 		if (ecx->error) {
 			goto methods;
 		}
@@ -170,5 +175,6 @@ Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parame
 	self->super.json = (char *(*)(void *, int)) CamadaPRelu_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaPRelu_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaPRelu_save;
+	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaPRelu_fprintf;
 	return (Camada) self;
 }

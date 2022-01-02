@@ -4,21 +4,23 @@
 
 #ifndef GAB_UI_H
 #define GAB_UI_H
-
+#pragma comment(lib, "user32")
+#pragma comment(lib,"gdi32.lib")
 #include "windows.h"
 #include "windowsx.h"
-#include "error_list.h"
 #include "thread/Thread.h"
+#include <error_list.h>
 #include <wchar.h>
-#include <strsafe.h>
 
+#include <strsafe.h>
 #include <commctrl.h>
 #include <locale.h>
-//#include "client.h"
+#include <stdint.h>
+#include "GUI.h"
+#include "plot.h"
 
 #define cnnMain _local_main_
-#define  USE_PROGRESS_BAR  0
-#define  GUI_UPDATE_WINDOW 120132219
+
 
 int cnnMain(int, char **);
 
@@ -28,305 +30,7 @@ void CreateLabels(HWND);
 
 void checkArgs();
 
-typedef HWND TextLabel;
-typedef HWND ProgressBar[2];
-typedef struct {
-	int instacied;
-	int x, y;
-	int w, h;
-	POINT *points;
-	int npoint;
-	DWORD color;
-} Graph_area;
 
-struct {
-	TextLabel status;
-	TextLabel *labels;
-	int nlabels;
-	ProgressBar *progress;
-	int nProgress;
-	atomic_int *can_run;
-	atomic_int *force_end;
-	HWND hmain;
-	HWND hconsole;
-	Graph_area graphico;
-	void *arg;
-
-	void (*setText)(TextLabel text, const char *format, ...);
-
-	void (*setProgress)(ProgressBar progressBar, double value);
-
-	void (*clearWindow)();
-
-	void (*addLabel)(char *text, int x, int y, int w, int h);
-
-	void (*make_loadImages)();
-
-	void (*make_loadLabels)();
-
-	void (*make_train)();
-
-	void (*make_teste)();
-
-	void (*updateLoadImagens)(int im, int total, double t0);
-
-	void (*updateTrain)(int im, int total, int ep, int eptotal, double mse, double winhate, double deltaT);
-
-	void (*updateTeste)(int im, int total, double mse, double winhate, double deltaT);
-
-	void (*draw)();
-
-	void (*capture)(char *fileName);
-} GUI = {0};
-
-void GUI_addLabel(char *text, int x, int y, int w, int h) {
-	GUI.nlabels++;
-	GUI.labels = realloc(GUI.labels, GUI.nlabels * sizeof(TextLabel));
-	GUI.labels[GUI.nlabels - 1] = CreateWindowA("static", text, WS_CHILD | WS_VISIBLE, x, y, w, h, GUI.hmain, NULL, NULL, NULL);
-}
-
-void GUI_clearWindow() {
-	for (int i = 0; i < GUI.nlabels; ++i) {
-		DestroyWindow(GUI.labels[i]);
-	}
-	if (GUI.labels) {
-		free(GUI.labels);
-	}
-	GUI.nlabels = 0;
-	GUI.labels = NULL;
-	GUI.draw = NULL;
-}
-
-void GUI_loadImage() {
-	GUI.clearWindow();
-	GUI.addLabel("Progresso :", 1, 20, 100, 20);
-	GUI.addLabel("", 100, 20, 100, 20);
-	GUI.addLabel("Tempo restante estimado:", 1, 40, 200, 20);
-	GUI.addLabel("", 200, 40, 100, 20);
-}
-
-int CaptureAnImage();
-
-void GUI_capture(char *filename) {
-	GUI.arg = filename;
-	GUI.draw = (void (*)()) CaptureAnImage;
-	RedrawWindow(GUI.hmain, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
-
-
-}
-
-void GUI_updateLoadImagens(int im, int total, double delta) {
-	double progresso = im * 100.0 / total;
-	double imps = im / delta;
-	imps = (total - im) / imps;
-	GUI.setText(GUI.labels[1], "%.2lf%%", progresso);
-	GUI.setText(GUI.labels[3], "%.1lf s", imps);
-}
-
-void time2str(char *buf, int len, double dtm) {
-	uint64_t tm = (uint64_t) abs(dtm);
-	uint32_t dia, hora, minuto, segundo;
-	dia = tm / 86400;
-	tm %= 86400;
-	hora = tm / 3600;
-	tm %= 3600;
-	minuto = tm / 60;
-	segundo = tm % 60;
-	int ln = 0;
-	memset(buf, 0, len);
-	if (dia) {
-		ln += snprintf(buf + ln, len - ln, "%d dias ", dia);
-	}
-	if (hora) {
-		ln += snprintf(buf + ln, len - ln, "%d horas ", hora);
-	}
-	if (minuto) {
-		ln += snprintf(buf + ln, len - ln, "%d minutos ", minuto);
-	}
-	if (segundo > 1) {
-		snprintf(buf + ln, len - ln, "%d segundos", segundo);
-	} else {
-		snprintf(buf + ln, len - ln, "%d segundo", segundo);
-	}
-}
-
-void GUI_draw() {
-	HDC hdc;
-	PAINTSTRUCT ps;
-	hdc = BeginPaint(GUI.hmain, &ps);
-//	HBRUSH hBrush1 = CreateSolidBrush(RGB(255, 0, 255));
-//	HBRUSH holdBrush = SelectObject(hdc, hBrush1);
-//	Rectangle(hdc, GUI.treino.x, GUI.treino.y, GUI.treino.w, GUI.treino.h);
-//	DeleteObject(hBrush1);
-//	for (int i = 0; i < GUI.treino.npoint; ++i) {
-//		printf("%ld %ld\n", GUI.treino.points[i].x, GUI.treino.points[i].y);
-//	}
-	POINT esquerdo[] = {GUI.graphico.x, GUI.graphico.y, GUI.graphico.x, GUI.graphico.y + GUI.graphico.h};
-	POINT direito[] = {GUI.graphico.x + GUI.graphico.w, GUI.graphico.y, GUI.graphico.x + GUI.graphico.w, GUI.graphico.y + GUI.graphico.h};
-	POINT cima[] = {GUI.graphico.x, GUI.graphico.y, GUI.graphico.x + GUI.graphico.w, GUI.graphico.y};
-	POINT baixo[] = {GUI.graphico.x, GUI.graphico.y + GUI.graphico.h, GUI.graphico.x + GUI.graphico.w, GUI.graphico.y + GUI.graphico.h};
-	Polyline(hdc, esquerdo, 2);
-	Polyline(hdc, direito, 2);
-	Polyline(hdc, cima, 2);
-	Polyline(hdc, baixo, 2);
-	Polyline(hdc, GUI.graphico.points, GUI.graphico.npoint);
-	EndPaint(GUI.hmain, &ps);
-}
-
-void GUI_train() {
-	int i = 1;
-	int dy = 20;
-	int w = 200;
-	GUI.clearWindow();
-	GUI.addLabel("Progresso treino:", 1, dy * i, w, dy);              //0
-	GUI.addLabel("", w, dy * i++, w, dy);                           //1
-	GUI.addLabel("Progresso epoca:", 1, dy * i, w, dy);               //2
-	GUI.addLabel("", w, dy * i++, w, dy);                           //3
-	GUI.addLabel("Tempo restante:", 1, dy * i, w, dy);       //4
-	GUI.addLabel("", w, dy * i++, w, dy);                           //5
-	GUI.addLabel("Imagens por segundo", 1, dy * i, w, dy);            //6
-	GUI.addLabel("", w, dy * i, w, dy);                             //7
-	GUI.addLabel("Mse", 1, dy * i, w, dy);                            //8
-	GUI.addLabel("", w, dy * i++, w, dy);                             //9
-	GUI.addLabel("Acertos", 1, dy * i, w, dy);                        //10
-	GUI.addLabel("", w, dy * i++, w, dy);                                //11
-	GUI.addLabel("imagens por segundo", 1, dy * i, w, dy);                      //12
-	GUI.addLabel("", w, dy * i++, w, dy);                             //13
-
-	GUI.graphico.x = 100;
-	GUI.graphico.y = dy * i++;
-	GUI.graphico.w = 500;
-	GUI.graphico.h = 300;
-	GUI.graphico.npoint = 0;
-	if (GUI.graphico.points) { free(GUI.graphico.points); }
-	GUI.graphico.points = NULL;
-	GUI.graphico.npoint = 0;
-	GUI.draw = GUI_draw;
-}
-
-void appendPoint(Graph_area *ga, double x, double y, double lx, double hx, double ly, double hy) {
-	ga->npoint++;
-	ga->points = realloc(ga->points, ga->npoint * sizeof(POINT));
-	x = ga->x + x / (hx - ly) * ga->w;
-	y = ga->y + ga->h - y / (hy - ly) * ga->h;
-	ga->points[ga->npoint - 1].x = x;
-	ga->points[ga->npoint - 1].y = y;
-}
-
-
-void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double winhate, double deltat) {
-	double progresso = im * 100.0 / total;
-	int nimages = (ep - 1) * total + im;
-	char tempo_str[250];
-	double imps = nimages / deltat;
-	double tempo = (total * eptotal - nimages) / imps;
-
-	time2str(tempo_str, 250, tempo);
-	GUI.setText(GUI.labels[3], "%.2lf%% %d/%d", progresso, im, total);
-	progresso = 100.0 * nimages / (eptotal * total);
-	GUI.setText(GUI.labels[1], "%.2lf%% %d/%d", progresso, ep, eptotal);
-	GUI.setText(GUI.labels[5], "%s", tempo_str);
-	GUI.setText(GUI.labels[9], "%lf", mse);
-	GUI.setText(GUI.labels[11], "%lf%%", winhate);
-	GUI.setText(GUI.labels[13], "%.1lf", imps);
-
-	appendPoint(&GUI.graphico, nimages, winhate, 0, total * eptotal, 0, 100);
-	RedrawWindow(GUI.hmain, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
-
-}
-
-void GUI_teste() {
-	int i = 1;
-	int dy = 20;
-	int w = 200;
-	GUI.clearWindow();
-	GUI.addLabel("Progresso Avaliação:", 1, dy * i, w, dy);         //0
-	GUI.addLabel("", w, dy * i++, w, dy);                           //1
-	GUI.addLabel("Tempo restante:", 1, dy * i, w, dy);             //2
-	GUI.addLabel("", w, dy * i++, w, dy);                           //3
-	GUI.addLabel("Mse", 1, dy * i, w, dy);                            //4
-	GUI.addLabel("", w, dy * i++, w, dy);                             //5
-	GUI.addLabel("Acertos", 1, dy * i, w, dy);                        //6
-	GUI.addLabel("", w, dy * i++, w, dy);                                //7
-	GUI.addLabel("imagens por segundo", 1, dy * i, w, dy);             //8
-	GUI.addLabel("", w, dy * i++, w, dy);                             //9
-	GUI.graphico.x = 100;
-	GUI.graphico.y = dy * i++;
-	GUI.graphico.w = 500;
-	GUI.graphico.h = 300;
-	GUI.graphico.npoint = 0;
-	if (GUI.graphico.points) { free(GUI.graphico.points); }
-	GUI.graphico.points = NULL;
-	GUI.graphico.npoint = 0;
-	GUI.draw = GUI_draw;
-
-}
-
-void GUI_updateTeste(int im, int total, double mse, double winhate, double deltat) {
-	double progresso = im * 100.0 / total;
-	char tempo_str[250];
-	double imps = im / deltat;
-	double tempo = (total - im) / imps;
-	time2str(tempo_str, 250, tempo);
-	GUI.setText(GUI.labels[1], "%.2lf%% %d/%d", progresso, im, total);
-	progresso = 100.0 * im / (total);
-	GUI.setText(GUI.labels[3], "%s", tempo_str);
-	GUI.setText(GUI.labels[5], "%lf", mse);
-	GUI.setText(GUI.labels[7], "%lf%%", winhate);
-	GUI.setText(GUI.labels[9], "%.1lf", imps);
-
-	appendPoint(&GUI.graphico, im, winhate, 0, total, 0, 100);
-	RedrawWindow(GUI.hmain, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
-
-}
-
-
-void GUI_make_loadImages() {
-	GUI.setText(GUI.status, "Carregando imagems");
-	PostMessageA(GUI.hmain, WM_UPDATEUISTATE, (WPARAM) GUI_loadImage, GUI_UPDATE_WINDOW);
-}
-
-void GUI_make_loadLabels() {
-	GUI.setText(GUI.status, "Carregando Labels");
-	PostMessageA(GUI.hmain, WM_UPDATEUISTATE, (WPARAM) GUI_loadImage, GUI_UPDATE_WINDOW);
-}
-
-void GUI_make_train() {
-	GUI.setText(GUI.status, "Treinando");
-	PostMessageA(GUI.hmain, WM_UPDATEUISTATE, (WPARAM) GUI_train, GUI_UPDATE_WINDOW);
-}
-
-void GUI_make_teste() {
-	GUI.setText(GUI.status, "Avaliando");
-	PostMessageA(GUI.hmain, WM_UPDATEUISTATE, (WPARAM) GUI_teste, GUI_UPDATE_WINDOW);
-}
-
-
-void GUI_setProgress(ProgressBar progressBar, double value) {
-	int ivalue = value;
-#if (USE_PROGRESS_BAR == 1)
-	SendMessage(progressBar[0], PBM_SETPOS, (WPARAM) ivalue % 101, 0);
-	GUI_setText(progressBar[1], "%.2lf%%", value);
-#endif
-}
-
-void GUI_setText(TextLabel text, const char *format, ...) {
-	char *msg = NULL;
-	va_list v;
-	va_start(v, format);
-	size_t len = vsnprintf(NULL, 0, format, v) + 1;
-	msg = calloc(len, 1);
-	vsnprintf(msg, len, format, v);
-	SetWindowTextA(text, msg);
-	free(msg);
-	va_end(v);
-}
-
-int wstrlen(const LPWSTR lpwstr) {
-	int len = 0;
-	for (; lpwstr[len]; ++len) {}
-	return len;
-}
 
 void run_main(PSTR pCmdLine) {
 //	Client_connect();
@@ -338,52 +42,41 @@ void run_main(PSTR pCmdLine) {
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int CmdShow) {
 	checkArgs();
-//	GdiplusStartupInput gdii;
-//	ULONG_PTR gditoken;
-//	GdiplusStartup(&gditoken,&gdii,NULL);
 
-	GUI.hconsole = FindWindowA("ConsoleWindowClass", NULL);
 	HWND hwnd;
 	MSG msg;
 
-	GUI.setText = GUI_setText;
-	GUI.setProgress = GUI_setProgress;
-	GUI.make_loadImages = GUI_make_loadImages;
-	GUI.make_loadLabels = GUI_make_loadLabels;
-	GUI.clearWindow = GUI_clearWindow;
-	GUI.addLabel = GUI_addLabel;
-	GUI.updateLoadImagens = GUI_updateLoadImagens;
-	GUI.make_train = GUI_make_train;
-	GUI.updateTrain = GUI_updateTrain;
-	GUI.make_teste = GUI_make_teste;
-	GUI.updateTeste = GUI_updateTeste;
-	GUI.capture = GUI_capture;
-
-
-	WNDCLASSW wc = {0};
-	wc.lpszClassName = L"GabCnn";
-	wc.hInstance = hInstance;
-	wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
-	wc.lpfnWndProc = WndProc;
-	wc.hCursor = LoadCursor(0, IDC_ARROW);
+	WNDCLASSW wc = {.lpszClassName = L"GabCnn", .hInstance = hInstance, .hbrBackground = GetSysColorBrush(COLOR_3DFACE), .lpfnWndProc = WndProc, .hCursor = LoadCursor(0, IDC_ARROW),};
 	RegisterClassW(&wc);
-	hwnd = CreateWindowW(wc.lpszClassName, L"GabCnn", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 150, 150, 750, 500, GUI.hconsole, 0, hInstance, 0);
+	Figure_INITW(hInstance);
+	RECT windowSize = {0};
+	GetWindowRect(GetDesktopWindow(), &windowSize);
+	MoveWindow(GetConsoleWindow(), 0, 0, windowSize.right*0.5 , windowSize.bottom*0.94, 1);
 
-	GUI.hmain = hwnd;
+	hwnd = CreateWindowW(wc.lpszClassName, L"GabCnn", WS_OVERLAPPEDWINDOW | WS_VISIBLE, windowSize.right / 2, 1, windowSize.right / 2, windowSize.bottom, NULL, 0, hInstance, 0);
 	SetWindowTextA(hwnd, "Gab Cnn");
+
 	if (!hwnd) {
 		fprintf(stderr, "Falha ao criar janela\n");
 		exit(-1);
 	}
+	GUI_init(hwnd);
+	GUI.hisntance = hInstance;
+//	/Figure_new(&GUI.f, hwnd, hInstance, 30, 30, 400, 400);
+//	GUI.f.bkcolor = RGB(0xff, 0xff, 0xff);
+//	GUI.f.xstep = 0.5;
+//	GUI.f.ystep = 0.5;
+//	GUI.f.grid = 1;
+//	MoveWindow(GUI.f.window,50,50,300,300,1);
+//	GUI.f.putAxe(&GUI.f, RGB(0xff,0,0));
+
 	Handle hmain = Thread_new(run_main, pCmdLine);
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-//			RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 
 	}
 	Thread_Release(hmain);
-//	GdiplusShutdown(gditoken);
 	return (int) msg.wParam;
 }
 
@@ -394,7 +87,7 @@ void checkArgs() {
 	for (int i = 1; i < nargs; ++i) {
 		if (!strcmp(args[i], "--v") || !strcmp(args[i], "--version")) {
 			printf("Gabriela IA\n");
-			printf("versão %s\n", Cnn_version());
+			printf("versão %s\n", "0");
 			printf("https://xx220xx.github.io/Rede-convolucional/\n\n");
 			exit(0);
 		}
@@ -413,15 +106,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			GUI.hmain = hwnd;
 			GUI.status = CreateWindowA("static", "Gabriela iniciada", WS_CHILD | WS_VISIBLE, 1, 1, 200, 20, GUI.hmain, NULL, NULL, NULL);
 			GUI_addLabel("Pronta para aprender", 1, 20, 200, 20);
-//			CreateLabels(hwnd);
+			EnableMenuItem(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE,MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
 			break;
 		case WM_UPDATEUISTATE:
 			if (lParam == GUI_UPDATE_WINDOW) {
+
 				((void (*)()) wParam)();
 			}
 			break;
-		case WM_MOVE:
-			break;
+
 		case WM_CLOSE:
 			if (MessageBoxA(hwnd, "Really quit?", "Gab", MB_OKCANCEL) == IDOK) {
 				if (GUI.can_run && GUI.force_end) {
@@ -433,18 +126,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 			return 0;// User canceled. Do nothing.
 		case WM_PAINT:
-			if (GUI.draw) {
-				GUI.draw();
-			}
+			GUI.endDraw = 1;
 			break;
-
+		case WM_MOVE:
+		case WM_SIZE: {
+			RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
+			break;
+		}
 		case WM_DESTROY:
+			GUI_releasefigs();
+
 			PostQuitMessage(0);
 			break;
 	}
 
 	return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
+
+
 
 void CreateLabels(HWND hwnd) {
 /*	int x = 1, h = 25, w = 150, dy = 0;
@@ -524,7 +223,9 @@ int dialogBox(char *title, char *msg) {
 void getLuaFILE(char *dst, int len, int nargs, const char **args) {
 	if (nargs != 2) {
 		while (!getFileName(dst, len))
-			if (!dialogBox("Nenhum arquivo selecionado", "Deseja tentar novamente?")) { exit(GAB_FAILED_OPEN_FILE); }
+			if (!dialogBox("Nenhum arquivo selecionado", "Deseja tentar novamente?")) {
+				exit(GAB_FAILED_OPEN_FILE);
+			}
 		return;
 	}
 	snprintf(dst, len, "%s", args[1]);
@@ -569,8 +270,8 @@ int CaptureAnImage() {
 
 	// The source DC is the entire screen, and the destination DC is the current window (HWND).
 	RECT myrec;
-	GetWindowRect(hWnd,&myrec);
-	if (!StretchBlt(hdcWindow, 0, 0, rcClient.right, rcClient.bottom, hdcScreen, myrec.left, myrec.top, myrec.right,myrec.bottom,SRCCOPY)) {
+	GetWindowRect(hWnd, &myrec);
+	if (!StretchBlt(hdcWindow, 0, 0, rcClient.right, rcClient.bottom, hdcScreen, myrec.left, myrec.top, myrec.right, myrec.bottom, SRCCOPY)) {
 		MessageBoxW(hWnd, L"StretchBlt has failed", L"Failed", MB_OK);
 		goto done;
 	}
@@ -660,6 +361,14 @@ int CaptureAnImage() {
 	ReleaseDC(hWnd, hdcWindow);
 	EndPaint(hWnd, &ps);
 	return 0;
+}
+
+
+
+#include "math.h"
+
+int cnnMaint(int arg, char **args) {
+	GUI.make_train();
 }
 
 #endif //GAB_UI_H

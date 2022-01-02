@@ -24,7 +24,6 @@ else fprintf(stderr,"warning: %s não instanciado em lua\n",name);\
 SET_DEBUG("%s %d\n",#cvar,cvar);
 
 
-
 #define SETUP_GETLUA_INTE(cvar, name, e)lua_getglobal(L,name); if(!lua_isnoneornil(L,-1))  (cvar) = lua_tonumber(L,-1); \
 else {fprintf(stderr,"warning: %s não instanciado em lua\n",name);\
 SET_DEBUG("%s %d\n",#cvar,cvar);e}
@@ -240,7 +239,8 @@ void Setup_treinar(Setup self) {
 
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
-			localItrain.winRate = acertos * 100.0 / (images + 1.0);
+			localItrain.winRate = localItrain.winRate * alpha + 100 * beta;
+			localItrain.winRateMedio = acertos * 100.0 / (images + 1.0);
 
 			double mse = self->cnn->mse(self->cnn);
 			if (isnan(mse)) {
@@ -259,6 +259,12 @@ void Setup_treinar(Setup self) {
 	self->runing = 0;
 }
 
+BOOL DirectoryExists(LPCTSTR szPath) {
+	DWORD dwAttrib = GetFileAttributes(szPath);
+
+	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
 void Setup_treinarBatch(Setup self) {
 	ECXPUSH(self->cnn->ecx);
 	// ###  thread de alta prioridade
@@ -270,7 +276,8 @@ void Setup_treinarBatch(Setup self) {
 
 	self->itrain.epTotal = self->n_epocas;
 	self->itrain.imTotal = self->n_imagens_treinar;
-
+	fflush(stderr);
+	fflush(stdout);
 	Itrain localItrain = self->itrain;
 	int indice = 0;
 	int classe = 0;
@@ -278,7 +285,14 @@ void Setup_treinarBatch(Setup self) {
 	size_t iter = 0;
 	int acertos = 0;
 
-	size_t bathS = self->batchSize;
+	size_t bathS;
+	char buff[250];
+	#if (DEBUG_ALL_TREINO == 1)
+	if (DirectoryExists("debug")) {
+		system("rmdir -r debug");
+	}
+	system("mkdir debug");
+	#endif
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		self->batch = 0;
 		bathS = self->n_imagens_treinar >= self->batchSize ? self->batchSize : self->n_imagens_treinar;
@@ -292,15 +306,35 @@ void Setup_treinarBatch(Setup self) {
 			label = ((char *) self->labels->data)[indice];
 			self->cnn->predict(self->cnn, entrada);
 			self->cnn->learnBatch(self->cnn, target, bathS);
+			#if (DEBUG_ALL_TREINO == 1)
+
+			for (int i = 0; i < self->cnn->l; ++i) {
+				snprintf(buff, 250, "debug/layer%d_%s.txt", i, self->cnn->cm[i]->layer_name);
+				FILE *file = fopen(buff, "a");
+				self->cnn->cm[i]->fprint(self->cnn->cm[i], file, "image %zu iter %d:\n", images, iter);
+				fprintf(file, "\n");
+				fclose(file);
+			}
+
+			#endif
 			if (self->batch >= self->batchSize) {
-				if (self->a != 1.0 && self->a != 0.0) {
-					self->cnn->setAllHitlearn(self->cnn, self->lr_0 * pow(self->a, iter / self->b));
-				}
+				self->cnn->updateHitLearn(self->cnn, iter);
 				self->cnn->fixBatch(self->cnn);
 				iter++;
 				self->batch = 0;
 				bathS = self->n_imagens_treinar - self->imagem_atual_treino - 2 >= self->batchSize ? self->batchSize : self->n_imagens_treinar - self->imagem_atual_treino - 1;
+				#if (DEBUG_ALL_TREINO == 1)
 
+				for (int i = 0; i < self->cnn->l; ++i) {
+					snprintf(buff, 250, "debug/layer%d_%s.txt", i, self->cnn->cm[i]->layer_name);
+					FILE *file = fopen(buff, "a");
+					fprintf(file, "Pesos corrigidos\n\n");
+					self->cnn->cm[i]->fprint(self->cnn->cm[i], file, "image %zu iter %d:\n", images, iter);
+					fprintf(file, "\n");
+					fclose(file);
+				}
+
+				#endif
 			}
 			cnn_label = self->cnn->maxIndex(self->cnn);
 			if (self->on_train) {
@@ -309,14 +343,16 @@ void Setup_treinarBatch(Setup self) {
 
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
-			localItrain.winRate = acertos * 100.0 / (images + 1.0);
+			localItrain.winRate = localItrain.winRate * alpha + 100 *(cnn_label == label)* beta;
+			localItrain.winRateMedio = acertos * 100.0 / (images + 1.0);
 
 			double mse = self->cnn->mse(self->cnn);
+
 			if (isnan(mse)) {
 				self->can_run = 0;
 				self->force_end = 1;
 				self->cnn->ecx->error = GAB_INVALID_PARAM;
-				fprintf(stderr, "Erro interno das camadas, encontrado nan\n");
+				fprintf(stderr, "Erro interno das camadas, encontrado nan\nImagem %zu\nEpoca %d index %d\n", images, self->epoca_atual, indice);
 			}
 			localItrain.mse = localItrain.mse * alpha + beta * mse;
 			localItrain.imAtual = self->imagem_atual_treino + 1;
@@ -324,9 +360,7 @@ void Setup_treinarBatch(Setup self) {
 			classe++;
 		}
 		if (self->batch > 0) {
-			if (self->a != 1.0 && self->a != 0.0) {
-				self->cnn->setAllHitlearn(self->cnn, self->lr_0 * pow(self->a, iter / self->b));
-			}
+			self->cnn->updateHitLearn(self->cnn, iter);
 			self->cnn->fixBatch(self->cnn);
 			iter++;
 		}
@@ -449,10 +483,6 @@ void Setup_getLuaParams(Setup self) {
 			fprintf(stderr, "O valor não pode ser 0\n");
 		}
 	}
-
-	SETUP_GETLUA_INT(self->lr_0, "treino_lr0");
-	SETUP_GETLUA_INT(self->a, "treino_a");
-	SETUP_GETLUA_INT(self->b, "treino_b");
 
 	SETUP_GETLUA_STR(self->treino_out, "estatisticasDeTreino");
 	SETUP_GETLUA_STR(self->teste_out, "estatiscasDeAvaliacao");

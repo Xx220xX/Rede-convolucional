@@ -133,7 +133,8 @@ int cnnMain(int nargs, char **args) {
 	HANDLE hteste;
 	Setup s = Setup_new();
 
-	LCG_setSeed(time(0));
+//	LCG_setSeed(time(0));
+	LCG_setSeed(0xfaca123);
 
 	GUI.can_run = &s->can_run;
 	GUI.force_end = &s->force_end;
@@ -141,6 +142,7 @@ int cnnMain(int nargs, char **args) {
 	s->loadLua(s, luaFile);
 	init:
 	s->cnn->print(s->cnn, "--");
+	printf("\n\n");
 	if (s->ok(s)) {
 		t0 = seconds(); // captura o tempo incial
 		s->runing = 1; // informa que está rodando
@@ -182,12 +184,12 @@ int cnnMain(int nargs, char **args) {
 		GUI.make_train();
 		while (s->runing) {
 			treino = s->itrain;
-			GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, seconds() - t0);
+			GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate,treino.winRateMedio,  seconds() - t0);
 			Sleep(100);
 		}
 		Thread_Release(htreino);
 		treino = s->itrain;
-		GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, seconds() - t0);
+		GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate,treino.winRateMedio, seconds() - t0);
 		t0 = seconds() - t0;
 		printf("Tempo para treino %.3lf s\n", t0);
 		GUI.capture(s->treino_out);

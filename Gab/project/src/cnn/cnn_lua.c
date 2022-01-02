@@ -13,6 +13,10 @@
 
 #define LCNN "Cnn"
 
+#define P3D_LUATYPE 1
+#define P2D_LUATYPE 2
+#define PARAMS_LUATYPE 3
+
 #define checkLua(cond, format, ...) if(!(cond)){ luaL_error(L,format,##__VA_ARGS__) ;c->ecx->error = GAB_ERRO_LUA;return 0;}
 
 #define REGISTERC_L(state, func, name)lua_pushcfunction(state,func);lua_setglobal(state,name)
@@ -26,6 +30,15 @@ int loadP3D(lua_State *L, int arg, P3d *p) {
 		luaL_error(L, "Esperado um P3D\n");
 		return 1;
 	}
+	lua_getfield(L, arg, "ctype");
+	int tp = lua_tonumber(L,-1);
+	if(tp != P3D_LUATYPE){
+		fflush(stdout);
+		fflush(stderr);
+		luaL_error(L,"Espera-se um p3D");
+		return -1;
+	}
+//	lua_pop(L,-1);
 	lua_getfield(L, arg, "x");
 	lua_getfield(L, arg, "y");
 	lua_getfield(L, arg, "z");
@@ -40,13 +53,22 @@ int loadP3D(lua_State *L, int arg, P3d *p) {
 
 int loadP2D(lua_State *L, int arg, P2d *p) {
 	if (!lua_istable(L, arg)) {
-		if(lua_isinteger(L,arg)){
-			p->x = p->y = luaL_checkinteger(L,arg);
+		if (lua_isinteger(L, arg)) {
+			p->x = p->y = luaL_checkinteger(L, arg);
 			return 0;
 		}
 		luaL_error(L, "Esperado um P2D\n");
 		return 1;
 	}
+	lua_getfield(L, arg, "ctype");
+	int tp = lua_tonumber(L,-1);
+	if(tp != P2D_LUATYPE){
+		fflush(stdout);
+		fflush(stderr);
+		luaL_error(L,"Espera-se um P2D");
+		return -1;
+	}
+//	lua_pop(L,1);
 	lua_getfield(L, arg, "x");
 	lua_getfield(L, arg, "y");
 	p->y = lua_tointeger(L, -1);
@@ -60,18 +82,27 @@ int loadParams(lua_State *L, int arg, Parametros *p) {
 		luaL_error(L, "Esperado Params\n");
 		return 1;
 	}
-	lua_getfield(L, arg, "hitlearn");
+	lua_getfield(L, arg, "ctype");
+	int tp = lua_tonumber(L,-1);
+	if(tp != PARAMS_LUATYPE){
+		fflush(stdout);
+		fflush(stderr);
+		luaL_error(L,"Espera-se Parametros");
+		return -1;
+	}
+//	lua_pop(L,-1);
+	lua_getfield(L, arg, "lr_0");
+	lua_getfield(L, arg, "a");
+	lua_getfield(L, arg, "b");
 	lua_getfield(L, arg, "momento");
 	lua_getfield(L, arg, "decaimento");
 	lua_getfield(L, arg, "skipLearn");
-	p->hitlearn = lua_tonumber(L, -4);
-	p->momento = lua_tonumber(L, -3);
-	p->decaimento = lua_tonumber(L, -2);
 	p->skipLearn = lua_tointeger(L, -1);
-//	lua_pop(L, -4);
-//	lua_pop(L, -3);
-//	lua_pop(L, -2);
-//	lua_pop(L, -1);
+	p->decaimento = lua_tonumber(L, -2);
+	p->momento = lua_tonumber(L, -3);
+	p->b = lua_tonumber(L, -4);
+	p->a = lua_tonumber(L, -5);
+	p->lr_0 = p->hitlearn = lua_tonumber(L, -6);
 	return 0;
 }
 
@@ -176,7 +207,7 @@ static int l_Convolucao(lua_State *L) {
 	P2d p = {0};
 	P3d f = {0};
 	int arg = 1;
-	Parametros prm = Params(1e-3);
+	Parametros prm = GAB_DEF_PARAMS;
 	RandomParams rdp = {0};
 	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	switch (nArgs) {
@@ -221,7 +252,7 @@ static int l_ConvolucaoF(lua_State *L) {
 	P3d f = {0};
 	uint32_t fativacao = FTANH;
 	int arg = 1;
-	Parametros prm = {0.001};
+	Parametros prm = GAB_DEF_PARAMS;
 	RandomParams rdp = {0};
 	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	switch (nArgs) {
@@ -260,6 +291,53 @@ static int l_ConvolucaoF(lua_State *L) {
 
 }
 
+static int l_Convolucao2D(lua_State *L) {
+	int nArgs = lua_gettop(L);
+	lua_getglobal(L, LCNN);
+	Cnn c = lua_touserdata(L, -1);
+	P2d p = {0};
+	P3d f = {0};
+	uint32_t fativacao = FTANH;
+	int arg = 1;
+	Parametros prm = GAB_DEF_PARAMS;
+	RandomParams rdp = {0};
+	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
+	switch (nArgs) {
+		case 3:
+			loadP2D(L, arg++, &p);
+			loadP3D(L, arg++, &f);
+			fativacao = lua_tointeger(L, arg++);
+			break;
+		case 4:
+			loadP2D(L, arg++, &p);
+			loadP3D(L, arg++, &f);
+			fativacao = lua_tointeger(L, arg++);
+			loadParams(L, arg++, &prm);
+			break;
+		case 5:
+			loadP2D(L, arg++, &p);
+			loadP3D(L, arg++, &f);
+			fativacao = lua_tointeger(L, arg++);
+			loadParams(L, arg++, &prm);
+			loadRdp(L, arg++, &rdp);
+			break;
+		default:
+			luaL_error(L, "Invalid function\ntry\n"
+						  " Convolucao2D(step,filter,ativacao)\n"
+						  " Convolucao2D(step,filter,ativacao,Params)\n"
+						  " Convolucao2D(step,filter,ativacao,Params,RDP)\n");
+	}
+	checkLua(CHECK_F_ATIVACAO(fativacao), "FUNCAO DE ATIVACAO INVALIDA");
+
+	if (c->Convolucao2D(c, p, f, fativacao, prm, rdp)) {
+		char *msg = c->gpu->errorMsg(c->ecx->error);
+		luaL_error(L, "falha ao adicionar camada Convolucao2D:  %d %s", c->ecx->error, msg);
+		gab_free(msg);
+	}
+	RETURN_LUA_STATUS_FUNCTION();
+
+}
+
 static int l_ConvolucaoNC(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	lua_getglobal(L, LCNN);
@@ -269,7 +347,7 @@ static int l_ConvolucaoNC(lua_State *L) {
 	P3d f = {0};
 	uint32_t fativacao = FTANH;
 	int arg = 1;
-	Parametros prm = {0.001};
+	Parametros prm = GAB_DEF_PARAMS;
 	RandomParams rdp = {0};
 	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	switch (nArgs) {
@@ -321,8 +399,6 @@ static int l_Pooling(lua_State *L) {
 	P2d f = {0};
 	uint32_t type = MAXPOOL;
 	int arg = 1;
-	Parametros prm = {0.001};
-	RandomParams rdp = {0};
 	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
 	switch (nArgs) {
 		case 3:// px=py, fx=fy,nfilters
@@ -384,7 +460,7 @@ static int l_PRelu(lua_State *L) {
 	Cnn c = lua_touserdata(L, -1);
 	int arg = 1;
 	RdParams rdp = {0};
-	Parametros prm = Params(1e-3);
+	Parametros prm = GAB_DEF_PARAMS;
 	switch (nArgs) {
 		case 0:
 			break;
@@ -475,7 +551,7 @@ static int l_FullConnect(lua_State *L) {
 	int func = FTANH;
 	RdParams rdpw = {0};
 	RdParams rdpb = {0};
-	Parametros prm = Params(1e-3);
+	Parametros prm = GAB_DEF_PARAMS;
 	switch (nArgs) {
 		case 1:
 			neuros = (int) luaL_checkinteger(L, arg++);
@@ -525,22 +601,22 @@ static int l_BatchNorm(lua_State *L) {
 	int arg = 1;
 	REAL epsilon = (REAL) 1e-12;
 	size_t batch = 1;
-	Parametros prm = Params(1e-3);
+	Parametros prm = GAB_DEF_PARAMS;
 	switch (nArgs) {
 		case 1:
-			batch =  luaL_checkinteger(L, arg++);
+			batch = luaL_checkinteger(L, arg++);
 			break;
 		case 2:
-			batch =  luaL_checkinteger(L, arg++);
+			batch = luaL_checkinteger(L, arg++);
 			epsilon = (REAL) luaL_checknumber(L, arg++);
 			break;
 		case 3:
-			batch =  luaL_checkinteger(L, arg++);
+			batch = luaL_checkinteger(L, arg++);
 			epsilon = (REAL) luaL_checknumber(L, arg++);
 			loadParams(L, arg++, &prm);
 			break;
 		case 5:
-			batch =  luaL_checkinteger(L, arg++);
+			batch = luaL_checkinteger(L, arg++);
 			epsilon = (REAL) luaL_checknumber(L, arg++);
 			loadParams(L, arg++, &prm);
 			loadRdp(L, arg++, &randomY);
@@ -554,7 +630,7 @@ static int l_BatchNorm(lua_State *L) {
 						  " BatchNorm(batch_size, epsilon,Params,RDPY,RDPB)\n");
 			return 0;
 	}
-	if (c->BatchNorm(c, batch,epsilon, Params(1e-3), randomY, randomB)) {
+	if (c->BatchNorm(c, batch, epsilon, Params(1e-3), randomY, randomB)) {
 		char *msg = c->gpu->errorMsg(c->ecx->error);
 		luaL_error(L, "falha ao adicionar camada BatchNorm:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
@@ -632,41 +708,6 @@ static int l_callCnn(lua_State *L) {
 	RETURN_LUA_STATUS_FUNCTION();
 }
 
-static int l_CamadasetParam(lua_State *L) {
-	int nArgs = lua_gettop(L);
-	REAL ht, mm, dc;
-	uint32_t cm;
-	int arg = 1;
-	int skip_learn = 0;
-	lua_getglobal(L, LCNN);
-	Cnn c = lua_touserdata(L, -1);
-	cm = c->l - 1;
-	switch (nArgs) {
-		case 5:
-			cm = lua_tointeger(L, arg++) - 1;
-		case 4:
-			ht = lua_tonumber(L, arg++);
-			mm = lua_tonumber(L, arg++);
-			dc = lua_tonumber(L, arg++);
-			skip_learn = lua_tonumber(L, arg++);
-			break;
-		default:
-			luaL_error(L, "Expected:\n"
-						  "camada:int,hitlearn:float,momento:float,decaimentoPeso:float or \n"
-						  "hitlearn:float,momento:float,decaimentoPeso:float\n");
-
-			return 0;
-	}
-
-	if (cm < 0 || cm >= c->l) {
-		luaL_error(L, "Violação de memória, acesso a posição %d  de %d.\nA posição válida é 1<= i <= %d\n", cm + 1, c->l, c->l);
-		return 0;
-	}
-
-	c->cm[cm]->params = Params(ht, mm, dc, skip_learn);
-	RETURN_LUA_STATUS_FUNCTION();
-}
-
 static int l_CamadasetLearnable(lua_State *L) {
 	int nArgs = lua_gettop(L);
 	if (nArgs != 2) {
@@ -711,7 +752,6 @@ static struct {
 	const char *args;
 } globalFunctions[] = {{.f=l_createCnn, .name="Entrada",         "(x:int, y:int, z:int)"},
 					   {l_CamadasetLearnable, "SetLearnable",    "(cm = 1:int, learnable:bool)"},
-					   {l_CamadasetParam,     "SetParams",       "(cm=1:int, hitlearn:float, momento:float, decaimento:float, skipLearn:bool )"},
 					   {l_removeLayer,        "RemoveLastLayer", "()"},
 					   {l_PrintCnn,           "PrintCnn",        ""},
 					   {l_callCnn,            "Call",            "(entrada:table)"},
@@ -719,22 +759,22 @@ static struct {
 					   {l_helpCnn,            "helpCnn",         "()"},
 					   {l_sizeout,            "sizeOut",         "()"},
 					   {l_Convolucao,         "Convolucao",      "(step:P2D, filter:P3D, params=Params(0):Params,rdp=RDP(0):RDP)"},
+					   {l_Convolucao2D,       "Convolucao2D",    "(step:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
 					   {l_ConvolucaoF,        "ConvolucaoF",     "(step:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
-					   {l_ConvolucaoNC,       "ConvolucaoNC","(step:P2D, abertura:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
-					   {l_Pooling,            "Pooling","(step:P2D, filter:P2D, type:int)"},
-					   {l_Relu,               "Relu","(menorQ0=0:float, maiorQ0=1:float)"},
-					   {l_PRelu,              "PRelu","(params=Params(0):Params, rdp=RDP(0):RDP)"},
-					   {l_Padding,            "Padding","(top:int, bottom:int, left:int, right:int)"},
-					   {l_DropOut,            "DropOut","(prob_saida:float,seed=os.time():int64)"},
-					   {l_FullConnect,        "FullConnect","(out_size:int, func:int, params=Params(0):Params, RDPW=RDP(0):RDP, RDPB=RDP(0):RDP)"},
-					   {l_BatchNorm,          "BatchNorm","(batch_size, epsilon=1e-12,params=Params(0):Params, RDPY=RDP(0):RDP, RDPB=RDP(0):RDP)"},
-					   {l_SoftMax,            "SoftMax","(flag=SOFTNORM|SOFTLAST:int)"},
+					   {l_ConvolucaoNC,       "ConvolucaoNC",    "(step:P2D, abertura:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
+					   {l_Pooling,            "Pooling",         "(step:P2D, filter:P2D, type:int)"},
+					   {l_Relu,               "Relu",            "(menorQ0=0:float, maiorQ0=1:float)"},
+					   {l_PRelu,              "PRelu",           "(params=Params(0):Params, rdp=RDP(0):RDP)"},
+					   {l_Padding,            "Padding",         "(top:int, bottom:int, left:int, right:int)"},
+					   {l_DropOut,            "DropOut",         "(prob_saida:float,seed=os.time():int64)"},
+					   {l_FullConnect,        "FullConnect",     "(out_size:int, func:int, params=Params(0):Params, RDPW=RDP(0):RDP, RDPB=RDP(0):RDP)"},
+					   {l_BatchNorm,          "BatchNorm",       "(batch_size, epsilon=1e-12,params=Params(0):Params, RDPY=RDP(0):RDP, RDPB=RDP(0):RDP)"},
+					   {l_SoftMax,            "SoftMax",         "(flag=SOFTNORM|SOFTLAST:int)"},
 					   {NULL, NULL}};
 static struct {
 	uint32_t v;
 	const char *name;
-} globalConstantes[] = {
-						{FSIGMOID,        "SIGMOID"},
+} globalConstantes[] = {{FSIGMOID,        "SIGMOID"},
 						{FTANH,           "TANH"},
 						{FRELU,           "RELU"},
 						{FLIN,            "LIN"},
@@ -801,23 +841,28 @@ void CnnInitLuaVm(Cnn c) {
 							"    if z == nil then\n"
 							"        z, y = y, x;\n"
 							"    end\n"
-							"    return { x = x, y = y, z = z }\n"
+							"    return { x = x, y = y, z = z,ctype= 1 }\n"
 							"end\n"
 							"function P2D(x, y)\n"
 							"    if y == nil then\n"
 							"        y = x;\n"
 							"    end\n"
-							"    return { x = x, y = y }\n"
+							"    return { x = x, y = y ,ctype=2}\n"
 							"end\n"
-							"function Params(hitlearn, momento, decaimento, skip)\n"
+							"function Params(lr_0, momento, decaimento, skip,a,b)\n"
 							"    momento = momento or 0.0\n"
 							"    decaimento = decaimento or 0.0\n"
 							"    skip = skip or 0.0\n"
+							"    a = a or 0.0\n"
+							"    b = b or 0.0\n"
 							"    return {\n"
-							"        hitlearn = hitlearn,\n"
+							"        lr_0 = lr_0,\n"
 							"        momento = momento,\n"
 							"        decaimento = decaimento,\n"
-							"        skipLearn = skip\n"
+							"        skipLearn = skip,\n"
+							"        a = a ,\n"
+							"        b = b ,"
+							"		 ctype= 3\n"
 							"    }\n"
 							"end\n"
 							"function RDP(type, a, b)\n"
@@ -830,8 +875,12 @@ void CnnInitLuaVm(Cnn c) {
 
 
 int CnnLuaLoadString(Cnn c, const char *lua_program) {
-	if (!c) { return 10; }
-	if (!c->LuaVm) { CnnInitLuaVm(c); }
+	if (!c) {
+		return 10;
+	}
+	if (!c->LuaVm) {
+		CnnInitLuaVm(c);
+	}
 	int error = luaL_dostring(c->LuaVm, lua_program);
 	if (error) {
 		fflush(stdout);
@@ -847,9 +896,13 @@ int CnnLuaLoadString(Cnn c, const char *lua_program) {
 }
 
 int CnnLuaLoadFile(Cnn c, const char *file_name) {
-	if (!c) { return GAB_NULL_POINTER_ERROR; }
+	if (!c) {
+		return GAB_NULL_POINTER_ERROR;
+	}
 	ECXPUSH(c->ecx);
-	if (!c->LuaVm) { CnnInitLuaVm(c); }
+	if (!c->LuaVm) {
+		CnnInitLuaVm(c);
+	}
 	c->ecx->setError(c->ecx, luaL_dofile(c->LuaVm, file_name));
 	if (c->ecx->error) {
 		fflush(stdout);

@@ -88,7 +88,9 @@ char *CamadaSoftMax_getGenerate(CamadaSoftMax self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaSoftMax_save(CamadaSoftMax self, FILE *f) {
-	if (self->super.ecx->error) { goto end; }
+	if (self->super.ecx->error) {
+		goto end;
+	}
 	ECXPUSH(self->super.ecx);
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->flag, 1, 1, f);
@@ -109,6 +111,21 @@ Camada CamadaSoftMax_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx
 	end:
 	ECXPOP(ecx);
 	return (Camada) self;
+}
+
+int CamadaSoftMax_fprintf(CamadaSoftMax self, FILE *destino, char *format, ...) {
+	va_list v;
+	va_start(v, format);
+	internal_Camada_fprint(self, destino, format, v);
+	fprintf(destino, "soma -> ");
+	self->soma->fprint(self->soma, destino);
+	fprintf(destino, "maximos -> ");
+	self->maximos->fprint(self->maximos, destino);
+	fprintf(destino, "indice_maximos -> ");
+	self->indice_maximos->fprint(self->indice_maximos, destino);
+	fprintf(destino, "exponent -> ");
+	self->exponent->fprint(self->exponent, destino);
+	return 0;
 }
 
 Camada CamadaSoftMax_new(Gpu gpu, Queue queue, char flag, P3d size_in, Tensor entrada, Ecx ecx) {
@@ -145,5 +162,6 @@ Camada CamadaSoftMax_new(Gpu gpu, Queue queue, char flag, P3d size_in, Tensor en
 	self->super.json = (char *(*)(void *, int)) CamadaSoftMax_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaSoftMax_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaSoftMax_save;
+	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaSoftMax_fprintf;
 	return (Camada) self;
 }

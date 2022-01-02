@@ -167,6 +167,33 @@ Camada CamadaBatchNorm_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx e
 	return (Camada) self;
 }
 
+int CamadaBatchNorm_fprintf(CamadaBatchNorm self, FILE *destino, char *format, ...) {
+	va_list v;
+	va_start(v, format);
+	internal_Camada_fprint(self, destino, format, v);
+	fprintf(destino, "Y -> ");
+	self->Y->fprint(self->Y, destino);
+	fprintf(destino, "dY -> ");
+	self->dY->fprint(self->dY, destino);
+	fprintf(destino, "B -> ");
+	self->B->fprint(self->B, destino);
+	fprintf(destino, "dB -> ");
+	self->dB->fprint(self->dB, destino);
+	fprintf(destino, "media -> ");
+	self->media->fprint(self->media, destino);
+	fprintf(destino, "inv_std -> ");
+	self->inv_std->fprint(self->inv_std, destino);
+	fprintf(destino, "norma -> ");
+	self->norma->fprint(self->norma, destino);
+	fprintf(destino, "dnorma -> ");
+	self->dnorma->fprint(self->dnorma, destino);
+	fprintf(destino, "media_dnorma -> ");
+	self->media_dnorma->fprint(self->media_dnorma, destino);
+	fprintf(destino, "media_dnorma_norma -> ");
+	self->media_dnorma_norma->fprint(self->media_dnorma_norma, destino);
+	return  0;
+}
+
 extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL epsilon, size_t batchSize, Rdp randY, Rdp randB) {
 	ECXPUSH(ecx);
 	CamadaBatchNorm self = gab_alloc(1, sizeof(CamadaBatchNorm_t));
@@ -190,15 +217,14 @@ extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL
 	self->epsilon = epsilon;
 
 	//kernels
-	KRN_new(self->BatchNormMedia, "BatchNormMedia", "Vector entrada, Vector media, int entradatx, int entradaty, int k0")
-	KRN_new(self->BatchNormInvDesv, "BatchNormInvDesv", "Vector a, Vector media, Vector inv_desv, REAL episolon, int ax, int ay, int k0")
-	KRN_new(self->BatchNormNormaliza, "BatchNormNormaliza", "Vector saida, Vector norma, Vector a, Vector media, Vector inv_std, Vector Y, Vector B, int ax, int ay, int k0")
-	KRN_new(self->BatchNormaCalcDnorm, "BatchNormaCalcDnorm", "Vector dnorm, Vector ds, Vector Y, int ax, int ay, int k0")
-	KRN_new(self->BatchNormMediadnorm_norma, "BatchNormMediadnorm_norma", "Vector norm, Vector dnorm, Vector mdnorm, Vector mdnormnorm, int ax, int ay, int k0")
-	KRN_new(self->BatchNormaCalcDa, "BatchNormaCalcDa", "Vector da, Vector norm, Vector dnorm, Vector mdnorm, Vector mdnormnorm, Vector inv_std, int ax, int ay, int k0")
-	KRN_new(self->BatchNormaCalcdYdB, "BatchNormaCalcdYdB", "Vector ds, Vector norma, Vector gradY, Vector gradB, long batchSize, int ax, int ay, int k0")
-	KRN_new(self->BatchNormaLearn, "BatchNormaLearn", "Vector Y, Vector B, Vector gradY, Vector gradB, REAL hit, REAL momento, REAL decaimento, int k0")
-
+	Knew_BatchNormMedia(self->BatchNormMedia);
+	Knew_BatchNormInvDesv(self->BatchNormInvDesv);
+	Knew_BatchNormNormaliza(self->BatchNormNormaliza);
+	Knew_BatchNormaCalcDnorm(self->BatchNormaCalcDnorm);
+	Knew_BatchNormMediadnorm_norma(self->BatchNormMediadnorm_norma);
+	Knew_BatchNormaCalcDa(self->BatchNormaCalcDa);
+	Knew_BatchNormaCalcdYdB(self->BatchNormaCalcdYdB);
+	Knew_BatchNormaLearn(self->BatchNormaLearn);
 
 	self->rdp_Y = randY;
 	self->rdp_B = randB;
@@ -228,6 +254,8 @@ extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL
 	self->super.json = (char *(*)(void *, int)) CamadaBatchNorm_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaBatchNorm_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaBatchNorm_save;
+	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaBatchNorm_fprintf;
+
 	self->dY->fill(self->dY, 0);
 	self->dB->fill(self->dB, 0);
 	return (Camada) self;

@@ -10,8 +10,8 @@
 
 typedef struct CamadaPRelu_t {
 	Camada_t super;
-	Tensor A;
-	Tensor dA;
+	Tensor W;
+	Tensor dW;
 	RandomParams rdp_a;
 	Kernel preluativa;
 	Kernel preluonlyfix;

@@ -5,7 +5,7 @@
  * @param exponent Tensor e^entrada (escrita)
  * @param k0 usado internamente no kernel
  */
-kV softmaxExp(Vector entrada, Vector exponent, int k0) {
+kV softmaxExp(Vr entrada, Vr exponent, int k0) {
 	int k = get_global_id(0) + k0;
 	exponent[k] = EXP(entrada[k]);
 }
@@ -19,13 +19,13 @@ kV softmaxExp(Vector entrada, Vector exponent, int k0) {
  * @param saidaty dimensão x da saída
  * @param k0 usado internamente no kernel
  */
-kV softmaxSomaExp(Vector eps, Vector soma, int saidatx, int saidaty, int k0) {
+kV softmaxSomaExp(Vr eps, Vr soma, int saidatx, int saidaty, int k0) {
 	int z = get_global_id(0) + k0;
 	int x, y;
 	REAL sum = 0;
 	for (x = 0; x < saidatx; x++) {
 		for (y = 0; y < saidaty; y++) {
-			sum += eps[KTensorMap(x, y, z, saidatx, saidaty)];
+			sum += eps[kMap(x, y, z, saidatx, saidaty)];
 		}
 	}
 	soma[z] = sum;
@@ -40,10 +40,10 @@ kV softmaxSomaExp(Vector eps, Vector soma, int saidatx, int saidaty, int k0) {
  * @param saidaty dimensão x da saída
  * @param k0 usado internamente no kernel
  */
-kV softmaxNormaliza(Vector exponet, Vector soma, Vector saida, int saidatx, int saidaty, int k0) {
+kV softmaxNormaliza(Vr exponet, Vr soma, Vr saida, int saidatx, int saidaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
-	KTensorRemap(k, x, y, z, saidatx, saidaty)
+	kRap(k, x, y, z, saidatx, saidaty)
 	saida[k] = exponet[k] / soma[z];
 }
 /**
@@ -56,11 +56,11 @@ kV softmaxNormaliza(Vector exponet, Vector soma, Vector saida, int saidatx, int 
  * @param sy dimensão y da saída
  * @param k0 usado internamente no kernel
  */
-kV softMaxcalcgrad(Vector da, Vector s, Vector ds, int sx, int sy, int k0) {
+kV softMaxcalcgrad(Vr da, Vr s, Vr ds, int sx, int sy, int k0) {
 	int k = get_global_id(0) + k0;
 	int i, z, j;
 	int sxy = sx * sy;
-	KTensorRemap2D(k, z, i, sxy);
+	KRap2D(k, z, i, sxy);
 	REAL yi = s[k];
 	REAL soma = 0.0;
 	for (j = 0; j < sxy; ++j) {
@@ -85,15 +85,15 @@ kV softMaxcalcgrad(Vector da, Vector s, Vector ds, int sx, int sy, int k0) {
  * @param ay entrada y
  * @param k0 uso interno no kernel
  */
-kV softmaxFindMax(Vector a, Vector mx, __global int *i_max, int ax, int ay, int k0) {
+kV softmaxFindMax(Vr a, Vr mx, __global int *i_max, int ax, int ay, int k0) {
 	int z = get_global_id(0) + k0;
 	int x, y;
-	REAL maximo = a[KTensorMap(0, 0, z, ax, ay)];
+	REAL maximo = a[kMap(0, 0, z, ax, ay)];
 	REAL adata;
 	int imax = 0;
 	for (x = 0; x < ax; x++) {
 		for (y = 0; y < ay; y++) {
-			adata = a[KTensorMap(x, y, z, ax, ay)];
+			adata = a[kMap(x, y, z, ax, ay)];
 			if (maximo < adata) {
 				maximo = adata;
 				imax = x * ay + y;
@@ -114,9 +114,9 @@ kV softmaxFindMax(Vector a, Vector mx, __global int *i_max, int ax, int ay, int 
  * @param ay entrada y
  * @param k0 usado internamente no kernel
  */
-kV softmaxExpNorm(Vector entrada, Vector exponent, Vector mx, int ax, int ay, int k0) {
+kV softmaxExpNorm(Vr entrada, Vr exponent, Vr mx, int ax, int ay, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
-	KTensorRemap(k, x, y, z, ax, ay);
+	kRap(k, x, y, z, ax, ay);
 	exponent[k] = EXP(entrada[k] - mx[z]);
 }

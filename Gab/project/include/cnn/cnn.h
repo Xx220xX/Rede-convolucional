@@ -69,7 +69,7 @@ typedef struct Cnn_t {
 
 	int (*fixBatch)(struct Cnn_t *self);
 
-	int (*setAllHitlearn)(struct Cnn_t *self, REAL hitlearn);
+	int (*updateHitLearn)(struct Cnn_t *self, size_t iter);
 
 	REAL (*mse)(struct Cnn_t *self);
 
@@ -90,6 +90,7 @@ typedef struct Cnn_t {
 	int (*Convolucao)(struct Cnn_t *self, P2d passo, P3d filtro, Parametros p, RandomParams filtros);
 
 	int (*ConvolucaoF)(struct Cnn_t *self, P2d passo, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros);
+	int (*Convolucao2D)(struct Cnn_t *self, P2d passo, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros);
 
 	int (*ConvolucaoNC)(struct Cnn_t *self, P2d passo, P2d abertura, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros);
 

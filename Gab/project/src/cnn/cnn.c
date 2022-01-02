@@ -19,24 +19,15 @@
     (((((input-1) - (filtro - 1) * abertura) / passo)*passo + (filtro-1)*abertura) == (input-1)))
 const char *versao = "3.0.0002";
 
+const char *Cnn_version() {
+	return versao;
+}
+
 
 //#####################################################################################
 //							FUNÇÕES PARA ADICIONA CAMADAS
 //#####################################################################################
 
-
-
-//#####################################################################################
-//
-//									CORPO DAS FUNÇÕES
-//
-//#####################################################################################
-
-
-
-const char *Cnn_version() {
-	return versao;
-}
 
 int Cnn_release(Cnn *selfp) {
 	if (!selfp) {
@@ -198,7 +189,7 @@ int Cnn_learn(Cnn self, Tensor target) {
 	return self->ecx->error;
 }
 
-int Cnn_learnBatch(Cnn self,Tensor target,size_t batchSize){
+int Cnn_learnBatch(Cnn self, Tensor target, size_t batchSize) {
 	if (!self->l) {
 		self->ecx->error = GAB_CNN_NOT_INITIALIZED;
 	}
@@ -206,18 +197,20 @@ int Cnn_learnBatch(Cnn self,Tensor target,size_t batchSize){
 		return self->ecx->error;
 	}
 	if (target->flag.ram || target->flag.shared) {
-		return Cnn_learnv(self, target->data);
+		self->target->setvalues(self->target,target->data);
+		return Cnn_learnBatch(self,self->target,batchSize);
 	}
 	Kernel sub = ((Kernel *) self->kernels)[CNN_KERNEL_SUB];
 	sub->runRecursive(sub, self->queue, self->ds->length, self->gpu->maxworks, &self->ds->data, &self->cm[self->l - 1]->s->data, &target->data);
 	Tensor ds = self->ds;
 	for (int l = self->l - 1; l >= 0 && !self->ecx->error; l--) {
-		self->cm[l]->retroPropagationBatch(self->cm[l], ds,batchSize);
+		self->cm[l]->retroPropagationBatch(self->cm[l], ds, batchSize);
 		ds = self->cm[l]->da;
 	}
 	return self->ecx->error;
 }
-int Cnn_fixBatch(Cnn self){
+
+int Cnn_fixBatch(Cnn self) {
 	if (!self->l) {
 		self->ecx->error = GAB_CNN_NOT_INITIALIZED;
 	}
@@ -247,12 +240,14 @@ int Cnn_predict(Cnn self, Tensor entrada) {
 	}
 	return self->ecx->error;
 }
-int Cnn_setAllHitlearn(Cnn self,REAL hitlearn){
+
+int Cnn_updateHitLearn(Cnn self, size_t iter) {
 	for (int i = 0; i < self->l; ++i) {
-		self->cm[i]->params.hitlearn = hitlearn;
+		self->cm[i]->updateHitLearn(self->cm[i], iter);
 	}
 	return 0;
 }
+
 REAL Cnn_mse(Cnn self) {
 	if (self->ecx->error) {
 		return NAN;
@@ -318,41 +313,6 @@ int Cnn_normalizeIMAGE(Cnn self, Tensor dst, Tensor src) {
 	return self->ecx->error;
 }
 
-char *Cnn_json(Cnn self, int showValues) {
-	char *string = NULL;
-	int len = 0;
-	P3d sizeout = self->getSizeOut(self);
-	apendstr(string, len, "{\n"PAD"\"size_in\":{\"x\":%zu,\"y\":%zu,\"z\":%zu},\n", self->size_in.x, self->size_in.y, self->size_in.z);
-
-	apendstr(string, len, PAD"\"size_out\":{\"x\":%zu,\"y\":%zu,\"z\":%zu}", sizeout.x, sizeout.y, sizeout.z);
-	char *tmp = NULL;
-	apendTensor("entrada", entrada, string, len, tmp, showValues);
-	apendTensor("target", target, string, len, tmp, showValues);
-	apendTensor("ds", ds, string, len, tmp, showValues);
-	apendstr(string, len, ",\n"PAD "\"numero_camadas\":%zu,\n\"camadas\":[", self->l);
-	for (int i = 0; i < self->l; ++i) {
-		tmp = self->cm[i]->json(self->cm[i], showValues);
-		if (i > 0) {
-			apendstr(string, len, ",\n");
-		}
-		apendstr(string, len, "%s", tmp);
-		gab_free(tmp);
-	}
-	apendstr(string, len, "]\n} ");
-
-	return string;
-}
-
-int Cnn_extractVectorLabelClass(Cnn self, Tensor dst, Tensor label) {
-	if (self->ecx->error) {
-		return self->ecx->error;
-	}
-	dst->fill(dst, 0);
-	Kernel extract = ((Kernel *) self->kernels)[CNN_KERNEL_EXTRACT_VECTOR_CLASS_FROM_CHAR];
-	self->ecx->error = extract->runRecursive(extract, self->queue, dst->w, self->gpu->maxworks, &dst->data, &label->data, &dst->y);
-	return self->ecx->error;
-}
-
 int Cnn_setInput(Cnn self, size_t x, size_t y, size_t z) {
 	if (self->l != 0) {
 		return 10;
@@ -364,13 +324,12 @@ int Cnn_setInput(Cnn self, size_t x, size_t y, size_t z) {
 	return 0;
 }
 
-void Cnn_jsonF(Cnn self, int showValues, const char *filename) {
-	char *json = self->json(self, showValues);
-	FILE *f = fopen(filename, "w");
-	fprintf(f, "%s\n", json);
-	fclose(f);
-	gab_free(json);
-}
+
+//#####################################################################################
+//
+//						FUNÇÕES DE SALVAR E CARREGAR
+//
+//#####################################################################################
 
 int Cnn_save(Cnn self, const char *filename) {
 	if (self->ecx->error) {
@@ -453,6 +412,55 @@ int Cnn_load(Cnn self, const char *filename) {
 	return self->ecx->error;
 }
 
+//#####################################################################################
+//
+//						FUNÇÕES DE print
+//
+//#####################################################################################
+
+char *Cnn_json(Cnn self, int showValues) {
+	char *string = NULL;
+	int len = 0;
+	P3d sizeout = self->getSizeOut(self);
+	apendstr(string, len, "{\n"PAD"\"size_in\":{\"x\":%zu,\"y\":%zu,\"z\":%zu},\n", self->size_in.x, self->size_in.y, self->size_in.z);
+
+	apendstr(string, len, PAD"\"size_out\":{\"x\":%zu,\"y\":%zu,\"z\":%zu}", sizeout.x, sizeout.y, sizeout.z);
+	char *tmp = NULL;
+	apendTensor("entrada", entrada, string, len, tmp, showValues);
+	apendTensor("target", target, string, len, tmp, showValues);
+	apendTensor("ds", ds, string, len, tmp, showValues);
+	apendstr(string, len, ",\n"PAD "\"numero_camadas\":%zu,\n\"camadas\":[", self->l);
+	for (int i = 0; i < self->l; ++i) {
+		tmp = self->cm[i]->json(self->cm[i], showValues);
+		if (i > 0) {
+			apendstr(string, len, ",\n");
+		}
+		apendstr(string, len, "%s", tmp);
+		gab_free(tmp);
+	}
+	apendstr(string, len, "]\n} ");
+
+	return string;
+}
+
+int Cnn_extractVectorLabelClass(Cnn self, Tensor dst, Tensor label) {
+	if (self->ecx->error) {
+		return self->ecx->error;
+	}
+	dst->fill(dst, 0);
+	Kernel extract = ((Kernel *) self->kernels)[CNN_KERNEL_EXTRACT_VECTOR_CLASS_FROM_CHAR];
+	self->ecx->error = extract->runRecursive(extract, self->queue, dst->w, self->gpu->maxworks, &dst->data, &label->data, &dst->y);
+	return self->ecx->error;
+}
+
+void Cnn_jsonF(Cnn self, int showValues, const char *filename) {
+	char *json = self->json(self, showValues);
+	FILE *f = fopen(filename, "w");
+	fprintf(f, "%s\n", json);
+	fclose(f);
+	gab_free(json);
+}
+
 void Cnn_fprint(Cnn self, FILE *f, const char *comment) {
 	char *tmp;
 	if (comment == NULL) {
@@ -496,11 +504,9 @@ char *Cnn_printstr(Cnn self, const char *comment) {
 
 //#####################################################################################
 //
-//						CORPO DAS FUNÇÕES DE ADICIONAR CAMADAS
+//						FUNÇÕES DE ADICIONAR CAMADAS
 //
 //#####################################################################################
-
-
 
 int Cnn_Convolucao(Cnn self, P2d passo, P3d filtro, Parametros p, RandomParams filtros) {
 	P3d size_in = self->getSizeOut(self);
@@ -519,6 +525,16 @@ int Cnn_ConvolucaoF(Cnn self, P2d passo, P3d filtro, uint32_t funcaoAtivacao, Pa
 		return GAB_INVALID_PARAM;
 	}
 	Camada c = CamadaConvF_new(self->gpu, self->queue, passo, filtro, size_in, funcaoAtivacao, internal_Cnn_getEntrada(self), p, self->ecx, filtros);
+
+	return internal_Cnn_addlayer(self, c);
+}
+int Cnn_Convolucao2D(Cnn self, P2d passo, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros) {
+	P3d size_in = self->getSizeOut(self);
+	if (!CHECKDIN(size_in.x, filtro.x, 1, passo.x) || !CHECKDIN(size_in.y, filtro.y, 1, passo.y)) {
+		fprintf(stderr, "Cnn_Convolucao2D:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n", size_in.x, size_in.y, size_in.z, (size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1, (size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1, size_in.z);
+		return GAB_INVALID_PARAM;
+	}
+	Camada c = CamadaConv2D_new(self->gpu, self->queue, passo, filtro, size_in, funcaoAtivacao, internal_Cnn_getEntrada(self), p, self->ecx, filtros);
 
 	return internal_Cnn_addlayer(self, c);
 }
@@ -594,6 +610,7 @@ Cnn Cnn_new() {
 	methods:
 	self->Convolucao = Cnn_Convolucao;
 	self->ConvolucaoF = Cnn_ConvolucaoF;
+	self->Convolucao2D = Cnn_Convolucao2D;
 	self->ConvolucaoNC = Cnn_ConvolucaoNC;
 	self->Pooling = Cnn_Pooling;
 	self->Relu = Cnn_Relu;
@@ -616,7 +633,7 @@ Cnn Cnn_new() {
 	self->learnBatch = Cnn_learnBatch;
 	self->fixBatch = Cnn_fixBatch;
 
-	self->setAllHitlearn = Cnn_setAllHitlearn;
+	self->updateHitLearn = Cnn_updateHitLearn;
 	self->mse = Cnn_mse;
 	self->mseT = Cnn_mseT;
 	self->maxIndex = Cnn_maxIndex;

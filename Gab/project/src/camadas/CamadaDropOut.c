@@ -92,7 +92,13 @@ Camada CamadaDropOut_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx
 	ecx->popstack(ecx);
 	return (Camada) self;
 }
-
+int CamadaDropOut_fprintf(CamadaDropOut self, FILE * destino, char *format, ...){
+	va_list  v;
+	va_start(v,format);
+	internal_Camada_fprint(self,destino,format,v);
+	fprintf(destino,"hitmap -> ");self->hitmap->fprint(self->hitmap,destino);
+	return 0;
+}
 Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_saida, cl_ulong seed, Tensor entrada, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaDropOut_new");
 	CamadaDropOut self = gab_alloc(1, sizeof(CamadaDropOut_t));
@@ -119,5 +125,6 @@ Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_s
 	self->super.json = (char *(*)(void *, int)) CamadaDropOut_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaDropOut_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaDropOut_save;
+	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaDropOut_fprintf;
 	return (Camada) self;
 }
