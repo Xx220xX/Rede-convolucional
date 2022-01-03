@@ -19,8 +19,13 @@ static void CamadaConvF_release(CamadaConvF *self_p) {
 	Release((*self_p)->dW);
 	Release((*self_p)->z);
 	Release((*self_p)->dz);
+	Release((*self_p)->B);
+	Release((*self_p)->dB);
 	Release((*self_p)->convFSum);
-	Release((*self_p)->convFCalcGrads);
+	Release((*self_p)->convFCalcGradIn);
+	Release((*self_p)->convFCalcGradBAndFix);
+	Release((*self_p)->convFCalcGradBBatch);
+	Release((*self_p)->convFCalcGradIn);
 	Release((*self_p)->convFCalcGradZ);
 	Release((*self_p)->convFCalcGradAndFixWeight);
 	Release((*self_p)->convFCalcGradBatch);
@@ -30,9 +35,7 @@ static void CamadaConvF_release(CamadaConvF *self_p) {
 }
 
 static int CamadaConvF_propagation(CamadaConvF self) {
-	Execute(convFSum, self->super.s->length,
-
-			&self->W->data, &self->super.a->data, &self->z->data, &self->super.s->data, &self->passox, &self->passoy, &self->super.s->x, &self->super.s->y, &self->super.a->x, &self->super.a->y, &self->W->x, &self->W->y, &self->W->z, &self->activationFuntion);
+	KExec_convFSum(convFSum, self->super.s->length, self->W->data, self->B->data, self->super.a->data, self->z->data, self->super.s->data, self->passox, self->passoy, self->super.s->x, self->super.s->y, self->super.a->x, self->super.a->y, self->W->x, self->W->y, self->W->z, self->activationFuntion);
 	return self->super.ecx->error;
 }
 
@@ -40,14 +43,13 @@ static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
 	if (self->super.da || !self->super.params.skipLearn) {
 		Execute(convFCalcGradZ, self->super.s->length, &ds->data, &self->z->data, &self->dz->data, &self->derivationFuntion);
 	}
-	if (self->super.da)
-		Execute(convFCalcGrads, self->super.da->length,
-
-				&self->W->data, &self->super.da->data, &self->dz->data, &self->W->x, &self->W->y, &self->W->z, &self->passox, &self->passoy, &self->super.da->x, &self->super.da->y, &self->super.s->x, &self->super.s->y, &self->super.s->z);
-	if (!self->super.params.skipLearn)
-		Execute(convFCalcGradAndFixWeight, self->W->length, &self->W->data, &self->dz->data, &self->super.a->data, &self->dW->data, &self->W->x, &self->W->y, &self->W->z, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y, &self->passox, &self->passoy, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento
-
-			   );
+	if (self->super.da) {
+		KExec_convFCalcGradIn(convFCalcGradIn, self->super.da->length, self->W->data, self->super.da->data, self->dz->data, self->W->x, self->W->y, self->W->z, self->passox, self->passoy, self->super.da->x, self->super.da->y, self->super.s->x, self->super.s->y, self->super.s->z);
+	}
+	if (!self->super.params.skipLearn) {
+		KExec_convFCalcGradBAndFix(convFCalcGradBAndFix, self->dB->length, self->B->data, self->dB->data, self->dz->data, self->dz->x, self->dz->y, self->super.params.hitlearn, self->super.params.momento, self->super.params.decaimento);
+		KExec_convFCalcGradAndFixWeight(convFCalcGradAndFixWeight, self->W->length, self->W->data, self->dz->data, self->super.a->data, self->dW->data, self->W->x, self->W->y, self->W->z, self->super.a->x, self->super.a->y, self->super.s->x, self->super.s->y, self->passox, self->passoy, self->super.params.hitlearn, self->super.params.momento, self->super.params.decaimento);
+	}
 	return self->super.ecx->error;
 }
 
@@ -56,17 +58,19 @@ static int CamadaConvF_backpropagationBatch(CamadaConvF self, Tensor ds, size_t 
 		Execute(convFCalcGradZ, self->super.s->length, &ds->data, &self->z->data, &self->dz->data, &self->derivationFuntion);
 	}
 	if (self->super.da) {
-		Execute(convFCalcGrads, self->super.da->length, &self->W->data, &self->super.da->data, &self->dz->data, &self->W->x, &self->W->y, &self->W->z, &self->passox, &self->passoy, &self->super.da->x, &self->super.da->y, &self->super.s->x, &self->super.s->y, &self->super.s->z);
+		KExec_convFCalcGradIn(convFCalcGradIn, self->super.da->length, self->W->data, self->super.da->data, self->dz->data, self->W->x, self->W->y, self->W->z, self->passox, self->passoy, self->super.a->x, self->super.a->y, self->super.s->x, self->super.s->y, self->super.s->z);
 	}
 	if (!self->super.params.skipLearn) {
-		Execute(convFCalcGradBatch, self->W->length, &self->dz->data, &self->super.a->data, &self->dW->data, &batchSize, &self->W->x, &self->W->y, &self->W->z, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y, &self->passox, &self->passoy);
+		KExec_convFCalcGradBBatch(convFCalcGradBBatch, self->dB->length, self->dB->data, self->dz->data, self->dz->x, self->dz->y, batchSize);
+		KExec_convFCalcGradBatch(convFCalcGradBatch, self->dW->length, self->dz->data, self->super.a->data, self->dW->data, batchSize, self->W->x, self->W->y, self->W->z, self->super.a->x, self->super.a->y, self->super.s->x, self->super.s->y, self->passox, self->passoy);
 	}
 	return self->super.ecx->error;
 }
 
 static int CamadaConvF_learnBatch(CamadaConvF self) {
 	if (!self->super.params.skipLearn) {
-		Execute(kernel_fixW, self->W->length, &self->W->data, &self->dW->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
+		KExec_kernel_fixW(kernel_fixW, self->W->length, self->W->data, self->dW->data, self->super.params.hitlearn, self->super.params.momento, self->super.params.decaimento);
+		KExec_kernel_fixW(kernel_fixW, self->B->length, self->B->data, self->dB->data, self->super.params.hitlearn, self->super.params.momento, self->super.params.decaimento);
 	}
 	return self->super.ecx->error;
 }
@@ -147,14 +151,17 @@ Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 	return (Camada) self;
 }
 
-int CamadaConvF_fprintf(CamadaConvF self, FILE * destino, char *format, ...){
-	va_list  v;
-	va_start(v,format);
-	internal_Camada_fprint(self,destino,format,v);
-	fprintf(destino,"W -> ");self->W->fprint(self->W,destino);
-	fprintf(destino,"dW -> ");self->dW->fprint(self->dW,destino);
+int CamadaConvF_fprintf(CamadaConvF self, FILE *destino, char *format, ...) {
+	va_list v;
+	va_start(v, format);
+	internal_Camada_fprint(self, destino, format, v);
+	fprintf(destino, "W -> ");
+	self->W->fprint(self->W, destino);
+	fprintf(destino, "dW -> ");
+	self->dW->fprint(self->dW, destino);
 	return 0;
 }
+
 Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros) {
 	ECXPOP(ecx);
 	CamadaConvF self = gab_alloc(1, sizeof(CamadaConvF_t));
@@ -164,33 +171,36 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	self->derivationFuntion = ativacao | FLAGDIF;
 	self->dW = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
 	self->dW->fill(self->dW, 0);
+	self->B = Tensor_new(1, 1, filtro.z, 1, ecx, TENSOR3D, gpu->context, queue);
+	self->dB = Tensor_new(1, 1, filtro.z, 1, ecx, TENSOR3D, gpu->context, queue);
+	self->B->fill(self->B, 0);
+	self->B->fill(self->dB, 0);
 	self->W = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
 	self->z = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 	self->dz = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
-
 	if (ecx->error) {
 		goto methods;
 	}
 	self->rdp_filtros = rdp_filtros;
 	if (rdp_filtros.type != -1) {
 		if (rdp_filtros.type == 0) {
-			rdp_filtros = internal_getDefaultRDP(ativacao == FRELU, size_in.x * size_in.y * size_in.z, self->super.s->length);
+			rdp_filtros = internal_getDefaultRDP(ativacao == FRELU, filtro.x * filtro.y * size_in.z, self->super.s->length);
 		}
 		self->super.ecx->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
 		if (ecx->error) {
 			goto methods;
 		}
 	}
-
 	self->passox = passo.x;
 	self->passoy = passo.y;
-	KRN_new(self->convFSum, "convFSum", "Vector filtro, Vector entrada, Vector Z, Vector saida, int passox, int passoy, int saidatx, int saidaty, int entradatx, int entradaty, int fx, int fy, int fz, int fid, int k0");
-	KRN_new(self->convFCalcGradZ, "convFCalcGradZ", "Vector ds, Vector z, Vector dz, int fid, int k0");
-	KRN_new(self->convFCalcGrads, "convFCalcGradIn", "Vector filtro, Vector gradEntrada, Vector dz, int fx, int fy, int fz, int passox, int passoy, int entradatx, int entradaty, int saidatx, int saidaty, int saidatz, int k0");
-	KRN_new(self->convFCalcGradAndFixWeight, "convFCalcGradAndFixWeight", "Vector filtros, Vector dz, Vector entrada, Vector gradFiltro, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, REAL hitLearn, REAL momento, REAL weightDecay, int k0");
-	KRN_new(self->convFCalcGradBatch, "convFCalcGradBatch", "Vector dz, Vector entrada, Vector gradFiltro, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0");
-	KRN_new(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
-
+	Knew_convFSum(self->convFSum);
+	Knew_convFCalcGradZ(self->convFCalcGradZ);
+	Knew_convFCalcGradBAndFix(self->convFCalcGradBAndFix);
+	Knew_convFCalcGradBBatch(self->convFCalcGradBBatch);
+	Knew_convFCalcGradIn(self->convFCalcGradIn);
+	Knew_convFCalcGradAndFixWeight(self->convFCalcGradAndFixWeight);
+	Knew_convFCalcGradBatch(self->convFCalcGradBatch);
+	Knew_kernel_fixW(self->kernel_fixW);
 
 	ECXPOP(ecx);
 	methods:

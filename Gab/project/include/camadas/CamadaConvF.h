@@ -1,4 +1,3 @@
-
 //
 // Created by Xx220xX on 24/10/2020.
 //
@@ -13,14 +12,18 @@
 typedef struct CamadaConvF_t {
 	Camada_t super;
 	Tensor W;
+	Tensor dW;
 	Tensor z;
 	Tensor dz;
-	Tensor dW;
+	Tensor B;
+	Tensor dB;
 	size_t passox, passoy;
 	Kernel convFSum;
 	Kernel convFCalcGradZ;
+	Kernel convFCalcGradBAndFix;
 	Kernel convFCalcGradAndFixWeight;
-	Kernel convFCalcGrads;
+	Kernel convFCalcGradIn;
+	Kernel convFCalcGradBBatch;
 	Kernel convFCalcGradBatch;
 	Kernel kernel_fixW;
 	uint32_t activationFuntion;
@@ -28,7 +31,8 @@ typedef struct CamadaConvF_t {
 	RandomParams rdp_filtros;
 } *CamadaConvF, CamadaConvF_t;
 
-extern Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, uint32_t ativacao,
-							  Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros);
-extern Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue,  Tensor entrada, Ecx ecx);
+extern Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros);
+
+extern Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx);
+
 #endif //CNN_GPU_CAMADACONVF_H

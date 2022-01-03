@@ -18,7 +18,7 @@ kV poolativa(Vr entrada, Vr saida, int passox, int passoy, int filtrox, int filt
 }
 
 
-kV poolCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) {
+kV poolCalcGrads(Vr A, Vr dA, Vr dS, Vr S, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	kRap(k, x, y, z, entradatx, entradaty)
@@ -39,7 +39,7 @@ kV poolCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, int 
 		range_filtro.max.y = y;
 	}
 	int i, j;//saida
-	gradEntrada[kMap(x, y, z, entradatx, entradaty)] = 0;
+	dA[kMap(x, y, z, entradatx, entradaty)] = 0;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		i = (x - m) / px;
 		if (i * px + m != x) {
@@ -50,8 +50,8 @@ kV poolCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, int 
 			if (j * py + n != y) {
 				continue;
 			}
-			if (entrada[k] == saida[kMap(i, j, z, saidatx, saidaty)]) {
-				gradEntrada[k] = gradNext[kMap(i, j, z, saidatx, saidaty)];
+			if (A[k] == S[kMap(i, j, z, saidatx, saidaty)]) {
+				dA[k] = dS[kMap(i, j, z, saidatx, saidaty)];
 				return;
 			}
 		}

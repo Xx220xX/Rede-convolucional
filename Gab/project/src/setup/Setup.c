@@ -11,7 +11,7 @@
 #include "error_list.h"
 
 
-#define alpha 0.99
+#define alpha 0.999
 #define beta  (1-alpha)
 
 #if (MANAGE_DEBUG_LOAD_LUA == 1)
@@ -200,7 +200,26 @@ void Setup_loadLabel(Setup self) {
 	self->labels = lbram;
 	self->runing = 0;
 }
-
+float cost_crossEntropy(Tensor S,Tensor T){
+	REAL * vS = S->getvalues(S,NULL);
+	REAL * vT = T->getvalues(T,NULL);
+	REAL sum = 0;
+	for (int i = 0; i < S->length; ++i) {
+		sum -= vT[i]* log10(vS[i]);
+	}
+	return sum;
+}
+REAL cost_mse(Tensor S,Tensor T){
+	REAL * vS = S->getvalues(S,NULL);
+	REAL * vT = T->getvalues(T,NULL);
+	REAL sum = 0;
+	REAL tmp;
+	for (int i = 0; i < S->length; ++i) {
+		tmp = (vS[i] - vT[i]);
+		sum += tmp*tmp;
+	}
+	return sum/S->length;
+}
 
 void Setup_treinar(Setup self) {
 	ECXPUSH(self->cnn->ecx);
@@ -219,11 +238,21 @@ void Setup_treinar(Setup self) {
 	int classe = 0;
 	int images = 0;
 	int acertos = 0;
+	int acertosep;
+	REAL (*cost)(Tensor, Tensor);
+	cost = cost_mse;
+	if(self->cnn->cm[self->cnn->l-1]->layer_id == SOFTMAX_ID){
+		cost = cost_crossEntropy;
+	}
+	localItrain.winRateMedio = 10;
+	localItrain.mse = 1;
+
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		if (self->imagem_atual_treino >= self->n_imagens_treinar) {
 			self->imagem_atual_treino = 0;
 		}
 		localItrain.epAtual = self->epoca_atual + 1;
+		acertosep = 0;
 		for (; self->can_run && self->imagem_atual_treino < self->n_imagens_treinar && !self->cnn->ecx->error; self->imagem_atual_treino++) {
 			images++;
 			indice = self->imagem_atual_treino;
@@ -239,10 +268,12 @@ void Setup_treinar(Setup self) {
 
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
+			acertosep += (cnn_label == label);
 			localItrain.winRate = localItrain.winRate * alpha + 100 * beta;
 			localItrain.winRateMedio = acertos * 100.0 / (images + 1.0);
+			localItrain.winRateMedioep = acertosep * 100.0 / (self->imagem_atual_treino  + 1.0);
 
-			double mse = self->cnn->mse(self->cnn);
+			double mse = cost(self->cnn->cm[self->cnn->l-1]->s,target);
 			if (isnan(mse)) {
 				self->can_run = 0;
 				self->force_end = 1;
@@ -284,19 +315,22 @@ void Setup_treinarBatch(Setup self) {
 	size_t images = 0;
 	size_t iter = 0;
 	int acertos = 0;
-
+	REAL (*cost)(Tensor, Tensor);
+	cost = cost_mse;
+	if(self->cnn->cm[self->cnn->l-1]->layer_id == SOFTMAX_ID){
+		cost = cost_crossEntropy;
+	}
 	size_t bathS;
 	char buff[250];
-	#if (DEBUG_ALL_TREINO == 1)
-	if (DirectoryExists("debug")) {
-		system("rmdir -r debug");
-	}
-	system("mkdir debug");
-	#endif
+
+	localItrain.mse = 1;
+	localItrain.winRateMedio = 10;
+	int acertosep;
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		self->batch = 0;
 		bathS = self->n_imagens_treinar >= self->batchSize ? self->batchSize : self->n_imagens_treinar;
 		localItrain.epAtual = self->epoca_atual + 1;
+		acertosep = 0;
 		for (self->imagem_atual_treino = 0; self->can_run && self->imagem_atual_treino < self->n_imagens_treinar && !self->cnn->ecx->error; self->imagem_atual_treino++) {
 			images++;
 			self->batch++;
@@ -306,35 +340,14 @@ void Setup_treinarBatch(Setup self) {
 			label = ((char *) self->labels->data)[indice];
 			self->cnn->predict(self->cnn, entrada);
 			self->cnn->learnBatch(self->cnn, target, bathS);
-			#if (DEBUG_ALL_TREINO == 1)
 
-			for (int i = 0; i < self->cnn->l; ++i) {
-				snprintf(buff, 250, "debug/layer%d_%s.txt", i, self->cnn->cm[i]->layer_name);
-				FILE *file = fopen(buff, "a");
-				self->cnn->cm[i]->fprint(self->cnn->cm[i], file, "image %zu iter %d:\n", images, iter);
-				fprintf(file, "\n");
-				fclose(file);
-			}
-
-			#endif
 			if (self->batch >= self->batchSize) {
 				self->cnn->updateHitLearn(self->cnn, iter);
 				self->cnn->fixBatch(self->cnn);
 				iter++;
 				self->batch = 0;
 				bathS = self->n_imagens_treinar - self->imagem_atual_treino - 2 >= self->batchSize ? self->batchSize : self->n_imagens_treinar - self->imagem_atual_treino - 1;
-				#if (DEBUG_ALL_TREINO == 1)
 
-				for (int i = 0; i < self->cnn->l; ++i) {
-					snprintf(buff, 250, "debug/layer%d_%s.txt", i, self->cnn->cm[i]->layer_name);
-					FILE *file = fopen(buff, "a");
-					fprintf(file, "Pesos corrigidos\n\n");
-					self->cnn->cm[i]->fprint(self->cnn->cm[i], file, "image %zu iter %d:\n", images, iter);
-					fprintf(file, "\n");
-					fclose(file);
-				}
-
-				#endif
 			}
 			cnn_label = self->cnn->maxIndex(self->cnn);
 			if (self->on_train) {
@@ -343,10 +356,13 @@ void Setup_treinarBatch(Setup self) {
 
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
+			acertosep += (cnn_label == label);
 			localItrain.winRate = localItrain.winRate * alpha + 100 *(cnn_label == label)* beta;
 			localItrain.winRateMedio = acertos * 100.0 / (images + 1.0);
+			localItrain.winRateMedioep = acertosep * 100.0 / (self->imagem_atual_treino  + 1.0);
 
-			double mse = self->cnn->mse(self->cnn);
+			double mse = cost(self->cnn->cm[self->cnn->l-1]->s,target);
+
 
 			if (isnan(mse)) {
 				self->can_run = 0;
@@ -395,6 +411,7 @@ void Setup_avaliar(Setup self) {
 	TE_new(self);
 	self->iteste.imTotal = self->n_imagens_testar;
 	Iteste localIteste = self->iteste;
+	localIteste.mse = 0.5;
 	int64_t acertos = 0;
 	for (; self->can_run && self->imagem_atual_teste < self->n_imagens_testar; self->imagem_atual_teste++) {
 		indice = self->n_imagens_treinar + self->imagem_atual_teste;
@@ -407,7 +424,7 @@ void Setup_avaliar(Setup self) {
 		PUSHTE(label, cnn_label);
 		acertos += (cnn_label == label);
 		localIteste.imAtual = self->imagem_atual_teste + 1;
-		localIteste.meanwinRate = acertos / (self->imagem_atual_teste + 1.0);
+		localIteste.meanwinRate = 100.0*acertos / (self->imagem_atual_teste + 1.0);
 		localIteste.winRate = localIteste.winRate * alpha + beta * ((cnn_label == label) ? 100 : 0);
 		localIteste.mse = localIteste.mse * alpha + beta * self->cnn->mseT(self->cnn, target);
 		self->iteste = localIteste;

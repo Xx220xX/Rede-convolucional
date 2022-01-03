@@ -5,7 +5,6 @@ set(CAMADA
         project/include/camadas/CamadaBatchNorm.h
         project/include/camadas/CamadaConv.h
         project/include/camadas/CamadaConvF.h
-        project/include/camadas/CamadaConv2D.h
         project/include/camadas/CamadaConvNC.h
         project/include/camadas/CamadaDropOut.h
         project/include/camadas/CamadaFullConnect.h
@@ -20,7 +19,6 @@ set(CAMADA
         project/src/camadas/CamadaBatchNorm.c
         project/src/camadas/CamadaConv.c
         project/src/camadas/CamadaConvF.c
-        project/src/camadas/CamadaConv2D.c
         project/src/camadas/CamadaConvNC.c
         project/src/camadas/CamadaDropOut.c
         project/src/camadas/CamadaFullConnect.c

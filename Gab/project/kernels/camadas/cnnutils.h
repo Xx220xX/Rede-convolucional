@@ -45,6 +45,6 @@ kV kernel_getVetorClassFromChar(Vr dst, __global unsigned char *ints, unsigned i
 }
 kV kernel_fixW(Vr w, Vr dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0) {
 	int k = get_global_id(0) + k0;
-	w[k] = w[k] - hitlearn * (dw[k] + w[k] * decaimentoDePeso);
+	w[k] = w[k] - hitlearn * dw[k] -  hitlearn * w[k] * decaimentoDePeso ;
 	dw[k] = dw[k] * momento;
 }

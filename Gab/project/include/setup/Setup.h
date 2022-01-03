@@ -19,6 +19,7 @@ typedef struct {
 	double mse;
 	double winRate;
 	double winRateMedio;
+	double winRateMedioep;
 } Itrain;
 typedef struct {
 	uint32_t imAtual;

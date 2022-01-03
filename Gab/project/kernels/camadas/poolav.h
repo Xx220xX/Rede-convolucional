@@ -15,7 +15,7 @@ kV poolAVativa(Vr entrada, Vr saida, int passox, int passoy, int fx, int fy, int
 }
 
 
-kV poolAvCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) {
+kV poolAvCalcGrads(Vr A, Vw dA, Vr dS, Vr S, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	kRap(k, x, y, z, entradatx, entradaty)
@@ -48,10 +48,10 @@ kV poolAvCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, in
 			if (j * py + n != y) {
 				continue;
 			}
-			soma += gradNext[kMap(i, j, z, saidatx, saidaty)];
+			soma += dS[kMap(i, j, z, saidatx, saidaty)];
 		}
 	}
-	gradEntrada[kMap(x, y, z, entradatx, entradaty)] = soma / (fx * fy);
+	dA[kMap(x, y, z, entradatx, entradaty)] = soma / (fx * fy);
 
 }
 

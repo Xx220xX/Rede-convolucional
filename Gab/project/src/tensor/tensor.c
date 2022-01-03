@@ -28,14 +28,14 @@ char *Tensor_putvaluesAsstr(Tensor self) {
 	char *string = NULL;
 	for (int w = 0; w < self->w; ++w) {
 		if (self->flag.dimensao4D) {
-			if (w == 0) apendstr(string, len, "[") else apendstr(string, len, ", [")
+			if (w == 0) apendstr(string, len, "[") else apendstr(string, len, "\n\n\n, [")
 		}
 
 		for (int z = 0; z < self->z; ++z) {
-			if (z == 0) apendstr(string, len, "[") else apendstr(string, len, ", [")
+			if (z == 0) apendstr(string, len, "[") else apendstr(string, len, "\n\n, [")
 
 			for (int x = 0; x < self->x; ++x) {
-				if (x == 0) apendstr(string, len, "[") else apendstr(string, len, ", [")
+				if (x == 0) apendstr(string, len, "[") else apendstr(string, len, "\n, [")
 				for (int y = 0; y < self->y; ++y) {
 					if (y > 0) apendstr(string, len, ", ");
 					if (self->flag.inteiro) {
@@ -454,10 +454,10 @@ int Tensor_copyM(Tensor self, Tensor b, size_t self_ofset, size_t b_ofset, size_
 
 void Tensor_fprint(Tensor self, FILE *f) {
 	ECXPUSH(self->erro);
-//	char *json = Tensor_putvaluesAsstr(self);
-//	fprintf(f,"%u : %s\n", self->size_element, json);
-//	gab_free(json);
-	int len = 40;
+	char *json = Tensor_putvaluesAsstr(self);
+	fprintf(f,":\n%s\n", json);
+	gab_free(json);
+	/*int len = 40;
 	int ofset = 0;
 	if (len >= self->length / 2) {
 		len = self->length;
@@ -478,7 +478,7 @@ void Tensor_fprint(Tensor self, FILE *f) {
 	}
 	fprintf(f," ...]\n");
 	gab_free(data);
-
+*/
 	ECXPOP(self->erro);
 }
 

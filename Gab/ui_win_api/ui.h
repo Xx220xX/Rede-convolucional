@@ -5,7 +5,8 @@
 #ifndef GAB_UI_H
 #define GAB_UI_H
 #pragma comment(lib, "user32")
-#pragma comment(lib,"gdi32.lib")
+#pragma comment(lib, "gdi32.lib")
+
 #include "windows.h"
 #include "windowsx.h"
 #include "thread/Thread.h"
@@ -31,7 +32,6 @@ void CreateLabels(HWND);
 void checkArgs();
 
 
-
 void run_main(PSTR pCmdLine) {
 //	Client_connect();
 	cnnMain(__argc, __argv);
@@ -51,7 +51,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 	Figure_INITW(hInstance);
 	RECT windowSize = {0};
 	GetWindowRect(GetDesktopWindow(), &windowSize);
-	MoveWindow(GetConsoleWindow(), 0, 0, windowSize.right*0.5 , windowSize.bottom*0.94, 1);
+	MoveWindow(GetConsoleWindow(), 0, 0, windowSize.right * 0.5, windowSize.bottom * 0.94, 1);
 
 	hwnd = CreateWindowW(wc.lpszClassName, L"GabCnn", WS_OVERLAPPEDWINDOW | WS_VISIBLE, windowSize.right / 2, 1, windowSize.right / 2, windowSize.bottom, NULL, 0, hInstance, 0);
 	SetWindowTextA(hwnd, "Gab Cnn");
@@ -106,7 +106,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			GUI.hmain = hwnd;
 			GUI.status = CreateWindowA("static", "Gabriela iniciada", WS_CHILD | WS_VISIBLE, 1, 1, 200, 20, GUI.hmain, NULL, NULL, NULL);
 			GUI_addLabel("Pronta para aprender", 1, 20, 200, 20);
-			EnableMenuItem(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE,MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
+			EnableMenuItem(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
 			break;
 		case WM_UPDATEUISTATE:
 			if (lParam == GUI_UPDATE_WINDOW) {
@@ -144,47 +144,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 
-
 void CreateLabels(HWND hwnd) {
-/*	int x = 1, h = 25, w = 150, dy = 0;
-	int dh = 25;
-	int y = 10;
-#if (USE_PROGRESS_BAR == 1)
-	GUI.progress[1] = CreateWindowA("static", "status: ",
-									WS_CHILD | WS_VISIBLE|BS_TEXT,
-									x +  3.1*w, y + (dy) * dh, w, h,
-									hwnd, NULL, NULL, NULL);
-	GUI.progress[0] = CreateWindowA(PROGRESS_CLASS, (LPTSTR) NULL,
-									WS_CHILD | WS_VISIBLE ,
-									x + w, y + (dy++) * dh, 2 * w, h,
-									hwnd, NULL, NULL, NULL);
-#endif
 
-//	HWND Stealth;
-//	AllocConsole();
-//	ShowWindow(GUI.hconsole,0);
-	CreateWindowA("static", "status: ", WS_CHILD | WS_VISIBLE, x, y + (dy) * dh, w, h, hwnd, NULL, NULL, NULL);
-
-	GUI.status = CreateWindowA("static", "", WS_CHILD | WS_VISIBLE, x + w, y + (dy++) * dh, 1000, h, hwnd, NULL, NULL, NULL);
-
-	CreateWindowA("static", "epoca: ", WS_CHILD | WS_VISIBLE, x, y + (dy) * dh, w, h, hwnd, NULL, NULL, NULL);
-	GUI.epoca = CreateWindowA("static", "", WS_CHILD | WS_VISIBLE, x + w, y + (dy++) * dh, w, h, hwnd, NULL, NULL, NULL);
-
-	CreateWindowA("static", "imagem: ", WS_CHILD | WS_VISIBLE, x, y + (dy) * dh, w, h, hwnd, NULL, NULL, NULL);
-
-	GUI.imagem = CreateWindowA("static", "", WS_CHILD | WS_VISIBLE, x + w, y + (dy++) * dh, w, h, hwnd, NULL, NULL, NULL);
-	CreateWindowA("static", "mse: ", WS_CHILD | WS_VISIBLE, x, y + (dy) * dh, w, h, hwnd, NULL, NULL, NULL);
-
-	GUI.mse = CreateWindowA("static", "", WS_CHILD | WS_VISIBLE, x + w, y + (dy++) * dh, w, h, hwnd, NULL, NULL, NULL);
-	CreateWindowA("static", "win rate: ", WS_CHILD | WS_VISIBLE, x, y + (dy) * dh, w, h, hwnd, NULL, NULL, NULL);
-
-	GUI.winHate = CreateWindowA("static", "", WS_CHILD | WS_VISIBLE, x + w, y + (dy++) * dh, w, h, hwnd, NULL, NULL, NULL);
-	CreateWindowA("static", "imps: ", WS_CHILD | WS_VISIBLE, x, y + (dy) * dh, w, h, hwnd, NULL, NULL, NULL);
-
-	GUI.imps = CreateWindowA("static", "", WS_CHILD | WS_VISIBLE, x + w, y + (dy++) * dh, w, h, hwnd, NULL, NULL, NULL);
-	GUI.rede = CreateWindowA("static", "", WS_CHILD | WS_VISIBLE, x, y + (dy++) * dh, 1000, 1000, hwnd, NULL, NULL, NULL);
-
-*/
 }
 
 int getFileName(char *fileName, int len) {
@@ -206,9 +167,7 @@ int getFileName(char *fileName, int len) {
 	ofn.nMaxFileTitle = 0;
 	ofn.lpstrInitialDir = NULL;
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-
 // Display the Open dialog box.
-
 	return GetOpenFileName(&ofn);
 }
 
@@ -362,7 +321,6 @@ int CaptureAnImage() {
 	EndPaint(hWnd, &ps);
 	return 0;
 }
-
 
 
 #include "math.h"

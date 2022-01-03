@@ -1,3 +1,4 @@
+#define UTF8
 #include "windows.h"
 #include <stdio.h>
 #include <cnn/cnn_lua.h>
@@ -175,25 +176,33 @@ int cnnMain(int nargs, char **args) {
 	if (s->ok(s)) {
 		t0 = seconds();
 		s->runing = 1;
+		GUI.make_train();
+		while(!GUI.endDraw);
+		if(s->cnn->cm[s->cnn->l-1]->layer_id == SOFTMAX_ID){
+			GUI.figs[0].title = "Cross-Entropy";
+
+		}
 		if(s->useBatch) {
 			htreino = Thread_new(s->treinarBatch, s);
+			GUI.setText(GUI.status,"Treinando Batch size %lld",s->batchSize);
 		}else{
 			htreino = Thread_new(s->treinar, s);
 		}
 		Itrain treino;
-		GUI.make_train();
+
 		while (s->runing) {
 			treino = s->itrain;
-			GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate,treino.winRateMedio,  seconds() - t0);
+			GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate,treino.winRateMedio, treino.winRateMedioep,  seconds() - t0);
 			Sleep(100);
 		}
 		Thread_Release(htreino);
 		treino = s->itrain;
-		GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate,treino.winRateMedio, seconds() - t0);
+		GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate,treino.winRateMedio,treino.winRateMedioep, seconds() - t0);
 		t0 = seconds() - t0;
 		printf("Tempo para treino %.3lf s\n", t0);
 		GUI.capture(s->treino_out);
 	}
+
 	char nome[250];
 	snprintf(nome, 250, "%s.cnn", s->nome);
 	GUI.setText(GUI.status, "Salvando cnn em %s", nome);
@@ -206,7 +215,7 @@ int cnnMain(int nargs, char **args) {
 		GUI.make_teste();
 		while (s->runing) {
 			teste = s->iteste;
-			GUI.updateTeste(teste.imAtual, teste.imTotal, teste.mse, teste.winRate, seconds() - t0);
+			GUI.updateTeste(teste.imAtual, teste.imTotal, teste.mse, teste.meanwinRate, seconds() - t0);
 			Sleep(100);
 		}
 		GUI.updateTeste(teste.imAtual, teste.imTotal, teste.mse, teste.winRate, seconds() - t0);
@@ -217,7 +226,13 @@ int cnnMain(int nargs, char **args) {
 		s->saveStatistic(s);
 	}
 
-	char *tmp = asprintf(NULL, "MSE %lf\nwin hate %lf.\n Deseja mudar a arquitetura da rede?", s->itrain.mse, s->itrain.winRate);
+	char *tmp = asprintf(NULL, u8"Custo treino %lf\n"
+							  		 "win hate treino %lf.\n"
+									   "Custo avaliação %lf\n"
+							  		 "win hate teste %lf.\n"
+									 " Deseja mudar a arquitetura da rede?", s->itrain.mse, s->itrain.winRateMedioep, s->iteste.mse, s->iteste.winRate);
+
+
 	if (!s->cnn->ecx->error && dialogBox("Treino terminado!", tmp)) {
 		gab_free(tmp);
 		s->force_end = 0;

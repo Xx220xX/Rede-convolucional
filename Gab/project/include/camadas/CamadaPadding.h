@@ -39,8 +39,7 @@ typedef struct CamadaPadding_t {
 	Kernel paddingBack;
 } *CamadaPadding, CamadaPadding_t;
 
-extern Camada CamadaPadding_new(Gpu gpu, Queue queue, P3d size_in, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right,
-								Tensor entrada, Ecx ecx);
+extern Camada CamadaPadding_new(Gpu gpu, Queue queue, P3d size_in, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right, Tensor entrada, Ecx ecx);
 
 extern Camada CamadaPadding_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx);
 

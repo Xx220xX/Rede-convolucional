@@ -99,7 +99,8 @@ kV convncCalcFiltroBatch(Vr dz, Vr A, Vr dW, long batchSize, unsigned int dw_x, 
 			soma += aux;
 		}
 	}
-	dW[k] = soma/batchSize;
+	soma = soma / batchSize + dW[k];
+	dW[k] = soma;
 }
 
 

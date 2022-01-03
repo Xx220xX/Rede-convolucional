@@ -149,8 +149,13 @@ int internal_updateHitLearn(Camada self, size_t iter);
 
 #define Execute(kernel, len, ...)if(!self->super.ecx->error)self->super.ecx->setError(self->super.ecx, \
 self->kernel->runRecursive(self->kernel, self->super.queue,len,*self->super.maxcompute, ##__VA_ARGS__))
+
+#define ExecuteN(kernel, queue,globals,locals,ecx, ...)if(!ecx->error)ecx->setError(ecx, \
+kernel->run(kernel,queue,globals,locals, ##__VA_ARGS__))
+
 #define Release(self)if(self)(self)->release(&(self));(self)=NULL
-#define KRN_new(var_dst, fname, arg)var_dst = Kernel_news(gpu->program,fname,arg);CheckKernel(var_dst)
+#define KRN_news(var_dst, fname, arg)var_dst = Kernel_news(gpu->program,fname,arg);CheckKernel(var_dst)
+#define KRN_new(var_dst, fname, ...)var_dst = Kernel_new(gpu->program,fname,##__VA_ARGS__);CheckKernel(var_dst)
 #define CheckKernel(kernel)if (self->super.ecx->setError(self->super.ecx, kernel->error)){fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);goto methods;}
 
 

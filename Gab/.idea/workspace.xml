@@ -18,10 +18,58 @@
   <component name="ChangeListManager">
     <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Debug.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Gab.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaConv2D.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaConv2D.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/gabkernel.dll" beforeDir="false" afterPath="$PROJECT_DIR$/bin/gabkernel.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/libgabkernel.dll.a" beforeDir="false" afterPath="$PROJECT_DIR$/bin/libgabkernel.dll.a" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/project/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaBatchNorm.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaBatchNorm.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaConv2D.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaConvF.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaConvF.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaConvNC.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaConvNC.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaDropOut.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaDropOut.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaFullConnect.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaFullConnect.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaPadding.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaPadding.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaPool.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaPool.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaRelu.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaRelu.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/all_camadas.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/all_camadas.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/camada.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/camada.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/cnn/cnn.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/cnn/cnn.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/cwrap_kernels.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/cwrap_kernels.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/setup/Setup.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/setup/Setup.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/buildKernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/buildKernel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/cnnutils.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/cnnutils.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/conv.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/conv.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/conv2d.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/convNc.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/convNc.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/convf.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/convf.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/poolMax.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/poolMax.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/poolMin.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/poolMin.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/poolav.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/poolav.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/prelu.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/prelu.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/relu.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/relu.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/defaultkernel.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/defaultkernel.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/kernels.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/kernels.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/kernels.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/kernels.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaConv2D.c" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaConvF.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaConvF.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaConvNC.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaConvNC.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaDropOut.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaDropOut.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaFullConnect.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaFullConnect.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaPRelu.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaPRelu.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaPadding.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaPadding.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaPool.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaPool.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaRelu.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaRelu.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaSoftMax.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaSoftMax.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/cnn/cnn.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/cnn/cnn.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/cnn/cnn_lua.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/cnn/cnn_lua.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/setup/Setup.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/setup/Setup.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/tensor/tensor.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/tensor/tensor.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui_win_api/GUI.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/GUI.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../RELEASE/GAB/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../RELEASE/GAB/bin/Gab.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_win_api/plot.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/plot.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_win_api/ui.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/ui.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,6 +134,11 @@
     </key>
   </component>
   <component name="RunManager" selected="CMake Application.Gab">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="DEBUG_KERNEL" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="DEBUG_KERNEL" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gab" RUN_TARGET_NAME="DEBUG_KERNEL">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -97,11 +150,6 @@
       </method>
     </configuration>
     <configuration name="Gab" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="Gab" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gab" RUN_TARGET_NAME="Gab">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -308,7 +356,8 @@
       <workItem from="1640990418267" duration="3812000" />
       <workItem from="1641042026038" duration="2705000" />
       <workItem from="1641056604279" duration="27232000" />
-      <workItem from="1641135538662" duration="873000" />
+      <workItem from="1641135538662" duration="929000" />
+      <workItem from="1641219425154" duration="22820000" />
     </task>
     <servers />
   </component>
@@ -342,16 +391,6 @@
           <url>file://$PROJECT_DIR$/debug/conv2d.c</url>
           <line>15</line>
           <option name="timeStamp" value="19" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/project/src/cnn/cnn.c</url>
-          <line>244</line>
-          <option name="timeStamp" value="40" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/project/src/camadas/camada.c</url>
-          <line>203</line>
-          <option name="timeStamp" value="43" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

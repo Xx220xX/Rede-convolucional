@@ -36,8 +36,7 @@ typedef struct CamadaRelu_t {
 } *CamadaRelu, CamadaRelu_t;
 
 
-Camada CamadaRelu_new(Gpu gpu, Queue queue, P3d size_in, REAL less, REAL greater, Tensor entrada,
-					  Ecx ecx);
+Camada CamadaRelu_new(Gpu gpu, Queue queue, P3d size_in, REAL less, REAL greater, Tensor entrada, Ecx ecx);
 
 extern Camada CamadaRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx);
 

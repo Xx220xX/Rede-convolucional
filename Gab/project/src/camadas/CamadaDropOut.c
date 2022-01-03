@@ -112,8 +112,8 @@ Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_s
 		goto methods;
 	}
 
-	KRN_new(self->dropativa, "dropativa", "Vector entrada, Vector saida, __global char *hitmap, long seed, REAL pativa, int k0");
-	KRN_new(self->dropcalcgrad, "dropcalcgrad", "Vector gradentrada, __global char *hitmap, Vector gradnext, int k0");
+	KRN_news(self->dropativa, "dropativa", "Vector entrada, Vector saida, __global char *hitmap, long seed, REAL pativa, int k0");
+	KRN_news(self->dropcalcgrad, "dropcalcgrad", "Vector gradentrada, __global char *hitmap, Vector gradnext, int k0");
 
 	ECXPOP(ecx);
 	methods:

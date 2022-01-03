@@ -48,7 +48,7 @@ struct {
 
 	void (*updateLoadImagens)(int im, int total, double t0);
 
-	void (*updateTrain)(int im, int total, int ep, int eptotal, double mse, double winhate, double winhateMedio, double deltaT);
+	void (*updateTrain)(int im, int total, int ep, int eptotal, double mse, double winhate, double winhateMedio, double winhateMedioep, double deltaT);
 
 	void (*updateTeste)(int im, int total, double mse, double winhate, double deltaT);
 
@@ -164,8 +164,9 @@ void GUI_train() {
 	f->bkcolor = RGB(0xff, 0xff, 0xff);
 	f->grid = 1;
 	f->nstepx = 10;
-	f->nstepy = 10;
-	f->ymax = 1.05;
+	f->nstepy = 0;
+	f->ystep = 0.25;
+	f->ymax = 1.2;
 	f->ymin = -0.01;
 	f->title = TEXT_MSE;
 	f->xmin = 0;
@@ -190,19 +191,11 @@ void GUI_train() {
 	f->wpad = 50;
 	f->putAxe(f, RGB(0xff, 0, 0));
 	f->putAxe(f, RGB(0, 0xff, 0));
+	f->putAxe(f, RGB(0, 0, 0xff));
 
-//	GUI.graphico.x = 100;
-//	GUI.graphico.y = dy * i++;
-//	GUI.graphico.w = 500;
-//	GUI.graphico.h = 300;
-//	GUI.graphico.npoint = 0;
-//	if (GUI.graphico.points) { free(GUI.graphico.points); }
-//	GUI.graphico.points = NULL;
-//	GUI.graphico.npoint = 0;
-//	GUI.draw = GUI_draw;
 }
 
-void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double winRate, double winRateMedio, double deltat) {
+void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double winRate, double winRateMedio, double winRateMedioep, double deltat) {
 	if (ep == 0 || im == 0) {
 		return;
 	}
@@ -231,6 +224,7 @@ void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double 
 		GUI.figs[0].axes[0].pushDraw(GUI.figs[0].axes, epoca, mse);
 		GUI.figs[1].axes[0].pushDraw(GUI.figs[1].axes, epoca, winRate);
 		GUI.figs[1].axes[1].pushDraw(GUI.figs[1].axes + 1, epoca, winRateMedio);
+		GUI.figs[1].axes[2].pushDraw(GUI.figs[1].axes + 2, epoca, winRateMedioep);
 	}
 //	appendPoint(&GUI.graphico, nimages, winhate, 0, total * eptotal, 0, 100);
 //	RedrawWindow(GUI.hmain, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
@@ -242,7 +236,7 @@ void GUI_teste() {
 	int dy = 20;
 	int w = 200;
 	GUI.clearWindow();
-	GUI.addLabel("Progresso Avaliação:", 1, dy * i, w, dy);         //0
+	GUI.addLabel(u8"Progresso Avaliação:", 1, dy * i, w, dy);         //0
 	GUI.addLabel("", w, dy * i++, w, dy);                           //1
 	GUI.addLabel("Tempo restante:", 1, dy * i, w, dy);             //2
 	GUI.addLabel("", w, dy * i++, w, dy);                           //3

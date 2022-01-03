@@ -142,15 +142,15 @@ Camada CamadaSoftMax_new(Gpu gpu, Queue queue, char flag, P3d size_in, Tensor en
 		self->maximos = Tensor_new(1, 1, size_in.z, 1, ecx, 0, gpu->context, queue);
 		self->indice_maximos = Tensor_new(1, 1, size_in.z, 1, ecx, TENSOR_INT, gpu->context, queue);
 
-		KRN_new(self->softmaxExp, "softmaxExpNorm", "Vector entrada, Vector exponent,Vector mx,int ax,int ay, int k0");
-		KRN_new(self->softmaxFindMax, "softmaxFindMax", "Vector a, Vector mx, __global int *i_max, int ax, int ay, int k0");
+		KRN_news(self->softmaxExp, "softmaxExpNorm", "Vector entrada, Vector exponent,Vector mx,int ax,int ay, int k0");
+		KRN_news(self->softmaxFindMax, "softmaxFindMax", "Vector a, Vector mx, __global int *i_max, int ax, int ay, int k0");
 	} else {
-		KRN_new(self->softmaxExp, "softmaxExp", "Vector entrada, Vector exponent,int k0");
+		KRN_news(self->softmaxExp, "softmaxExp", "Vector entrada, Vector exponent,int k0");
 	}
-	KRN_new(self->softmaxSomaExp, "softmaxSomaExp", "Vector eps, Vector soma, int saidatx, int saidaty, int k0");
-	KRN_new(self->softmaxNormaliza, "softmaxNormaliza", "Vector exponet, Vector soma, Vector saida,int saidatx, int saidaty, int k0");
+	KRN_news(self->softmaxSomaExp, "softmaxSomaExp", "Vector eps, Vector soma, int saidatx, int saidaty, int k0");
+	KRN_news(self->softmaxNormaliza, "softmaxNormaliza", "Vector exponet, Vector soma, Vector saida,int saidatx, int saidaty, int k0");
 	if ((flag & 0b1) != SOFTLAST) {// não é a ultima camada, tem que calcular o jacobiano
-		KRN_new(self->softMaxcalcgrad, "softMaxcalcgrad", "Vector da, Vector s, Vector ds, int sx, int sy, int k0");
+		KRN_news(self->softMaxcalcgrad, "softMaxcalcgrad", "Vector da, Vector s, Vector ds, int sx, int sy, int k0");
 	}
 	ecx->popstack(ecx);
 	methods:

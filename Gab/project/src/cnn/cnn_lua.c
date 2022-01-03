@@ -291,52 +291,6 @@ static int l_ConvolucaoF(lua_State *L) {
 
 }
 
-static int l_Convolucao2D(lua_State *L) {
-	int nArgs = lua_gettop(L);
-	lua_getglobal(L, LCNN);
-	Cnn c = lua_touserdata(L, -1);
-	P2d p = {0};
-	P3d f = {0};
-	uint32_t fativacao = FTANH;
-	int arg = 1;
-	Parametros prm = GAB_DEF_PARAMS;
-	RandomParams rdp = {0};
-	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	switch (nArgs) {
-		case 3:
-			loadP2D(L, arg++, &p);
-			loadP3D(L, arg++, &f);
-			fativacao = lua_tointeger(L, arg++);
-			break;
-		case 4:
-			loadP2D(L, arg++, &p);
-			loadP3D(L, arg++, &f);
-			fativacao = lua_tointeger(L, arg++);
-			loadParams(L, arg++, &prm);
-			break;
-		case 5:
-			loadP2D(L, arg++, &p);
-			loadP3D(L, arg++, &f);
-			fativacao = lua_tointeger(L, arg++);
-			loadParams(L, arg++, &prm);
-			loadRdp(L, arg++, &rdp);
-			break;
-		default:
-			luaL_error(L, "Invalid function\ntry\n"
-						  " Convolucao2D(step,filter,ativacao)\n"
-						  " Convolucao2D(step,filter,ativacao,Params)\n"
-						  " Convolucao2D(step,filter,ativacao,Params,RDP)\n");
-	}
-	checkLua(CHECK_F_ATIVACAO(fativacao), "FUNCAO DE ATIVACAO INVALIDA");
-
-	if (c->Convolucao2D(c, p, f, fativacao, prm, rdp)) {
-		char *msg = c->gpu->errorMsg(c->ecx->error);
-		luaL_error(L, "falha ao adicionar camada Convolucao2D:  %d %s", c->ecx->error, msg);
-		gab_free(msg);
-	}
-	RETURN_LUA_STATUS_FUNCTION();
-
-}
 
 static int l_ConvolucaoNC(lua_State *L) {
 	int nArgs = lua_gettop(L);
@@ -759,7 +713,6 @@ static struct {
 					   {l_helpCnn,            "helpCnn",         "()"},
 					   {l_sizeout,            "sizeOut",         "()"},
 					   {l_Convolucao,         "Convolucao",      "(step:P2D, filter:P3D, params=Params(0):Params,rdp=RDP(0):RDP)"},
-					   {l_Convolucao2D,       "Convolucao2D",    "(step:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
 					   {l_ConvolucaoF,        "ConvolucaoF",     "(step:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
 					   {l_ConvolucaoNC,       "ConvolucaoNC",    "(step:P2D, abertura:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
 					   {l_Pooling,            "Pooling",         "(step:P2D, filter:P2D, type:int)"},

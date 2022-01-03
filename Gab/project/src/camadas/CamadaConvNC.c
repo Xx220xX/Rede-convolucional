@@ -195,12 +195,12 @@ Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtr
 	self->passoy = passo.y;
 	self->aberturax = abertura.x;
 	self->aberturay = abertura.y;
-	KRN_new(self->convncSum, "convncSum", "Vector W, Vector A, Vector Z, Vector S, unsigned int fid, unsigned int passox, int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0");
-	KRN_new(self->convncCalcGradZ, "convncCalcGradZ", "Vector ds, Vector z, Vector dz, unsigned int fid, int k0");
-	KRN_new(self->convncCalcGrads, "convncCalcGrads", "Vector W, Vector DA, Vector dz, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0");
-	KRN_new(self->convncCalcFiltro, "convncCalcFiltro", "Vector dz, Vector A, Vector W, Vector dW, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, REAL hitlearn, REAL momento, REAL weightDecay, int k0");
-	KRN_new(self->convncCalcFiltroBatch, "convncCalcFiltroBatch", "Vector dz, Vector A, Vector dW,long batchSize, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, int k0");
-	KRN_new(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
+	KRN_news(self->convncSum, "convncSum", "Vector W, Vector A, Vector Z, Vector S, unsigned int fid, unsigned int passox, int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0");
+	KRN_news(self->convncCalcGradZ, "convncCalcGradZ", "Vector ds, Vector z, Vector dz, unsigned int fid, int k0");
+	KRN_news(self->convncCalcGrads, "convncCalcGrads", "Vector W, Vector DA, Vector dz, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0");
+	KRN_news(self->convncCalcFiltro, "convncCalcFiltro", "Vector dz, Vector A, Vector W, Vector dW, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, REAL hitlearn, REAL momento, REAL weightDecay, int k0");
+	KRN_news(self->convncCalcFiltroBatch, "convncCalcFiltroBatch", "Vector dz, Vector A, Vector dW,long batchSize, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, int k0");
+	KRN_news(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
 
 	ecx->popstack(ecx);
 	methods:

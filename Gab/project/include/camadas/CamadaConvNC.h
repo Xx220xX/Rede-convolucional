@@ -1,4 +1,3 @@
-
 //
 // Created by Xx220xX on 24/10/2020.
 //
@@ -25,9 +24,9 @@ typedef struct CamadaConvNC_t {
 	/// largura da abertura
 	size_t aberturax, aberturay;
 	/// função de ativação
-	uint32_t  activationFuntion;
+	uint32_t activationFuntion;
 	/// derivada da função de ativação
-	uint32_t  derivationFunction;
+	uint32_t derivationFunction;
 	/// geração aleatória dos filtros
 	RandomParams rdp_filtros;
 	Kernel convncSum;
@@ -40,9 +39,9 @@ typedef struct CamadaConvNC_t {
 } *CamadaConvNC, CamadaConvNC_t;
 
 
-extern Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtro, P3d size_in, uint32_t  ativacao, Tensor entrada,
-							   Parametros params, Ecx ecx, RandomParams rdp_filtros);
-extern Camada CamadaConvNC_load(FILE *f, Gpu gpu, Queue queue,  Tensor entrada, Ecx ecx);
+extern Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros);
+
+extern Camada CamadaConvNC_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx);
 
 
 #endif //CNN_GPU_CAMADAConvNc_H

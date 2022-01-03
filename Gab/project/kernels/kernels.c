@@ -264,7 +264,7 @@ kV kernel_getVetorClassFromChar(Vr dst, __global unsigned char *ints, unsigned i
 }
 kV kernel_fixW(Vr w, Vr dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0) {
 	int k = get_global_id(0) + k0;
-	w[k] = w[k] - hitlearn * (dw[k] + w[k] * decaimentoDePeso);
+	w[k] = w[k] - hitlearn * dw[k] -  hitlearn * 2*w[k] * decaimentoDePeso ;
 	dw[k] = dw[k] * momento;
 }
 //conv.h
@@ -353,7 +353,7 @@ kV convCalcGradIn(Vr filtro, Vr gradEntrada, Vr gradNext, int fx, int fy, int fz
 	gradEntrada[k] = somaErro;
 }
 
-kV convCalcGradBatch(Vr ds, Vr entrada, Vr gradFiltro, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0) {
+kV convCalcGradBatch(Vr ds, Vr A, Vr dW, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
 	kRep4D(k, m, n, z, l, fx, fy, fz)
@@ -363,11 +363,11 @@ kV convCalcGradBatch(Vr ds, Vr entrada, Vr gradFiltro, long batchSize, int fx, i
 		for (int j = 0; j < saida_ty; ++j) {
 			le = kMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty);
 			ls = kMap(i, j, l, saida_tx, saida_ty);
-			soma += entrada[le] * ds[ls];
+			soma += A[le] * ds[ls];
 		}
 	}
-	soma = soma / batchSize + gradFiltro[k];
-	gradFiltro[k] = soma;
+	soma = soma / batchSize + dW[k];
+	dW[k] = dW[k] + soma;
 }
 
 //conv2d.h
@@ -485,26 +485,27 @@ kV conv2dCalcGradBatch(Vr dz, Vr a, Vr dW, long batchSize, int fx, int fy, int f
 
 
 //convf.h
-kV convFSum(Vr W, Vr a, Vw Z, Vw s, int px, int py, int sx, int sy, int atx, int aty, int fx, int fy, int fz, int fid, int k0) {
+kV convFSum(Vr W, Vr B, Vr A, Vw Z, Vw S, int px, int py, int sx, int sy, int atx, int aty, int fx, int fy, int fz, int fid, int k0) {
 	int k = get_global_id(0) + k0;
-	int x, y, Wk;
+	int x, y, w;
 
-	kRap(k, x, y, Wk, sx, sy)
-	REAL sum = 0, f, v;
+	kRap(k, x, y, w, sx, sy)
+	REAL sum, f, v;
 	int lf, le;
+	sum = B[w];
 	for (int m = 0; m < fx; m++) {
 		for (int n = 0; n < fy; n++) {
 			for (int z = 0; z < fz; z++) {
-				lf = kMap4D(m, n, z, Wk, fx, fy, fz);
+				lf = kMap4D(m, n, z, w, fx, fy, fz);
 				le = kMap(x * px + m, y * py + n, z, atx, aty);
 				f = W[lf];
-				v = a[le];
+				v = A[le];
 				sum += f * v;
 			}
 		}
 	}
 	Z[k] = sum;
-	s[k] = func(fid, sum);
+	S[k] = func(fid, sum);
 }
 
 kV convFCalcGradZ(Vr ds, Vr z, Vw dz, int fid, int k0) {
@@ -512,12 +513,36 @@ kV convFCalcGradZ(Vr ds, Vr z, Vw dz, int fid, int k0) {
 	dz[k] = ds[k] * func(fid, z[k]);
 }
 
+kV convFCalcGradBAndFix(Vrw B, Vrw dB, Vr dZ, int dzx, int dzy, REAL hitLearn, REAL momento, REAL weightDecay, int k0) {
+	int w = get_global_id(0) + k0;
+	REAL sum = 0;
+	for (int x = 0; x < dzx; ++x) {
+		for (int y = 0; y < dzy; ++y) {
+			sum += dZ[kMap(x, y, w, dzx, dzy)];
+		}
+	}
+	dB[w] = sum + dB[w] * momento;
+	B[w] = B[w] - hitLearn * (dB[w] + B[w] * weightDecay);
+}
+
+kV convFCalcGradBBatch(Vrw dB, Vr dZ, int dzx, int dzy, long batchSize, int k0) {
+	int w = get_global_id(0) + k0;
+	REAL sum = 0;
+	for (int x = 0; x < dzx; ++x) {
+		for (int y = 0; y < dzy; ++y) {
+			sum += dZ[kMap(x, y, w, dzx, dzy)];
+		}
+	}
+	sum = sum / batchSize + dB[w];
+	dB[w] = sum;
+
+}
+
 
 kV convFCalcGradIn(Vr W, Vw da, Vr dz, int fx, int fy, int fz, int px, int py, int atx, int aty, int sx, int sy, int sz, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	kRap(k, x, y, z, atx, aty)
-
 	Range range_W;
 	range_W.min.x = 0;
 	if (x + fx > atx) {
@@ -559,7 +584,7 @@ kV convFCalcGradIn(Vr W, Vw da, Vr dz, int fx, int fy, int fz, int px, int py, i
 	da[k] = somaErro;
 }
 
-kV convFCalcGradAndFixWeight(Vr W, Vr dz, Vr a, Vr gradW, int fx, int fy, int fz, int a_tx, int a_ty, int s_tx, int s_ty, int px, int py, REAL hitLearn, REAL momento, REAL weightDecay, int k0) {
+kV convFCalcGradAndFixWeight(Vr W, Vr dz, Vr a, Vr dW, int fx, int fy, int fz, int a_tx, int a_ty, int s_tx, int s_ty, int px, int py, REAL hitLearn, REAL momento, REAL weightDecay, int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
 	kRep4D(k, m, n, z, l, fx, fy, fz)
@@ -572,10 +597,10 @@ kV convFCalcGradAndFixWeight(Vr W, Vr dz, Vr a, Vr gradW, int fx, int fy, int fz
 			soma += a[le] * dz[ls];
 		}
 	}
-	REAL dw = soma + gradW[k] * momento;
+	REAL dw = soma + dW[k] * momento;
 	REAL w = W[k];
 	W[k] = w - hitLearn * (dw + w * weightDecay);
-	gradW[k] = dw;
+	dW[k] = dw;
 }
 
 kV convFCalcGradBatch(Vr dz, Vr a, Vr dW, long batchSize, int fx, int fy, int fz, int a_tx, int a_ty, int s_tx, int s_ty, int px, int py, int k0) {
@@ -698,7 +723,8 @@ kV convncCalcFiltroBatch(Vr dz, Vr A, Vr dW, long batchSize, unsigned int dw_x, 
 			soma += aux;
 		}
 	}
-	dW[k] = soma/batchSize;
+	soma = soma / batchSize + dW[k];
+	dW[k] = soma;
 }
 
 
@@ -823,7 +849,7 @@ kV poolAVativa(Vr entrada, Vr saida, int passox, int passoy, int fx, int fy, int
 }
 
 
-kV poolAvCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) {
+kV poolAvCalcGrads(Vr A, Vw dA, Vr dS, Vr S, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	kRap(k, x, y, z, entradatx, entradaty)
@@ -856,10 +882,10 @@ kV poolAvCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, in
 			if (j * py + n != y) {
 				continue;
 			}
-			soma += gradNext[kMap(i, j, z, saidatx, saidaty)];
+			soma += dS[kMap(i, j, z, saidatx, saidaty)];
 		}
 	}
-	gradEntrada[kMap(x, y, z, entradatx, entradaty)] = soma / (fx * fy);
+	dA[kMap(x, y, z, entradatx, entradaty)] = soma / (fx * fy);
 
 }
 
@@ -885,7 +911,7 @@ kV poolativa(Vr entrada, Vr saida, int passox, int passoy, int filtrox, int filt
 }
 
 
-kV poolCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) {
+kV poolCalcGrads(Vr A, Vr dA, Vr dS, Vr S, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	kRap(k, x, y, z, entradatx, entradaty)
@@ -906,7 +932,7 @@ kV poolCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, int 
 		range_filtro.max.y = y;
 	}
 	int i, j;//saida
-	gradEntrada[kMap(x, y, z, entradatx, entradaty)] = 0;
+	dA[kMap(x, y, z, entradatx, entradaty)] = 0;
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		i = (x - m) / px;
 		if (i * px + m != x) {
@@ -917,8 +943,8 @@ kV poolCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, int 
 			if (j * py + n != y) {
 				continue;
 			}
-			if (entrada[k] == saida[kMap(i, j, z, saidatx, saidaty)]) {
-				gradEntrada[k] = gradNext[kMap(i, j, z, saidatx, saidaty)];
+			if (A[k] == S[kMap(i, j, z, saidatx, saidaty)]) {
+				dA[k] = dS[kMap(i, j, z, saidatx, saidaty)];
 				return;
 			}
 		}
@@ -928,7 +954,7 @@ kV poolCalcGrads(Vr entrada, Vr gradEntrada, Vr gradNext, Vr saida, int fx, int 
 
 
 //poolMin.h
-kV poolativaMin(Vr entrada, Vr saida, int passox, int passoy, int filtrox, int filtroy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
+kV poolativaMin(Vr A, Vr S, int passox, int passoy, int filtrox, int filtroy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	kRap(k, x, y, z, saidatx, saidaty)
@@ -938,84 +964,84 @@ kV poolativaMin(Vr entrada, Vr saida, int passox, int passoy, int filtrox, int f
 	mval = DBL_MAX;
 	for (int i = 0; i < filtrox; ++i) {
 		for (int j = 0; j < filtroy; ++j) {
-			v = entrada[kMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
+			v = A[kMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
 			if (v < mval) {
 				mval = v;
 			}
 		}
 	}
-	saida[k] = mval;
+	S[k] = mval;
 }
 
 
 //prelu.h
-kV preluativa(Vr entrada, Vr saida, Vr A, int k0) {
+kV preluativa(Vr A, Vw S, Vr W, int k0) {
 	int k = get_global_id(0) + k0;
-	REAL v = entrada[k];
+	REAL v = A[k];
 	if (v < 0) {
-		v = v * A[k];
+		v = v * W[k];
 	}
-	saida[k] = v;
+	S[k] = v;
 }
 
-kV prelucalcgrad(Vr gradentrada, Vr entrada, Vr gradnext, Vr A, Vr dA, int learn, REAL hitlearn, REAL momento, REAL decaimento, int k0) {
+kV prelucalcgrad(Vw dA, Vr A, Vr dS, Vrw W, Vrw dW, int learn, REAL hitlearn, REAL momento, REAL decaimento, int k0) {
 	int k = get_global_id(0) + k0;
-	REAL v = entrada[k];
+	REAL v = A[k];
 	if (v < 0) {
-		gradentrada[k] = gradnext[k] * A[k];
-		dA[k] = gradnext[k] + momento * dA[k];
+		dA[k] = dS[k] * W[k];
+		dW[k] = dS[k] + momento * dW[k];
 	} else {
-		gradentrada[k] = gradnext[k];
-		dA[k] = momento * dA[k];
+		dA[k] = dS[k];
+		dW[k] = momento * dW[k];
 	}
 	if (learn) {
-		A[k] = A[k] - hitlearn * (dA[k] + A[k] * decaimento);
+		W[k] = W[k] - hitlearn * (dW[k] + W[k] * decaimento);
 	}
 }
 
-kV preluonlyfix(Vr entrada, Vr gradnext, Vr A, Vr dA, REAL hitlearn, REAL momento, REAL decaimento, int k0) {
+kV preluonlyfix(Vr A, Vr dS, Vrw W, Vrw dW, REAL hitlearn, REAL momento, REAL decaimento, int k0) {
 	int k = get_global_id(0) + k0;
-	REAL v = entrada[k];
+	REAL v = A[k];
 	if (v < 0) {
-		dA[k] = gradnext[k] + momento * dA[k];
+		dW[k] = dS[k] + momento * dW[k];
 	} else {
-		dA[k] = momento * dA[k];
+		dW[k] = momento * dW[k];
 	}
-	A[k] = A[k] - hitlearn * (dA[k] + A[k] * decaimento);
+	W[k] = W[k] - hitlearn * (dW[k] + W[k] * decaimento);
 }
 
-kV prelucalcgradBatch(Vr gradentrada, Vr entrada, Vr gradnext, Vr A, Vr dA, long batchSize, int k0) {
+kV prelucalcgradBatch(Vw dA, Vr A, Vr dS, Vr W, Vrw dW, long batchSize, int k0) {
 	int k = get_global_id(0) + k0;
-	REAL v = entrada[k];
+	REAL v = A[k];
 	if (v < 0) {
-		gradentrada[k] = gradnext[k] * A[k];
-		dA[k] = gradnext[k] / batchSize + dA[k];
+		dA[k] = dS[k] * W[k];
+		dW[k] = dS[k] / batchSize + dW[k];
 	} else {
-		gradentrada[k] = gradnext[k];
-		dA[k] = 1.0 / batchSize + dA[k];
+		dA[k] = dS[k];
+		dW[k] = 1.0 / batchSize + dW[k];
 	}
 }
 
-kV preluonlyDABatch(Vr entrada, Vr gradnext, Vr A, Vr dA, long batchSize, int k0) {
+kV preluonlyDABatch(Vr A, Vr dS, Vr W, Vr dW, long batchSize, int k0) {
 	int k = get_global_id(0) + k0;
-	REAL v = entrada[k];
+	REAL v = A[k];
 	if (v < 0) {
-		dA[k] = gradnext[k] / batchSize + dA[k];
+		dW[k] = dS[k] / batchSize + dW[k];
 	} else {
-		dA[k] = 1.0 / batchSize + dA[k];
+		dW[k] = 1.0 / batchSize + dW[k];
 	}
 }
 //relu.h
 
-kV reluativa(Vr entrada, Vr saida, REAL menor, REAL maior, int k0) {
+kV reluativa(Vr A, Vr S, REAL menor, REAL maior, int k0) {
 	int k = get_global_id(0) + k0;
-	saida[k] = entrada[k] < 0.0 ? (entrada[k] * menor) : (entrada[k] * maior);
+	S[k] = A[k] < 0.0 ? (A[k] * menor) : (A[k] * maior);
 }
 
 
-kV relucalcgrad(Vr gradentrada, Vr entrada, Vr gradnext, REAL menor, REAL maior, int k0) {
+kV relucalcgrad(Vr dA, Vr A, Vr dS, REAL menor, REAL maior, int k0) {
 	int k = get_global_id(0) + k0;
-	gradentrada[k] = entrada[k] < 0.0 ? (menor * gradnext[k]) : (maior * gradnext[k]);
+	dA[k] = A[k] < 0.0 ? (menor * dS[k]) : (maior * dS[k]);
 }
 
 //softmax.h

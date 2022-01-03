@@ -124,10 +124,10 @@ Camada CamadaRelu_new(Gpu gpu, Queue queue, P3d size_in, REAL less, REAL greater
 	internal_Camada_new((Camada) self, gpu, queue, RELU_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);
 	self->lessoh = less;
 	self->greateroh = greater;
-	KRN_new(self->reluativa , "reluativa",
-								  "Vector entrada, Vector saida, REAL menor, REAL maior, int k0");
+	KRN_news(self->reluativa , "reluativa",
+			 "Vector entrada, Vector saida, REAL menor, REAL maior, int k0");
 
-	KRN_new(self->relucalcgrad , "relucalcgrad",
+	KRN_news(self->relucalcgrad , "relucalcgrad",
 									 "Vector gradentrada, Vector entrada, Vector gradnext,"
 									 " REAL menor, REAL maior, int k0");
 

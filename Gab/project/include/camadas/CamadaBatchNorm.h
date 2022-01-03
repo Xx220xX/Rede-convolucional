@@ -36,8 +36,7 @@ typedef struct CamadaBatchNorm_t {
 	Tensor media_dnorma_norma;//(1,1,z)
 
 	/// constante para evitar divisão por zero
-	REAL epsilon
-	;
+	REAL epsilon;
 	Kernel BatchNormMedia;// calcula a media
 	Kernel BatchNormInvDesv;// calcula a variancia
 	Kernel BatchNormNormaliza;// normaliza

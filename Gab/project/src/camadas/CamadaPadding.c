@@ -119,13 +119,13 @@ Camada CamadaPadding_new(Gpu gpu, Queue queue, P3d size_in, uint32_t top, uint32
 	self->left = left;
 	self->right = right;
 
-	KRN_new(self->paddingfeed, "paddingfeed", "Vector in,Vector out,\n"
+	KRN_news(self->paddingfeed, "paddingfeed", "Vector in,Vector out,\n"
 											  "unsigned int txi,unsigned int tyi,\n"
 											  "unsigned int txo,unsigned int tyo,\n"
 											  "unsigned int t, unsigned int l ,\n"
 											  "int k0");
 
-	KRN_new(self->paddingBack, "paddingBack", "Vector gradNext,Vector gradin,\n"
+	KRN_news(self->paddingBack, "paddingBack", "Vector gradNext,Vector gradin,\n"
 											  "unsigned int txi, unsigned int tyi,\n"
 											  "unsigned int txo,unsigned int tyo,\n"
 											  "unsigned int t, unsigned int l , int k0");

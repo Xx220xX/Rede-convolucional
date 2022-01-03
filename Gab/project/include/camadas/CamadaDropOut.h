@@ -39,9 +39,7 @@ typedef struct CamadaDropOut_t {
 } *CamadaDropOut, CamadaDropOut_t;
 
 
-extern Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in,
-								REAL probabilidade_saida, cl_ulong seed,
-								Tensor entrada, Ecx ecx);
+extern Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_saida, cl_ulong seed, Tensor entrada, Ecx ecx);
 
 extern Camada CamadaDropOut_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx);
 

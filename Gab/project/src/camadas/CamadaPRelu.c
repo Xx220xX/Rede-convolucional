@@ -152,17 +152,17 @@ Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parame
 		goto methods;
 	}
 	//kV preluativa(Vector entrada, Vector saida, Vector A, int k0)
-	KRN_new(self->preluativa, "preluativa", "Vector entrada, Vector saida, Vector A, int k0");
+	KRN_news(self->preluativa, "preluativa", "Vector entrada, Vector saida, Vector A, int k0");
 	//prelucalcgrad(Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, int learn, REAL hitlearn, REAL momento, REAL decaimento, int k0)
-	KRN_new(self->prelucalcgrad, "prelucalcgrad", "Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, int learn, REAL hitlearn, REAL momento, REAL decaimento, int k0");
+	KRN_news(self->prelucalcgrad, "prelucalcgrad", "Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, int learn, REAL hitlearn, REAL momento, REAL decaimento, int k0");
 	//preluonlyfix(Vector entrada, Vector gradnext, Vector A, Vector dA, REAL hitlearn, REAL momento, REAL decaimento, int k0)
-	KRN_new(self->preluonlyfix, "preluonlyfix", "Vector entrada, Vector gradnext, Vector A, Vector dA, REAL hitlearn, REAL momento, REAL decaimento, int k0");
+	KRN_news(self->preluonlyfix, "preluonlyfix", "Vector entrada, Vector gradnext, Vector A, Vector dA, REAL hitlearn, REAL momento, REAL decaimento, int k0");
 	//prelucalcgradBatch(Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize, int k0)
-	KRN_new(self->prelucalcgradBatch, "prelucalcgradBatch", "Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize, int k0");
+	KRN_news(self->prelucalcgradBatch, "prelucalcgradBatch", "Vector gradentrada, Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize, int k0");
 	//preluonlyDABatch(Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize, int k0)
-	KRN_new(self->preluonlyDABatch, "preluonlyDABatch", "Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize, int k0");
+	KRN_news(self->preluonlyDABatch, "preluonlyDABatch", "Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize, int k0");
 	//kernel_fixW(Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0)
-	KRN_new(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
+	KRN_news(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
 
 
 	ECXPOP(ecx);

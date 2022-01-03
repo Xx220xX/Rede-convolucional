@@ -122,14 +122,14 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 	self->filtroy = filtro.y;
 
 	if (type_pooling == MAXPOOL) {
-		KRN_new(self->poolativa, "poolativa", "Vector entrada, Vector saida,\n"
+		KRN_news(self->poolativa, "poolativa", "Vector entrada, Vector saida,\n"
 											  "int passox,int passoy,\n"
 											  "int filtrox,int filtroy,\n"
 											  "int saidatx, int saidaty,\n"
 											  "int entradatx, int entradaty, int k0");
 
 
-		KRN_new(self->poolCalcGrads, "poolCalcGrads", "Vector entrada, Vector gradEntrada,\n"
+		KRN_news(self->poolCalcGrads, "poolCalcGrads", "Vector entrada, Vector gradEntrada,\n"
 													  "Vector gradNext, Vector saida,\n"
 													  "int fx, int fy, int px, int py,\n"
 													  "int entradatx, int entradaty,\n"
@@ -137,13 +137,13 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 													  "int k0");
 
 	} else if (type_pooling == AVEPOOL) {
-		KRN_new(self->poolativa, "poolAVativa", "Vector entrada, Vector saida,\n"
+		KRN_news(self->poolativa, "poolAVativa", "Vector entrada, Vector saida,\n"
 												"int passox,int passoy,\n"
 												"int filtrox,int filtroy,\n"
 												"int saidatx, int saidaty,\n"
 												"int entradatx, int entradaty, int k0");
 
-		KRN_new(self->poolCalcGrads, "poolAvCalcGrads", "Vector entrada, Vector gradEntrada,\n"
+		KRN_news(self->poolCalcGrads, "poolAvCalcGrads", "Vector entrada, Vector gradEntrada,\n"
 														"Vector gradNext, Vector saida,\n"
 														"int fx, int fy, int px, int py,\n"
 														"int entradatx, int entradaty,\n"
@@ -151,14 +151,14 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 														"int k0");
 
 	} else if (type_pooling == MINPOOL) {
-		KRN_new(self->poolativa, "poolativaMin", "Vector entrada, Vector saida,\n"
+		KRN_news(self->poolativa, "poolativaMin", "Vector entrada, Vector saida,\n"
 												 "int passox,int passoy,\n"
 												 "int filtrox,int filtroy,\n"
 												 "int saidatx, int saidaty,\n"
 												 "int entradatx, int entradaty, int k0");
 
 
-		KRN_new(self->poolCalcGrads, "poolCalcGrads", "Vector entrada, Vector gradEntrada,\n"
+		KRN_news(self->poolCalcGrads, "poolCalcGrads", "Vector entrada, Vector gradEntrada,\n"
 													  "Vector gradNext, Vector saida,\n"
 													  "int fx, int fy, int px, int py,\n"
 													  "int entradatx, int entradaty,\n"

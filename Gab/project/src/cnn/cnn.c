@@ -197,8 +197,8 @@ int Cnn_learnBatch(Cnn self, Tensor target, size_t batchSize) {
 		return self->ecx->error;
 	}
 	if (target->flag.ram || target->flag.shared) {
-		self->target->setvalues(self->target,target->data);
-		return Cnn_learnBatch(self,self->target,batchSize);
+		self->target->setvalues(self->target, target->data);
+		return Cnn_learnBatch(self, self->target, batchSize);
 	}
 	Kernel sub = ((Kernel *) self->kernels)[CNN_KERNEL_SUB];
 	sub->runRecursive(sub, self->queue, self->ds->length, self->gpu->maxworks, &self->ds->data, &self->cm[self->l - 1]->s->data, &target->data);
@@ -471,7 +471,16 @@ void Cnn_fprint(Cnn self, FILE *f, const char *comment) {
 	for (int i = 0; i < self->l; ++i) {
 		tmp = self->cm[i]->getGenerate(self->cm[i]);
 		out = self->cm[i]->getOutSize(self->cm[i]);
-		fprintf(f, "%s %s saida [%zu,%zu,%zu]\n", tmp, comment, out.x, out.y, out.z);
+		fprintf(f, "%s %s saida [%zu,%zu,%zu]", tmp, comment, out.x, out.y, out.z);
+		switch (self->cm[i]->layer_id) {
+			case CONVOLUCAOF_ID:
+				fprintf(f, "std = %f, u = %f", ((CamadaConvF) self->cm[i])->W->std(((CamadaConvF) self->cm[i])->W), ((CamadaConvF) self->cm[i])->W->media(((CamadaConvF) self->cm[i])->W));
+				break;
+			case FULLCONNECT_ID:
+				fprintf(f, "std = %f, u = %f", ((CamadaFullConnect) self->cm[i])->w->std(((CamadaFullConnect) self->cm[i])->w), ((CamadaFullConnect) self->cm[i])->w->media(((CamadaFullConnect) self->cm[i])->w));
+				break;
+		}
+		fprintf(f, "\n");
 		gab_free(tmp);
 	}
 }
@@ -528,16 +537,8 @@ int Cnn_ConvolucaoF(Cnn self, P2d passo, P3d filtro, uint32_t funcaoAtivacao, Pa
 
 	return internal_Cnn_addlayer(self, c);
 }
-int Cnn_Convolucao2D(Cnn self, P2d passo, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros) {
-	P3d size_in = self->getSizeOut(self);
-	if (!CHECKDIN(size_in.x, filtro.x, 1, passo.x) || !CHECKDIN(size_in.y, filtro.y, 1, passo.y)) {
-		fprintf(stderr, "Cnn_Convolucao2D:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n", size_in.x, size_in.y, size_in.z, (size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1, (size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1, size_in.z);
-		return GAB_INVALID_PARAM;
-	}
-	Camada c = CamadaConv2D_new(self->gpu, self->queue, passo, filtro, size_in, funcaoAtivacao, internal_Cnn_getEntrada(self), p, self->ecx, filtros);
 
-	return internal_Cnn_addlayer(self, c);
-}
+
 
 int Cnn_ConvolucaoNC(Cnn self, P2d passo, P2d abertura, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros) {
 	P3d size_in = self->getSizeOut(self);
@@ -610,7 +611,6 @@ Cnn Cnn_new() {
 	methods:
 	self->Convolucao = Cnn_Convolucao;
 	self->ConvolucaoF = Cnn_ConvolucaoF;
-	self->Convolucao2D = Cnn_Convolucao2D;
 	self->ConvolucaoNC = Cnn_ConvolucaoNC;
 	self->Pooling = Cnn_Pooling;
 	self->Relu = Cnn_Relu;

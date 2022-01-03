@@ -203,21 +203,21 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 	self->fa = funcaoDeAtivacao;
 	self->dfa = funcaoDeAtivacao | FLAGDIF;
 	//fullfeed(Vector a, Vector w, Vector b, Vector z, Vector s, int fid, int w_x, int w_y, int k0)
-	KRN_new(self->fullfeed, "fullfeed", "Vector a, Vector w, Vector b, Vector z, Vector s, int fid, int w_x, int w_y, int k0");
+	KRN_news(self->fullfeed, "fullfeed", "Vector a, Vector w, Vector b, Vector z, Vector s, int fid, int w_x, int w_y, int k0");
 	//fullCalcDWandFix(Vector a, Vector w, Vector dw, Vector dz, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int pesosy, int k0)
-	KRN_new(self->fullCalcDWandFix, "fullCalcDWandFix", "Vector a, Vector w, Vector dw, Vector dz, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int pesosy, int k0");
+	KRN_news(self->fullCalcDWandFix, "fullCalcDWandFix", "Vector a, Vector w, Vector dw, Vector dz, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int pesosy, int k0");
 	//fullCalcDzBath(Vector dz, Vector ds, Vector z,  Vector db, int dfa,long batchSize,  int k0)
-	KRN_new(self->fullCalcDz, "fullCalcDz", "Vector dz, Vector ds, Vector z,  Vector db, int dfa,long batchSize,  int k0");
+	KRN_news(self->fullCalcDz, "fullCalcDz", "Vector dz, Vector ds, Vector z,  Vector db, int dfa,long batchSize,  int k0");
 	//Vector dz, Vector ds, Vector z, Vector b, Vector db, int dfa, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0
-	KRN_new(self->fullCalcDzandFixB, "fullCalcDzAndFixB", "Vector dz, Vector ds, Vector z, Vector b, Vector db, int dfa, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
+	KRN_news(self->fullCalcDzandFixB, "fullCalcDzAndFixB", "Vector dz, Vector ds, Vector z, Vector b, Vector db, int dfa, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
 	//fullcalcin(Vector dz, Vector da, Vector w, int pesosx, int pesosy, int k0)
-	KRN_new(self->fullcalcin, "fullcalcin", "Vector dz, Vector da, Vector w, int pesosx, int pesosy, int k0");
+	KRN_news(self->fullcalcin, "fullcalcin", "Vector dz, Vector da, Vector w, int pesosx, int pesosy, int k0");
 	//fullCalcDWBatch(Vector a, Vector dw, Vector dz, long batchSize, int pesosy, int k0)
-	KRN_new(self->fullCalcDWBatch, "fullCalcDWBatch", "Vector a, Vector dw, Vector dz, long batchSize, int pesosy, int k0");
+	KRN_news(self->fullCalcDWBatch, "fullCalcDWBatch", "Vector a, Vector dw, Vector dz, long batchSize, int pesosy, int k0");
 	//fullCalcDzBath(Vector dz, Vector ds, Vector z, Vector b, Vector db, int dfa,long batchSize,  int k0)
-	KRN_new(self->fullCalcDzBath, "fullCalcDzBath", "Vector dz, Vector ds, Vector z, Vector db, int dfa,long batchSize,  int k0");
+	KRN_news(self->fullCalcDzBath, "fullCalcDzBath", "Vector dz, Vector ds, Vector z, Vector db, int dfa,long batchSize,  int k0");
 	//fullFixBatch(Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0)
-	KRN_new(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
+	KRN_news(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
 	ECXPOP(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaFullConnect_release;

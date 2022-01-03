@@ -207,7 +207,7 @@ int Figure_INITW(HINSTANCE hInsta) {
 }
 
 void Figure_grid(Figure *self, HDC hdc) {
-	HPEN hPen = CreatePen(PS_JOIN_ROUND, 1, RGB(0, 0, 0));
+	HPEN hPen = CreatePen(PS_JOIN_ROUND, 1, RGB(122, 122, 122));
 	SelectObject(hdc, hPen);
 	POINT p[2];
 	double x = self->xgrid_start;

@@ -83,7 +83,7 @@ kV convCalcGradIn(Vr filtro, Vr gradEntrada, Vr gradNext, int fx, int fy, int fz
 	gradEntrada[k] = somaErro;
 }
 
-kV convCalcGradBatch(Vr ds, Vr entrada, Vr gradFiltro, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0) {
+kV convCalcGradBatch(Vr ds, Vr A, Vr dW, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0) {
 	int k = get_global_id(0) + k0;
 	int m, n, z, l;
 	kRep4D(k, m, n, z, l, fx, fy, fz)
@@ -93,9 +93,9 @@ kV convCalcGradBatch(Vr ds, Vr entrada, Vr gradFiltro, long batchSize, int fx, i
 		for (int j = 0; j < saida_ty; ++j) {
 			le = kMap(i * passox + m, j * passoy + n, z, entrada_tx, entrada_ty);
 			ls = kMap(i, j, l, saida_tx, saida_ty);
-			soma += entrada[le] * ds[ls];
+			soma += A[le] * ds[ls];
 		}
 	}
-	soma = soma / batchSize + gradFiltro[k];
-	gradFiltro[k] = soma;
+	soma = soma / batchSize + dW[k];
+	dW[k] = dW[k] + soma;
 }

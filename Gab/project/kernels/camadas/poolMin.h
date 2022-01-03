@@ -1,4 +1,4 @@
-kV poolativaMin(Vr entrada, Vr saida, int passox, int passoy, int filtrox, int filtroy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
+kV poolativaMin(Vr A, Vr S, int passox, int passoy, int filtrox, int filtroy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	kRap(k, x, y, z, saidatx, saidaty)
@@ -8,12 +8,12 @@ kV poolativaMin(Vr entrada, Vr saida, int passox, int passoy, int filtrox, int f
 	mval = DBL_MAX;
 	for (int i = 0; i < filtrox; ++i) {
 		for (int j = 0; j < filtroy; ++j) {
-			v = entrada[kMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
+			v = A[kMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
 			if (v < mval) {
 				mval = v;
 			}
 		}
 	}
-	saida[k] = mval;
+	S[k] = mval;
 }
 
