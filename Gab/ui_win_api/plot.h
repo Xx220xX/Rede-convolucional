@@ -131,12 +131,27 @@ POINT Axe_convert(Axe *self, float x, float y) {
 	return Figure_convert(self->fig, x, y);
 }
 
+#define MAXLEN 1000
+
 void Axe_push(Axe *self, float x, float y) {
 	pfunc
 	self->size++;
 	self->pf = realloc(self->pf, self->size * sizeof(POINTFLOAT));
 	self->pf[self->size - 1].x = x;
 	self->pf[self->size - 1].y = y;
+	if (self->size > MAXLEN) {
+		double px = (double) self->size / MAXLEN;
+		int j;
+		POINTFLOAT *f = calloc(MAXLEN, sizeof(POINTFLOAT));
+		for (int i = 0; i < MAXLEN; ++i) {
+			j = i * px +0.5;
+			f[i] = self->pf[j];
+		}
+		free(self->pf);
+		self->pf = f;
+		self->size = MAXLEN;
+//		((Figure *)self->fig)->draw(self->fig,NULL);
+	}
 
 }
 
@@ -165,7 +180,9 @@ void Axe_pusDraw(Axe *self, float x, float y) {
 
 void Axe_draw(Axe *self, HDC hdc) {
 	pfunc
-	if(self->size<=0)return;
+	if (self->size <= 0) {
+		return;
+	}
 	int releasehdc = 0;
 	Figure *figure = self->fig;
 	if (!hdc) {
@@ -270,7 +287,7 @@ void Figure_draw(Figure *self, HDC hdc) {
 	if (self->title) {
 		SIZE ft;
 		GetTextExtentPoint32A(hdc, self->title, strlen(self->title), &ft);
-		TextOutA(hdc, (self->winrc.right+self->winrc.left) / 2 - ft.cx / 2, 0, self->title, strlen(self->title));
+		TextOutA(hdc, (self->winrc.right + self->winrc.left) / 2 - ft.cx / 2, 0, self->title, strlen(self->title));
 	}
 	if (self->grid) {
 		Figure_grid(self, hdc);
@@ -279,8 +296,8 @@ void Figure_draw(Figure *self, HDC hdc) {
 	for (int i = 0; i < self->naxes; ++i) {
 
 
-			axe = self->getAxe(self, i);
-			axe->draw(axe, hdc);
+		axe = self->getAxe(self, i);
+		axe->draw(axe, hdc);
 
 	}
 	if (releasehdc) {

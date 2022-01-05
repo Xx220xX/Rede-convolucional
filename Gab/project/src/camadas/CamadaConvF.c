@@ -94,7 +94,13 @@ static char *CamadaConvF_json(CamadaConvF self, int showValues) {
 static char *CamadaConvF_getGenerate(CamadaConvF self) {
 	char *string = NULL;
 	int len = 0;
-	apendstr(string, len, "%s (P2D(%zu, %zu), P3D(%zu, %zu, %zu), %s, Params(%g, %g, %g, %d), RDP(%d, %g, %g))", lname, self->passox, self->passoy, self->W->x, self->W->y, self->W->w, F_ATIVACAO_NAME(self->activationFuntion), (double) self->super.params.hitlearn, (double) self->super.params.momento, (double) self->super.params.decaimento, self->super.params.skipLearn, self->rdp_filtros.type, (double) self->rdp_filtros.a, (double) self->rdp_filtros.b);
+	GEN_LAYERNAME(string,len);
+	GENN_P2D(P2D(self->passox,self->passoy),string,len);
+	GENN_P3D(P3D(self->W->x,self->W->y,self->W->w),string,len);
+	GENN_PARAMS(self->super.params,string,len);
+	GEN_RDP(self->rdp_filtros,string,len);
+	GEN_END(string,len);
+//	apendstr(string, len, "%s (P2D(%zu, %zu), P3D(%zu, %zu, %zu), %s, Params(%g, %g, %g, %d), RDP(%d, %g, %g))", lname, self->passox, self->passoy, self->W->x, self->W->y, self->W->w, F_ATIVACAO_NAME(self->activationFuntion), (double) self->super.params.hitlearn, (double) self->super.params.momento, (double) self->super.params.decaimento, self->super.params.skipLearn, self->rdp_filtros.type, (double) self->rdp_filtros.a, (double) self->rdp_filtros.b);
 
 	return string;
 }
@@ -162,13 +168,16 @@ int CamadaConvF_fprintf(CamadaConvF self, FILE *destino, char *format, ...) {
 	return 0;
 }
 
-Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros) {
+Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, FAtivacao_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros) {
 	ECXPOP(ecx);
 	CamadaConvF self = gab_alloc(1, sizeof(CamadaConvF_t));
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1, filtro.z};
 	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAOF_ID, lname, params, entrada, size_in, size_out, ecx);
-	self->activationFuntion = ativacao;
-	self->derivationFuntion = ativacao | FLAGDIF;
+	self->activationFuntion.mask =  ativacao;
+	if(self->activationFuntion.id == FRELU){
+		self->activationFuntion.mask = FATIVACAO(FLRELU,0,1);
+	}
+	self->derivationFuntion = ativacao| FLAGDIF;
 	self->dW = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
 	self->dW->fill(self->dW, 0);
 	self->B = Tensor_new(1, 1, filtro.z, 1, ecx, TENSOR3D, gpu->context, queue);
@@ -184,7 +193,7 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	self->rdp_filtros = rdp_filtros;
 	if (rdp_filtros.type != -1) {
 		if (rdp_filtros.type == 0) {
-			rdp_filtros = internal_getDefaultRDP(ativacao == FRELU, filtro.x * filtro.y * size_in.z, self->super.s->length);
+			rdp_filtros = internal_getDefaultRDP(ativacao == FLRELU, filtro.x * filtro.y * size_in.z, self->super.s->length);
 		}
 		self->super.ecx->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
 		if (ecx->error) {

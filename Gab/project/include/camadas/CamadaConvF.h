@@ -26,12 +26,12 @@ typedef struct CamadaConvF_t {
 	Kernel convFCalcGradBBatch;
 	Kernel convFCalcGradBatch;
 	Kernel kernel_fixW;
-	uint32_t activationFuntion;
+	FAtivacao activationFuntion;
 	uint32_t derivationFuntion;
 	RandomParams rdp_filtros;
 } *CamadaConvF, CamadaConvF_t;
 
-extern Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros);
+extern Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, FAtivacao_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros);
 
 extern Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx);
 

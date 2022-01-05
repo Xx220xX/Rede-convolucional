@@ -165,4 +165,17 @@ tmp = self->t->json(self->t, showValues);\
 apendstr(string, len, ",\n"PAD"\""name"\":%s", tmp);\
 gab_free(tmp);}\
 else apendstr(string, len, ",\n"PAD"\""name"\": null")
+
+
+#define GEN_LAYERNAME(string,len)apendstr(string, len, "%s (",lname)
+#define GEN_P2D(p2d,string,len)apendstr(string, len, "P2D(%zu, %zu)",p2d.x,p2d.y)
+#define GEN_P3D(p3d,string,len)apendstr(string, len, "P3D(%zu, %zu, %zu)",p3d.x,p3d.y,p3d.z)
+#define GEN_RDP(rdp,string,len)apendstr(string, len, "RDP(%d, %g, %g)",rdp.type,(double)(rdp.a),(double)(rdp.b))
+#define GEN_PARAMS(prm,string,len)apendstr(string, len, "Params(%g, %g, %g, %d,%g,%g)",(double)(prm.lr_0),(double)(prm.momento),(double)(prm.decaimento),prm.skipLearn,(double)(prm.a),(double)(prm.b))
+#define GENN_P2D(p2d,string,len)apendstr(string, len, "P2D(%zu, %zu), ",p2d.x,p2d.y)
+#define GENN_P3D(p3d,string,len)apendstr(string, len, "P3D(%zu, %zu, %zu), ",p3d.x,p3d.y,p3d.z)
+#define GENN_RDP(rdp,string,len)apendstr(string, len, "RDP(%d, %g, %g), ",rdp.type,(double)(rdp.a),(double)(rdp.b))
+#define GENN_PARAMS(prm,string,len)apendstr(string, len, "Params(%g, %g, %g, %d,%g,%g), ",(double)(prm.lr_0),(double)(prm.momento),(double)(prm.decaimento),prm.skipLearn,(double)(prm.a),(double)(prm.b))
+
+#define GEN_END(string,len)apendstr(string, len, ")")
 #endif //GAB_CNN_CAMADA_H

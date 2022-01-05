@@ -325,8 +325,11 @@ int CaptureAnImage() {
 
 #include "math.h"
 
-int cnnMaint(int arg, char **args) {
-	GUI.make_train();
+int cnnMain(int arg, char **args) {
+//	GUI.make_train();
+	FAtivacao  b;
+	b.mask = FATIVACAO(FRELU, 0.1, 1);
+	printf("%d %f %f\n",b.id,b.less,b.greater);
 }
 
 #endif //GAB_UI_H
