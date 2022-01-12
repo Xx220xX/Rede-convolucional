@@ -269,7 +269,7 @@ void Setup_treinar(Setup self) {
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
 			acertosep += (cnn_label == label);
-			localItrain.winRate = localItrain.winRate * alpha + 100 * beta;
+			localItrain.winRate = localItrain.winRate * alpha + 100 * beta*(cnn_label == label);
 			localItrain.winRateMedio = acertos * 100.0 / (images + 1.0);
 			localItrain.winRateMedioep = acertosep * 100.0 / (self->imagem_atual_treino  + 1.0);
 

@@ -822,7 +822,7 @@ void CnnInitLuaVm(Cnn c) {
 							"    type = type or 0.0\n"
 							"    a = a or 0.0\n"
 							"    b = b or 0.0\n"
-							"    return { type = type, a = a, b = b }\n"
+							"    return { type = type, a = a, b = b ,ctype= 40}\n"
 							"end");
 }
 

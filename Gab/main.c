@@ -125,7 +125,7 @@ void on_train(const struct Setup_t *self, int label) {
 */
 #define  TMP_FILE_NAME_ARCH "edit_archtmp_lua.lua"
 
-int cnnMain2(int nargs, char **args) {
+int cnnMain(int nargs, char **args) {
 	char luaFile[250] = {0};
 	double t0;
 	double im;
