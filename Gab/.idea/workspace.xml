@@ -16,19 +16,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Gab.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaConvF.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaConvF.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/include/camadas/camada.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/camada.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/include/camadas/funcoesDeAtivacao.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/funcoesDeAtivacao.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaConvF.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaConvF.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui_win_api/plot.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/plot.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui_win_api/ui.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/ui.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../RELEASE/GAB/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/../RELEASE/GAB/bin/Gab.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../RELEASE/GAB/bin/gabkernel.dll" beforeDir="false" afterPath="$PROJECT_DIR$/../RELEASE/GAB/bin/gabkernel.dll" afterDir="false" />
-    </list>
+    <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="adicionado runtime kernel" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -116,11 +104,6 @@
       <method v="2">
         <option name="RunConfigurationTask" enabled="true" run_configuration_name="buildKernel" run_configuration_type="PythonConfigurationType" />
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <configuration default="true" type="MatlabApplication">
