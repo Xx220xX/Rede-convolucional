@@ -29,9 +29,10 @@ static void CamadaConvNC_release(CamadaConvNC *self_p) {
 	*self_p = NULL;
 }
 
-static int CamadaConvNC_propagation(CamadaConvNC self) {
+static Tensor  CamadaConvNC_propagation(CamadaConvNC self,Tensor a) {
+	self->super.a = a;
 	Execute(convncSum, self->super.s->length, &self->W->data, &self->super.a->data, &self->z->data, &self->super.s->data, &self->passox, &self->passoy, &self->activationFuntion, &self->passox, &self->passoy, &self->aberturax, &self->aberturay, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y, &self->W->x, &self->W->y, &self->W->z);
-	return self->super.ecx->error;
+	return self->super.s;
 }
 
 static int CamadaConvNC_backpropagation(CamadaConvNC self, Tensor ds) {
@@ -205,7 +206,7 @@ Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtr
 	ecx->popstack(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaConvNC_release;
-	self->super.propagation = (int (*)(void *)) CamadaConvNC_propagation;
+	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaConvNC_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaConvNC_backpropagation;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaConvNC_backpropagationBatch;
 	self->super.retroPropagationBatchLearn = (int (*)(void *)) CamadaConvNC_learnBatch;

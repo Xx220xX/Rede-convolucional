@@ -16,9 +16,11 @@ void CamadaPadding_release(CamadaPadding *self) {
 	gab_free(*self);
 }
 
-int CamadaPadding_propagation(CamadaPadding self) {
-	Execute(paddingfeed, self->super.a->length, &self->super.a->data, &self->super.s->data, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y, &self->top, &self->left);
-	return self->super.ecx->error;
+Tensor CamadaPadding_propagation(CamadaPadding self, Tensor a) {
+	Execute(paddingfeed, self->super.a->length, &self->super.a->data, &self->super.s->data,
+			&self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y,
+			&self->top, &self->left);
+	return self->super.s;
 }
 
 int CamadaPadding_backpropagation(CamadaPadding self, Tensor ds) {
@@ -79,12 +81,14 @@ int CamadaPadding_save(CamadaPadding self, FILE *f) {
 	self->super.ecx->popstack(self->super.ecx);
 	return self->super.ecx->error;
 }
-int CamadaPadding_fprintf(CamadaPadding self, FILE * destino, char *format, ...){
-	va_list  v;
-	va_start(v,format);
-	internal_Camada_fprint(self,destino,format,v);
+
+int CamadaPadding_fprintf(CamadaPadding self, FILE *destino, char *format, ...) {
+	va_list v;
+	va_start(v, format);
+	internal_Camada_fprint(self, destino, format, v);
 	return 0;
 }
+
 Camada CamadaPadding_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaPadding_load");
 	Parametros parametros;
@@ -112,7 +116,7 @@ Camada CamadaPadding_new(Gpu gpu, Queue queue, P3d size_in, uint32_t top, uint32
 	CamadaPadding self = gab_alloc(1, sizeof(CamadaPadding_t));
 	P3d size_out = {size_in.x + top + bottom, size_in.y + left + right, size_in.z};
 	internal_Camada_new((Camada) self, gpu, queue, PADDING_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);
-	self->super.s->fill(self->super.s,0);
+	self->super.s->fill(self->super.s, 0);
 	self->top = top;
 
 	self->bottom = bottom;
@@ -120,20 +124,20 @@ Camada CamadaPadding_new(Gpu gpu, Queue queue, P3d size_in, uint32_t top, uint32
 	self->right = right;
 
 	KRN_news(self->paddingfeed, "paddingfeed", "Vector in,Vector out,\n"
-											  "unsigned int txi,unsigned int tyi,\n"
-											  "unsigned int txo,unsigned int tyo,\n"
-											  "unsigned int t, unsigned int l ,\n"
-											  "int k0");
+											   "unsigned int txi,unsigned int tyi,\n"
+											   "unsigned int txo,unsigned int tyo,\n"
+											   "unsigned int t, unsigned int l ,\n"
+											   "int k0");
 
 	KRN_news(self->paddingBack, "paddingBack", "Vector gradNext,Vector gradin,\n"
-											  "unsigned int txi, unsigned int tyi,\n"
-											  "unsigned int txo,unsigned int tyo,\n"
-											  "unsigned int t, unsigned int l , int k0");
+											   "unsigned int txi, unsigned int tyi,\n"
+											   "unsigned int txo,unsigned int tyo,\n"
+											   "unsigned int t, unsigned int l , int k0");
 
 	ecx->popstack(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaPadding_release;
-	self->super.propagation = (int (*)(void *)) CamadaPadding_propagation;
+	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaPadding_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPadding_backpropagation;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) internal_notBatch;
 	self->super.retroPropagationBatchLearn = (int (*)(void *)) internal_unused;

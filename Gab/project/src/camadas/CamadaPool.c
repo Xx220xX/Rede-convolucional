@@ -13,13 +13,10 @@ void CamadaPooling_release(CamadaPool *selfp) {
 	gab_free(*selfp);
 }
 
-int CamadaPooling_propagation(CamadaPool self) {
-	Execute(poolativa, self->super.s->length,
-
-			&self->super.a->data, &self->super.s->data, &self->passox, &self->passoy, &self->filtrox, &self->filtroy, &self->super.s->x, &self->super.s->y, &self->super.a->x, &self->super.a->y
-
-		   );
-	return self->super.ecx->error;
+Tensor CamadaPooling_propagation(CamadaPool self,Tensor a) {
+	self->super.a = a;
+	Execute(poolativa, self->super.s->length,			&self->super.a->data, &self->super.s->data, &self->passox, &self->passoy, &self->filtrox, &self->filtroy, &self->super.s->x, &self->super.s->y, &self->super.a->x, &self->super.a->y);
+	return self->super.s;
 }
 
 int CamadaPooling_backpropagation(CamadaPool self, Tensor ds) {
@@ -166,14 +163,13 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 													  "int k0");
 
 	} else {
-		ecx->setError(ecx, GAB_INVALID_PARAM);
-		fprintf(stderr, "Tipo invalido\n");
+		ecx->setError(ecx, GAB_INVALID_PARAM,"Tipo invalido\n");
 		goto methods;
 	}
 	ecx->popstack(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaPooling_release;
-	self->super.propagation = (int (*)(void *)) CamadaPooling_propagation;
+	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaPooling_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPooling_backpropagation;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) internal_notBatch;
 	self->super.retroPropagationBatchLearn = (int (*)(void *)) internal_unused;

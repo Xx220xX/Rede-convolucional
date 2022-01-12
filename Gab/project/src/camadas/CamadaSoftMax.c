@@ -23,7 +23,8 @@ void CamadaSoftMax_release(CamadaSoftMax *selfp) {
 	gab_free(*selfp);
 }
 
-int CamadaSoftMax_propagation(CamadaSoftMax self) {
+Tensor CamadaSoftMax_propagation(CamadaSoftMax self,Tensor a) {
+	self->super.a = a;
 
 	if ((self->flag & 0b10) == SOFTNORM) { // é normalizado
 		// encontrar o maximo da entrada
@@ -38,7 +39,7 @@ int CamadaSoftMax_propagation(CamadaSoftMax self) {
 	Execute(softmaxSomaExp, self->super.s->z, &self->exponent->data, &self->soma->data, &self->super.s->x, &self->super.s->y);
 	// divide as exponenciais e armazena na saída
 	Execute(softmaxNormaliza, self->super.s->length, &self->exponent->data, &self->soma->data, &self->super.s->data, &self->super.s->x, &self->super.s->y);
-	return self->super.ecx->error;
+	return self->super.s;
 }
 
 int CamadaSoftMax_backpropagation(CamadaSoftMax self, Tensor ds) {
@@ -123,7 +124,7 @@ int CamadaSoftMax_fprintf(CamadaSoftMax self, FILE *destino, char *format, ...) 
 	self->maximos->fprint(self->maximos, destino);
 	fprintf(destino, "indice_maximos -> ");
 	self->indice_maximos->fprint(self->indice_maximos, destino);
-	fprintf(destino, "exponent -> ");
+	fprintf(destino, "expoente -> ");
 	self->exponent->fprint(self->exponent, destino);
 	return 0;
 }
@@ -142,10 +143,10 @@ Camada CamadaSoftMax_new(Gpu gpu, Queue queue, char flag, P3d size_in, Tensor en
 		self->maximos = Tensor_new(1, 1, size_in.z, 1, ecx, 0, gpu->context, queue);
 		self->indice_maximos = Tensor_new(1, 1, size_in.z, 1, ecx, TENSOR_INT, gpu->context, queue);
 
-		KRN_news(self->softmaxExp, "softmaxExpNorm", "Vector entrada, Vector exponent,Vector mx,int ax,int ay, int k0");
+		KRN_news(self->softmaxExp, "softmaxExpNorm", "Vector entrada, Vector expoente,Vector mx,int ax,int ay, int k0");
 		KRN_news(self->softmaxFindMax, "softmaxFindMax", "Vector a, Vector mx, __global int *i_max, int ax, int ay, int k0");
 	} else {
-		KRN_news(self->softmaxExp, "softmaxExp", "Vector entrada, Vector exponent,int k0");
+		KRN_news(self->softmaxExp, "softmaxExp", "Vector entrada, Vector expoente,int k0");
 	}
 	KRN_news(self->softmaxSomaExp, "softmaxSomaExp", "Vector eps, Vector soma, int saidatx, int saidaty, int k0");
 	KRN_news(self->softmaxNormaliza, "softmaxNormaliza", "Vector exponet, Vector soma, Vector saida,int saidatx, int saidaty, int k0");
@@ -155,7 +156,7 @@ Camada CamadaSoftMax_new(Gpu gpu, Queue queue, char flag, P3d size_in, Tensor en
 	ecx->popstack(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaSoftMax_release;
-	self->super.propagation = (int (*)(void *)) CamadaSoftMax_propagation;
+	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaSoftMax_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaSoftMax_backpropagation;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) internal_notBatch;
 	self->super.retroPropagationBatchLearn = (int (*)(void *)) internal_unused;

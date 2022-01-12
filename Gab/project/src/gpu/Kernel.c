@@ -20,7 +20,7 @@
          sprintf(tmp,format,##__VA_ARGS__) ;                           \
 }
 
-#define check_error(error, end, format, ...)if(error){char *msg = Gpu_errormsg(error);fflush(stdout); \
+#define check_error_gpu(error, end, format, ...)if(error){char *msg = Gpu_errormsg(error);fflush(stdout); \
 fprintf(stderr,"Error %d  in file %s:%d.\n%s\n",error,__FILE__,__LINE__,msg);           \
 fprintf(stderr,format,## __VA_ARGS__);gab_free(msg);goto end;}
 
@@ -49,11 +49,11 @@ int Kernel_run(Kernel self, cl_command_queue queue, size_t globals, size_t local
 	va_start(vaList, locals);
 	for (int i = 0; i < self->nArgs; ++i) {
 		self->error = clSetKernelArg(self->kernel, i, self->l_args[i], va_arg(vaList, void *));
-		check_error(self->error, end, "erro ao colocar argumentos no kernel %s,%d:", self->name, i);
+		check_error_gpu(self->error, end, "erro ao colocar argumentos no kernel %s,%d:", self->name, i);
 	}
 	va_end(vaList);
 	self->error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
-	check_error(self->error, end, "erro chamar kernel %s,(%zu,%zu):", self->name, globals, locals);
+	check_error_gpu(self->error, end, "erro chamar kernel %s,(%zu,%zu):", self->name, globals, locals);
 	end:
 	return self->error;
 }
@@ -71,31 +71,31 @@ int Kernel_runRecursive(Kernel self, cl_command_queue queue, size_t globals, siz
 	va_start(vaList, max_works);
 	for (i = 0; i < self->nArgs - 1; i++) {
 		self->error = clSetKernelArg(self->kernel, i, self->l_args[i], va_arg(vaList, void *));
-		check_error(self->error, end, "kernel %s: %zu For i = %d arg kernel", self->name, self->l_args[i], i);
+		check_error_gpu(self->error, end, "kernel %s: %zu For i = %d arg kernel", self->name, self->l_args[i], i);
 	}
 	va_end(vaList);
 	self->error = clSetKernelArg(self->kernel, i, self->l_args[i], &id);
-	check_error(self->error, end, "Kernel %s %d: %zu erro ao colocar argumento extra no kernel", self->name, i, self->l_args[i]);
+	check_error_gpu(self->error, end, "Kernel %s %d: %zu erro ao colocar argumento extra no kernel", self->name, i, self->l_args[i]);
 
 	if (globals < max_works) {
 		locals = globals;
 		self->error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
-		check_error(self->error, end, "Kernel %s", self->name);
+		check_error_gpu(self->error, end, "Kernel %s", self->name);
 	} else {
 		size_t resto = globals % max_works;
 		globals = (globals / max_works) * max_works;
 		locals = max_works;
 		self->error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
-		check_error(self->error, end, "erro ao rodar kernel %s", self->name);
+		check_error_gpu(self->error, end, "erro ao rodar kernel %s", self->name);
 		if (resto) {
 			id = globals;
 			locals = resto;
 			globals = resto;
 
 			self->error = clSetKernelArg(self->kernel, i, self->l_args[i], &id);
-			check_error(self->error, end, "erro ao colocar argumentos no kernel 2 chamada %s", self->name);
+			check_error_gpu(self->error, end, "erro ao colocar argumentos no kernel 2 chamada %s", self->name);
 			self->error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
-			check_error(self->error, end, "erro ao rodar kernel 2 chamada %s", self->name);
+			check_error_gpu(self->error, end, "erro ao rodar kernel 2 chamada %s", self->name);
 
 		}
 	}
@@ -131,7 +131,7 @@ Kernel Kernel_new(cl_program clProgram, char *funcname, int nargs, ...) {
 	self->name = gab_alloc(len_name + 1, 1);
 	memcpy(self->name, funcname, len_name);
 	self->kernel = clCreateKernel(clProgram, funcname, &self->error);
-	check_error(self->error, metods, "Kernel: %s\n", funcname);
+	check_error_gpu(self->error, metods, "Kernel: %s\n", funcname);
 
 	self->l_args = gab_alloc(nargs, sizeof(size_t));
 	self->nArgs = nargs;
@@ -171,7 +171,7 @@ Kernel Kernel_news(cl_program clProgram, char *funcname, const char *params) {
 	self->name = gab_alloc(len_name + 1, 1);
 	memcpy(self->name, funcname, len_name);
 	self->kernel = clCreateKernel(clProgram, funcname, &self->error);
-	check_error(self->error, metods, "Kernel: %s\n", funcname);
+	check_error_gpu(self->error, metods, "Kernel: %s\n", funcname);
 	int len = strlen(params);
 	char *p = calloc(len + 1, sizeof(char));
 	p0 = p;

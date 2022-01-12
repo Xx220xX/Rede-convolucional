@@ -4,6 +4,7 @@
 
 #ifndef GAB_CNN_PONTO3D_H
 #define GAB_CNN_PONTO3D_H
+
 typedef struct P3d_t {
 	size_t x, y, z;
 } P3d;

@@ -125,7 +125,7 @@ void on_train(const struct Setup_t *self, int label) {
 */
 #define  TMP_FILE_NAME_ARCH "edit_archtmp_lua.lua"
 
-int cnnMain2(int nargs, char **args) {
+int cnnMain(int nargs, char **args) {
 	char luaFile[250] = {0};
 	double t0;
 	double im;
@@ -178,9 +178,8 @@ int cnnMain2(int nargs, char **args) {
 		s->runing = 1;
 		GUI.make_train();
 		while(!GUI.endDraw);
-		if(s->cnn->cm[s->cnn->l-1]->layer_id == SOFTMAX_ID){
+		if (s->cnn->cm[s->cnn->l - 1]->layer_id == FULLCONNECT_ID && ((CamadaFullConnect) s->cnn->cm[s->cnn->l - 1])->fa.id == FSOFTMAX) {
 			GUI.figs[0].title = "Cross-Entropy";
-
 		}
 		if(s->useBatch) {
 			htreino = Thread_new(s->treinarBatch, s);

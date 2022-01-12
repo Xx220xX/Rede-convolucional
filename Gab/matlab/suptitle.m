@@ -68,7 +68,7 @@ min_y=1;
 oldtitle =0;
 for i=1:length(h),
 	if (~strcmp(get(h(i),'Tag'),'suptitle')),
-		pos=get(h(i),'pos');
+		pos=get(h(i),'position');
 		if (pos(2) < min_y), min_y=pos(2)-ff/5*3;end;
 		if (pos(4)+pos(2) > max_y), max_y=pos(4)+pos(2)+ff/5*2;end;
 	else,
@@ -91,7 +91,7 @@ set(gcf,'nextplot','add');
 if (oldtitle),
 	delete(oldtitle);
 end
-ha=axes('pos',[0 1 1 1],'visible','off','Tag','suptitle');
+ha=axes('position',[0 1 1 1],'visible','off','Tag','suptitle');
 ht=text(.5,titleypos-1,str);set(ht,'horizontalalignment','center','fontsize',fs);
 set(gcf,'nextplot',np);
 axes(haold);

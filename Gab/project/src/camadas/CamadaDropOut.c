@@ -23,11 +23,16 @@ static void CamadaDropOut_release(CamadaDropOut *self_p) {
 	*self_p = NULL;
 }
 
-static int CamadaDropOut_propagation(CamadaDropOut self) {
-	Execute(dropativa, self->super.s->length, &self->super.a->data, &self->super.s->data, &self->hitmap->data, &self->seed, &self->probabilidade_saida);
+
+static Tensor CamadaDropOut_propagation_predict(CamadaDropOut self, Tensor a) {
+	return a;
+}
+
+static Tensor CamadaDropOut_propagation(CamadaDropOut self, Tensor a) {
+	Execute(dropativa, self->super.s->length, &a->data, &self->super.s->data, &self->hitmap->data, &self->seed, &self->probabilidade_saida);
 	self->seed += self->super.s->length;
 	self->seed = (self->seed * 0x5deece66dULL + 0xbULL) & ((1ULL << 31) - 1);
-	return self->super.ecx->error;
+	return self->super.s;
 }
 
 static int CamadaDropOut_backpropagation(CamadaDropOut self, Tensor ds) {
@@ -92,13 +97,25 @@ Camada CamadaDropOut_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx
 	ecx->popstack(ecx);
 	return (Camada) self;
 }
-int CamadaDropOut_fprintf(CamadaDropOut self, FILE * destino, char *format, ...){
-	va_list  v;
-	va_start(v,format);
-	internal_Camada_fprint(self,destino,format,v);
-	fprintf(destino,"hitmap -> ");self->hitmap->fprint(self->hitmap,destino);
+
+int CamadaDropOut_fprintf(CamadaDropOut self, FILE *destino, char *format, ...) {
+	va_list v;
+	va_start(v, format);
+	internal_Camada_fprint(self, destino, format, v);
+	fprintf(destino, "hitmap -> ");
+	self->hitmap->fprint(self->hitmap, destino);
 	return 0;
 }
+
+
+void CamadaDropout_setMode(CamadaDropOut self, int istraing) {
+	if (istraing) {
+		self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaDropOut_propagation_predict;
+	} else {
+		self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaDropOut_propagation;
+	}
+}
+
 Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_saida, cl_ulong seed, Tensor entrada, Ecx ecx) {
 	ecx->addstack(ecx, "CamadaDropOut_new");
 	CamadaDropOut self = gab_alloc(1, sizeof(CamadaDropOut_t));
@@ -118,7 +135,7 @@ Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_s
 	ECXPOP(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaDropOut_release;
-	self->super.propagation = (int (*)(void *)) CamadaDropOut_propagation;
+	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaDropOut_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaDropOut_backpropagation;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) internal_notBatch;
 	self->super.retroPropagationBatchLearn = (int (*)(void *)) internal_unused;
@@ -126,5 +143,6 @@ Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_s
 	self->super.getGenerate = (char *(*)(void *)) CamadaDropOut_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaDropOut_save;
 	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaDropOut_fprintf;
+	self->setMode  = CamadaDropout_setMode;
 	return (Camada) self;
 }

@@ -25,9 +25,10 @@ static void CamadaConv_release(CamadaConv *self_p) {
 	*self_p = NULL;
 }
 
-static int CamadaConv_propagation(CamadaConv self) {
+static Tensor CamadaConv_propagation(CamadaConv self,Tensor a) {
+	self->super.a = a;
 	Execute(convSum, self->super.s->length, &self->W->data, &self->super.a->data, &self->super.s->data, &self->passox, &self->passoy, &self->super.s->x, &self->super.s->y, &self->super.a->x, &self->super.a->y, &self->W->x, &self->W->y, &self->W->z);
-	return self->super.ecx->error;
+	return self->super.s;
 }
 
 static int CamadaConv_backpropagation(CamadaConv self, Tensor ds) {
@@ -170,7 +171,7 @@ Camada CamadaConv_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, Parametros p
 	ecx->popstack(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaConv_release;
-	self->super.propagation = (int (*)(void *)) CamadaConv_propagation;
+	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaConv_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaConv_backpropagation;
 	self->super.json = (char *(*)(void *, int)) CamadaConv_json;
 	self->super.getGenerate = (char *(*)(void *)) CamadaConv_getGenerate;

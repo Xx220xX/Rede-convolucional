@@ -6,7 +6,6 @@
 #define GAB_WRAPPERCL_H
 
 
-
 #include <stdio.h>
 #include<CL/opencl.h>
 
@@ -69,8 +68,10 @@ extern char *Gpu_errormsg(int error);
 extern Gpu Gpu_new();
 
 extern int gab_free(void *mem);
+
 extern void *gab_realloc(void *mem, size_t len);
-extern void *gab_alloc(size_t n,size_t size_n);
+
+extern void *gab_alloc(size_t n, size_t size_n);
 
 
 #endif

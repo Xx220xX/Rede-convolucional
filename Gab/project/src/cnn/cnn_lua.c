@@ -6,16 +6,16 @@
 #define CNN_GPU_CNNLUA_H
 
 #include <conio.h>
-#include <windows.h>
 #include <error_list.h>
 
 #include "cnn/cnn_lua.h"
 
 #define LCNN "Cnn"
 
-#define P3D_LUATYPE 1
 #define P2D_LUATYPE 2
+#define P3D_LUATYPE 1
 #define PARAMS_LUATYPE 3
+#define FATIVACAO_LUATYPE 4
 
 #define checkLua(cond, format, ...) if(!(cond)){ luaL_error(L,format,##__VA_ARGS__) ;c->ecx->error = GAB_ERRO_LUA;return 0;}
 
@@ -31,11 +31,11 @@ int loadP3D(lua_State *L, int arg, P3d *p) {
 		return 1;
 	}
 	lua_getfield(L, arg, "ctype");
-	int tp = lua_tonumber(L,-1);
-	if(tp != P3D_LUATYPE){
+	int tp = lua_tonumber(L, -1);
+	if (tp != P3D_LUATYPE) {
 		fflush(stdout);
 		fflush(stderr);
-		luaL_error(L,"Espera-se um p3D");
+		luaL_error(L, "Espera-se um p3D");
 		return -1;
 	}
 //	lua_pop(L,-1);
@@ -61,11 +61,11 @@ int loadP2D(lua_State *L, int arg, P2d *p) {
 		return 1;
 	}
 	lua_getfield(L, arg, "ctype");
-	int tp = lua_tonumber(L,-1);
-	if(tp != P2D_LUATYPE){
+	int tp = lua_tonumber(L, -1);
+	if (tp != P2D_LUATYPE) {
 		fflush(stdout);
 		fflush(stderr);
-		luaL_error(L,"Espera-se um P2D");
+		luaL_error(L, "Espera-se um P2D");
 		return -1;
 	}
 //	lua_pop(L,1);
@@ -77,17 +77,56 @@ int loadP2D(lua_State *L, int arg, P2d *p) {
 	return 0;
 }
 
+int loadAtivacao(lua_State *L, int arg, FAtivacao_t *fa) {
+	if (!lua_istable(L, arg)) {
+		if (lua_isinteger(L, arg)) {
+			*fa = luaL_checkinteger(L, arg);
+			return 0;
+		}
+		luaL_error(L, "Espera-se FAtivacao\n");
+		return 0;
+	}
+	lua_getfield(L, arg, "ctype");
+	int tp = lua_tonumber(L, -1);
+	if (tp != FATIVACAO_LUATYPE) {
+		fflush(stdout);
+		fflush(stderr);
+		luaL_error(L, "Espera-se FAtivacao\n");
+		return -1;
+	}
+	FAtivacao tmp;
+	lua_getfield(L, arg, "id");
+	tmp.id = lua_tointeger(L, -1);
+	switch (tmp.id) {
+		case FLRELU:
+			lua_getfield(L, arg, "var1");
+			tmp.less = lua_tointeger(L, -1);
+			lua_getfield(L, arg, "var2");
+			tmp.greater = lua_tointeger(L, -1);
+			break;
+		case FSOFTMAX:
+			lua_getfield(L, arg, "var1");
+			tmp.epsilon = lua_tointeger(L, -1);
+			break;
+		default:
+			break;
+	}
+	*fa = tmp.mask;
+	return 0;
+
+}
+
 int loadParams(lua_State *L, int arg, Parametros *p) {
 	if (!lua_istable(L, arg)) {
 		luaL_error(L, "Esperado Params\n");
 		return 1;
 	}
 	lua_getfield(L, arg, "ctype");
-	int tp = lua_tonumber(L,-1);
-	if(tp != PARAMS_LUATYPE){
+	int tp = lua_tonumber(L, -1);
+	if (tp != PARAMS_LUATYPE) {
 		fflush(stdout);
 		fflush(stderr);
-		luaL_error(L,"Espera-se Parametros");
+		luaL_error(L, "Espera-se Parametros");
 		return -1;
 	}
 //	lua_pop(L,-1);
@@ -249,40 +288,40 @@ static int l_ConvolucaoF(lua_State *L) {
 	lua_getglobal(L, LCNN);
 	Cnn c = lua_touserdata(L, -1);
 	P2d p = {0};
+	P2d padding_tb = {0};
+	P2d padding_lr = {0};
 	P3d f = {0};
-	uint32_t fativacao = FTANH;
+	FAtivacao_t fativacao = FATIVACAO(FRELU, 0, 1);
 	int arg = 1;
 	Parametros prm = GAB_DEF_PARAMS;
 	RandomParams rdp = {0};
 	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	switch (nArgs) {
-		case 3:
-			loadP2D(L, arg++, &p);
-			loadP3D(L, arg++, &f);
-			fativacao = lua_tointeger(L, arg++);
-			break;
-		case 4:
-			loadP2D(L, arg++, &p);
-			loadP3D(L, arg++, &f);
-			fativacao = lua_tointeger(L, arg++);
-			loadParams(L, arg++, &prm);
-			break;
-		case 5:
-			loadP2D(L, arg++, &p);
-			loadP3D(L, arg++, &f);
-			fativacao = lua_tointeger(L, arg++);
-			loadParams(L, arg++, &prm);
-			loadRdp(L, arg++, &rdp);
-			break;
-		default:
-			luaL_error(L, "Invalid function\ntry\n"
-						  " ConvolucaoF(step,filter,ativacao)\n"
-						  " ConvolucaoF(step,filter,ativacao,Params)\n"
-						  " ConvolucaoF(step,filter,ativacao,Params,RDP)\n");
+	if (nArgs >= 3) {
+		loadP2D(L, arg++, &p);
+		loadP3D(L, arg++, &f);
+		loadAtivacao(L, arg++, &fativacao);
 	}
-	checkLua(CHECK_F_ATIVACAO(fativacao), "FUNCAO DE ATIVACAO INVALIDA");
+	if (nArgs >= 4) {
+		loadP2D(L, arg++, &padding_tb);
+	}
+	if (nArgs >= 5) {
+		loadP2D(L, arg++, &padding_lr);
+	}
+	if (nArgs >= 6) {
+		loadParams(L, arg++, &prm);
+	}
+	if (nArgs >= 7) {
+		loadRdp(L, arg++, &rdp);
+	}
+	if (nArgs > 7 || nArgs < 3) {
+		luaL_error(L, "Invalid function\ntry\n"
+					  " ConvolucaoF(step,filter,ativacao)\n"
+					  " ConvolucaoF(step,filter,ativacao,pad_top_bottom,pad_left_right)\n"
+					  " ConvolucaoF(step,filter,ativacao,pad_top_bottom,pad_left_right,Params)\n"
+					  " ConvolucaoF(step,filter,ativacao,pad_top_bottom,pad_left_right,Params,RDP)\n");
+	}
 
-	if (c->ConvolucaoF(c, p, f, fativacao, prm, rdp)) {
+	if (c->ConvolucaoF(c, p, f, fativacao, padding_tb.x, padding_tb.y, padding_lr.x, padding_lr.y, prm, rdp)) {
 		char *msg = c->gpu->errorMsg(c->ecx->error);
 		luaL_error(L, "falha ao adicionar camada ConvolucaoF:  %d %s", c->ecx->error, msg);
 		gab_free(msg);
@@ -304,39 +343,28 @@ static int l_ConvolucaoNC(lua_State *L) {
 	Parametros prm = GAB_DEF_PARAMS;
 	RandomParams rdp = {0};
 	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	switch (nArgs) {
-		case 4:
-			loadP2D(L, arg++, &p);
-			loadP2D(L, arg++, &a);
-			loadP3D(L, arg++, &f);
-			fativacao = lua_tointeger(L, arg++);
-			break;
-		case 5:
-			loadP2D(L, arg++, &p);
-			loadP2D(L, arg++, &a);
-			loadP3D(L, arg++, &f);
-			fativacao = lua_tointeger(L, arg++);
-			loadParams(L, arg++, &prm);
-			break;
-		case 6:
-			loadP2D(L, arg++, &p);
-			loadP2D(L, arg++, &a);
-			loadP3D(L, arg++, &f);
-			fativacao = lua_tointeger(L, arg++);
-			loadParams(L, arg++, &prm);
-			loadRdp(L, arg++, &rdp);
-			break;
+	if (nArgs >= 4) {
+		loadP2D(L, arg++, &p);
+		loadP2D(L, arg++, &a);
+		loadP3D(L, arg++, &f);
+		fativacao = lua_tointeger(L, arg++);
+	}
+	if (nArgs >= 5) {
+		loadParams(L, arg++, &prm);
+	}
+	if (nArgs >= 6) {
+		loadRdp(L, arg++, &rdp);
+	}
 
-		default:
-			luaL_error(L, "Invalid function\ntry\n"
-						  " ConvolucaoNC(step,abertura,filter,fativacao)\n"
-						  " ConvolucaoNC(step,abertura,filter,fativacao,params)\n"
-						  " ConvolucaoNC(step,abertura,filter,fativacao,params,RDP)\n"
+	if (nArgs > 6 || nArgs < 4) {
+		luaL_error(L, "Invalid function\ntry\n"
+					  " ConvolucaoNC(step,abertura,filter,fativacao)\n"
+					  " ConvolucaoNC(step,abertura,filter,fativacao,params)\n"
+					  " ConvolucaoNC(step,abertura,filter,fativacao,params,RDP)\n"
 
-					  );
+				  );
 
 	}
-	checkLua(CHECK_F_ATIVACAO(fativacao), "FUNCAO DE ATIVACAO INVALIDA");
 	if (c->ConvolucaoNC(c, p, a, f, fativacao, prm, rdp)) {
 		char *msg = c->gpu->errorMsg(c->ecx->error);
 		luaL_error(L, "falha ao adicionar camada ConvolucaoNC:  %d %s", c->ecx->error, msg);
@@ -363,7 +391,6 @@ static int l_Pooling(lua_State *L) {
 		default:
 			luaL_error(L, "Invalid function\ntry\n"
 						  " Pooling(step,filter,type)\n"
-
 					  );
 
 	}
@@ -502,42 +529,33 @@ static int l_FullConnect(lua_State *L) {
 	Cnn c = lua_touserdata(L, -1);
 	int arg = 1;
 	int neuros;
-	int func = FTANH;
+	FAtivacao_t func = FRELU;
 	RdParams rdpw = {0};
 	RdParams rdpb = {0};
 	Parametros prm = GAB_DEF_PARAMS;
-	switch (nArgs) {
-		case 1:
-			neuros = (int) luaL_checkinteger(L, arg++);
-			break;
-		case 2:
-			neuros = (int) luaL_checkinteger(L, arg++);
-			func = (int) luaL_checkinteger(L, arg++);
-			break;
-		case 3:
-			neuros = (int) luaL_checkinteger(L, arg++);
-			func = (int) luaL_checkinteger(L, arg++);
-			loadParams(L, arg++, &prm);
-			break;
-		case 5:
-			neuros = (int) luaL_checkinteger(L, arg++);
-			func = (int) luaL_checkinteger(L, arg++);
-			loadParams(L, arg++, &prm);
-			loadRdp(L, arg++, &rdpw);
-			loadRdp(L, arg++, &rdpb);
-
-			break;
-		default:
-			luaL_error(L, "Invalid function\ntry\n"
-						  " FullConnect(out_size)\n"
-						  " FullConnect(out_size,func)\n"
-						  " FullConnect(out_size,func,params)\n"
-						  " FullConnect(out_size,func,params,RDPW,RDPB)\n");
-			return 0;
+	if (nArgs >= 1) {
+		neuros = (int) luaL_checkinteger(L, arg++);
+	}
+	if (nArgs >= 2) {
+		loadAtivacao(L, arg++, &func);
+	}
+	if (nArgs >= 3) {
+		loadParams(L, arg++, &prm);
+	}
+	if (nArgs >= 5) {
+		loadRdp(L, arg++, &rdpw);
+		loadRdp(L, arg++, &rdpb);
+	}
+	if (nArgs < 1 || nArgs > 5) {
+		luaL_error(L, "Invalid function\ntry\n"
+					  " FullConnect(out_size)\n"
+					  " FullConnect(out_size,func)\n"
+					  " FullConnect(out_size,func,params)\n"
+					  " FullConnect(out_size,func,params,RDPW,RDPB)\n");
+		return 0;
 	}
 
 
-	checkLua(CHECK_F_ATIVACAO(func), "FUNCAO DE ATIVACAO INVALIDA");
 	if (c->FullConnect(c, neuros, prm, func, rdpw, rdpb)) {
 		char *msg = c->gpu->errorMsg(c->ecx->error);
 		luaL_error(L, "falha ao adicionar camada FullConnect:  %d %s", c->ecx->error, msg);
@@ -713,14 +731,14 @@ static struct {
 					   {l_helpCnn,            "helpCnn",         "()"},
 					   {l_sizeout,            "sizeOut",         "()"},
 					   {l_Convolucao,         "Convolucao",      "(step:P2D, filter:P3D, params=Params(0):Params,rdp=RDP(0):RDP)"},
-					   {l_ConvolucaoF,        "ConvolucaoF",     "(step:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
+					   {l_ConvolucaoF,        "ConvolucaoF",     "(step:P2D, filter:P3D, ativacao:FAtivacao|int,Padding_top_bottom:P2D(0,0),Padding_left_right:P2D(0,0) params=Params(0):Params, rdp=RDP(0):RDP)"},
 					   {l_ConvolucaoNC,       "ConvolucaoNC",    "(step:P2D, abertura:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
 					   {l_Pooling,            "Pooling",         "(step:P2D, filter:P2D, type:int)"},
 					   {l_Relu,               "Relu",            "(menorQ0=0:float, maiorQ0=1:float)"},
 					   {l_PRelu,              "PRelu",           "(params=Params(0):Params, rdp=RDP(0):RDP)"},
 					   {l_Padding,            "Padding",         "(top:int, bottom:int, left:int, right:int)"},
 					   {l_DropOut,            "DropOut",         "(prob_saida:float,seed=os.time():int64)"},
-					   {l_FullConnect,        "FullConnect",     "(out_size:int, func:int, params=Params(0):Params, RDPW=RDP(0):RDP, RDPB=RDP(0):RDP)"},
+					   {l_FullConnect,        "FullConnect",     "(out_size:int, ativacao:FAtivacao|int, params=Params(0):Params, RDPW=RDP(0):RDP, RDPB=RDP(0):RDP)"},
 					   {l_BatchNorm,          "BatchNorm",       "(batch_size, epsilon=1e-12,params=Params(0):Params, RDPY=RDP(0):RDP, RDPB=RDP(0):RDP)"},
 					   {l_SoftMax,            "SoftMax",         "(flag=SOFTNORM|SOFTLAST:int)"},
 					   {NULL, NULL}};
@@ -732,8 +750,8 @@ static struct {
 						{FRELU,           "RELU"},
 						{FLIN,            "LIN"},
 						{FALAN,           "ALAN"},
-						{SOFTLAST,        "LAST"},
-						{SOFTNORM,        "SFNORM"},
+//						{SOFTLAST,        "LAST"},
+//						{SOFTNORM,        "SFNORM"},
 						{MAXPOOL,         "MAXPOOL"},
 						{MINPOOL,         "MINPOOL"},
 						{AVEPOOL,         "AVEPOOL"},
@@ -745,8 +763,8 @@ static struct {
 						{FRELU,           "FRELU"},
 						{FLIN,            "FLIN"},
 						{FALAN,           "FALAN"},
-						{SOFTLAST,        "SOFTLAST"},
-						{SOFTNORM,        "SOFTNORM"},
+//						{SOFTLAST,        "SOFTLAST"},
+//						{SOFTNORM,        "SOFTNORM"},
 						{MAXPOOL,         "MAXPOOL"},
 						{MINPOOL,         "MINPOOL"},
 						{AVEPOOL,         "AVEPOOL"},
@@ -790,17 +808,19 @@ void CnnInitLuaVm(Cnn c) {
 	lua_setglobal(L, LCNN);
 	c->LuaVm = L;
 	c->releaseL = (void (*)(void *)) lua_close;
-	luaL_dostring(c->LuaVm, "function P3D(x, y, z)\n"
+	char *luaFuncs = NULL;
+	int len = 0;
+	apendstr(luaFuncs, len, "function P3D(x, y, z)\n"
 							"    if z == nil then\n"
 							"        z, y = y, x;\n"
 							"    end\n"
-							"    return { x = x, y = y, z = z,ctype= 1 }\n"
+							"    return { x = x, y = y, z = z,ctype= %d }\n"
 							"end\n"
 							"function P2D(x, y)\n"
 							"    if y == nil then\n"
 							"        y = x;\n"
 							"    end\n"
-							"    return { x = x, y = y ,ctype=2}\n"
+							"    return { x = x, y = y ,ctype=%d}\n"
 							"end\n"
 							"function Params(lr_0, momento, decaimento, skip,a,b)\n"
 							"    momento = momento or 0.0\n"
@@ -815,7 +835,7 @@ void CnnInitLuaVm(Cnn c) {
 							"        skipLearn = skip,\n"
 							"        a = a ,\n"
 							"        b = b ,"
-							"		 ctype= 3\n"
+							"		 ctype= %d\n"
 							"    }\n"
 							"end\n"
 							"function RDP(type, a, b)\n"
@@ -823,7 +843,19 @@ void CnnInitLuaVm(Cnn c) {
 							"    a = a or 0.0\n"
 							"    b = b or 0.0\n"
 							"    return { type = type, a = a, b = b }\n"
-							"end");
+							"end\n"
+							"function FAtivacao(id, var1, var2)\n"
+							"    type = type or 0.0\n"
+							"    var1 = var1 or 0.0\n"
+							"    var2 = var2 or 0.0\n"
+							"    return { id = id, var1 = var1, var2 = var2, ctype= %d}\n"
+							"end\n"
+							"FSOFTMAX = function (epsilon) epsilon = epsilon or 1e-7; return FAtivacao(%d,epsilon) end\n"
+							"SOFTMAX = FSOFTMAX\n"
+							"FLRELU = function (less,greater) return FAtivacao(%d,less,greater) end\n"
+							"LRELU = FLRELU\n", P3D_LUATYPE, P2D_LUATYPE, PARAMS_LUATYPE, FATIVACAO_LUATYPE, FSOFTMAX, FLRELU)
+	luaL_dostring(c->LuaVm, luaFuncs);
+	gab_free(luaFuncs);
 }
 
 
@@ -856,7 +888,7 @@ int CnnLuaLoadFile(Cnn c, const char *file_name) {
 	if (!c->LuaVm) {
 		CnnInitLuaVm(c);
 	}
-	c->ecx->setError(c->ecx, luaL_dofile(c->LuaVm, file_name));
+	c->ecx->setError(c->ecx, luaL_dofile(c->LuaVm, file_name), "");
 	if (c->ecx->error) {
 		fflush(stdout);
 		fprintf(stderr, "\nError: %d %d %s\n", lua_gettop(c->LuaVm), c->ecx->error, lua_tostring(c->LuaVm, -1));

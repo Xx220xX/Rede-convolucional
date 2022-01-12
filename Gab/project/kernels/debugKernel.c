@@ -18,7 +18,6 @@ int get_global_id(int id) {
 #include "kernels/camadas/bathnorm.h"
 #include "kernels/camadas/cnnutils.h"
 #include "kernels/camadas/conv.h"
-#include "kernels/camadas/conv2d.h"
 #include "kernels/camadas/convf.h"
 #include "kernels/camadas/convNc.h"
 #include "kernels/camadas/dropout.h"

@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <unistd.h>
 #include <math.h>
+#include <camadas/CamadaFullConnect.h>
 #include "conio2/conio2.h"
 #include "error_list.h"
 
@@ -200,29 +201,35 @@ void Setup_loadLabel(Setup self) {
 	self->labels = lbram;
 	self->runing = 0;
 }
-float cost_crossEntropy(Tensor S,Tensor T){
-	REAL * vS = S->getvalues(S,NULL);
-	REAL * vT = T->getvalues(T,NULL);
+
+float cost_crossEntropy(Tensor S, Tensor T) {
+	REAL *vS = S->getvalues(S, NULL);
+	REAL *vT = T->getvalues(T, NULL);
 	REAL sum = 0;
 	for (int i = 0; i < S->length; ++i) {
-		sum -= vT[i]* log10(vS[i]);
+		sum -= vT[i] * log10(vS[i]);
 	}
 	return sum;
 }
-REAL cost_mse(Tensor S,Tensor T){
-	REAL * vS = S->getvalues(S,NULL);
-	REAL * vT = T->getvalues(T,NULL);
+
+REAL cost_mse(Tensor S, Tensor T) {
+	if (S->erro->error) {
+		return 0.0;
+	}
+	REAL *vS = S->getvalues(S, NULL);
+	REAL *vT = T->getvalues(T, NULL);
 	REAL sum = 0;
 	REAL tmp;
 	for (int i = 0; i < S->length; ++i) {
 		tmp = (vS[i] - vT[i]);
-		sum += tmp*tmp;
+		sum += tmp * tmp;
 	}
-	return sum/S->length;
+	return sum / S->length;
 }
 
 void Setup_treinar(Setup self) {
 	ECXPUSH(self->cnn->ecx);
+	self->cnn->setMode(self->cnn, 1);
 	// ###  thread de alta prioridade
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
@@ -241,7 +248,7 @@ void Setup_treinar(Setup self) {
 	int acertosep;
 	REAL (*cost)(Tensor, Tensor);
 	cost = cost_mse;
-	if(self->cnn->cm[self->cnn->l-1]->layer_id == SOFTMAX_ID){
+	if (self->cnn->cm[self->cnn->l - 1]->layer_id == FULLCONNECT_ID && ((CamadaFullConnect) self->cnn->cm[self->cnn->l - 1])->fa.id == FSOFTMAX) {
 		cost = cost_crossEntropy;
 	}
 	localItrain.winRateMedio = 10;
@@ -269,11 +276,11 @@ void Setup_treinar(Setup self) {
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
 			acertosep += (cnn_label == label);
-			localItrain.winRate = localItrain.winRate * alpha + 100 * beta;
+			localItrain.winRate = localItrain.winRate * alpha + 100 * beta*(cnn_label == label);
 			localItrain.winRateMedio = acertos * 100.0 / (images + 1.0);
-			localItrain.winRateMedioep = acertosep * 100.0 / (self->imagem_atual_treino  + 1.0);
+			localItrain.winRateMedioep = acertosep * 100.0 / (self->imagem_atual_treino + 1.0);
 
-			double mse = cost(self->cnn->cm[self->cnn->l-1]->s,target);
+			double mse = cost(self->cnn->cm[self->cnn->l - 1]->s, target);
 			if (isnan(mse)) {
 				self->can_run = 0;
 				self->force_end = 1;
@@ -298,6 +305,7 @@ BOOL DirectoryExists(LPCTSTR szPath) {
 
 void Setup_treinarBatch(Setup self) {
 	ECXPUSH(self->cnn->ecx);
+	self->cnn->setMode(self->cnn, 1);
 	// ###  thread de alta prioridade
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
@@ -317,11 +325,10 @@ void Setup_treinarBatch(Setup self) {
 	int acertos = 0;
 	REAL (*cost)(Tensor, Tensor);
 	cost = cost_mse;
-	if(self->cnn->cm[self->cnn->l-1]->layer_id == SOFTMAX_ID){
+	if (self->cnn->cm[self->cnn->l - 1]->layer_id == FULLCONNECT_ID && ((CamadaFullConnect) self->cnn->cm[self->cnn->l - 1])->fa.id == FSOFTMAX) {
 		cost = cost_crossEntropy;
 	}
 	size_t bathS;
-	char buff[250];
 
 	localItrain.mse = 1;
 	localItrain.winRateMedio = 10;
@@ -357,11 +364,11 @@ void Setup_treinarBatch(Setup self) {
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
 			acertosep += (cnn_label == label);
-			localItrain.winRate = localItrain.winRate * alpha + 100 *(cnn_label == label)* beta;
+			localItrain.winRate = localItrain.winRate * alpha + 100 * (cnn_label == label) * beta;
 			localItrain.winRateMedio = acertos * 100.0 / (images + 1.0);
-			localItrain.winRateMedioep = acertosep * 100.0 / (self->imagem_atual_treino  + 1.0);
+			localItrain.winRateMedioep = acertosep * 100.0 / (self->imagem_atual_treino + 1.0);
 
-			double mse = cost(self->cnn->cm[self->cnn->l-1]->s,target);
+			double mse = cost(self->cnn->cm[self->cnn->l - 1]->s, target);
 
 
 			if (isnan(mse)) {
@@ -369,6 +376,7 @@ void Setup_treinarBatch(Setup self) {
 				self->force_end = 1;
 				self->cnn->ecx->error = GAB_INVALID_PARAM;
 				fprintf(stderr, "Erro interno das camadas, encontrado nan\nImagem %zu\nEpoca %d index %d\n", images, self->epoca_atual, indice);
+				break;
 			}
 			localItrain.mse = localItrain.mse * alpha + beta * mse;
 			localItrain.imAtual = self->imagem_atual_treino + 1;
@@ -404,6 +412,7 @@ void Setup_avaliar(Setup self) {
 	// ###  thread de alta prioridade
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+	self->cnn->setMode(self->cnn, 0);
 	// ### variaveis usadas na avaliação
 	Tensor entrada, target;
 	ubyte label, cnn_label;
@@ -424,7 +433,7 @@ void Setup_avaliar(Setup self) {
 		PUSHTE(label, cnn_label);
 		acertos += (cnn_label == label);
 		localIteste.imAtual = self->imagem_atual_teste + 1;
-		localIteste.meanwinRate = 100.0*acertos / (self->imagem_atual_teste + 1.0);
+		localIteste.meanwinRate = 100.0 * acertos / (self->imagem_atual_teste + 1.0);
 		localIteste.winRate = localIteste.winRate * alpha + beta * ((cnn_label == label) ? 100 : 0);
 		localIteste.mse = localIteste.mse * alpha + beta * self->cnn->mseT(self->cnn, target);
 		self->iteste = localIteste;
@@ -470,7 +479,7 @@ void Setup_saveStatistic(Setup self) {
 void Setup_getLuaParams(Setup self) {
 	ECXPUSH(self->cnn->ecx);
 	if (!self->cnn) {
-		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR);
+		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR, "falaha ao captura parametros\n");
 		return;
 	}
 	if (self->cnn->ecx->error) {
@@ -514,7 +523,7 @@ void Setup_getLuaParams(Setup self) {
 void Setup_loadLua(Setup self, const char *lua_file) {
 	ECXPUSH(self->cnn->ecx);
 	if (!lua_file) {
-		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR);
+		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR, "Arquivo não pode ser nulo\n");
 		return;
 	}
 	CnnLuaLoadFile(self->cnn, lua_file);

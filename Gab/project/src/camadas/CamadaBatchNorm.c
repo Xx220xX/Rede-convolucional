@@ -42,10 +42,10 @@ void CamadaBatchNorm_release(CamadaBatchNorm *selfp) {
  * @param self
  * @return
  */
-int CamadaBatchNorm_propagation(CamadaBatchNorm self) {
+Tensor CamadaBatchNorm_propagation(CamadaBatchNorm self,Tensor a) {
 
 	// acha a média aqui da entrada
-	Execute(BatchNormMedia, self->super.s->z, &self->super.a->data, &self->media->data, &self->super.a->x, &self->super.a->y);
+	Execute(BatchNormMedia, self->super.s->z, a->data, &self->media->data, &self->super.a->x, &self->super.a->y);
 
 	// acha a variancia e inverso do desvio
 	Execute(BatchNormInvDesv, self->super.s->z, &self->super.a->data, &self->media->data, &self->inv_std->data, &self->epsilon, &self->super.s->x, &self->super.s->y);
@@ -55,7 +55,7 @@ int CamadaBatchNorm_propagation(CamadaBatchNorm self) {
 	Execute(BatchNormNormaliza, self->super.s->length, &self->super.s->data, &self->norma->data, &self->super.a->data, &self->media->data, &self->inv_std->data, &self->Y->data, &self->B->data, &self->super.s->x, &self->super.s->y);
 
 
-	return self->super.ecx->error;
+	return self->super.s;
 }
 
 int CamadaBatchNorm_retroPropagationBatch(CamadaBatchNorm self, Tensor ds, size_t batchSize) {
@@ -235,19 +235,19 @@ extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL
 			self->rdp_Y = randY;
 			self->rdp_Y.type = 0;
 		}
-		self->super.ecx->setError(self->super.ecx, self->Y->randomize(self->Y, randY.type, randY.a, randY.b));
+		self->super.ecx->setError(self->super.ecx, self->Y->randomize(self->Y, randY.type, randY.a, randY.b),"%s:%d %s",__FILE__,__LINE__,__FUNCTION__);
 	}
 
 	if (randB.type != -1) {
 		if (randB.type == 0) {
 			randB = internal_getDefaultRDP(1, size_in.x * size_in.y * size_in.z, self->super.s->length);
 		}
-		self->super.ecx->setError(self->super.ecx, self->B->randomize(self->B, randB.type, randB.a, randB.b));
+		self->super.ecx->setError(self->super.ecx, self->B->randomize(self->B, randB.type, randB.a, randB.b),"%s:%d %s",__FILE__,__LINE__,__FUNCTION__);
 	}
 	ecx->popstack(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaBatchNorm_release;
-	self->super.propagation = (int (*)(void *)) CamadaBatchNorm_propagation;
+	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaBatchNorm_propagation;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaBatchNorm_retroPropagationBatch;
 	self->super.retroPropagationBatchLearn = (int (*)(void *)) CamadaBatchNorm_retroPropagationBatchLearn;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaBatchNorm_backpropagation;

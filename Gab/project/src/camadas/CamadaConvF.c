@@ -7,6 +7,7 @@
 
 static const char *lname = "ConvolucaoF";
 
+
 static void CamadaConvF_release(CamadaConvF *self_p) {
 	if (!self_p) {
 		return;
@@ -30,49 +31,121 @@ static void CamadaConvF_release(CamadaConvF *self_p) {
 	Release((*self_p)->convFCalcGradAndFixWeight);
 	Release((*self_p)->convFCalcGradBatch);
 	Release((*self_p)->kernel_fixW);
+	ReleaseKernel((*self_p)->conv);
+	ReleaseKernel((*self_p)->calc_dz);
+	ReleaseKernel((*self_p)->calc_da);
+	ReleaseKernel((*self_p)->calc_dw);
+	ReleaseKernel((*self_p)->calc_dw_batch);
+	ReleaseKernel((*self_p)->calc_db);
+	ReleaseKernel((*self_p)->calc_db_batch);
+	ReleaseKernel((*self_p)->corrige_peso);
 	gab_free(*self_p);
 	*self_p = NULL;
 }
 
-static int CamadaConvF_propagation(CamadaConvF self) {
-	KExec_convFSum(convFSum, self->super.s->length, self->W->data, self->B->data, self->super.a->data, self->z->data, self->super.s->data, self->passox, self->passoy, self->super.s->x, self->super.s->y, self->super.a->x, self->super.a->y, self->W->x, self->W->y, self->W->z, self->activationFuntion);
-	return self->super.ecx->error;
+
+static Tensor CamadaConvF_propagation(CamadaConvF self, Tensor a) {
+	Super.a = a;
+	setKernelArg(self->conv, 0, void *, Super.a->data);
+	setKernelArg(self->conv, 1, void *, self->W->data);
+	setKernelArg(self->conv, 2, void *, self->B->data);
+	setKernelArg(self->conv, 3, void *, self->z->data);
+	setKernelArg(self->conv, 4, void *, Super.s->data);
+	runr_kernel(Super.ecx->error, self->conv, Super.s->length, *Super.maxcompute, 5)
+	return Super.s;
+	handle_error:
+	fprintf(stderr, "Error %d\n", Super.ecx->error);
+	return NULL;
 }
 
 static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
-	if (self->super.da || !self->super.params.skipLearn) {
-		Execute(convFCalcGradZ, self->super.s->length, &ds->data, &self->z->data, &self->dz->data, &self->derivationFuntion);
+	// calcula dz
+	setKernelArgt(self->calc_dz, 0, self->dz->data);
+	setKernelArgt(self->calc_dz, 1, ds->data);
+	setKernelArgt(self->calc_dz, 2, self->z->data);
+	setKernelArgt(self->calc_dz, 3, Super.s->data);
+	runr_kernel(Super.ecx->error, self->calc_dz, self->dz->length, *Super.maxcompute, 4);
+
+	if (Super.da) {
+		setKernelArgt(self->calc_da, 0, Super.da->data);
+		setKernelArgt(self->calc_da, 1, self->dz->data);
+		setKernelArgt(self->calc_da, 2, self->W->data);
+		runr_kernel(Super.ecx->error, self->calc_da, Super.da->length, *Super.maxcompute, 3);
+
 	}
-	if (self->super.da) {
-		KExec_convFCalcGradIn(convFCalcGradIn, self->super.da->length, self->W->data, self->super.da->data, self->dz->data, self->W->x, self->W->y, self->W->z, self->passox, self->passoy, self->super.da->x, self->super.da->y, self->super.s->x, self->super.s->y, self->super.s->z);
+
+	if (!Super.params.skipLearn) {
+		setKernelArgt(self->calc_dw, 0, self->W->data);
+		setKernelArgt(self->calc_dw, 1, self->dW->data);
+		setKernelArgt(self->calc_dw, 2, self->dz->data);
+		setKernelArgt(self->calc_dw, 3, Super.a->data);
+		setKernelArgt(self->calc_dw, 4, Super.params.hitlearn);
+		runr_kernel(Super.ecx->error, self->calc_dw, self->dW->length, *Super.maxcompute, 5);
+		setKernelArgt(self->calc_db, 0, self->B->data);
+		setKernelArgt(self->calc_db, 1, self->dB->data);
+		setKernelArgt(self->calc_db, 2, self->dz->data);
+		setKernelArgt(self->calc_db, 3, Super.params.hitlearn);
+		runr_kernel(Super.ecx->error, self->calc_db, self->dB->length, *Super.maxcompute, 4);
+
 	}
-	if (!self->super.params.skipLearn) {
-		KExec_convFCalcGradBAndFix(convFCalcGradBAndFix, self->dB->length, self->B->data, self->dB->data, self->dz->data, self->dz->x, self->dz->y, self->super.params.hitlearn, self->super.params.momento, self->super.params.decaimento);
-		KExec_convFCalcGradAndFixWeight(convFCalcGradAndFixWeight, self->W->length, self->W->data, self->dz->data, self->super.a->data, self->dW->data, self->W->x, self->W->y, self->W->z, self->super.a->x, self->super.a->y, self->super.s->x, self->super.s->y, self->passox, self->passoy, self->super.params.hitlearn, self->super.params.momento, self->super.params.decaimento);
-	}
-	return self->super.ecx->error;
+	return Super.ecx->error;
+	handle_error:
+	fprintf(stderr, "Error %d\n", Super.ecx->error);
+	return Super.ecx->error;;
 }
 
+
 static int CamadaConvF_backpropagationBatch(CamadaConvF self, Tensor ds, size_t batchSize) {
-	if (self->super.da || !self->super.params.skipLearn) {
-		Execute(convFCalcGradZ, self->super.s->length, &ds->data, &self->z->data, &self->dz->data, &self->derivationFuntion);
+
+	setKernelArgt(self->calc_dz, 0, self->dz->data);
+	setKernelArgt(self->calc_dz, 1, ds->data);
+	setKernelArgt(self->calc_dz, 2, self->z->data);
+	setKernelArgt(self->calc_dz, 3, Super.s->data);
+	runr_kernel(Super.ecx->error, self->calc_dz, self->dz->length, *Super.maxcompute, 4);
+
+
+	if (Super.da) {
+		setKernelArgt(self->calc_da, 0, Super.da->data);
+		setKernelArgt(self->calc_da, 1, self->dz->data);
+		setKernelArgt(self->calc_da, 2, self->W->data);
+		runr_kernel(Super.ecx->error, self->calc_da, Super.da->length, *Super.maxcompute, 3);
 	}
-	if (self->super.da) {
-		KExec_convFCalcGradIn(convFCalcGradIn, self->super.da->length, self->W->data, self->super.da->data, self->dz->data, self->W->x, self->W->y, self->W->z, self->passox, self->passoy, self->super.a->x, self->super.a->y, self->super.s->x, self->super.s->y, self->super.s->z);
+	if (!Super.params.skipLearn) {
+		setKernelArgt(self->calc_dw_batch, 0, self->dW->data);
+		setKernelArgt(self->calc_dw_batch, 1, self->dz->data);
+		setKernelArgt(self->calc_dw_batch, 2, Super.a->data);
+		setKernelArgt(self->calc_dw_batch, 3, batchSize);
+		runr_kernel(Super.ecx->error, self->calc_dw_batch, self->dW->length, *Super.maxcompute, 4);
+//		calc_dw_batch(self,batchSize);
+		setKernelArgt(self->calc_db_batch, 0, self->dB->data);
+		setKernelArgt(self->calc_db_batch, 1, self->dz->data);
+		setKernelArgt(self->calc_db_batch, 2, batchSize);
+		runr_kernel(Super.ecx->error, self->calc_db_batch, self->dB->length, *Super.maxcompute, 3);
+
 	}
-	if (!self->super.params.skipLearn) {
-		KExec_convFCalcGradBBatch(convFCalcGradBBatch, self->dB->length, self->dB->data, self->dz->data, self->dz->x, self->dz->y, batchSize);
-		KExec_convFCalcGradBatch(convFCalcGradBatch, self->dW->length, self->dz->data, self->super.a->data, self->dW->data, batchSize, self->W->x, self->W->y, self->W->z, self->super.a->x, self->super.a->y, self->super.s->x, self->super.s->y, self->passox, self->passoy);
-	}
-	return self->super.ecx->error;
+	return Super.ecx->error;
+	handle_error:
+	fprintf(stderr, "Error %d\n", Super.ecx->error);
+	return Super.ecx->error;;
 }
 
 static int CamadaConvF_learnBatch(CamadaConvF self) {
-	if (!self->super.params.skipLearn) {
-		KExec_kernel_fixW(kernel_fixW, self->W->length, self->W->data, self->dW->data, self->super.params.hitlearn, self->super.params.momento, self->super.params.decaimento);
-		KExec_kernel_fixW(kernel_fixW, self->B->length, self->B->data, self->dB->data, self->super.params.hitlearn, self->super.params.momento, self->super.params.decaimento);
+	if (!Super.params.skipLearn) {
+		setKernelArgt(self->corrige_peso, 0, self->W->data);
+		setKernelArgt(self->corrige_peso, 1, self->dW->data);
+		setKernelArgt(self->corrige_peso, 2, Super.params.hitlearn);
+		runr_kernel(Super.ecx->error, self->corrige_peso, self->W->length, *Super.maxcompute, 3);
+
+		setKernelArgt(self->corrige_peso, 0, self->B->data);
+		setKernelArgt(self->corrige_peso, 1, self->dB->data);
+		setKernelArgt(self->corrige_peso, 2, Super.params.hitlearn);
+		runr_kernel(Super.ecx->error, self->corrige_peso, self->B->length, *Super.maxcompute, 3);
+
 	}
-	return self->super.ecx->error;
+	return Super.ecx->error;
+	handle_error:
+	fprintf(stderr, "Error %d\n", Super.ecx->error);
+	return Super.ecx->error;;
 }
 
 static char *CamadaConvF_json(CamadaConvF self, int showValues) {
@@ -83,7 +156,7 @@ static char *CamadaConvF_json(CamadaConvF self, int showValues) {
 			PAD"%s,\n"
 			PAD"\"functionActivation\":%d,\n"
 			PAD"\"passo\":[%zu,%zu],\n"
-			PAD"\"numero_filtros\":%zu", tmp, self->activationFuntion, self->passox, self->passoy, self->W->w);
+			PAD"\"numero_filtros\":%zu", tmp, self->fa.id, self->passox, self->passoy, self->W->w);
 	gab_free(tmp);
 	apendTensor("filtros", W, string, len, tmp, showValues);
 	apendTensor("grad_filtros", dW, string, len, tmp, showValues);
@@ -94,44 +167,38 @@ static char *CamadaConvF_json(CamadaConvF self, int showValues) {
 static char *CamadaConvF_getGenerate(CamadaConvF self) {
 	char *string = NULL;
 	int len = 0;
-	GEN_LAYERNAME(string,len);
-	GENN_P2D(P2D(self->passox,self->passoy),string,len);
-	GENN_P3D(P3D(self->W->x,self->W->y,self->W->w),string,len);
-	GENN_PARAMS(self->super.params,string,len);
-	GEN_RDP(self->rdp_filtros,string,len);
-	GEN_END(string,len);
-//	apendstr(string, len, "%s (P2D(%zu, %zu), P3D(%zu, %zu, %zu), %s, Params(%g, %g, %g, %d), RDP(%d, %g, %g))", lname, self->passox, self->passoy, self->W->x, self->W->y, self->W->w, F_ATIVACAO_NAME(self->activationFuntion), (double) self->super.params.hitlearn, (double) self->super.params.momento, (double) self->super.params.decaimento, self->super.params.skipLearn, self->rdp_filtros.type, (double) self->rdp_filtros.a, (double) self->rdp_filtros.b);
+	GEN_LAYERNAME(string, len);
+	GENN_P2D(P2D(self->passox, self->passoy), string, len);
+	GENN_P3D(P3D(self->W->x, self->W->y, self->W->w), string, len);
+	GENN_PARAMS(Super.params, string, len);
+	GEN_RDP(self->rdp_filtros, string, len);
+	GEN_END(string, len);
+//	apendstr(string, len, "%s (P2D(%zu, %zu), P3D(%zu, %zu, %zu), %s, Params(%g, %g, %g, %d), RDP(%d, %g, %g))", lname, self->passox, self->passoy, self->W->x, self->W->y, self->W->w, F_ATIVACAO_NAME(self->fa), (double) Super.params.hitlearn, (double) Super.params.momento, (double) Super.params.decaimento, Super.params.skipLearn, self->rdp_filtros.type, (double) self->rdp_filtros.a, (double) self->rdp_filtros.b);
 
 	return string;
 }
 
-/**
- * Salva a camada conv em um arquivo
- * camada
- * passo x,y
- * filtro x,y,w
- * função de ativação
- * filtros
- * @param self camada
- * @param f arquivo para salvar
- * @return 0 caso não detecte nenhuma falha
- */
+
 static int CamadaConvF_save(CamadaConvF self, FILE *f) {
-	if (self->super.ecx->error) {
+	if (Super.ecx->error) {
 		goto end;
 	}
-	self->super.ecx->addstack(self->super.ecx, "CamadaConvF_save");
+	Super.ecx->addstack(Super.ecx, "CamadaConvF_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->passox, 1, sizeof(size_t), f);
 	fwrite(&self->passoy, 1, sizeof(size_t), f);
 	fwrite(&self->W->x, 1, sizeof(size_t), f);
 	fwrite(&self->W->y, 1, sizeof(size_t), f);
 	fwrite(&self->W->w, 1, sizeof(size_t), f);
-	fwrite(&self->activationFuntion, 1, sizeof(uint32_t), f);
+	fwrite(&self->fa.mask, 1, sizeof(FAtivacao_t), f);
+	fwrite(&self->pad_top, 1, sizeof(uint32_t), f);
+	fwrite(&self->pad_bottom, 1, sizeof(uint32_t), f);
+	fwrite(&self->pad_left, 1, sizeof(uint32_t), f);
+	fwrite(&self->pad_right, 1, sizeof(uint32_t), f);
 	internal_saveTensor(f, self->W);
 	end:
-	self->super.ecx->popstack(self->super.ecx);
-	return self->super.ecx->error;
+	Super.ecx->popstack(Super.ecx);
+	return Super.ecx->error;
 }
 
 Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
@@ -139,7 +206,7 @@ Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 	Parametros parametros;
 	P3d size_in;
 	uint32_t size_element;
-	uint32_t fativacao;
+	FAtivacao_t fativacao;
 	P2d passo;
 	P3d filtro;
 	internal_loadCamada(f, &parametros, &size_in, &size_element);
@@ -148,9 +215,13 @@ Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 	fread(&filtro.x, sizeof(size_t), 1, f);
 	fread(&filtro.y, sizeof(size_t), 1, f);
 	fread(&filtro.z, sizeof(size_t), 1, f);
-	fread(&fativacao, sizeof(uint32_t), 1, f);
-
-	CamadaConvF self = (CamadaConvF) CamadaConvF_new(gpu, queue, passo, filtro, size_in, fativacao, entrada, parametros, ecx, RDP(-1));
+	fread(&fativacao, sizeof(FAtivacao_t), 1, f);
+	uint32_t top, bottom, left, right;
+	fread(&top, 1, sizeof(uint32_t), f);
+	fread(&bottom, 1, sizeof(uint32_t), f);
+	fread(&left, 1, sizeof(uint32_t), f);
+	fread(&right, 1, sizeof(uint32_t), f);
+	CamadaConvF self = (CamadaConvF) CamadaConvF_new(gpu, queue, size_in, entrada, ecx, passo, filtro, fativacao, top, bottom, left, right, parametros, RDP(-1));
 	internal_loadTensor(f, self->W, size_element);
 	end:
 	ecx->popstack(ecx);
@@ -168,16 +239,20 @@ int CamadaConvF_fprintf(CamadaConvF self, FILE *destino, char *format, ...) {
 	return 0;
 }
 
-Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in, FAtivacao_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros) {
+Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t ativacao, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right, Parametros params, RandomParams rdp_filtros) {
 	ECXPOP(ecx);
 	CamadaConvF self = gab_alloc(1, sizeof(CamadaConvF_t));
-	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1, filtro.z};
+	self->pad_top = top;
+	self->pad_bottom = bottom;
+	self->pad_left = left;
+	self->pad_right = right;
+	P3d size_out = {(size_in.x + self->pad_top + self->pad_bottom - filtro.x) / passo.x + 1, (size_in.y + self->pad_left + self->pad_right - filtro.y) / passo.y + 1, filtro.z};
 	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAOF_ID, lname, params, entrada, size_in, size_out, ecx);
-	self->activationFuntion.mask =  ativacao;
-	if(self->activationFuntion.id == FRELU){
-		self->activationFuntion.mask = FATIVACAO(FLRELU,0,1);
+	self->fa.mask = ativacao;
+	if (self->fa.id == FRELU) {
+		self->fa.mask = FATIVACAO(FLRELU, 0, 1);
 	}
-	self->derivationFuntion = ativacao| FLAGDIF;
+	self->derivationFuntion = ativacao | FLAGDIF;
 	self->dW = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
 	self->dW->fill(self->dW, 0);
 	self->B = Tensor_new(1, 1, filtro.z, 1, ecx, TENSOR3D, gpu->context, queue);
@@ -193,35 +268,300 @@ Camada CamadaConvF_new(Gpu gpu, Queue queue, P2d passo, P3d filtro, P3d size_in,
 	self->rdp_filtros = rdp_filtros;
 	if (rdp_filtros.type != -1) {
 		if (rdp_filtros.type == 0) {
-			rdp_filtros = internal_getDefaultRDP(ativacao == FLRELU, filtro.x * filtro.y * size_in.z, self->super.s->length);
+			rdp_filtros = internal_getDefaultRDP(ativacao == FLRELU, filtro.x * filtro.y * size_in.z, Super.s->length);
 		}
-		self->super.ecx->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
+		Super.ecx->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
 		if (ecx->error) {
 			goto methods;
 		}
 	}
 	self->passox = passo.x;
 	self->passoy = passo.y;
-	Knew_convFSum(self->convFSum);
-	Knew_convFCalcGradZ(self->convFCalcGradZ);
-	Knew_convFCalcGradBAndFix(self->convFCalcGradBAndFix);
-	Knew_convFCalcGradBBatch(self->convFCalcGradBBatch);
-	Knew_convFCalcGradIn(self->convFCalcGradIn);
-	Knew_convFCalcGradAndFixWeight(self->convFCalcGradAndFixWeight);
-	Knew_convFCalcGradBatch(self->convFCalcGradBatch);
-	Knew_kernel_fixW(self->kernel_fixW);
+	// kernel macros
+	{
+		COD(DEFAULT_COD);
+	}
+	// kernel de soma de convolução
+	{
+		COD("__kernel void sum ("
+			"__global REAL *A, "
+			" __global REAL *W, "
+			"__global REAL *B, "
+			"__global REAL *Z, "
+			"__global REAL *S, "
+			"int k0){\n""	int k = get_global_id(0) + k0  ;\n"
+			"	int x, y, w;\n"
+			"	kRap(k, x, y, w, %zu, %zu);\n"
+			"	REAL sum, f, v;\n"
+			"	int lf, le;\n",
+			size_out.x, size_out.y)
+		IFCOD(passo.x != 1, "	x = x * %zu;\n", passo.x);
+		IFCOD(passo.y != 1, "	y = y * %zu;\n", passo.y);
+
+		COD("	int m0 = 0, mf = %zu;\n"
+			"	if(x<%zu){ m0 = %zu;}\n"
+			"	if(x+mf >= %zu){mf = %llu - x;}\n",
+			filtro.x,
+			self->pad_top, self->pad_top,
+			self->pad_top + size_in.x, size_in.x + self->pad_top
+		   )
+		COD("	int n0 = 0, nf = %zu;\n"
+			"	if(y<%zu){ n0 = %zu;}\n"
+			"	if(y+nf >= %zu){nf = %llu - y ;}\n",
+			filtro.y,
+			self->pad_left, self->pad_left,
+			self->pad_left + size_in.y, size_in.y + self->pad_left
+		   )
+
+		COD("	sum = B[w];\n"
+			"	for (int z = 0; z < %zu; z++) {\n"
+			"		for (int m = m0; m < mf; m++) {\n"
+			"			for (int n = n0; n < nf; n++) {\n"
+			"				lf = kMap4D(m, n, z, w, %zu, %zu, %zu);\n"
+			"				le = kMap(x  + m - %zu, y + n - %zu, z, %zu, %zu);\n"
+			"				f = W[lf];\n"
+			"				v = A[le];\n"
+			"				sum += f * v;\n"
+			//			"				printf(\"(%%d,%%d,%%d,%%d) = %%.10f , %%.10f,%%.10f\\n\",m,n,z,w,f,v,f*v);"
+			"			}\n"
+			"		}\n"
+			"	}\n"
+			"	Z[k] = sum;\n",
+			size_in.z, filtro.x, filtro.y, size_in.z,
+			self->pad_top, self->pad_left, size_in.x, size_in.y)
+		switch (self->fa.id) {
+			case FLRELU:
+				IFCOD(self->fa.greater == 1.0, "\tS[k] = sum > 0? sum:") ELSECOD("\tS[k] = sum > 0? sum *%.10f:", self->fa.greater)
+				IFCOD(self->fa.less == 0.0, "0.0;\n}\n") ELSECOD("sum*%.10f;\n}\n", self->fa.less);
+				break;
+			case FSIGMOID: COD("\tS[k] =  1.0 / (1.0 + exp(-sum));\n}\n")
+				break;
+			case FTANH: COD("\tS[k] = tanh(sum);\n}\n")
+				break;
+			case FLIN: COD("\tS[k] = sum;\n}\n")
+				break;
+			case FALAN: COD("\tS[k] = sum >1.0?log10(sum) + 0.7615941559557649:"
+							"(sum<-1.0?-log10(-sum) - 0.7615941559557649:tanh(sum));\n}\n")
+				break;
+		}
+
+	}
+
+	// kernel de retro propagação
+	{
+		COD("typedef struct {\n"
+			"\tint x, y, z;\n"
+			"} Ponto3d;\n"
+			"\n"
+			"typedef struct {\n"
+			"\tPonto3d min, max;\n"
+			"} Range;\n");
+		COD("__kernel void calc_dz("
+			"__global REAL * dz, "
+			"__global REAL * ds, "
+			"__global REAL * z, "
+			"__global REAL * s, "
+			"int k0"
+			") {\n\tint m = get_global_id(0) + k0;\n");
+		switch (self->fa.id) {
+			case FLRELU:
+				IFCOD(self->fa.greater == 1.0, "\tdz[m] = ds[m] * (z[m] > 0? 1.0:") ELSECOD("\tdz[m] = ds[m] * ( z[m] > 0? %.12f:", self->fa.greater)
+				IFCOD(self->fa.less == 0.0, "0.0);") ELSECOD("%.12f);", self->fa.less);
+				break;
+			case FSIGMOID: COD("\tdz[m] = ds[m] * s[m] * ( 1.0 - s[m]);")
+				break;
+			case FTANH: COD("\tdz[m] = ds[m] * (1.0 - s[m] * s[m]);")
+				break;
+			case FLIN: COD("\tdz[m] = ds[m];")
+				break;
+			case FALAN: COD("\tREAL tmp = z[m] >1.0? 0.419978/ (z[m]):(z[m]<-1.0?-0.419978/ (z[m]): 1 - s[m] * s[m]);\n"
+							"\tdz[m] = tmp * ds[m];")
+				break;
+			default:
+				Super.ecx->setError(Super.ecx, GAB_INVALID_PARAM, "%s:%d %s", __FILE__, __LINE__, __FUNCTION__);
+				fprintf(stderr, "Função de ativação desconhecida\n");
+				goto methods;
+		}
+		COD("\n}\n")
+		COD("__kernel void calc_da("
+			"__global REAL *da, "
+			"__global REAL *dz, "
+			"__global REAL *W, "
+			"int k0"
+			"){\n"
+			"  int k = get_global_id(0) + k0;\n"
+			"  int x, y, z;\n"
+			"  kRap(k, x, y, z, %zu, %zu)\n", size_in.x, size_in.y)
+		IFCOD(self->pad_top, "  x = x + %zu;", self->pad_top);
+		IFCOD(self->pad_left, "  y = y + %zu;", self->pad_left);
+		COD("  Range range_W;\n"
+			"  range_W.min.x = 0;\n"
+			"  if (x + %zu > %zu) {\n"
+			"    range_W.min.x = x + %zu - %zu;\n"
+			"  }\n", filtro.x, size_in.x + self->pad_top + self->pad_bottom, filtro.x, size_in.x + self->pad_top + self->pad_bottom)
+
+		COD("  range_W.max.x = %zu - 1;\n"
+			"  if (x - %zu + 1 < 0) {\n"
+			"    range_W.max.x = x;\n"
+			"  }\n", filtro.x, filtro.x)
+
+		COD("  range_W.min.y = 0;\n"
+			"  if (y + %zu > %zu) {\n"
+			"    range_W.min.y = y + %zu - %zu;\n"
+			"  }\n", filtro.y, size_in.y + self->pad_left + self->pad_right, filtro.y, size_in.y + self->pad_left + self->pad_right)
+
+		COD("  range_W.max.y = %zu - 1;\n"
+			"  if (y - %zu + 1 < 0) {\n"
+			"    range_W.max.y = y;\n"
+			"  }\n", filtro.y, filtro.y)
+
+		COD("  REAL somaErro = 0, pesoAplicado = 0;\n"
+			"  int i, j;\n"
+			"  int lf, ls;\n"
+			"  for (int m = range_W.min.x; m <= range_W.max.x; m++) {\n"
+			"    i = (x - m) / %zu;\n", passo.x)
+		COD("    if (i * %zu + m != x) {\n"
+			"      continue;\n"
+			"    }\n", passo.x)
+		COD("    for (int n = range_W.min.y; n <= range_W.max.y; n++) {\n"
+			"      j = (y - n) / %zu;\n"
+			"      if (j * %zu + n != y) {\n"
+			"        continue;\n"
+			"      }\n", passo.y, passo.y)
+		COD("      for (int w = 0; w < %zu; w++) {\n", size_out.z)
+		COD("        lf = kMap4D(m, n, z, w, %zu, %zu, %zu);\n", filtro.x, filtro.y, size_in.z)
+		COD("        ls = kMap(i, j, w, %zu, %zu);\n", size_out.x, size_out.y)
+		COD("        pesoAplicado = W[lf];\n"
+			"        somaErro += pesoAplicado * dz[ls];\n"
+			"      }\n"
+			"    }\n"
+			"  }\n"
+			"  da[k] = somaErro;"
+			"\n}\n")
+
+		COD("__kernel void calc_dw("
+			"__global REAL * W, "
+			"__global REAL * dW, "
+			"__global REAL * dz, "
+			"__global REAL * a, "
+			"REAL learnRate, "
+			"int k0){\n"
+			"    int k = get_global_id(0) + k0;\n"
+			"    int m, n, z, l;\n"
+			"    kRep4D(k, m, n, z, l, %zu, %zu, %zu)\n", filtro.x, filtro.y, size_in.z)
+
+		COD("    REAL soma = 0;\n"
+			"    int le, ls;\n"
+			"    int x,y;\n"
+			"    for (int i = 0; i < %zu; ++i) {\n", size_out.x)
+		COD("        x = i * %zu + m - %zu;\n"
+			"        if(x<0)continue;\n", passo.x, self->pad_top)
+		COD("        if(x>=%zu)continue;\n", size_in.x)
+		COD("        for (int j = 0; j < %zu; ++j) {\n", size_out.y)
+		COD("            y = j * %zu + n - %zu;\n", passo.y, self->pad_left)
+		COD("            if(y<0)continue;\n")
+		COD("            if(y>=%zu)continue;\n", size_in.y)
+		COD("            le = kMap(x, y, z, %zu, %zu);\n", size_in.x, size_in.y)
+
+		COD("            ls = kMap(i, j, l, %zu, %zu);\n", size_out.x, size_out.y)
+		COD("            soma += a[le] * dz[ls];\n"
+			"        }\n"
+			"    }\n"
+			"    dW[k] = soma + dW[k] * %.10f;\n", Super.params.momento);
+		COD("    CORRIGIR_PESOS(W[k],dW[k],learnRate,%.10f);\n}\n", Super.params.decaimento)
+
+		COD("__kernel void calc_dw_batch("
+			"__global REAL * dW, "
+			"__global REAL * dz, "
+			"__global REAL * a, "
+			"long batch_size, "
+			"int k0){\n"
+			"    int k = get_global_id(0) + k0;\n"
+			"    int m, n, z, l;\n"
+			"    kRep4D(k, m, n, z, l, %zu, %zu, %zu)\n", filtro.x, filtro.y, size_in.z)
+
+		COD("    REAL soma = 0;\n"
+			"    int le, ls;\n"
+			"    int x,y;\n"
+			"    for (int i = 0; i < %zu; ++i) {\n", size_out.x)
+		COD("        x = i * %zu + m - %zu;\n"
+			"        if(x<0)continue;\n", passo.x, self->pad_top)
+		COD("        if(x>=%zu)continue;\n", size_in.x)
+		COD("        for (int j = 0; j < %zu; ++j) {\n", size_out.y)
+		COD("            y = j * %zu + n - %zu;\n", passo.y, self->pad_left)
+		COD("            if(y<0)continue;\n")
+		COD("            if(y>=%zu)continue;\n", size_in.y)
+		COD("            le = kMap(x, y, z, %zu, %zu);\n", size_in.x, size_in.y)
+
+		COD("            ls = kMap(i, j, l, %zu, %zu);\n", size_out.x, size_out.y)
+		COD("            soma += a[le] * dz[ls];\n"
+			"        }\n"
+			"    }\n"
+			"    dW[k] = soma/batch_size + dW[k] ;\n}\n");
+
+
+		COD("__kernel void calc_db("
+			"__global REAL *B, "
+			"__global REAL *dB, "
+			"__global REAL *dZ, "
+			"REAL learnRate, "
+			"int k0"
+			"){\n"
+			"	int w = get_global_id(0) + k0;"
+			"	REAL sum = 0;\n"
+			"	for (int x = 0; x < %zu; ++x) {\n"
+			"		for (int y = 0; y < %zu; ++y) {\n", self->dz->x, self->dz->y)
+		COD("			sum += dZ[kMap(x, y, w, %zu, %zu)];\n", self->dz->x, self->dz->y)
+		COD("		}\n	}\n"
+			"	dB[w] = sum + dB[w] * %.10f;", Super.params.momento)
+		COD("	CORRIGIR_PESOS(B[w],dB[w],learnRate,%f);\n}\n", Super.params.decaimento)
+
+		COD("__kernel void calc_db_batch("
+			"__global REAL *dB, "
+			"__global REAL *dZ, "
+			"long batchSize, "
+			"int k0"
+			"){\n"
+			"	int w = get_global_id(0) + k0;"
+			"	REAL sum = 0;\n"
+			"	for (int x = 0; x < %zu; ++x) {\n"
+			"		for (int y = 0; y < %zu; ++y) {\n", self->dz->x, self->dz->y)
+		COD("			sum += dZ[kMap(x, y, w, %zu, %zu)];\n", self->dz->x, self->dz->y)
+		COD("		}\n	}\n"
+			"	dB[w] = sum/batchSize + dB[w] ;"
+			"\n}\n")
+
+		COD("__kernel void corrige_peso(__global REAL *w, __global REAL *dw, REAL learnRate, int k0){\n"
+			"	int k = get_global_id(0) + k0;\n"
+			"	CORRIGIR_PESOS(w[k],dw[k],learnRate,%f);"
+			"	dw[k] = dw[k]*%.10f;\n"
+			"\n}\n", Super.params.decaimento, Super.params.momento)
+
+	}
+//	printf("%s\n", Super.kernel);
+	internal_compile((Camada) self, gpu);
+
+	self->conv = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "sum", Super.ecx->perro);
+	self->calc_dz = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "calc_dz", Super.ecx->perro);
+	self->calc_da = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "calc_da", Super.ecx->perro);
+	self->calc_dw = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "calc_dw", Super.ecx->perro);
+	self->calc_dw_batch = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "calc_dw_batch", Super.ecx->perro);
+	self->calc_db = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "calc_db", Super.ecx->perro);
+	self->calc_db_batch = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "calc_db_batch", Super.ecx->perro);
+	self->corrige_peso = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "corrige_peso", Super.ecx->perro);
+
 
 	ECXPOP(ecx);
 	methods:
-	self->super.release = (void (*)(void *)) CamadaConvF_release;
-	self->super.propagation = (int (*)(void *)) CamadaConvF_propagation;
-	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaConvF_backpropagation;
-	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaConvF_backpropagationBatch;
-	self->super.retroPropagationBatchLearn = (int (*)(void *)) CamadaConvF_learnBatch;
-	self->super.json = (char *(*)(void *, int)) CamadaConvF_json;
-	self->super.getGenerate = (char *(*)(void *)) CamadaConvF_getGenerate;
-	self->super.save = (int (*)(void *, FILE *)) CamadaConvF_save;
-	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaConvF_fprintf;
+	Super.release = (void (*)(void *)) CamadaConvF_release;
+	Super.propagation = (Tensor (*)(void *, Tensor)) CamadaConvF_propagation;
+	Super.retroPropagation = (int (*)(void *, Tensor)) CamadaConvF_backpropagation;
+	Super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaConvF_backpropagationBatch;
+	Super.retroPropagationBatchLearn = (int (*)(void *)) CamadaConvF_learnBatch;
+	Super.json = (char *(*)(void *, int)) CamadaConvF_json;
+	Super.getGenerate = (char *(*)(void *)) CamadaConvF_getGenerate;
+	Super.save = (int (*)(void *, FILE *)) CamadaConvF_save;
+	Super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaConvF_fprintf;
 	return (Camada) self;
 }
 

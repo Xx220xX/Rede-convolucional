@@ -30,9 +30,10 @@ static void CamadaPRelu_release(CamadaPRelu *self_p) {
 	*self_p = NULL;
 }
 
-static int CamadaPRelu_propagation(CamadaPRelu self) {
+static Tensor CamadaPRelu_propagation(CamadaPRelu self,Tensor a) {
+	self->super.a = a;
 	Execute(preluativa, self->super.s->length, &self->super.a->data, &self->super.s->data, &self->W->data);
-	return self->super.ecx->error;
+	return self->super.s;
 }
 
 static int CamadaPRelu_backpropagation(CamadaPRelu self, Tensor ds) {
@@ -168,7 +169,7 @@ Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parame
 	ECXPOP(ecx);
 	methods:
 	self->super.release = (void (*)(void *)) CamadaPRelu_release;
-	self->super.propagation = (int (*)(void *)) CamadaPRelu_propagation;
+	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaPRelu_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPRelu_backpropagation;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaPRelu_backpropagationBatch;
 	self->super.retroPropagationBatchLearn = (int (*)(void *)) CamadaPRelu_learnBatch;

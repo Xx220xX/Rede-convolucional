@@ -7,7 +7,7 @@
 #include<stdlib.h>
 
 
-#define check_error(error, end)if(error){char *err = Gpu_errormsg(error);fflush(stdout); fprintf(stderr,"Error %d  in file %s at line %d\n%s\n",error,__FILE__,__LINE__,err); \
+#define check_error_gpu(error, end)if(error){char *err = Gpu_errormsg(error);fflush(stdout); fprintf(stderr,"Error %d  in file %s at line %d\n%s\n",error,__FILE__,__LINE__,err); \
 fflush(stderr);gab_free(err);goto end;}
 
 #define asprintf(str, format, ...){int len = snprintf(NULL,0,format,## __VA_ARGS__);\
@@ -54,7 +54,7 @@ cl_program compileProgram(cl_context ct, cl_device_id dv, const char *source, in
 												   &length, // tamanho de cada string
 												   error   // error check
 												  );
-	check_error(*error, end);
+	check_error_gpu(*error, end);
 	*error = clBuildProgram(program, 1, &dv, NULL, NULL, NULL);
 	if (*error != CL_SUCCESS) {
 		char *buff = NULL;
@@ -77,20 +77,20 @@ Gpu Gpu_new() {
 	self->type_device = CL_DEVICE_TYPE_GPU;
 	// get platform
 	self->error = clGetPlatformIDs(1, &self->platformId, NULL);
-	check_error(self->error, metodos);
+	check_error_gpu(self->error, metodos);
 	// get device
 	self->error = clGetDeviceIDs(self->platformId, self->type_device, 1, &self->device, NULL);
-	check_error(self->error, metodos);
-	// max compute
+	check_error_gpu(self->error, metodos);
+	// maxcompute
 	self->error = clGetDeviceInfo(self->device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &self->compute_units, NULL);
-	check_error(self->error, metodos);
+	check_error_gpu(self->error, metodos);
 	// create context
 	self->context = clCreateContext(NULL, 1, &self->device, 0, NULL, &self->error);
-	check_error(self->error, metodos);
+	check_error_gpu(self->error, metodos);
 	// max work group
 	size_t maxLW = 1;
 	self->error = clGetDeviceInfo(self->device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxLW, NULL);
-	check_error(self->error, metodos);
+	check_error_gpu(self->error, metodos);
 	self->maxworks = maxLW;
 
 	// metodos
@@ -239,7 +239,7 @@ int Gpu_compileProgram(Gpu self, char *program) {
 	if (self->error) { goto end; }
 	// compile program kernel
 	self->program = compileProgram(self->context, self->device, program, &self->error);
-	check_error(self->error, end);
+	check_error_gpu(self->error, end);
 	end:
 	return self->error;
 }

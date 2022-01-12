@@ -4,10 +4,8 @@ set(CAMADA
         project/include/camadas/camada.h
         project/include/camadas/CamadaBatchNorm.h
         project/include/camadas/CamadaConv.h
-        project/include/camadas/CamadaConvF.h
         project/include/camadas/CamadaConvNC.h
         project/include/camadas/CamadaDropOut.h
-        project/include/camadas/CamadaFullConnect.h
         project/include/camadas/CamadaPadding.h
         project/include/camadas/CamadaPool.h
         project/include/camadas/CamadaPRelu.h
@@ -57,10 +55,8 @@ set(TENSOR
 set(KERNEL_CAMADAS project/kernels/camadas/bathnorm.h
         project/kernels/camadas/cnnutils.h
         project/kernels/camadas/conv.h
-        project/kernels/camadas/convf.h
         project/kernels/camadas/convNc.h
         project/kernels/camadas/dropout.h
-        project/kernels/camadas/fullconnect.h
         project/kernels/camadas/padding.h
         project/kernels/camadas/poolav.h
         project/kernels/camadas/poolMax.h

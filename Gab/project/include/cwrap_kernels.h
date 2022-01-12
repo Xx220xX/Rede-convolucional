@@ -61,44 +61,6 @@
 #define Knew_convCalcGradBatch(x) KRN_new(x, "convCalcGradBatch", 14, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_long), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
 #define KExec_convCalcGradBatch(kname, kernel_iter_Len, Vr_ds, Vr_A, Vr_dW, long_batchSize, int_fx, int_fy, int_fz, int_entrada_tx, int_entrada_ty, int_saida_tx, int_saida_ty, int_passox, int_passoy) Execute(kname, kernel_iter_Len, &Vr_ds, &Vr_A, &Vr_dW, &long_batchSize, &int_fx, &int_fy, &int_fz, &int_entrada_tx, &int_entrada_ty, &int_saida_tx, &int_saida_ty, &int_passox, &int_passoy)
 
-//conv2d.h
-#define Knew_conv2dSum(x) KRN_new(x, "conv2dSum", 16, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_conv2dSum(kname, kernel_iter_Len, Vr_W, Vr_a, Vw_Z, Vw_s, int_px, int_py, int_sx, int_sy, int_ax, int_ay, int_az, int_fx, int_fy, int_fz, int_fid) Execute(kname, kernel_iter_Len, &Vr_W, &Vr_a, &Vw_Z, &Vw_s, &int_px, &int_py, &int_sx, &int_sy, &int_ax, &int_ay, &int_az, &int_fx, &int_fy, &int_fz, &int_fid)
-
-#define Knew_conv2dCalcGradZ(x) KRN_new(x, "conv2dCalcGradZ", 5, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int))
-#define KExec_conv2dCalcGradZ(kname, kernel_iter_Len, Vr_ds, Vr_z, Vw_dz, int_fid) Execute(kname, kernel_iter_Len, &Vr_ds, &Vr_z, &Vw_dz, &int_fid)
-
-#define Knew_conv2dCalcGradIn(x) KRN_new(x, "conv2dCalcGradIn", 14, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_conv2dCalcGradIn(kname, kernel_iter_Len, Vr_W, Vw_da, Vr_dz, int_fx, int_fy, int_fz, int_px, int_py, int_atx, int_aty, int_az, int_sx, int_sy) Execute(kname, kernel_iter_Len, &Vr_W, &Vw_da, &Vr_dz, &int_fx, &int_fy, &int_fz, &int_px, &int_py, &int_atx, &int_aty, &int_az, &int_sx, &int_sy)
-
-#define Knew_conv2dCalcGradAndFixWeight(x) KRN_new(x, "conv2dCalcGradAndFixWeight", 17, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(CL_REAL), sizeof(CL_REAL), sizeof(CL_REAL), sizeof(cl_int))
-#define KExec_conv2dCalcGradAndFixWeight(kname, kernel_iter_Len, Vrw_W, Vr_dz, Vr_a, Vrw_dW, int_fx, int_fy, int_ax, int_ay, int_az, int_sx, int_sy, int_px, int_py, REAL_hitLearn, REAL_momento, REAL_weightDecay) Execute(kname, kernel_iter_Len, &Vrw_W, &Vr_dz, &Vr_a, &Vrw_dW, &int_fx, &int_fy, &int_ax, &int_ay, &int_az, &int_sx, &int_sy, &int_px, &int_py, &REAL_hitLearn, &REAL_momento, &REAL_weightDecay)
-
-#define Knew_conv2dCalcGradBatch(x) KRN_new(x, "conv2dCalcGradBatch", 15, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_long), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_conv2dCalcGradBatch(kname, kernel_iter_Len, Vr_dz, Vr_a, Vr_dW, long_batchSize, int_fx, int_fy, int_fz, int_ax, int_ay, int_az, int_sx, int_sy, int_px, int_py) Execute(kname, kernel_iter_Len, &Vr_dz, &Vr_a, &Vr_dW, &long_batchSize, &int_fx, &int_fy, &int_fz, &int_ax, &int_ay, &int_az, &int_sx, &int_sy, &int_px, &int_py)
-
-//convf.h
-#define Knew_convFSum(x) KRN_new(x, "convFSum", 16, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_convFSum(kname, kernel_iter_Len, Vr_W, Vr_B, Vr_A, Vw_Z, Vw_S, int_px, int_py, int_sx, int_sy, int_atx, int_aty, int_fx, int_fy, int_fz, int_fid) Execute(kname, kernel_iter_Len, &Vr_W, &Vr_B, &Vr_A, &Vw_Z, &Vw_S, &int_px, &int_py, &int_sx, &int_sy, &int_atx, &int_aty, &int_fx, &int_fy, &int_fz, &int_fid)
-
-#define Knew_convFCalcGradZ(x) KRN_new(x, "convFCalcGradZ", 5, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int))
-#define KExec_convFCalcGradZ(kname, kernel_iter_Len, Vr_ds, Vr_z, Vw_dz, int_fid) Execute(kname, kernel_iter_Len, &Vr_ds, &Vr_z, &Vw_dz, &int_fid)
-
-#define Knew_convFCalcGradBAndFix(x) KRN_new(x, "convFCalcGradBAndFix", 9, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(CL_REAL), sizeof(CL_REAL), sizeof(CL_REAL), sizeof(cl_int))
-#define KExec_convFCalcGradBAndFix(kname, kernel_iter_Len, Vrw_B, Vrw_dB, Vr_dZ, int_dzx, int_dzy, REAL_hitLearn, REAL_momento, REAL_weightDecay) Execute(kname, kernel_iter_Len, &Vrw_B, &Vrw_dB, &Vr_dZ, &int_dzx, &int_dzy, &REAL_hitLearn, &REAL_momento, &REAL_weightDecay)
-
-#define Knew_convFCalcGradBBatch(x) KRN_new(x, "convFCalcGradBBatch", 6, sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_long), sizeof(cl_int))
-#define KExec_convFCalcGradBBatch(kname, kernel_iter_Len, Vrw_dB, Vr_dZ, int_dzx, int_dzy, long_batchSize) Execute(kname, kernel_iter_Len, &Vrw_dB, &Vr_dZ, &int_dzx, &int_dzy, &long_batchSize)
-
-#define Knew_convFCalcGradIn(x) KRN_new(x, "convFCalcGradIn", 14, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_convFCalcGradIn(kname, kernel_iter_Len, Vr_W, Vw_da, Vr_dz, int_fx, int_fy, int_fz, int_px, int_py, int_atx, int_aty, int_sx, int_sy, int_sz) Execute(kname, kernel_iter_Len, &Vr_W, &Vw_da, &Vr_dz, &int_fx, &int_fy, &int_fz, &int_px, &int_py, &int_atx, &int_aty, &int_sx, &int_sy, &int_sz)
-
-#define Knew_convFCalcGradAndFixWeight(x) KRN_new(x, "convFCalcGradAndFixWeight", 17, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(CL_REAL), sizeof(CL_REAL), sizeof(CL_REAL), sizeof(cl_int))
-#define KExec_convFCalcGradAndFixWeight(kname, kernel_iter_Len, Vr_W, Vr_dz, Vr_a, Vr_dW, int_fx, int_fy, int_fz, int_a_tx, int_a_ty, int_s_tx, int_s_ty, int_px, int_py, REAL_hitLearn, REAL_momento, REAL_weightDecay) Execute(kname, kernel_iter_Len, &Vr_W, &Vr_dz, &Vr_a, &Vr_dW, &int_fx, &int_fy, &int_fz, &int_a_tx, &int_a_ty, &int_s_tx, &int_s_ty, &int_px, &int_py, &REAL_hitLearn, &REAL_momento, &REAL_weightDecay)
-
-#define Knew_convFCalcGradBatch(x) KRN_new(x, "convFCalcGradBatch", 14, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_long), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_convFCalcGradBatch(kname, kernel_iter_Len, Vr_dz, Vr_a, Vr_dW, long_batchSize, int_fx, int_fy, int_fz, int_a_tx, int_a_ty, int_s_tx, int_s_ty, int_px, int_py) Execute(kname, kernel_iter_Len, &Vr_dz, &Vr_a, &Vr_dW, &long_batchSize, &int_fx, &int_fy, &int_fz, &int_a_tx, &int_a_ty, &int_s_tx, &int_s_ty, &int_px, &int_py)
-
 //convNc.h
 #define Knew_convncSum(x) KRN_new(x, "convncSum", 17, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_int), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_int))
 #define KExec_convncSum(kname, kernel_iter_Len, Vr_W, Vr_A, Vr_Z, Vr_S, unsigned_int_fid, unsigned_int_passox, int_passoy, unsigned_int_largx, unsigned_int_largy, unsigned_int_entradatx, unsigned_int_entradaty, unsigned_int_saidatx, unsigned_int_saidaty, unsigned_int_fx, unsigned_int_fy, unsigned_int_fz) Execute(kname, kernel_iter_Len, &Vr_W, &Vr_A, &Vr_Z, &Vr_S, &unsigned_int_fid, &unsigned_int_passox, &int_passoy, &unsigned_int_largx, &unsigned_int_largy, &unsigned_int_entradatx, &unsigned_int_entradaty, &unsigned_int_saidatx, &unsigned_int_saidaty, &unsigned_int_fx, &unsigned_int_fy, &unsigned_int_fz)
@@ -121,28 +83,6 @@
 
 #define Knew_dropcalcgrad(x) KRN_new(x, "dropcalcgrad", 4, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int))
 #define KExec_dropcalcgrad(kname, kernel_iter_Len, Vr_gradentrada, __global_char__hitmap, Vr_gradnext) Execute(kname, kernel_iter_Len, &Vr_gradentrada, &__global_char__hitmap, &Vr_gradnext)
-
-//fullconnect.h
-#define Knew_fullfeed(x) KRN_new(x, "fullfeed", 9, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_fullfeed(kname, kernel_iter_Len, Vr_a, Vr_w, Vr_b, Vr_z, Vr_s, int_fid, int_w_x, int_w_y) Execute(kname, kernel_iter_Len, &Vr_a, &Vr_w, &Vr_b, &Vr_z, &Vr_s, &int_fid, &int_w_x, &int_w_y)
-
-#define Knew_fullCalcDWandFix(x) KRN_new(x, "fullCalcDWandFix", 9, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(CL_REAL), sizeof(CL_REAL), sizeof(CL_REAL), sizeof(cl_int), sizeof(cl_int))
-#define KExec_fullCalcDWandFix(kname, kernel_iter_Len, Vr_a, Vr_w, Vr_dw, Vr_dz, REAL_hitlearn, REAL_momento, REAL_decaimentoDePeso, int_pesosy) Execute(kname, kernel_iter_Len, &Vr_a, &Vr_w, &Vr_dw, &Vr_dz, &REAL_hitlearn, &REAL_momento, &REAL_decaimentoDePeso, &int_pesosy)
-
-#define Knew_fullCalcDz(x) KRN_new(x, "fullCalcDz", 5, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int))
-#define KExec_fullCalcDz(kname, kernel_iter_Len, Vr_dz, Vr_ds, Vr_z, int_dfa) Execute(kname, kernel_iter_Len, &Vr_dz, &Vr_ds, &Vr_z, &int_dfa)
-
-#define Knew_fullCalcDzBath(x) KRN_new(x, "fullCalcDzBath", 7, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_long), sizeof(cl_int))
-#define KExec_fullCalcDzBath(kname, kernel_iter_Len, Vr_dz, Vr_ds, Vr_z, Vr_db, int_dfa, long_batchSize) Execute(kname, kernel_iter_Len, &Vr_dz, &Vr_ds, &Vr_z, &Vr_db, &int_dfa, &long_batchSize)
-
-#define Knew_fullCalcDzAndFixB(x) KRN_new(x, "fullCalcDzAndFixB", 10, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(CL_REAL), sizeof(CL_REAL), sizeof(CL_REAL), sizeof(cl_int))
-#define KExec_fullCalcDzAndFixB(kname, kernel_iter_Len, Vr_dz, Vr_ds, Vr_z, Vr_b, Vr_db, int_dfa, REAL_hitlearn, REAL_momento, REAL_decaimentoDePeso) Execute(kname, kernel_iter_Len, &Vr_dz, &Vr_ds, &Vr_z, &Vr_b, &Vr_db, &int_dfa, &REAL_hitlearn, &REAL_momento, &REAL_decaimentoDePeso)
-
-#define Knew_fullcalcin(x) KRN_new(x, "fullcalcin", 6, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_fullcalcin(kname, kernel_iter_Len, Vr_dz, Vr_da, Vr_w, int_pesosx, int_pesosy) Execute(kname, kernel_iter_Len, &Vr_dz, &Vr_da, &Vr_w, &int_pesosx, &int_pesosy)
-
-#define Knew_fullCalcDWBatch(x) KRN_new(x, "fullCalcDWBatch", 6, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_long), sizeof(cl_int), sizeof(cl_int))
-#define KExec_fullCalcDWBatch(kname, kernel_iter_Len, Vr_a, Vr_dw, Vr_dz, long_batchSize, int_pesosy) Execute(kname, kernel_iter_Len, &Vr_a, &Vr_dw, &Vr_dz, &long_batchSize, &int_pesosy)
 
 //padding.h
 #define Knew_paddingfeed(x) KRN_new(x, "paddingfeed", 9, sizeof(void *), sizeof(void *), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_int))

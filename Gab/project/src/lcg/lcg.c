@@ -14,7 +14,7 @@
 #endif
 
 #define MAX_LCG_RAND ((1ULL << 48)-1)
-LCG default_var_lcg = {0x5DEECE66DULL, 11ULL, (1ULL << 48), (1ULL << 48) - 1, 1 << 5, 1 << (sizeof(int) * 8 - 1)};
+LCG default_var_lcg = {0x5DEECE66DULL, 11ULL, (1ULL << 48), (1ULL << 48) - 1, 1 << 5, 1 << (sizeof(int) * 8 - 2)};
 
 LCG new_LCG(Bytes64 seed) {
 	LCG self = {0};
@@ -23,7 +23,7 @@ LCG new_LCG(Bytes64 seed) {
 	self.m = (1ULL << 48);
 	self.rand_max = self.m - 1;
 	self.atual = seed;
-	self.max_int = 1 << (sizeof(int) * 8 - 1);
+	self.max_int = 1 << (sizeof(int) * 8 - 2);
 	return self;
 }
 
@@ -96,3 +96,4 @@ REAL LCG_randn() {
 REAL (*Tensor_randn)() = LCG_randn;
 
 REAL (*Tensor_rand)() = LCG_randD;
+int (*Tensor_randi)() = LCG_randI;

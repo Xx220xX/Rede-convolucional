@@ -22,6 +22,7 @@ typedef struct Kernel_t {
 	int (*run)(struct Kernel_t *self_p, cl_command_queue queue, size_t globals, size_t locals, ...);
 
 	int (*runRecursive)(struct Kernel_t *self, cl_command_queue queue, size_t globals, size_t max_works, ...);
+
 } *Kernel, Kernel_t;
 
 extern Kernel Kernel_new(cl_program clProgram, char *funcname, int nargs, ...);

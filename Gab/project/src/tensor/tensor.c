@@ -239,10 +239,37 @@ int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
 	size_t len = self->bytes / self->size_element;
 	REAL x;
 	for (int i = 0; i < len; ++i) {
+		switch (type) {
+			case TENSOR_UNIFORM:
+				x = Tensor_rand() * a + b;
+				break;
+			case TENSOR_GAUSSIAN:
+				x = Tensor_randn() * a + b;
+				break;
+			case TENSOR_RANDINT:
+				x = Tensor_randi() % ((int) a) + b;
+				break;
+			case TENSOR_UNIFORM | TENSOR_UNITARIO:
+				x = (Tensor_rand())/(self->length);
+				break;
+			case TENSOR_GAUSSIAN | TENSOR_UNITARIO:
+				x = (Tensor_rand() + b)/(self->length);
+				break;
+			default:
+				fprintf(stderr, "Invalid param type = %d\n", type);
+				self->erro->setError(self->erro, GAB_INVALID_PARAM, "Invalid param type = %d\n", type);
+				goto end;
+
+		}
 		if (type == TENSOR_GAUSSIAN) {
 			x = Tensor_randn() * a + b;
-		} else {
+		} else if (type == TENSOR_UNIFORM) {
 			x = Tensor_rand() * a + b;
+		} else if (type == TENSOR_RANDINT) {
+//			x = Tensor_randi() % ((int)a)) + b;
+			int tmp = Tensor_randi();
+			x = tmp % (int) a;
+			x = x + b;
 		}
 		if (self->flag.caractere) {
 			((char *) m)[i] = (char) x;
@@ -253,6 +280,7 @@ int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
 		}
 	}
 	self->setvalues(self, m);
+	end:
 	free(m);
 	ECXPOP(self->erro);
 	return self->erro->error;
@@ -446,7 +474,7 @@ int Tensor_copyM(Tensor self, Tensor b, size_t self_ofset, size_t b_ofset, size_
 	} else {
 		self->erro->error = clEnqueueCopyBuffer(self->queue, b->data, self->data, b_ofset, self_ofset, bytes, 0, NULL, NULL);
 //		clFlush(self->queue);
-		self->erro->setError(self->erro, clFinish(self->queue));
+		self->erro->setError(self->erro, clFinish(self->queue), "Falha ao copiar tensor\n");
 	}
 	ECXPOP(self->erro);
 	return self->erro->error;
@@ -455,7 +483,7 @@ int Tensor_copyM(Tensor self, Tensor b, size_t self_ofset, size_t b_ofset, size_
 void Tensor_fprint(Tensor self, FILE *f) {
 	ECXPUSH(self->erro);
 	char *json = Tensor_putvaluesAsstr(self);
-	fprintf(f,":\n%s\n", json);
+	fprintf(f, ":\n%s\n", json);
 	gab_free(json);
 	/*int len = 40;
 	int ofset = 0;

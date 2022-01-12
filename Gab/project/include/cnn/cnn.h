@@ -14,6 +14,10 @@
 typedef struct Cnn_t {
 	///  versão da compilação
 	const char *version;
+	/// modo
+	int mode;
+	/// não pode mais adicionar camada
+	int lock;
 
 	/// entrada da rede
 	Tensor entrada;
@@ -47,6 +51,8 @@ typedef struct Cnn_t {
 
 	/// retorna a dimensão da saída da rede
 	P3d (*getSizeOut)(struct Cnn_t *self);
+
+	void (*setMode)(struct Cnn_t *self, int isTrainig);
 
 	/// retorna a rede em json
 	char *(*json)(struct Cnn_t *self, int showValue);
@@ -89,7 +95,7 @@ typedef struct Cnn_t {
 
 	int (*Convolucao)(struct Cnn_t *self, P2d passo, P3d filtro, Parametros p, RandomParams filtros);
 
-	int (*ConvolucaoF)(struct Cnn_t *self, P2d passo, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros);
+	int (*ConvolucaoF)(struct Cnn_t *self, P2d passo, P3d filtro, FAtivacao_t funcaoAtivacao,uint32_t top, uint32_t bottom, uint32_t left, uint32_t right, Parametros p, RandomParams filtros);
 
 
 	int (*ConvolucaoNC)(struct Cnn_t *self, P2d passo, P2d abertura, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros);
@@ -100,7 +106,7 @@ typedef struct Cnn_t {
 
 	int (*PRelu)(struct Cnn_t *self, Parametros params, RandomParams rdp_a);
 
-	int (*FullConnect)(struct Cnn_t *self, size_t numero_neuronios, Parametros p, uint32_t funcaoAtivacao, RandomParams rdp_pesos, RandomParams rdp_bias);
+	int (*FullConnect)(struct Cnn_t *self, size_t numero_neuronios, Parametros p, FAtivacao_t funcaoAtivacao, RandomParams rdp_pesos, RandomParams rdp_bias);
 
 	int (*Padding)(struct Cnn_t *self, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right);
 
@@ -111,6 +117,7 @@ typedef struct Cnn_t {
 	int (*BatchNorm)(struct Cnn_t *self, size_t batch_size, REAL epsilon, Parametros p, RandomParams randY, RandomParams randB);
 
 	void (*removeLastLayer)(struct Cnn_t *self);
+
 } *Cnn, Cnn_t;
 
 extern const char *Cnn_version();

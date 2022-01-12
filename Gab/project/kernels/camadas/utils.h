@@ -81,6 +81,7 @@ REAL difrelu(REAL x) {
 }
 
 REAL alan(REAL x) {
+
 	if (x > 1) {
 		return log10(x) + 0.7615941559557649;
 	} else if (x < -1) {

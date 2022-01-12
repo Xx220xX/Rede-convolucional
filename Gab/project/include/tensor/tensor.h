@@ -19,12 +19,16 @@
 #include "exc.h"
 
 
-#define TENSOR_GAUSSIAN 2
 #define TENSOR_UNIFORM 1
+#define TENSOR_GAUSSIAN 2
+#define TENSOR_RANDINT 3
+#define TENSOR_UNITARIO 32
 
 extern REAL (*Tensor_randn)();
 
 extern REAL (*Tensor_rand)();
+
+extern int (*Tensor_randi)();
 
 typedef unsigned char ubyte;
 
@@ -106,8 +110,9 @@ typedef struct Tensor_t {
 
 	/// printa o json do tensor
 	void (*print)(struct Tensor_t *self);
+
 	/// printa o json do tensor
-	void (*fprint)(struct Tensor_t *self,FILE *file);
+	void (*fprint)(struct Tensor_t *self, FILE *file);
 
 	/// mostra os valores
 	char *(*valuesStr)(struct Tensor_t *self);

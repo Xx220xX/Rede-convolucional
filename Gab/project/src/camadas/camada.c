@@ -41,7 +41,13 @@ void internal_Camada_release(Camada *self) {
 	}
 	Release((*self)->da);
 	Release((*self)->s);
-
+	if ((*self)->program) {
+		clReleaseProgram((*self)->program);
+	}
+	if ((*self)->kernel) {
+		gab_free((*self)->kernel);
+	}
+	(*self)->kernel_len = 0;
 }
 
 char *internal_json(Camada self, int showValues) {
@@ -210,14 +216,46 @@ int internal_updateHitLearn(Camada self, size_t iter) {
 }
 
 void internal_Camada_fprint(void *selfp, FILE *destino, char *format, va_list v) {
-	vfprintf(destino,format,v);
+	vfprintf(destino, format, v);
 	va_end(v);
-	Camada  self = selfp;
-	fprintf(destino,"Params %f %f %f %d\n",self->params.hitlearn,self->params.momento,self->params.decaimento,self->params.skipLearn);
-	if(self->da){
-		fprintf(destino,"da ->");self->da->fprint(self->da,destino);
-	}if(self->a){
-		fprintf(destino,"a ->");self->a->fprint(self->a,destino);
+	Camada self = selfp;
+	fprintf(destino, "Params %f %f %f %d\n", self->params.hitlearn, self->params.momento, self->params.decaimento, self->params.skipLearn);
+	if (self->da) {
+		fprintf(destino, "da ->");
+		self->da->fprint(self->da, destino);
 	}
-	fprintf(destino,"s ->");self->s->fprint(self->s,destino);
+	if (self->a) {
+		fprintf(destino, "a ->");
+		self->a->fprint(self->a, destino);
+	}
+	fprintf(destino, "s ->");
+	self->s->fprint(self->s, destino);
+}
+
+void internal_compile(Camada self, Gpu gpu) {
+	ECXPUSH(self->ecx);
+	self->program = clCreateProgramWithSource(gpu->context, 1, (const char **) &self->kernel, &self->kernel_len, self->ecx->perro);
+	if (self->ecx->error) {
+		char *err = Gpu_errormsg(self->ecx->error);
+		fflush(stdout);
+		fprintf(stderr, "Error %d  in file %s\n%s\n", self->ecx->error, __FILE__, err);
+		self->ecx->pushMsg(self->ecx, "Error %d  in file %s:1\n%s\n", self->ecx->error, __FILE__, err);
+		fflush(stderr);
+		gab_free(err);
+
+	}
+	self->ecx->setError(self->ecx,clBuildProgram(self->program, 1, &gpu->device, NULL, NULL, NULL),"%s:%d %s",__FILE__,__LINE__,__FUNCTION__);
+	if (self->ecx->error != CL_SUCCESS) {
+		char *buff = NULL;
+		size_t len = 0;
+		clGetProgramBuildInfo(self->program, gpu->device, CL_PROGRAM_BUILD_LOG, 0, buff, &len);
+		buff = gab_alloc(len + 1, 1);
+		clGetProgramBuildInfo(self->program, gpu->device, CL_PROGRAM_BUILD_LOG, len, buff, NULL);
+		fprintf(stderr, "Error %d  in file %s\n%s",self->ecx->error,__FILE__,  buff);
+		clReleaseProgram(self->program);
+		gab_free(buff);
+
+	}
+//		self->ecx->pushMsg(self->ecx, "Error %d  in file %s at line %d\n%s\n", self->ecx->error, __FILE__, __LINE__, err);
+	ECXPOP(self->ecx);
 }

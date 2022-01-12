@@ -30,20 +30,6 @@ kV convSum(Vr filtro, Vr entrada, Vr saida, int passox, int passoy, int saidatx,
 kV convCalcGradAndFixWeight(Vr filtros, Vr ds, Vr entrada, Vr gradFiltro, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, REAL hitLearn, REAL momento, REAL weightDecay, int k0) ;
 kV convCalcGradIn(Vr filtro, Vr gradEntrada, Vr gradNext, int fx, int fy, int fz, int passox, int passoy, int entradatx, int entradaty, int saidatx, int saidaty, int saidatz, int k0) ;
 kV convCalcGradBatch(Vr ds, Vr A, Vr dW, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0) ;
-// cl:conv2d.h
-kV conv2dSum(Vr W, Vr a, Vw Z, Vw s, int px, int py, int sx, int sy, int ax, int ay, int az, int fx, int fy, int fz, int fid, int k0) ;
-kV conv2dCalcGradZ(Vr ds, Vr z, Vw dz, int fid, int k0) ;
-kV conv2dCalcGradIn(Vr W, Vw da, Vr dz, int fx, int fy, int fz, int px, int py, int atx, int aty, int az, int sx, int sy,  int k0) ;
-kV conv2dCalcGradAndFixWeight(Vrw W, Vr dz, Vr a, Vrw dW, int fx, int fy, int ax, int ay, int az, int sx, int sy, int px, int py, REAL hitLearn, REAL momento, REAL weightDecay, int k0) ;
-kV conv2dCalcGradBatch(Vr dz, Vr a, Vr dW, long batchSize, int fx, int fy, int fz, int ax, int ay, int az, int sx, int sy, int px, int py, int k0) ;
-// cl:convf.h
-kV convFSum(Vr W, Vr B, Vr A, Vw Z, Vw S, int px, int py, int sx, int sy, int atx, int aty, int fx, int fy, int fz, int fid, int k0) ;
-kV convFCalcGradZ(Vr ds, Vr z, Vw dz, int fid, int k0) ;
-kV convFCalcGradBAndFix(Vrw B, Vrw dB, Vr dZ, int dzx, int dzy, REAL hitLearn, REAL momento, REAL weightDecay, int k0) ;
-kV convFCalcGradBBatch(Vrw dB, Vr dZ, int dzx, int dzy, long batchSize, int k0) ;
-kV convFCalcGradIn(Vr W, Vw da, Vr dz, int fx, int fy, int fz, int px, int py, int atx, int aty, int sx, int sy, int sz, int k0) ;
-kV convFCalcGradAndFixWeight(Vr W, Vr dz, Vr a, Vr dW, int fx, int fy, int fz, int a_tx, int a_ty, int s_tx, int s_ty, int px, int py, REAL hitLearn, REAL momento, REAL weightDecay, int k0) ;
-kV convFCalcGradBatch(Vr dz, Vr a, Vr dW, long batchSize, int fx, int fy, int fz, int a_tx, int a_ty, int s_tx, int s_ty, int px, int py, int k0) ;
 // cl:convNc.h
 kV convncSum(Vr W, Vr A, Vr Z, Vr S, unsigned int fid, unsigned int passox, int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0) ;
 kV convncCalcGradZ(Vr ds, Vr z, Vr dz, unsigned int fid, int k0) ;
@@ -53,14 +39,6 @@ kV convncCalcFiltroBatch(Vr dz, Vr A, Vr dW, long batchSize, unsigned int dw_x, 
 // cl:dropout.h
 kV dropativa(Vr entrada, Vr saida, __global char *hitmap, long seed, REAL pativa, int k0) ;
 kV dropcalcgrad(Vr gradentrada, __global char *hitmap, Vr gradnext, int k0) ;
-// cl:fullconnect.h
-kV fullfeed(Vr a, Vr w, Vr b, Vr z, Vr s, int fid, int w_x, int w_y, int k0) ;
-kV fullCalcDWandFix(Vr a, Vr w, Vr dw, Vr dz, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int pesosy, int k0) ;
-kV fullCalcDz(Vr dz, Vr ds, Vr z, int dfa, int k0) ;
-kV fullCalcDzBath(Vr dz, Vr ds, Vr z, Vr db, int dfa, long batchSize, int k0) ;
-kV fullCalcDzAndFixB(Vr dz, Vr ds, Vr z, Vr b, Vr db, int dfa, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0) ;
-kV fullcalcin(Vr dz, Vr da, Vr w, int pesosx, int pesosy, int k0) ;
-kV fullCalcDWBatch(Vr a, Vr dw, Vr dz, long batchSize, int pesosy, int k0) ;
 // cl:padding.h
 kV paddingfeed(Vr in, Vr out, unsigned int txi, unsigned int tyi, unsigned int txo, unsigned int tyo, unsigned int t, unsigned int l, int k0) ;
 kV paddingBack(Vr gradNext, Vr gradin, unsigned int txi, unsigned int tyi, unsigned int txo, unsigned int tyo, unsigned int t, unsigned int l, int k0) ;

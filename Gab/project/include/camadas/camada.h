@@ -70,7 +70,7 @@ typedef struct Camada_t {
 	P3d size_in;
 
 	/// faz a propagação na camada, o Tensro de entrada é usado a
-	int (*propagation)(void *self);
+	Tensor (*propagation)(void *self, Tensor entrada);
 
 	/// faz a retropropagação, ds deve ser o gradiente da saída
 	int (*retroPropagation)(void *self, Tensor ds);
@@ -101,6 +101,17 @@ typedef struct Camada_t {
 
 	/// retorna o tamanho da saída dessa camada
 	P3d (*getOutSize)(void *self);
+
+
+	// Programa na gpu
+	cl_program program;
+
+	// kernels da gpu
+	char *kernel;
+
+	// tamanho do kernel
+	size_t kernel_len;
+
 } *Camada, Camada_t;
 
 /**
@@ -122,6 +133,8 @@ void internal_Camada_fprint(void *self, FILE *destino, char *format, va_list v);
 void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const char *layer_name, Parametros params, Tensor entrada, P3d dim_in, P3d dim_out, Ecx erro);
 
 void internal_Camada_release(Camada *self);
+
+void internal_compile(Camada self, Gpu gpu);
 
 char *internal_json(Camada self, int showValues);
 
@@ -148,15 +161,16 @@ int internal_updateHitLearn(Camada self, size_t iter);
 #define INTERNAL_DEFAULT_ARGS Gpu gpu, Queue queue, P3d size_in,Tensor entrada, Ecx ecx
 
 #define Execute(kernel, len, ...)if(!self->super.ecx->error)self->super.ecx->setError(self->super.ecx, \
-self->kernel->runRecursive(self->kernel, self->super.queue,len,*self->super.maxcompute, ##__VA_ARGS__))
+self->kernel->runRecursive(self->kernel, self->super.queue,len,*self->super.maxcompute, ##__VA_ARGS__),"%s:%d %s",__FILE__,__LINE__,__FUNCTION__)
 
-#define ExecuteN(kernel, queue,globals,locals,ecx, ...)if(!ecx->error)ecx->setError(ecx, \
+#define ExecuteN(kernel, queue, globals, locals, ecx, ...)if(!ecx->error)ecx->setError(ecx, \
 kernel->run(kernel,queue,globals,locals, ##__VA_ARGS__))
-
+#define ReleaseKernel(clkernel)    if(clkernel){clReleaseKernel(clkernel);}clkernel = NULL
+#define ReleaseVoid(void_ptr)    if(void_ptr){gab_free(void_ptr);}void_ptr = NULL
 #define Release(self)if(self)(self)->release(&(self));(self)=NULL
 #define KRN_news(var_dst, fname, arg)var_dst = Kernel_news(gpu->program,fname,arg);CheckKernel(var_dst)
 #define KRN_new(var_dst, fname, ...)var_dst = Kernel_new(gpu->program,fname,##__VA_ARGS__);CheckKernel(var_dst)
-#define CheckKernel(kernel)if (self->super.ecx->setError(self->super.ecx, kernel->error)){fprintf(stderr,"%s:%d\n",__FILE__,__LINE__);goto methods;}
+#define CheckKernel(kernel)if (self->super.ecx->setError(self->super.ecx, kernel->error,"%s:%d %s",__FILE__,__LINE__,__FUNCTION__)){goto methods;}
 
 
 #define apendTensor(name, t, string, len, tmp, showValues) \
@@ -167,15 +181,72 @@ gab_free(tmp);}\
 else apendstr(string, len, ",\n"PAD"\""name"\": null")
 
 
-#define GEN_LAYERNAME(string,len)apendstr(string, len, "%s (",lname)
-#define GEN_P2D(p2d,string,len)apendstr(string, len, "P2D(%zu, %zu)",p2d.x,p2d.y)
-#define GEN_P3D(p3d,string,len)apendstr(string, len, "P3D(%zu, %zu, %zu)",p3d.x,p3d.y,p3d.z)
-#define GEN_RDP(rdp,string,len)apendstr(string, len, "RDP(%d, %g, %g)",rdp.type,(double)(rdp.a),(double)(rdp.b))
-#define GEN_PARAMS(prm,string,len)apendstr(string, len, "Params(%g, %g, %g, %d,%g,%g)",(double)(prm.lr_0),(double)(prm.momento),(double)(prm.decaimento),prm.skipLearn,(double)(prm.a),(double)(prm.b))
-#define GENN_P2D(p2d,string,len)apendstr(string, len, "P2D(%zu, %zu), ",p2d.x,p2d.y)
-#define GENN_P3D(p3d,string,len)apendstr(string, len, "P3D(%zu, %zu, %zu), ",p3d.x,p3d.y,p3d.z)
-#define GENN_RDP(rdp,string,len)apendstr(string, len, "RDP(%d, %g, %g), ",rdp.type,(double)(rdp.a),(double)(rdp.b))
-#define GENN_PARAMS(prm,string,len)apendstr(string, len, "Params(%g, %g, %g, %d,%g,%g), ",(double)(prm.lr_0),(double)(prm.momento),(double)(prm.decaimento),prm.skipLearn,(double)(prm.a),(double)(prm.b))
+#define GEN_LAYERNAME(string, len)apendstr(string, len, "%s (",lname)
+#define GEN_P2D(p2d, string, len)apendstr(string, len, "P2D(%zu, %zu)",p2d.x,p2d.y)
+#define GEN_P3D(p3d, string, len)apendstr(string, len, "P3D(%zu, %zu, %zu)",p3d.x,p3d.y,p3d.z)
+#define GEN_RDP(rdp, string, len)apendstr(string, len, "RDP(%d, %g, %g)",rdp.type,(double)(rdp.a),(double)(rdp.b))
+#define GEN_PARAMS(prm, string, len)apendstr(string, len, "Params(%g, %g, %g, %d,%g,%g)",(double)(prm.lr_0),(double)(prm.momento),(double)(prm.decaimento),prm.skipLearn,(double)(prm.a),(double)(prm.b))
+#define GENN_P2D(p2d, string, len)apendstr(string, len, "P2D(%zu, %zu), ",p2d.x,p2d.y)
+#define GENN_P3D(p3d, string, len)apendstr(string, len, "P3D(%zu, %zu, %zu), ",p3d.x,p3d.y,p3d.z)
+#define GENN_RDP(rdp, string, len)apendstr(string, len, "RDP(%d, %g, %g), ",rdp.type,(double)(rdp.a),(double)(rdp.b))
+#define GENN_PARAMS(prm, string, len)apendstr(string, len, "Params(%g, %g, %g, %d,%g,%g), ",(double)(prm.lr_0),(double)(prm.momento),(double)(prm.decaimento),prm.skipLearn,(double)(prm.a),(double)(prm.b))
 
-#define GEN_END(string,len)apendstr(string, len, ")")
+#define GEN_END(string, len)apendstr(string, len, ")")
+
+
+#define DEFAULT_COD    "#define REAL float\n"\
+"#define kMap(x, y, z, tx, ty)((z)*(ty*tx)+(x)*ty+(y))\n\n"\
+"#define kMap4D(x, y, z, l, tx, ty, tz)((l)*(ty)*(tx)*(tz)+(z)*(ty*tx)+(x)*ty+(y))\n\n"\
+"#define kRep4D(total, _x_, _y_, _z_, _l_, tx, ty, tz)\\\n"\
+"_y_ = total%%ty      ;                                        \\\n"\
+"_x_ = (total - _y_)%%(ty*tx)/ty ;                             \\\n"\
+"_z_ = (total- _x_*ty - _y_)%%(tx*ty*tz)/(ty*tx)  ;            \\\n"\
+"_l_ = (total -_z_*tx*ty -_x_*ty - _y_)/(tx*ty*tz);\n\n\n"\
+"#define kRap(total, _x_, _y_, _z_, tx, ty)\\\n"\
+"_y_ = total %% ty;\\\n"\
+"_x_ = ((total - _y_) %% (ty * tx)) / ty;\\\n"\
+"_z_ = (k - _x_ * ty - _y_) / (tx * ty);\n\n"\
+"#define KRap2D(total, x, y, ty)\\\n"\
+"y = total %% ty;\\\n"\
+"x = total/ ty;\n\n"\
+"#define CORRIGIR_PESOS(peso,gradiente,learnR,decaimento) peso = peso - learnR*(gradiente + decaimento*peso)\n\n\n"
+#define COD(fmt, ...)apendstr(self->super.kernel, self->super.kernel_len,fmt,##__VA_ARGS__)
+
+#define IFCOD(cond, fmt, ...)if(cond){apendstr(self->super.kernel, self->super.kernel_len,fmt,##__VA_ARGS__)}
+#define ELIFCOD(cond, fmt, ...)else if(cond){apendstr(self->super.kernel, self->super.kernel_len,fmt,##__VA_ARGS__)}
+#define ELSECOD(fmt, ...)else{apendstr(self->super.kernel, self->super.kernel_len,fmt,##__VA_ARGS__)}
+
+#define  Super self->super
+#define setKernelArg(kernel_v, id, tipo, var)  self->super.ecx->setError(self->super.ecx,clSetKernelArg(kernel_v, id, sizeof(tipo), &var),"%s:%d , %s %s\n",__FILE__,__LINE__,__FUNCTION__,#kernel_v)
+#define setKernelArgt(kernel_v, id,  var)  self->super.ecx->setError(self->super.ecx,clSetKernelArg(kernel_v, id, sizeof(typeof(var)), &var),"%s:%d , %s %s\n",__FILE__,__LINE__,__FUNCTION__,#kernel_v)
+#define runr_kernel(error,kernel_v, iterLen, maxcompute, id_index) \
+{\
+    int trid = 0;                                            \
+                                                        \
+    error = setKernelArg(kernel_v, id_index, int, trid);\
+    size_t globals = iterLen, locals = 1;                    \
+    if(error){goto handle_error;}                                                         \
+    if (globals <     (maxcompute)) {\
+        locals = globals;\
+        error = clEnqueueNDRangeKernel(self->super.queue,kernel_v, 1, NULL, &globals, &locals, 0, NULL, NULL); \
+        if(error){goto handle_error;}                                                         \
+                                                         \
+    } else {\
+        size_t resto = globals %     (maxcompute);\
+        globals = (globals /     (maxcompute)) *     (maxcompute);\
+        locals =     (maxcompute);\
+       error =  clEnqueueNDRangeKernel(self->super.queue, kernel_v, 1, NULL, &globals, &locals, 0, NULL, NULL);        \
+       if(error){goto handle_error;}                                                                    \
+       if (resto) {\
+            trid = globals;\
+            locals = resto;\
+            globals = resto;\
+            error = setKernelArg(kernel_v, id_index, int, trid);           \
+                if(error){goto handle_error;}                                                         \
+            error = clEnqueueNDRangeKernel(self->super.queue, kernel_v, 1, NULL, &globals, &locals, 0, NULL, NULL);     \
+            if(error){goto handle_error;}                                                                    \
+        }\
+    }\
+}
+
 #endif //GAB_CNN_CAMADA_H
