@@ -244,18 +244,39 @@ void internal_compile(Camada self, Gpu gpu) {
 		gab_free(err);
 
 	}
-	self->ecx->setError(self->ecx,clBuildProgram(self->program, 1, &gpu->device, NULL, NULL, NULL),"%s:%d %s",__FILE__,__LINE__,__FUNCTION__);
+	self->ecx->setError(self->ecx, clBuildProgram(self->program, 1, &gpu->device, NULL, NULL, NULL), "%s:%d %s", __FILE__, __LINE__, __FUNCTION__);
 	if (self->ecx->error != CL_SUCCESS) {
 		char *buff = NULL;
 		size_t len = 0;
 		clGetProgramBuildInfo(self->program, gpu->device, CL_PROGRAM_BUILD_LOG, 0, buff, &len);
 		buff = gab_alloc(len + 1, 1);
 		clGetProgramBuildInfo(self->program, gpu->device, CL_PROGRAM_BUILD_LOG, len, buff, NULL);
-		fprintf(stderr, "Error %d  in file %s\n%s",self->ecx->error,__FILE__,  buff);
+		fprintf(stderr, "Error %d  in file %s\n%s", self->ecx->error, __FILE__, buff);
 		clReleaseProgram(self->program);
 		gab_free(buff);
 
 	}
 //		self->ecx->pushMsg(self->ecx, "Error %d  in file %s at line %d\n%s\n", self->ecx->error, __FILE__, __LINE__, err);
 	ECXPOP(self->ecx);
+}
+
+void internal_putFativacao(char **s, int *len, FAtivacao_t fAtivacao) {
+	FAtivacao fa = {.mask = fAtivacao};
+	switch (fa.id) {
+		case FSIGMOID: apendstr((*s), (*len), "FSIGMOID");
+			break;
+		case FTANH: apendstr((*s), (*len), "FTANH");
+			break;
+
+		case FLRELU: apendstr((*s), (*len), "FLRELU(%.10g, %.10g)", fa.less, fa.greater);
+			break;
+
+		case FLIN: apendstr((*s), (*len), "FLIN");
+			break;
+
+		case FALAN: apendstr((*s), (*len), "FALAN");
+			break;
+
+		case FSOFTMAX: apendstr((*s), (*len), "FSOFTMAX(%.10g)", fa.epsilon);
+	}
 }

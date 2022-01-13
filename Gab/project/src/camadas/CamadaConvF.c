@@ -170,6 +170,10 @@ static char *CamadaConvF_getGenerate(CamadaConvF self) {
 	GEN_LAYERNAME(string, len);
 	GENN_P2D(P2D(self->passox, self->passoy), string, len);
 	GENN_P3D(P3D(self->W->x, self->W->y, self->W->w), string, len);
+	internal_putFativacao(&string,&len,self->fa.mask);
+	apendstr(string,len,", ");
+	GENN_P2D(P2D(self->pad_top, self->pad_bottom), string, len);
+	GENN_P2D(P2D(self->pad_left, self->pad_right), string, len);
 	GENN_PARAMS(Super.params, string, len);
 	GEN_RDP(self->rdp_filtros, string, len);
 	GEN_END(string, len);
@@ -238,7 +242,9 @@ int CamadaConvF_fprintf(CamadaConvF self, FILE *destino, char *format, ...) {
 	self->dW->fprint(self->dW, destino);
 	return 0;
 }
+void CamadaConvF_write_kernels(CamadaConvF self,P3d size_out,P2d passo){
 
+}
 Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t ativacao, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right, Parametros params, RandomParams rdp_filtros) {
 	ECXPOP(ecx);
 	CamadaConvF self = gab_alloc(1, sizeof(CamadaConvF_t));
@@ -267,8 +273,14 @@ Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t
 	}
 	self->rdp_filtros = rdp_filtros;
 	if (rdp_filtros.type != -1) {
+		if (rdp_filtros.type < 0) {
+			rdp_filtros.type = 0;
+		}
 		if (rdp_filtros.type == 0) {
-			rdp_filtros = internal_getDefaultRDP(ativacao == FLRELU, filtro.x * filtro.y * size_in.z, Super.s->length);
+			rdp_filtros = internal_getDefaultRDP(self->fa.id == FLRELU , filtro.x * filtro.y * size_in.z, Super.s->length);
+			self->rdp_filtros.type = -rdp_filtros.type-100;
+			self->rdp_filtros.a = rdp_filtros.a;
+			self->rdp_filtros.b = rdp_filtros.b;
 		}
 		Super.ecx->error = self->W->randomize(self->W, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
 		if (ecx->error) {
@@ -497,7 +509,8 @@ Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t
 		COD("            soma += a[le] * dz[ls];\n"
 			"        }\n"
 			"    }\n"
-			"    dW[k] = soma/batch_size + dW[k] ;\n}\n");
+			"    dW[k] = soma/batch_size + dW[k] ;\n"
+			"}\n");
 
 
 		COD("__kernel void calc_db("
@@ -533,12 +546,12 @@ Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t
 
 		COD("__kernel void corrige_peso(__global REAL *w, __global REAL *dw, REAL learnRate, int k0){\n"
 			"	int k = get_global_id(0) + k0;\n"
-			"	CORRIGIR_PESOS(w[k],dw[k],learnRate,%f);"
+			"	CORRIGIR_PESOS(w[k],dw[k],learnRate,%f);\n"
 			"	dw[k] = dw[k]*%.10f;\n"
 			"\n}\n", Super.params.decaimento, Super.params.momento)
 
 	}
-//	printf("%s\n", Super.kernel);
+	printf("%s\n", Super.kernel);
 	internal_compile((Camada) self, gpu);
 
 	self->conv = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "sum", Super.ecx->perro);

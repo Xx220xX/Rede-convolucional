@@ -206,6 +206,7 @@ int cnnMain(int nargs, char **args) {
 	snprintf(nome, 250, "%s.cnn", s->nome);
 	GUI.setText(GUI.status, "Salvando cnn em %s", nome);
 	s->cnn->save(s->cnn, nome);
+	system("pause");
 	if (s->ok(s)) {
 		t0 = seconds();
 		s->runing = 1;

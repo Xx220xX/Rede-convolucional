@@ -211,13 +211,13 @@ void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double 
 	GUI.setText(GUI.labels[1], "%.2lf%% %d/%d", progresso, ep, eptotal);
 	GUI.setText(GUI.labels[5], "%s", tempo_str);
 	GUI.setText(GUI.labels[9], "%lf", mse);
-	GUI.setText(GUI.labels[11], "%lf%%", winRateMedio);
+	GUI.setText(GUI.labels[11], "%lf%%", winRate);
 	GUI.setText(GUI.labels[13], "%.1lf", imps);
 	float epoca = nimages / (float) total;
 	if (GUI.endDraw) {
-		if (GUI.figs[0].xmax != ep) {
-//			GUI.figs[0].xmax = GUI.figs[1].xmax = eptotal;
-			GUI.figs[0].xmax = GUI.figs[1].xmax = ep;
+		if (GUI.figs[0].xmax != eptotal) {
+			GUI.figs[0].xmax = GUI.figs[1].xmax = eptotal;
+//			GUI.figs[0].xmax = GUI.figs[1].xmax = ep;
 			GUI.figs[0].draw(GUI.figs, NULL);
 			GUI.figs[1].draw(GUI.figs + 1, NULL);
 		}

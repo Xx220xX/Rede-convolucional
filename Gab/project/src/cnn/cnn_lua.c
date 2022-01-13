@@ -100,13 +100,13 @@ int loadAtivacao(lua_State *L, int arg, FAtivacao_t *fa) {
 	switch (tmp.id) {
 		case FLRELU:
 			lua_getfield(L, arg, "var1");
-			tmp.less = lua_tointeger(L, -1);
+			tmp.less = lua_tonumber(L, -1);
 			lua_getfield(L, arg, "var2");
-			tmp.greater = lua_tointeger(L, -1);
+			tmp.greater = lua_tonumber(L, -1);
 			break;
 		case FSOFTMAX:
 			lua_getfield(L, arg, "var1");
-			tmp.epsilon = lua_tointeger(L, -1);
+			tmp.epsilon = lua_tonumber(L, -1);
 			break;
 		default:
 			break;

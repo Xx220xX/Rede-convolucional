@@ -203,6 +203,9 @@ void Setup_loadLabel(Setup self) {
 }
 
 float cost_crossEntropy(Tensor S, Tensor T) {
+	if(S->erro->error){
+		return 0;
+	}
 	REAL *vS = S->getvalues(S, NULL);
 	REAL *vT = T->getvalues(T, NULL);
 	REAL sum = 0;

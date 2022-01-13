@@ -21,6 +21,7 @@
  * da = w(T)*dz
  *
  */
+#include <math.h>
 #include "camadas/CamadaFullConnect.h"
 
 static const char *lname = "FullConnect";
@@ -53,8 +54,6 @@ void CamadaFullConnect_release(CamadaFullConnect *self) {
 
 Tensor CamadaFullConnect_propagation(CamadaFullConnect self, Tensor a) {
 	Super.a = a;
-
-
 	setKernelArg(self->feed, 0, void *, a->data);
 	setKernelArg(self->feed, 1, void *, self->w->data);
 	setKernelArg(self->feed, 2, void *, self->b->data);
@@ -116,7 +115,7 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 	clFinish(Super.queue);
 
 	// calcula da
-	if(Super.da) {
+	if (Super.da) {
 		setKernelArg(self->calc_da, 0, void *, Super.da->data);
 		setKernelArg(self->calc_da, 1, void *, self->w->data);
 		setKernelArg(self->calc_da, 2, void *, self->dz->data);
@@ -144,7 +143,7 @@ int CamadaFullConnect_backpropagationBatch(CamadaFullConnect self, Tensor ds, si
 	runr_kernel(Super.ecx->error, self->calc_dzdb_batch, self->z->length, *Super.maxcompute, 6);
 
 	// calcula da
-	if(Super.da) {
+	if (Super.da) {
 		setKernelArg(self->calc_da, 0, void *, Super.da->data);
 		setKernelArg(self->calc_da, 1, void *, self->w->data);
 		setKernelArg(self->calc_da, 2, void *, self->dz->data);
@@ -154,7 +153,7 @@ int CamadaFullConnect_backpropagationBatch(CamadaFullConnect self, Tensor ds, si
 	setKernelArg(self->calc_dw_batch, 0, void *, self->dw->data);
 	setKernelArg(self->calc_dw_batch, 1, void *, self->dz->data);
 	setKernelArg(self->calc_dw_batch, 2, void *, Super.a->data);
-	setKernelArg(self->calc_dw_batch, 3, cl_long , batchSize);
+	setKernelArg(self->calc_dw_batch, 3, cl_long, batchSize);
 	runr_kernel(Super.ecx->error, self->calc_dw_batch, self->dw->length, *Super.maxcompute, 4);
 
 	handle_error:
@@ -199,7 +198,9 @@ char *CamadaFullConnect_json(CamadaFullConnect self, int showValues) {
 char *CamadaFullConnect_getGenerate(CamadaFullConnect self) {
 	char *string = NULL;
 	int len = 0;
-	apendstr(string, len, "%s (%zu, %s, Params(%g, %g, %g, %d), RDP(%d, %g, %g), RDP(%d, %g, %g))", lname, self->w->x, F_ATIVACAO_NAME(self->fa.id), (double) Super.params.hitlearn, (double) Super.params.momento, (double) Super.params.decaimento, Super.params.skipLearn, self->rdp_pesos.type, self->rdp_pesos.a, self->rdp_pesos.b, self->rdp_bias.type, self->rdp_bias.a, self->rdp_bias.b);
+	apendstr(string, len, "%s (%zu, ", lname, self->w->x);
+	internal_putFativacao(&string, &len, self->fa.mask);
+	apendstr(string, len, ", Params(%g, %g, %g, %d), RDP(%d, %g, %g), RDP(%d, %g, %g))", (double) Super.params.hitlearn, (double) Super.params.momento, (double) Super.params.decaimento, Super.params.skipLearn, self->rdp_pesos.type, self->rdp_pesos.a, self->rdp_pesos.b, self->rdp_bias.type, self->rdp_bias.a, self->rdp_bias.b);
 	return string;
 }
 
@@ -266,22 +267,35 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 	self->rdp_pesos = rdp_pesos;
 	self->rdp_bias = rdp_bias;
 	if (rdp_pesos.type != -1) {
+		if (rdp_pesos.type < 0) {
+			rdp_pesos.type = 0;
+		}
 		if (rdp_pesos.type == 0) {
-			rdp_pesos = internal_getDefaultRDP(funcaoDeAtivacao == FRELU, size_in.x * size_in.y * size_in.z, Super.s->length);
+			rdp_pesos = internal_getDefaultRDP(self->fa.id == FLRELU, size_in.x * size_in.y * size_in.z, Super.s->length);
+			self->rdp_pesos.type = -rdp_pesos.type - 100;
+			self->rdp_pesos.a = rdp_pesos.a;
+			self->rdp_pesos.b = rdp_pesos.b;
 		}
 		Super.ecx->error = self->w->randomize(self->w, rdp_pesos.type, rdp_pesos.a, rdp_pesos.b);
 		if (ecx->error) {
 			goto methods;
 		}
 	}
+
 	if (rdp_bias.type != -1) {
+		if (rdp_bias.type < 0) {
+			rdp_bias.type = 0;
+		}
 		if (rdp_bias.type == 0) {
-			if (funcaoDeAtivacao == FRELU) {
+			if (self->fa.id == FLRELU) {
 				self->b->fill(self->b, 0);
 			} else {
 				rdp_bias = internal_getDefaultRDP(1, size_in.x * size_in.y * size_in.z, Super.s->length);
 				Super.ecx->error = self->b->randomize(self->b, rdp_bias.type, rdp_bias.a, rdp_bias.b);
 			}
+			self->rdp_bias.type = -rdp_bias.type - 100;
+			self->rdp_bias.a = rdp_bias.a;
+			self->rdp_bias.b = rdp_bias.b;
 		}
 		if (ecx->error) {
 			goto methods;
@@ -458,7 +472,6 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 			"\tn = k %% %zu;\n"
 			"\tdw[k] = dz[m] * a[n]/batch_size + dw[k];\n"
 			"}\n", self->w->y, self->w->y)
-
 
 
 	}

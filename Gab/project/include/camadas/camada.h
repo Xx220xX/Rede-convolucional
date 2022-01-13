@@ -136,6 +136,8 @@ void internal_Camada_release(Camada *self);
 
 void internal_compile(Camada self, Gpu gpu);
 
+void internal_putFativacao(char **s, int *len, FAtivacao_t fAtivacao);
+
 char *internal_json(Camada self, int showValues);
 
 void internal_saveCamada(FILE *f, Camada self);
@@ -218,8 +220,8 @@ else apendstr(string, len, ",\n"PAD"\""name"\": null")
 
 #define  Super self->super
 #define setKernelArg(kernel_v, id, tipo, var)  self->super.ecx->setError(self->super.ecx,clSetKernelArg(kernel_v, id, sizeof(tipo), &var),"%s:%d , %s %s\n",__FILE__,__LINE__,__FUNCTION__,#kernel_v)
-#define setKernelArgt(kernel_v, id,  var)  self->super.ecx->setError(self->super.ecx,clSetKernelArg(kernel_v, id, sizeof(typeof(var)), &var),"%s:%d , %s %s\n",__FILE__,__LINE__,__FUNCTION__,#kernel_v)
-#define runr_kernel(error,kernel_v, iterLen, maxcompute, id_index) \
+#define setKernelArgt(kernel_v, id, var)  self->super.ecx->setError(self->super.ecx,clSetKernelArg(kernel_v, id, sizeof(typeof(var)), &var),"%s:%d , %s %s\n",__FILE__,__LINE__,__FUNCTION__,#kernel_v)
+#define runr_kernel(error, kernel_v, iterLen, maxcompute, id_index) \
 {\
     int trid = 0;                                            \
                                                         \
