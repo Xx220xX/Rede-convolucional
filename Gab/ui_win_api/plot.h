@@ -2,9 +2,6 @@
 #define UI_PLOT_H
 
 #include <math.h>
-
-#define  WPAD 30
-#define  HPAD 30
 //#define  pfunc printf("%s\n",__FUNCTION__);
 #define  pfunc
 typedef struct {
@@ -12,6 +9,8 @@ typedef struct {
 	POINTFLOAT *pf;
 	int size;
 	DWORD lineColor;
+	char curveName[100];
+	int show;
 
 	void (*push)(void *self, float x, float y);
 
@@ -21,10 +20,14 @@ typedef struct {
 
 	void (*release)(void *self);
 } Axe;
+
 typedef struct {
 	HWND window;
 	RECT winrc;//retangulo da janela
 	RECT grc;// retangulo do grafico
+
+	RECT legend_rc;
+	int legend;
 
 	float xmin, xmax;
 	float ymin, ymax;
@@ -46,7 +49,7 @@ typedef struct {
 
 	size_t naxes;
 
-	void (*putAxe)(void *self, DWORD lineColor);
+	void (*putAxe)(void *self, DWORD lineColor, char *curveName);
 
 	Axe *(*getAxe)(void *self, int id);
 
@@ -55,7 +58,6 @@ typedef struct {
 	void (*draw)(void *self, HDC hdc);
 
 	void (*setVisible)(void *self, int visible);
-
 
 } Figure;
 
@@ -131,7 +133,14 @@ POINT Axe_convert(Axe *self, float x, float y) {
 	return Figure_convert(self->fig, x, y);
 }
 
-#define MAXLEN 1000
+#define MAXLEN 10000
+
+float sinc(float x) {
+	if (x == 0) {
+		return 1;
+	}
+	return sin(x) / x;
+}
 
 void Axe_push(Axe *self, float x, float y) {
 	pfunc
@@ -139,17 +148,21 @@ void Axe_push(Axe *self, float x, float y) {
 	self->pf = realloc(self->pf, self->size * sizeof(POINTFLOAT));
 	self->pf[self->size - 1].x = x;
 	self->pf[self->size - 1].y = y;
+
 	if (self->size > MAXLEN) {
-		double px = (double) self->size / MAXLEN;
-		int j;
 		POINTFLOAT *f = calloc(MAXLEN, sizeof(POINTFLOAT));
-		for (int i = 0; i < MAXLEN; ++i) {
-			j = i * px +0.5;
-			f[i] = self->pf[j];
+		int j = 0;
+		for (int i = 0; i < MAXLEN - 1; ++i) {
+			if (i % 2 == 0) {
+				f[j] = self->pf[i];
+				j++;
+			}
 		}
+		f[j++] = self->pf[MAXLEN - 1];
+		f[j++] = self->pf[MAXLEN];
+		self->size = j;
 		free(self->pf);
 		self->pf = f;
-		self->size = MAXLEN;
 //		((Figure *)self->fig)->draw(self->fig,NULL);
 	}
 
@@ -160,9 +173,13 @@ void Axe_pusDraw(Axe *self, float x, float y) {
 	pfunc
 	Axe_push(self, x, y);
 	Figure *figure = self->fig;
+	if (!self->show) {
+		return;
+	}
 	if (self->size < 2) {
 		return;
 	}
+
 	HDC hdc = GetDC(figure->window);
 	HPEN hPen = CreatePen(PS_JOIN_ROUND, 1, self->lineColor);
 	SelectObject(hdc, hPen);
@@ -180,6 +197,9 @@ void Axe_pusDraw(Axe *self, float x, float y) {
 
 void Axe_draw(Axe *self, HDC hdc) {
 	pfunc
+	if (!self->show) {
+		return;
+	}
 	if (self->size <= 0) {
 		return;
 	}
@@ -294,12 +314,33 @@ void Figure_draw(Figure *self, HDC hdc) {
 	}
 	Axe *axe;
 	for (int i = 0; i < self->naxes; ++i) {
-
-
 		axe = self->getAxe(self, i);
 		axe->draw(axe, hdc);
+	}
+	if (self->legend) {
+		RECT rc = (RECT) {self->winrc.left + self->winrc.right * 0.7, self->winrc.top, self->winrc.left + self->winrc.right, self->winrc.top + self->winrc.bottom * 0.4};
+//		brush = CreateSolidBrush(self->bkcolor);
+//		FillRect(hdc, &rc, brush);
+//		DeleteObject(brush);
+		int w = rc.right - rc.left, h = rc.bottom - rc.top;
+		int dy = h / (self->naxes);
+
+		for (int i = 0; i < self->naxes; ++i) {
+			axe = &self->axes[i];
+			POINT p[2] = {{rc.left,           rc.top + (i + 0.5) * dy},
+						  {rc.left + w * 0.3, rc.top + (i + 0.5) * dy}};
+			HPEN hPen = CreatePen(PS_JOIN_ROUND, 1, axe->lineColor);
+			SelectPen(hdc, hPen);
+			Polyline(hdc, p, 2);
+			DeletePen(hPen);
+			SIZE ft;
+			GetTextExtentPoint32A(hdc, axe->curveName, strlen(axe->curveName), &ft);
+			TextOutA(hdc, p[1].x * 1.01, p[1].y - ft.cy / 2, axe->curveName, strlen(axe->curveName));
+		}
+//		SetBkMode(hdc, TRANSPARENT);
 
 	}
+
 	if (releasehdc) {
 		ReleaseDC(self->window, hdc);
 	}
@@ -318,12 +359,14 @@ void Figure_release(Figure *self) {
 	memset(self, 0, sizeof(Figure));
 }
 
-void Figure_putAxe(Figure *self, DWORD lineColor) {
+void Figure_putAxe(Figure *self, DWORD lineColor, char *curveName) {
 	pfunc
 	self->axes = realloc(self->axes, (self->naxes + 1) * sizeof(Axe));
 	self->axes[self->naxes] = (Axe) {0};
 	self->axes[self->naxes].fig = self;
 	self->axes[self->naxes].lineColor = lineColor;
+	self->axes[self->naxes].show = 1;
+	snprintf(self->axes[self->naxes].curveName, 50, curveName);
 	self->axes[self->naxes].release = (void (*)(void *)) Axe_release;
 	self->axes[self->naxes].push = (void (*)(void *, float, float)) Axe_push;
 	self->axes[self->naxes].draw = (void (*)(void *, HDC)) Axe_draw;
@@ -361,7 +404,7 @@ int Figure_new(Figure *self, HWND parente, HINSTANCE hInstance, int x, int y, in
 	self->xmax = self->ymax = 1;
 	self->draw = (void (*)(void *, HDC)) Figure_draw;
 	self->release = (void (*)(void *)) Figure_release;
-	self->putAxe = (void (*)(void *, DWORD)) Figure_putAxe;
+	self->putAxe = (void (*)(void *, DWORD, char *)) Figure_putAxe;
 	self->getAxe = (Axe *(*)(void *, int)) Figure_getAxe;
 	self->setVisible = (void (*)(void *, int)) Figure_setVisible;
 	self->winrc = (RECT) {.left = x, .right = w, .top = y, .bottom = h};

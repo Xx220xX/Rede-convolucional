@@ -16,7 +16,19 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="adicionado runtime kernel" />
+    <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="adicionado runtime kernel">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Gab.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/gabkernel.dll" beforeDir="false" afterPath="$PROJECT_DIR$/bin/gabkernel.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/libgabkernel.dll.a" beforeDir="false" afterPath="$PROJECT_DIR$/bin/libgabkernel.dll.a" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/setup/Setup.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/setup/Setup.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaConvF.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaConvF.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/setup/Setup.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/setup/Setup.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_win_api/GUI.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/GUI.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_win_api/plot.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/plot.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_win_api/ui.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/ui.h" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -316,7 +328,9 @@
       <workItem from="1641914133997" duration="2569000" />
       <workItem from="1641994912076" duration="12762000" />
       <workItem from="1642016525993" duration="5071000" />
-      <workItem from="1642095463005" duration="1000" />
+      <workItem from="1642095463005" duration="3267000" />
+      <workItem from="1642117974426" duration="3508000" />
+      <workItem from="1642182433249" duration="13623000" />
     </task>
     <task id="LOCAL-00001" summary="adicionado runtime kernel">
       <created>1642021416001</created>
@@ -402,28 +416,30 @@
           <option name="timeStamp" value="19" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/project/src/cnn/cnn.c</url>
-          <line>305</line>
-          <option name="timeStamp" value="30" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/debug/covf.c</url>
           <line>299</line>
           <option name="timeStamp" value="31" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/project/src/setup/Setup.c</url>
-          <line>251</line>
-          <option name="timeStamp" value="36" />
+          <line>261</line>
+          <option name="timeStamp" value="40" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/ui_win_api/GUI.h</url>
+          <line>245</line>
+          <option name="timeStamp" value="46" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="lua-line">
+          <url>file://D:/Henrique/treino_ia/cifar_10/TESTE_10Classes.lua</url>
+          <line>14</line>
+          <option name="timeStamp" value="49" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
         <watch expression="txt" />
-      </configuration>
-      <configuration name="CMakeRunConfiguration">
-        <watch expression="self-&gt;super.ecx-&gt;error" />
       </configuration>
     </watches-manager>
   </component>

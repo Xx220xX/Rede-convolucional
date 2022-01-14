@@ -11,8 +11,11 @@
 #define GUI_UPDATE_WINDOW 14321853185
 
 
+typedef HWND Button;
 typedef HWND TextLabel;
 typedef HWND ProgressBar[2];
+
+#define IDM_FITNES 0x12
 
 struct {
 	TextLabel status;
@@ -24,7 +27,8 @@ struct {
 	atomic_int *force_end;
 	atomic_int endDraw;
 	HWND hmain;
-
+//	int w;
+//	int h;
 	void *arg;
 
 	Figure figs[10];
@@ -57,6 +61,10 @@ struct {
 	void (*capture)(char *fileName);
 
 	HINSTANCE hisntance;
+	atomic_int avaliar;
+	atomic_int  avaliando;
+	HMENU menu_fitnes_option;
+	HMENU menu;
 } GUI = {0};
 
 
@@ -91,14 +99,14 @@ void GUI_loadImage() {
 	GUI.addLabel("", 200, 40, 100, 20);
 }
 
-int CaptureAnImage();
+int CaptureAnImage(char *fileName,	HWND hWnd);
 
 void GUI_capture(char *filename) {
+	while (!GUI.endDraw);
 	GUI.arg = filename;
-	GUI.draw = (void (*)()) CaptureAnImage;
-	RedrawWindow(GUI.hmain, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
-
-
+	CaptureAnImage(filename,GUI.hmain);
+//	GUI.draw = (void (*)()) CaptureAnImage;
+//	RedrawWindow(GUI.hmain, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
 }
 
 void GUI_updateLoadImagens(int im, int total, double delta) {
@@ -137,13 +145,17 @@ void time2str(char *buf, int len, double dtm) {
 }
 
 static char *TEXT_winrate = "Win rate";
-static char *TEXT_MSE = "MSE";
+static char *TEXT_MSE = "Erro";
 
 void GUI_train() {
 	int i = 1;
 	int dy = 20;
 	int w = 200;
 	GUI.clearWindow();
+
+
+	//	AppendMenuA(menu,MF_STRING,IDM_FITNES,"&")
+
 	GUI.addLabel("Progresso treino:", 1, dy * i, w, dy);              //0
 	GUI.addLabel("", w, dy * i++, w, dy);                           //1
 	GUI.addLabel("Progresso epoca:", 1, dy * i, w, dy);               //2
@@ -160,7 +172,7 @@ void GUI_train() {
 	GUI.addLabel("", w, dy * i++, w, dy);                             //13
 
 	Figure *f = GUI_addFig();
-	Figure_new(f, GUI.hmain, GUI.hisntance, 10, dy * i++, 500, 250);
+	Figure_new(f, GUI.hmain, GUI.hisntance, 10, dy * i++,700, 250);
 	f->bkcolor = RGB(0xff, 0xff, 0xff);
 	f->grid = 1;
 	f->nstepx = 10;
@@ -174,11 +186,15 @@ void GUI_train() {
 	f->ygrid_start = 0;
 	f->xgrid_start = 0;
 	f->wpad = 50;
-	f->putAxe(f, RGB(0xff, 0, 0));
+	f->legend = 1;
+	f->putAxe(f, RGB(0xff, 0, 0),"Treino");
+	f->putAxe(f, RGB(0, 0xff, 0),"Avaliacao");
 	f = GUI_addFig();
-	Figure_new(f, GUI.hmain, GUI.hisntance, 10, dy * i + 250, 500, 250);
+	Figure_new(f, GUI.hmain, GUI.hisntance, 10, dy * i + 250, 700, 250);
 	f->bkcolor = RGB(0xff, 0xff, 0xff);
 	f->grid = 1;
+	f->legend = 1;
+
 	f->nstepx = 10;
 	f->ystep = 10;
 	f->ygrid_start = 0;
@@ -189,9 +205,10 @@ void GUI_train() {
 	f->xmin = 0;
 	f->xmax = 1;
 	f->wpad = 50;
-	f->putAxe(f, RGB(0xff, 0, 0));
-	f->putAxe(f, RGB(0, 0xff, 0));
-	f->putAxe(f, RGB(0, 0, 0xff));
+	f->putAxe(f, RGB(0xff, 0, 0),"Estimado");
+	f->putAxe(f, RGB(0, 0xff, 0),"Medio na Epoca");
+	f->putAxe(f, RGB(0, 0, 0xff),"Medio");
+	f->putAxe(f, RGB(0xff, 0, 0xff),"Avaliacao");
 
 }
 
@@ -199,12 +216,17 @@ void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double 
 	if (ep == 0 || im == 0) {
 		return;
 	}
+	if(GUI.avaliando)return;
+
 	double progresso = im * 100.0 / total;
 	int nimages = (ep - 1) * total + im;
 	char tempo_str[250];
 	double imps = nimages / deltat;
 	double tempo = (total * eptotal - nimages) / imps;
-
+	float epoca = nimages / (float) total;
+	static float lastEpoca = -10;
+	if(epoca == lastEpoca)return;
+	lastEpoca = epoca;
 	time2str(tempo_str, 250, tempo);
 	GUI.setText(GUI.labels[3], "%.2lf%% %d/%d", progresso, im, total);
 	progresso = 100.0 * nimages / (eptotal * total);
@@ -213,7 +235,7 @@ void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double 
 	GUI.setText(GUI.labels[9], "%lf", mse);
 	GUI.setText(GUI.labels[11], "%lf%%", winRate);
 	GUI.setText(GUI.labels[13], "%.1lf", imps);
-	float epoca = nimages / (float) total;
+
 	if (GUI.endDraw) {
 		if (GUI.figs[0].xmax != eptotal) {
 			GUI.figs[0].xmax = GUI.figs[1].xmax = eptotal;
@@ -221,6 +243,7 @@ void GUI_updateTrain(int im, int total, int ep, int eptotal, double mse, double 
 			GUI.figs[0].draw(GUI.figs, NULL);
 			GUI.figs[1].draw(GUI.figs + 1, NULL);
 		}
+
 		GUI.figs[0].axes[0].pushDraw(GUI.figs[0].axes, epoca, mse);
 		GUI.figs[1].axes[0].pushDraw(GUI.figs[1].axes, epoca, winRate);
 		GUI.figs[1].axes[1].pushDraw(GUI.figs[1].axes + 1, epoca, winRateMedio);
@@ -260,7 +283,7 @@ void GUI_teste() {
 	f->ygrid_start = 0;
 	f->xgrid_start = 0;
 	f->wpad = 50;
-	f->putAxe(f, RGB(0xff, 0, 0));
+	f->putAxe(f, RGB(0xff, 0, 0),"Erro");
 	f = GUI_addFig();
 	Figure_new(f, GUI.hmain, GUI.hisntance, 10, dy * i + 250, 500, 250);
 	f->bkcolor = RGB(0xff, 0xff, 0xff);
@@ -275,7 +298,7 @@ void GUI_teste() {
 	f->xmin = 0;
 	f->xmax = 1;
 	f->wpad = 50;
-	f->putAxe(f, RGB(0xff, 0, 0));
+	f->putAxe(f, RGB(0xff, 0, 0),"Acerto");
 
 //	GUI.graphico.x = 100;
 //	GUI.graphico.y = dy * i++;

@@ -551,7 +551,7 @@ Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t
 			"\n}\n", Super.params.decaimento, Super.params.momento)
 
 	}
-	printf("%s\n", Super.kernel);
+//	printf("%s\n", Super.kernel);
 	internal_compile((Camada) self, gpu);
 
 	self->conv = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "sum", Super.ecx->perro);

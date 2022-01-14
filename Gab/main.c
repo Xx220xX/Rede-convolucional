@@ -1,4 +1,5 @@
 #define UTF8
+
 #include "windows.h"
 #include <stdio.h>
 #include <cnn/cnn_lua.h>
@@ -46,89 +47,28 @@ void Cnn_asimage(Cnn c, char *file, int largura, int altura, ...) {
 	gab_free(image);
 }
 
-/*
-void on_train(const struct Setup_t *self, int label) {
-	Cnn cnn = self->cnn;
-	double  b = seconds();
-	if(1/(b-t0)>5)return;
-	t0 = b;
-
-	Camada cm;
-	static int printed = 0;
-	for (int i = 0; i < cnn->l; ++i) {
-		cm = cnn->cm[i];
-		switch (cm->layer_id) {
-			case CONVOLUCAO_ID:
-				Client_sendTensor(CST_CONVOLUCAO(cnn, i)->W, i + 1);
-				if(!printed){
-					printf("CONVOLUCAO %d -> figure %d\n",i,i+1);
-				}
-				break;
-			case CONVOLUCAOF_ID:
-				Client_sendTensor(CST_CONVOLUCAOF(cnn, i)->W, i + 1);
-				if(!printed){
-					printf("CONVOLUCAOF %d -> figure %d\n",i,i+1);
-				}
-				break;
-			case CONVOLUCAONC_ID:
-				Client_sendTensor(CST_CONVOLUCAONC(cnn, i)->W,i+1);
-				if(!printed){
-					printf("CONVOLUCAONC %d -> figure %d\n",i,i+1);
-				}
-				break;
-			case POOL_ID:
-				break;
-			case FULLCONNECT_ID:
-				Client_sendTensor(CST_FULLCONNECT(cnn,i)->w,i+1);
-				if(!printed){
-					printf("FULLCONNECT W %d -> figure %d\n",i,i+1);
-				}
-//				Client_sendTensor(CST_FULLCONNECT(cnn,i)->b,j++);
-//				if(!printed){
-//					printf("FULLCONNECT B %d -> figure %d\n",i,j-1);
-//				}
-				break;
-			case PADDING_ID:
-				break;
-			case DROPOUT_ID:
-				break;
-			case RELU_ID:
-
-				break;
-			case PRELU_ID:
-//				Client_sendTensor(CST_PRELU(cnn,i)->A,i+1);
-//				if(!printed){
-//					printf("PRELU B %d -> figure %d\n",i,i+1);
-//				}
-				break;
-			case SOFTMAX_ID:
-
-				break;
-			case BATCHNORM_ID:
-//				Client_sendTensor(CST_BATCHNORM(cnn,i)->Y,i+1);
-//				if(!printed){
-//					printf("BATCHNORM Y %d -> figure %d\n",i,i+1);
-//				}Client_sendTensor(CST_BATCHNORM(cnn,i)->B,i+1);
-//				if(!printed){
-//					printf("BATCHNORM B %d -> figure %d\n",i,i+1);
-//				}
-				break;
-			default:
-				fprintf(stderr,"Camada desconhecida, id %d\n",cm->layer_id);
-		}
-	}
-//	Client_sendTensor(CST_CONVOLUCAO(cnn, 4)->filtros, j++);
-//	Client_sendTensor(CST_CONVOLUCAO(cnn, 5)->filtros, j++);
-	printed = 1;
-//	Sleep(100);
-}
-*/
 #define  TMP_FILE_NAME_ARCH "edit_archtmp_lua.lua"
+
+void on_end_epoca(const Setup self, int epoca) {
+	if (!GUI.avaliar) {
+		return;
+	}
+	GUI.avaliando = 1;
+	float win, custo;
+	self->fast_fitnes(self, &win, &custo);
+
+	Axe *ax_erro = GUI.figs[0].getAxe(GUI.figs, 1);
+	Axe *ax_win = GUI.figs[0].getAxe(GUI.figs + 1, 3);
+	ax_erro->pushDraw(ax_erro, epoca, custo);
+	ax_win->pushDraw(ax_win, epoca, win);
+	printf("epoca %d winrate %.2f%% erro %f\n", epoca,win,custo);
+	GUI.avaliando = 0;
+
+}
 
 int cnnMain(int nargs, char **args) {
 	char luaFile[250] = {0};
 	double t0;
-	double im;
 	HANDLE hload;
 	HANDLE htreino;
 	HANDLE hteste;
@@ -144,6 +84,7 @@ int cnnMain(int nargs, char **args) {
 	init:
 	s->cnn->print(s->cnn, "--");
 	printf("\n\n");
+	s->on_endEpoca = (void (*)(const struct Setup_t *, int)) on_end_epoca;
 	if (s->ok(s)) {
 		t0 = seconds(); // captura o tempo incial
 		s->runing = 1; // informa que está rodando
@@ -177,28 +118,29 @@ int cnnMain(int nargs, char **args) {
 		t0 = seconds();
 		s->runing = 1;
 		GUI.make_train();
-		while(!GUI.endDraw);
+		while (!GUI.endDraw);
 		if (s->cnn->cm[s->cnn->l - 1]->layer_id == FULLCONNECT_ID && ((CamadaFullConnect) s->cnn->cm[s->cnn->l - 1])->fa.id == FSOFTMAX) {
 			GUI.figs[0].title = "Cross-Entropy";
 		}
-		if(s->useBatch) {
+		if (s->useBatch) {
 			htreino = Thread_new(s->treinarBatch, s);
-			GUI.setText(GUI.status,"Treinando Batch size %lld",s->batchSize);
-		}else{
+			GUI.setText(GUI.status, "Treinando Batch size %lld", s->batchSize);
+		} else {
 			htreino = Thread_new(s->treinar, s);
 		}
 		Itrain treino;
 
 		while (s->runing) {
 			treino = s->itrain;
-			GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate,treino.winRateMedio, treino.winRateMedioep,  seconds() - t0);
+			GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, treino.winRateMedio, treino.winRateMedioep, seconds() - t0);
 			Sleep(100);
 		}
 		Thread_Release(htreino);
 		treino = s->itrain;
-		GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate,treino.winRateMedio,treino.winRateMedioep, seconds() - t0);
+		GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, treino.winRateMedio, treino.winRateMedioep, seconds() - t0);
 		t0 = seconds() - t0;
 		printf("Tempo para treino %.3lf s\n", t0);
+		Sleep(10);
 		GUI.capture(s->treino_out);
 	}
 
@@ -206,7 +148,7 @@ int cnnMain(int nargs, char **args) {
 	snprintf(nome, 250, "%s.cnn", s->nome);
 	GUI.setText(GUI.status, "Salvando cnn em %s", nome);
 	s->cnn->save(s->cnn, nome);
-	system("pause");
+//	system("pause");
 	if (s->ok(s)) {
 		t0 = seconds();
 		s->runing = 1;
@@ -219,18 +161,18 @@ int cnnMain(int nargs, char **args) {
 			Sleep(100);
 		}
 		GUI.updateTeste(teste.imAtual, teste.imTotal, teste.mse, teste.winRate, seconds() - t0);
-		Thread_Release(htreino);
+		Thread_Release(hteste);
 		t0 = seconds() - t0;
 		printf("Tempo para treino %.3lf s\n", t0);
 		GUI.capture(s->teste_out);
 		s->saveStatistic(s);
 	}
 
-	char *tmp = asprintf(NULL, u8"Custo treino %lf\n"
-							  		 "win hate treino %lf.\n"
-									   "Custo avaliação %lf\n"
-							  		 "win hate teste %lf.\n"
-									 " Deseja mudar a arquitetura da rede?", s->itrain.mse, s->itrain.winRateMedioep, s->iteste.mse, s->iteste.winRate);
+	char *tmp = asprintf(NULL, "Custo treino %lf\n"
+							   "win hate treino %lf.\n"
+							   "Custo avaliacao %lf\n"
+							   "win hate teste %lf.\n"
+							   " Deseja mudar a arquitetura da rede?", s->itrain.mse, s->itrain.winRateMedioep, s->iteste.mse, s->iteste.winRate);
 
 
 	if (!s->cnn->ecx->error && dialogBox("Treino terminado!", tmp)) {

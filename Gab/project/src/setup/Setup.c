@@ -203,7 +203,7 @@ void Setup_loadLabel(Setup self) {
 }
 
 float cost_crossEntropy(Tensor S, Tensor T) {
-	if(S->erro->error){
+	if (S->erro->error) {
 		return 0;
 	}
 	REAL *vS = S->getvalues(S, NULL);
@@ -256,7 +256,11 @@ void Setup_treinar(Setup self) {
 	}
 	localItrain.winRateMedio = 10;
 	localItrain.mse = 1;
-
+//	float alpha = 1-exp(-log10(self->n_imagens_treinar))/9;
+//	float beta = 1-alpha;
+	if (self->on_endEpoca) {
+		self->on_endEpoca(self, self->epoca_atual);
+	}
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		if (self->imagem_atual_treino >= self->n_imagens_treinar) {
 			self->imagem_atual_treino = 0;
@@ -272,14 +276,10 @@ void Setup_treinar(Setup self) {
 			self->cnn->predict(self->cnn, entrada);
 			self->cnn->learn(self->cnn, target);
 			cnn_label = self->cnn->maxIndex(self->cnn);
-			if (self->on_train) {
-				self->on_train(self, label);
-			}
-
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
 			acertosep += (cnn_label == label);
-			localItrain.winRate = localItrain.winRate * alpha + 100 * beta*(cnn_label == label);
+			localItrain.winRate = localItrain.winRate * alpha + 100 * beta * (cnn_label == label);
 			localItrain.winRateMedio = acertos * 100.0 / (images + 1.0);
 			localItrain.winRateMedioep = acertosep * 100.0 / (self->imagem_atual_treino + 1.0);
 
@@ -294,6 +294,9 @@ void Setup_treinar(Setup self) {
 			localItrain.imAtual = self->imagem_atual_treino + 1;
 			self->itrain = localItrain;
 			classe++;
+		}
+		if (self->on_endEpoca) {
+			self->on_endEpoca(self, self->epoca_atual + 1);
 		}
 	}
 	ECXPOP(self->cnn->ecx);
@@ -335,7 +338,12 @@ void Setup_treinarBatch(Setup self) {
 
 	localItrain.mse = 1;
 	localItrain.winRateMedio = 10;
+//	float alpha = 1-exp(-log10(self->n_imagens_treinar))/9;
+//	float beta = 1-alpha;
 	int acertosep;
+	if (self->on_endEpoca) {
+		self->on_endEpoca(self, self->epoca_atual );
+	}
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		self->batch = 0;
 		bathS = self->n_imagens_treinar >= self->batchSize ? self->batchSize : self->n_imagens_treinar;
@@ -360,9 +368,6 @@ void Setup_treinarBatch(Setup self) {
 
 			}
 			cnn_label = self->cnn->maxIndex(self->cnn);
-			if (self->on_train) {
-				self->on_train(self, label);
-			}
 
 			// #### informações do treinamento
 			acertos += (cnn_label == label);
@@ -390,6 +395,9 @@ void Setup_treinarBatch(Setup self) {
 			self->cnn->updateHitLearn(self->cnn, iter);
 			self->cnn->fixBatch(self->cnn);
 			iter++;
+		}
+		if (self->on_endEpoca) {
+			self->on_endEpoca(self, self->epoca_atual + 1);
 		}
 	}
 	ECXPOP(self->cnn->ecx);
@@ -442,6 +450,37 @@ void Setup_avaliar(Setup self) {
 		self->iteste = localIteste;
 	}
 	self->runing = 0;
+
+}
+
+void Setup_fast_fitnes(Setup self,float *winRate,float *custo) {
+	// ###  thread de alta prioridade
+	self->cnn->setMode(self->cnn, 0);
+	// ### variaveis usadas na avaliação
+	Tensor entrada, target;
+	ubyte label, cnn_label;
+	int indice;
+	int64_t acertos = 0;
+	float custoL = 0;
+	REAL (*cost)(Tensor, Tensor);
+	cost = cost_mse;
+	if (self->cnn->cm[self->cnn->l - 1]->layer_id == FULLCONNECT_ID && ((CamadaFullConnect) self->cnn->cm[self->cnn->l - 1])->fa.id == FSOFTMAX) {
+		cost = cost_crossEntropy;
+	}
+	for (int imagem_atual_teste = 0; self->can_run && imagem_atual_teste< self->n_imagens_testar; imagem_atual_teste++) {
+		indice = self->n_imagens_treinar + imagem_atual_teste;
+		entrada = self->imagens[indice];
+		target = self->targets[indice];
+		label = ((char *) self->labels->data)[indice];
+		self->cnn->predict(self->cnn, entrada);
+		cnn_label = self->cnn->maxIndex(self->cnn);
+		acertos += (cnn_label == label);
+		custoL += cost(self->cnn->cm[self->cnn->l -1]->s, target);
+	}
+	*custo = custoL/ self->n_imagens_testar;
+	*winRate = acertos * 100.0 / self->n_imagens_testar;
+	self->cnn->setMode(self->cnn, 1);
+
 }
 
 void Setup_saveStatistic(Setup self) {
@@ -571,6 +610,7 @@ Setup Setup_new() {
 	setup->treinar = Setup_treinar;
 	setup->treinarBatch = Setup_treinarBatch;
 	setup->avaliar = Setup_avaliar;
+	setup->fast_fitnes = Setup_fast_fitnes;
 	setup->release = Setup_release;
 	setup->loadLua = Setup_loadLua;
 	setup->saveStatistic = Setup_saveStatistic;

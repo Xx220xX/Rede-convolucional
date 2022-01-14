@@ -93,7 +93,7 @@ typedef struct Setup_t {
 	/// Rede neural
 	Cnn cnn;
 
-	void (*on_train)(const struct Setup_t *self, int label);
+	void (*on_endEpoca)(const struct Setup_t *self, int label);
 
 	// ##### Métodos
 	void (*loadImagens)(struct Setup_t *self);
@@ -109,6 +109,8 @@ typedef struct Setup_t {
 	void (*treinarBatch)(struct Setup_t *self);
 
 	void (*avaliar)(struct Setup_t *self);
+
+	void (*fast_fitnes)(struct Setup_t *self,float *winRate,float *custo);
 
 	void (*saveStatistic)(struct Setup_t *self);
 
