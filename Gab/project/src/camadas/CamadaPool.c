@@ -13,18 +13,17 @@ void CamadaPooling_release(CamadaPool *selfp) {
 	gab_free(*selfp);
 }
 
-Tensor CamadaPooling_propagation(CamadaPool self,Tensor a) {
+Tensor CamadaPooling_propagation(CamadaPool self, Tensor a) {
 	self->super.a = a;
-	Execute(poolativa, self->super.s->length,			&self->super.a->data, &self->super.s->data, &self->passox, &self->passoy, &self->filtrox, &self->filtroy, &self->super.s->x, &self->super.s->y, &self->super.a->x, &self->super.a->y);
+	Execute(poolativa, self->super.s->length, &self->super.a->data, &self->super.s->data, &self->passox, &self->passoy, &self->filtrox, &self->filtroy, &self->super.s->x, &self->super.s->y, &self->super.a->x, &self->super.a->y);
 	return self->super.s;
 }
 
 int CamadaPooling_backpropagation(CamadaPool self, Tensor ds) {
 	if (self->super.da) {
+//		Super.da->fill(Super.da,0);
 		Execute(poolCalcGrads, self->super.da->length,
-
 				&self->super.a->data, &self->super.da->data, &ds->data, &self->super.s->data, &self->filtrox, &self->filtroy, &self->passox, &self->passoy, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y
-
 			   );
 	}
 	return self->super.ecx->error;
@@ -65,7 +64,9 @@ char *CamadaPooling_getGenerate(CamadaPool self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaPooling_save(CamadaPool self, FILE *f) {
-	if (self->super.ecx->error) { goto end; }
+	if (self->super.ecx->error) {
+		goto end;
+	}
 	self->super.ecx->addstack(self->super.ecx, "CamadaPooling_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->type, 1, sizeof(uint32_t), f);
@@ -100,12 +101,13 @@ Camada CamadaPool_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 	return (Camada) self;
 }
 
-int CamadaPool_fprintf(CamadaPool self, FILE * destino, char *format, ...){
-	va_list  v;
-	va_start(v,format);
-	internal_Camada_fprint(self,destino,format,v);
+int CamadaPool_fprintf(CamadaPool self, FILE *destino, char *format, ...) {
+	va_list v;
+	va_start(v, format);
+	internal_Camada_fprint(self, destino, format, v);
 	return 0;
 }
+
 Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, uint32_t type_pooling, Tensor entrada, Ecx ecx) {
 	ECXPUSH(ecx);
 	CamadaPool self = gab_alloc(1, sizeof(CamadaPool_t));
@@ -120,50 +122,50 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 
 	if (type_pooling == MAXPOOL) {
 		KRN_news(self->poolativa, "poolativa", "Vector entrada, Vector saida,\n"
-											  "int passox,int passoy,\n"
-											  "int filtrox,int filtroy,\n"
-											  "int saidatx, int saidaty,\n"
-											  "int entradatx, int entradaty, int k0");
+											   "int passox,int passoy,\n"
+											   "int filtrox,int filtroy,\n"
+											   "int saidatx, int saidaty,\n"
+											   "int entradatx, int entradaty, int k0");
 
 
 		KRN_news(self->poolCalcGrads, "poolCalcGrads", "Vector entrada, Vector gradEntrada,\n"
-													  "Vector gradNext, Vector saida,\n"
-													  "int fx, int fy, int px, int py,\n"
-													  "int entradatx, int entradaty,\n"
-													  "int saidatx, int saidaty,\n"
-													  "int k0");
+													   "Vector gradNext, Vector saida,\n"
+													   "int fx, int fy, int px, int py,\n"
+													   "int entradatx, int entradaty,\n"
+													   "int saidatx, int saidaty,\n"
+													   "int k0");
 
 	} else if (type_pooling == AVEPOOL) {
 		KRN_news(self->poolativa, "poolAVativa", "Vector entrada, Vector saida,\n"
-												"int passox,int passoy,\n"
-												"int filtrox,int filtroy,\n"
-												"int saidatx, int saidaty,\n"
-												"int entradatx, int entradaty, int k0");
-
-		KRN_news(self->poolCalcGrads, "poolAvCalcGrads", "Vector entrada, Vector gradEntrada,\n"
-														"Vector gradNext, Vector saida,\n"
-														"int fx, int fy, int px, int py,\n"
-														"int entradatx, int entradaty,\n"
-														"int saidatx, int saidaty,\n"
-														"int k0");
-
-	} else if (type_pooling == MINPOOL) {
-		KRN_news(self->poolativa, "poolativaMin", "Vector entrada, Vector saida,\n"
 												 "int passox,int passoy,\n"
 												 "int filtrox,int filtroy,\n"
 												 "int saidatx, int saidaty,\n"
 												 "int entradatx, int entradaty, int k0");
 
+		KRN_news(self->poolCalcGrads, "poolAvCalcGrads", "Vector entrada, Vector gradEntrada,\n"
+														 "Vector gradNext, Vector saida,\n"
+														 "int fx, int fy, int px, int py,\n"
+														 "int entradatx, int entradaty,\n"
+														 "int saidatx, int saidaty,\n"
+														 "int k0");
+
+	} else if (type_pooling == MINPOOL) {
+		KRN_news(self->poolativa, "poolativaMin", "Vector entrada, Vector saida,\n"
+												  "int passox,int passoy,\n"
+												  "int filtrox,int filtroy,\n"
+												  "int saidatx, int saidaty,\n"
+												  "int entradatx, int entradaty, int k0");
+
 
 		KRN_news(self->poolCalcGrads, "poolCalcGrads", "Vector entrada, Vector gradEntrada,\n"
-													  "Vector gradNext, Vector saida,\n"
-													  "int fx, int fy, int px, int py,\n"
-													  "int entradatx, int entradaty,\n"
-													  "int saidatx, int saidaty,\n"
-													  "int k0");
+													   "Vector gradNext, Vector saida,\n"
+													   "int fx, int fy, int px, int py,\n"
+													   "int entradatx, int entradaty,\n"
+													   "int saidatx, int saidaty,\n"
+													   "int k0");
 
 	} else {
-		ecx->setError(ecx, GAB_INVALID_PARAM,"Tipo invalido\n");
+		ecx->setError(ecx, GAB_INVALID_PARAM, "Tipo invalido\n");
 		goto methods;
 	}
 	ecx->popstack(ecx);

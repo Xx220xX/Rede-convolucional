@@ -131,8 +131,8 @@ int CamadaConv_fprintf(CamadaConv self, FILE * destino, char *format, ...){
 	va_list  v;
 	va_start(v,format);
 	internal_Camada_fprint(self,destino,format,v);
-	fprintf(destino,"W -> ");self->W->fprint(self->W,destino);
-	fprintf(destino,"dW -> ");self->dW->fprint(self->dW,destino);
+	fprintf(destino,"w -> ");self->W->fprint(self->W,destino);
+	fprintf(destino,"dw -> ");self->dW->fprint(self->dW,destino);
 	return 0;
 }
 Camada CamadaConv_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, Parametros params, RandomParams rdp_filtros) {

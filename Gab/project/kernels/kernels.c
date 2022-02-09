@@ -623,7 +623,8 @@ kV poolCalcGrads(Vr A, Vr dA, Vr dS, Vr S, int fx, int fy, int px, int py, int e
 		range_filtro.max.y = y;
 	}
 	int i, j;//saida
-	dA[kMap(x, y, z, entradatx, entradaty)] = 0;
+	REAL soma = 0;
+
 	for (int m = range_filtro.min.x; m <= range_filtro.max.x; m++) {
 		i = (x - m) / px;
 		if (i * px + m != x) {
@@ -635,11 +636,11 @@ kV poolCalcGrads(Vr A, Vr dA, Vr dS, Vr S, int fx, int fy, int px, int py, int e
 				continue;
 			}
 			if (A[k] == S[kMap(i, j, z, saidatx, saidaty)]) {
-				dA[k] = dS[kMap(i, j, z, saidatx, saidaty)];
-				return;
+				soma += dS[kMap(i, j, z, saidatx, saidaty)];
 			}
 		}
 	}
+	dA[k] = soma;
 
 }
 

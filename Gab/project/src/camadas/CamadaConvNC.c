@@ -65,7 +65,7 @@ static int CamadaConvNC_backpropagationBatch(CamadaConvNC self, Tensor ds, size_
 
 static int CamadaConvNC_learnBatch(CamadaConvNC self) {
 	if (!self->super.params.skipLearn) {
-		//convncFixBatch(Vector W, Vector dW,REAL hitlearn, REAL momento, REAL weightDecay, int k0)
+		//convncFixBatch(Vector w, Vector dw,REAL hitlearn, REAL momento, REAL weightDecay, int k0)
 		Execute(kernel_fixW, self->W->length, &self->W->data, &self->dW->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 	}
 	return self->super.ecx->error;
@@ -82,8 +82,8 @@ static char *CamadaConvNC_json(CamadaConvNC self, int showValues) {
 			PAD"\"largura\":[%zu,%zu],\n"
 			PAD"\"numero_filtros\":%zu", tmp, self->activationFuntion, self->passox, self->passoy, self->aberturax, self->aberturay, self->W->w);
 
-	apendTensor("W", W, string, len, tmp, showValues);
-	apendTensor("dW", dW, string, len, tmp, showValues);
+	apendTensor("w", W, string, len, tmp, showValues);
+	apendTensor("dw", dW, string, len, tmp, showValues);
 	apendTensor("Z", z, string, len, tmp, showValues);
 	apendTensor("dZ", dz, string, len, tmp, showValues);
 
@@ -160,8 +160,8 @@ int CamadaConvNC_fprintf(CamadaConvNC self, FILE * destino, char *format, ...){
 	va_list  v;
 	va_start(v,format);
 	internal_Camada_fprint(self,destino,format,v);
-	fprintf(destino,"W -> ");self->W->fprint(self->W,destino);
-	fprintf(destino,"dW -> ");self->dW->fprint(self->dW,destino);
+	fprintf(destino,"w -> ");self->W->fprint(self->W,destino);
+	fprintf(destino,"dw -> ");self->dW->fprint(self->dW,destino);
 	return 0;
 }
 Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtro, P3d size_in, uint32_t ativacao, Tensor entrada, Parametros params, Ecx ecx, RandomParams rdp_filtros) {
@@ -196,11 +196,11 @@ Camada CamadaConvNC_new(Gpu gpu, Queue queue, P2d passo, P2d abertura, P3d filtr
 	self->passoy = passo.y;
 	self->aberturax = abertura.x;
 	self->aberturay = abertura.y;
-	KRN_news(self->convncSum, "convncSum", "Vector W, Vector A, Vector Z, Vector S, unsigned int fid, unsigned int passox, int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0");
+	KRN_news(self->convncSum, "convncSum", "Vector w, Vector A, Vector Z, Vector S, unsigned int fid, unsigned int passox, int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0");
 	KRN_news(self->convncCalcGradZ, "convncCalcGradZ", "Vector ds, Vector z, Vector dz, unsigned int fid, int k0");
-	KRN_news(self->convncCalcGrads, "convncCalcGrads", "Vector W, Vector DA, Vector dz, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0");
-	KRN_news(self->convncCalcFiltro, "convncCalcFiltro", "Vector dz, Vector A, Vector W, Vector dW, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, REAL hitlearn, REAL momento, REAL weightDecay, int k0");
-	KRN_news(self->convncCalcFiltroBatch, "convncCalcFiltroBatch", "Vector dz, Vector A, Vector dW,long batchSize, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, int k0");
+	KRN_news(self->convncCalcGrads, "convncCalcGrads", "Vector w, Vector DA, Vector dz, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0");
+	KRN_news(self->convncCalcFiltro, "convncCalcFiltro", "Vector dz, Vector A, Vector w, Vector dw, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, REAL hitlearn, REAL momento, REAL weightDecay, int k0");
+	KRN_news(self->convncCalcFiltroBatch, "convncCalcFiltroBatch", "Vector dz, Vector A, Vector dw,long batchSize, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, int k0");
 	KRN_news(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
 
 	ecx->popstack(ecx);

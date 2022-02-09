@@ -11,12 +11,12 @@
 
 typedef struct CamadaConvF_t {
 	Camada_t super;
-	Tensor W;
-	Tensor dW;
+	Tensor w;
+	Tensor dw;
 	Tensor z;
 	Tensor dz;
-	Tensor B;
-	Tensor dB;
+	Tensor b;
+	Tensor db;
 	size_t passox, passoy;
 	cl_kernel conv;
 	cl_kernel calc_dz;

@@ -35,7 +35,12 @@ void CamadaFullConnect_release(CamadaFullConnect *self) {
 	Release((*self)->z);
 	Release((*self)->dz);
 	Release((*self)->expoente);
-
+	#if COMPATIBLE_KERAS == 1
+	if ((*self)->flatten) {
+		Release((*self)->super.a);
+		Release((*self)->daf);
+	}
+	#endif
 	ReleaseKernel((*self)->feed);
 	ReleaseKernel((*self)->calc_exp);
 	ReleaseKernel((*self)->feed);
@@ -52,9 +57,68 @@ void CamadaFullConnect_release(CamadaFullConnect *self) {
 	gab_free(*self);
 }
 
+void flatten(Tensor A, Tensor AF) {
+//	printf("%s\n", __FUNCTION__);
+	REAL a[A->length];
+	REAL af[AF->length];
+	A->getvalues(A, a);
+	int aX = A->x;
+	int aY = A->y;
+	int aZ = A->z;
+	for (int m = 0; m < A->length; ++m) {
+		int x, y, z;
+		kRap(m, y, z, x, aY, aZ)
+		af[m] = a[kMap(x, y, z, aX, aY)];
+	}
+	AF->setvalues(AF, af);
+}
+
+void reflatten(Tensor dA, Tensor dAF) {
+	REAL da[dA->length];
+	REAL daf[dAF->length];
+	dAF->getvalues(dAF, daf);
+	int aX = dA->x;
+	int aY = dA->y;
+	int aZ = dA->z;
+	for (int m = 0; m < dA->length; ++m) {
+		int x, y, z;
+		kRap(m, y, z, x, aY, aZ)
+		da[kMap(x, y, z, aX, aY)] = daf[m];
+	}
+	dA->setvalues(dA, da);
+}
+
+
+void CamadaFullConnect_calc_da(CamadaFullConnect self) {
+	#if COMPATIBLE_KERAS == 1
+	if (self->flatten) {
+		setKernelArg(self->calc_da, 0, void *, self->daf->data);
+		setKernelArg(self->calc_da, 1, void *, self->w->data);
+		setKernelArg(self->calc_da, 2, void *, self->dz->data);
+		runr_kernel(Super.ecx->error, self->calc_da, Super.da->length, *Super.maxcompute, 3);
+		reflatten(Super.da, self->daf);
+		return;
+	}
+	#endif
+	setKernelArg(self->calc_da, 0, void *, Super.da->data);
+	setKernelArg(self->calc_da, 1, void *, self->w->data);
+	setKernelArg(self->calc_da, 2, void *, self->dz->data);
+	runr_kernel(Super.ecx->error, self->calc_da, Super.da->length, *Super.maxcompute, 3);
+	handle_error:
+	return;
+}
+
 Tensor CamadaFullConnect_propagation(CamadaFullConnect self, Tensor a) {
+	#if COMPATIBLE_KERAS == 1
+	if (self->flatten) {
+		flatten(a, Super.a);
+	} else {
+		Super.a = a;
+	}
+	#else
 	Super.a = a;
-	setKernelArg(self->feed, 0, void *, a->data);
+	#endif
+	setKernelArg(self->feed, 0, void *, Super.a->data);
 	setKernelArg(self->feed, 1, void *, self->w->data);
 	setKernelArg(self->feed, 2, void *, self->b->data);
 	setKernelArg(self->feed, 3, void *, self->z->data);
@@ -66,9 +130,18 @@ Tensor CamadaFullConnect_propagation(CamadaFullConnect self, Tensor a) {
 	return NULL;
 }
 
+
 Tensor CamadaFullConnect_propagation_softmax(CamadaFullConnect self, Tensor a) {
+	#if COMPATIBLE_KERAS == 1
+	if (self->flatten) {
+		flatten(a, Super.a);
+	} else {
+		Super.a = a;
+	}
+	#else
 	Super.a = a;
-	setKernelArg(self->feed, 0, void *, a->data);
+	#endif
+	setKernelArg(self->feed, 0, void *, Super.a->data);
 	setKernelArg(self->feed, 1, void *, self->w->data);
 	setKernelArg(self->feed, 2, void *, self->b->data);
 	setKernelArg(self->feed, 3, void *, self->z->data);
@@ -116,10 +189,10 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 
 	// calcula da
 	if (Super.da) {
-		setKernelArg(self->calc_da, 0, void *, Super.da->data);
-		setKernelArg(self->calc_da, 1, void *, self->w->data);
-		setKernelArg(self->calc_da, 2, void *, self->dz->data);
-		runr_kernel(Super.ecx->error, self->calc_da, Super.da->length, *Super.maxcompute, 3);
+		CamadaFullConnect_calc_da(self);
+		if (Super.ecx->error) {
+			goto handle_error;
+		}
 	}
 	// calcula dw e arruma
 	setKernelArg(self->calc_dw, 0, void *, self->dw->data);
@@ -131,6 +204,7 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 	handle_error:
 	return Super.ecx->error;
 }
+
 
 int CamadaFullConnect_backpropagationBatch(CamadaFullConnect self, Tensor ds, size_t batchSize) {
 	// calcula dz e db
@@ -144,10 +218,12 @@ int CamadaFullConnect_backpropagationBatch(CamadaFullConnect self, Tensor ds, si
 
 	// calcula da
 	if (Super.da) {
-		setKernelArg(self->calc_da, 0, void *, Super.da->data);
-		setKernelArg(self->calc_da, 1, void *, self->w->data);
-		setKernelArg(self->calc_da, 2, void *, self->dz->data);
-		runr_kernel(Super.ecx->error, self->calc_da, Super.da->length, *Super.maxcompute, 3);
+		if (Super.da) {
+			CamadaFullConnect_calc_da(self);
+			if (Super.ecx->error) {
+				goto handle_error;
+			}
+		}
 	}
 	// calcula dw
 	setKernelArg(self->calc_dw_batch, 0, void *, self->dw->data);
@@ -244,9 +320,9 @@ int CamadaFullConnect_fprintf(CamadaFullConnect self, FILE *destino, char *forma
 	va_list v;
 	va_start(v, format);
 	internal_Camada_fprint(self, destino, format, v);
-	fprintf(destino, "W -> ");
+	fprintf(destino, "w -> ");
 	self->w->fprint(self->w, destino);
-	fprintf(destino, "dW -> ");
+	fprintf(destino, "dw -> ");
 	self->dw->fprint(self->dw, destino);
 	return 0;
 }
@@ -256,6 +332,13 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 	CamadaFullConnect self = gab_alloc(1, sizeof(CamadaFullConnect_t));
 	P3d size_out = {1, tamanhoSaida, 1};
 	internal_Camada_new((Camada) self, gpu, queue, FULLCONNECT_ID, lname, params, entrada, size_in, size_out, ecx);
+	#if COMPATIBLE_KERAS == 1
+	if (size_in.x != 1 || size_in.z != 1) {
+		self->flatten = 1;
+		Super.a = Tensor_new(1, size_in.x * size_in.y * size_in.z, 1, 1, ecx, 0, gpu->context, queue);
+		self->daf = Tensor_new(1, size_in.x * size_in.y * size_in.z, 1, 1, ecx, 0, gpu->context, queue);
+	}
+	#endif
 	self->z = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 	self->dz = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 	self->b = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
@@ -326,9 +409,9 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 			"\tREAL sum = b[m];\n"
 			"\tint n;\n"
 			"\tfor (n = 0; n < %zu; n++) {\n"
-			"\t\tsum += a[n] * w[kMap(m, n, 0, %zu, %zu)];\n"
+			"\t\tsum += a[n] * w[m*%zu + n];\n"
 			"\t}\n"
-			"\tz[m] = sum;\n", self->w->y, self->w->x, self->w->y)
+			"\tz[m] = sum;\n", self->w->y, self->w->y)
 		switch (self->fa.id) {
 			case FLRELU:
 				IFCOD(self->fa.greater == 1.0, "\ts[m] = sum > 0? sum:") ELSECOD("\ts[m] = sum > 0? sum *%.12f:", self->fa.greater)
@@ -417,8 +500,8 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 			") {\n\tint m = get_global_id(0) + k0;\n");
 		switch (self->fa.id) {
 			case FLRELU:
-				IFCOD(self->fa.greater == 1.0, "\tdz[m] = z[m] > 0? 1.0:") ELSECOD("\tdz[m] = z[m] > 0? %.12f:", self->fa.greater)
-				IFCOD(self->fa.less == 0.0, "0.0;") ELSECOD("%.12f;", self->fa.less);
+				IFCOD(self->fa.greater == 1.0, "\tdz[m] = ds[m]*(z[m] > 0? 1.0:") ELSECOD("\tdz[m] = ds[m]*(z[m] > 0? %.12f:", self->fa.greater)
+				IFCOD(self->fa.less == 0.0, "0.0);") ELSECOD("%.12f);", self->fa.less);
 				break;
 			case FSIGMOID: COD("\tdz[m] = ds[m] * s[m] * ( 1.0 - s[m]);")
 				break;
@@ -444,13 +527,18 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 			"\tCORRIGIR_PESOS(w[k],dw[k],learnRate,%f);\n"
 			"\tdw[k] = dw[k] * %f;\n"
 			"}\n", Super.params.decaimento, Super.params.momento)
+
+		// calcula da
 		COD("__kernel void calc_da(__global REAL * da,__global REAL *w,__global REAL* dz, int k0) {\n "
 			"\tint m = get_global_id(0) + k0;\n"
 			"\tREAL soma = 0;\n"
 			"\tfor (int n = 0; n < %zu; ++n) {\n"
 			"\t\tsoma += dz[n] * w[kMap(n, m, 0, %zu, %zu)];\n"
 			"\t}\n"
-			"\tda[m] = soma;\n}\n", self->w->x, self->w->x, self->w->y)
+			"\tda[m] = soma;\n}\n",
+			self->w->x, self->w->x, self->w->y)
+
+
 		COD("__kernel void calc_dw(__global REAL *dw,__global REAL *dz,"
 			"__global REAL *a,__global REAL *w,REAL learnRate, int k0){\n"
 			"\tint k = get_global_id(0) + k0;\n"
@@ -475,7 +563,13 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 
 
 	}
-
+	char nametmp[250];
+	static int denseL = 0;
+	snprintf(nametmp, 250, "dense%d.h", denseL);
+	denseL++;
+	FILE *ftmp = fopen(nametmp, "w");
+	fprintf(ftmp, "%s", Super.kernel);
+	fclose(ftmp);
 //	printf("%s\n", Super.kernel);
 	internal_compile((Camada) self, gpu);
 	self->feed = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "feed", Super.ecx->perro)

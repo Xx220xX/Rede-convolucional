@@ -127,8 +127,8 @@ int CamadaPRelu_fprintf(CamadaPRelu self, FILE * destino, char *format, ...){
 	va_list  v;
 	va_start(v,format);
 	internal_Camada_fprint(self,destino,format,v);
-	fprintf(destino,"W -> ");self->W->fprint(self->W,destino);
-	fprintf(destino,"dW -> ");self->dW->fprint(self->dW,destino);
+	fprintf(destino,"w -> ");self->W->fprint(self->W,destino);
+	fprintf(destino,"dw -> ");self->dW->fprint(self->dW,destino);
 	return 0;
 }
 Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parametros params, RandomParams rdp_a, Ecx ecx) {

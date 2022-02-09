@@ -27,7 +27,7 @@ _l_ = (total -_z_*tx*ty -_x_*ty - _y_)/(tx*ty*tz);
 #define kRap(total, _x_, _y_, _z_, tx, ty)\
 _y_ = total % ty;\
 _x_ = ((total - _y_) % (ty * tx)) / ty;\
-_z_ = (k - _x_ * ty - _y_) / (tx * ty);
+_z_ = (total - _x_ * ty - _y_) / (tx * ty);
 
 #define KRap2D(total, x, y, ty)\
 y = total % ty;\

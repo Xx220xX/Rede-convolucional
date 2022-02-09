@@ -17,16 +17,15 @@
 #include"camadas/CamadaSoftMax.h"
 #include"camadas/CamadaBatchNorm.h"
 
-#define CST_CONVOLUCAO(cnn, layer)((CamadaConv)cnn->cm[layer])
-#define CST_CONVOLUCAOF(cnn, layer)((CamadaConvF)cnn->cm[layer])
-#define CST_CONVOLUCAO2D(cnn, layer)((CamadaConv2D)cnn->cm[layer])
-#define CST_CONVOLUCAONC(cnn, layer)((CamadaConvNC)cnn->cm[layer])
-#define CST_POOL(cnn, layer)((CamadaPool)cnn->cm[layer])
-#define CST_FULLCONNECT(cnn, layer)((CamadaFullConnect)cnn->cm[layer])
-#define CST_PADDING(cnn, layer)((CamadaPadding )cnn->cm[layer])
-#define CST_DROPOUT(cnn, layer)((CamadaDropOut )cnn->cm[layer])
-#define CST_RELU(cnn, layer)((CamadaRelu )cnn->cm[layer])
-#define CST_PRELU(cnn, layer)((CamadaPRelu )cnn->cm[layer])
-#define CST_SOFTMAX(cnn, layer)((CamadaSoftMax)cnn->cm[layer])
-#define CST_BATCHNORM(cnn, layer)((CamadaBatchNorm)cnn->cm[layer])
+#define CST_CONVOLUCAO(layer)((CamadaConv)layer)
+#define Conv2D(layer)((CamadaConvF)layer)
+#define CST_CONVOLUCAONC(layer)((CamadaConvNC)layer)
+#define CST_POOL(layer)((CamadaPool)layer)
+#define Dense(layer)((CamadaFullConnect)layer)
+#define CST_PADDING(layer)((CamadaPadding )layer)
+#define CST_DROPOUT(layer)((CamadaDropOut )layer)
+#define CST_RELU(layer)((CamadaRelu )layer)
+#define CST_PRELU(layer)((CamadaPRelu )layer)
+#define CST_SOFTMAX(layer)((CamadaSoftMax)layer)
+#define CST_BATCHNORM(layer)((CamadaBatchNorm)layer)
 #endif //GAB_ALL_CAMADAS_H

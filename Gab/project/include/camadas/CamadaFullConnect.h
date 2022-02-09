@@ -18,6 +18,7 @@ typedef struct CamadaFullConnect_t {
 	Tensor db;
 	Tensor z;
 	Tensor dz;
+	Tensor daf;
 	Tensor expoente;
 	REAL *values;
 	REAL soma;
@@ -25,6 +26,8 @@ typedef struct CamadaFullConnect_t {
 	// funcao de ativacao e sua derivada
 	FAtivacao fa;
 	uint32_t  dfa;
+	uint32_t  flatten;
+
 	cl_kernel feed;
 	cl_kernel ativa;
 	cl_kernel calc_exp;

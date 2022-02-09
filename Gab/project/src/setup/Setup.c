@@ -342,7 +342,7 @@ void Setup_treinarBatch(Setup self) {
 //	float beta = 1-alpha;
 	int acertosep;
 	if (self->on_endEpoca) {
-		self->on_endEpoca(self, self->epoca_atual );
+		self->on_endEpoca(self, self->epoca_atual);
 	}
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		self->batch = 0;
@@ -378,13 +378,15 @@ void Setup_treinarBatch(Setup self) {
 
 			double mse = cost(self->cnn->cm[self->cnn->l - 1]->s, target);
 
-
+			if (self->cnn->ecx->error) {
+				goto handle_error;
+			}
 			if (isnan(mse)) {
 				self->can_run = 0;
 				self->force_end = 1;
 				self->cnn->ecx->error = GAB_INVALID_PARAM;
 				fprintf(stderr, "Erro interno das camadas, encontrado nan\nImagem %zu\nEpoca %d index %d\n", images, self->epoca_atual, indice);
-				break;
+				goto handle_error;
 			}
 			localItrain.mse = localItrain.mse * alpha + beta * mse;
 			localItrain.imAtual = self->imagem_atual_treino + 1;
@@ -401,6 +403,7 @@ void Setup_treinarBatch(Setup self) {
 		}
 	}
 	ECXPOP(self->cnn->ecx);
+	handle_error:
 	self->runing = 0;
 }
 
@@ -453,7 +456,7 @@ void Setup_avaliar(Setup self) {
 
 }
 
-void Setup_fast_fitnes(Setup self,float *winRate,float *custo) {
+void Setup_fast_fitnes(Setup self, float *winRate, float *custo) {
 	// ###  thread de alta prioridade
 	self->cnn->setMode(self->cnn, 0);
 	// ### variaveis usadas na avaliação
@@ -467,7 +470,7 @@ void Setup_fast_fitnes(Setup self,float *winRate,float *custo) {
 	if (self->cnn->cm[self->cnn->l - 1]->layer_id == FULLCONNECT_ID && ((CamadaFullConnect) self->cnn->cm[self->cnn->l - 1])->fa.id == FSOFTMAX) {
 		cost = cost_crossEntropy;
 	}
-	for (int imagem_atual_teste = 0; self->can_run && imagem_atual_teste< self->n_imagens_testar; imagem_atual_teste++) {
+	for (int imagem_atual_teste = 0; self->can_run && imagem_atual_teste < self->n_imagens_testar; imagem_atual_teste++) {
 		indice = self->n_imagens_treinar + imagem_atual_teste;
 		entrada = self->imagens[indice];
 		target = self->targets[indice];
@@ -475,9 +478,9 @@ void Setup_fast_fitnes(Setup self,float *winRate,float *custo) {
 		self->cnn->predict(self->cnn, entrada);
 		cnn_label = self->cnn->maxIndex(self->cnn);
 		acertos += (cnn_label == label);
-		custoL += cost(self->cnn->cm[self->cnn->l -1]->s, target);
+		custoL += cost(self->cnn->cm[self->cnn->l - 1]->s, target);
 	}
-	*custo = custoL/ self->n_imagens_testar;
+	*custo = custoL / self->n_imagens_testar;
 	*winRate = acertos * 100.0 / self->n_imagens_testar;
 	self->cnn->setMode(self->cnn, 1);
 

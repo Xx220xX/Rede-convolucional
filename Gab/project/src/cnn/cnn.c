@@ -486,14 +486,14 @@ void Cnn_fprint(Cnn self, FILE *f, const char *comment) {
 		tmp = self->cm[i]->getGenerate(self->cm[i]);
 		out = self->cm[i]->getOutSize(self->cm[i]);
 		fprintf(f, "%s %s saida [%zu,%zu,%zu]", tmp, comment, out.x, out.y, out.z);
-		switch (self->cm[i]->layer_id) {
-			case CONVOLUCAOF_ID:
-				fprintf(f, "std = %f, u = %f", ((CamadaConvF) self->cm[i])->W->std(((CamadaConvF) self->cm[i])->W), ((CamadaConvF) self->cm[i])->W->media(((CamadaConvF) self->cm[i])->W));
-				break;
-			case FULLCONNECT_ID:
-				fprintf(f, "std = %f, u = %f", ((CamadaFullConnect) self->cm[i])->w->std(((CamadaFullConnect) self->cm[i])->w), ((CamadaFullConnect) self->cm[i])->w->media(((CamadaFullConnect) self->cm[i])->w));
-				break;
-		}
+//		switch (self->cm[i]->layer_id) {
+//			case CONVOLUCAOF_ID:
+//				fprintf(f, "std = %f, u = %f", ((CamadaConvF) self->cm[i])->w->std(((CamadaConvF) self->cm[i])->w), ((CamadaConvF) self->cm[i])->w->media(((CamadaConvF) self->cm[i])->w));
+//				break;
+//			case FULLCONNECT_ID:
+//				fprintf(f, "std = %f, u = %f", ((CamadaFullConnect) self->cm[i])->w->std(((CamadaFullConnect) self->cm[i])->w), ((CamadaFullConnect) self->cm[i])->w->media(((CamadaFullConnect) self->cm[i])->w));
+//				break;
+//		}
 		fprintf(f, "\n");
 		gab_free(tmp);
 	}

@@ -1,0 +1,1 @@
+windres icone.rc -O coff -o external/lib/icone.rc

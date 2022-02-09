@@ -3,8 +3,8 @@ a = [-0.1652506142854691, 0.8262844681739807, 1.1606101989746094, 0.012573275715
 a = mshape(a,[20,20,2]);
 Y = [-0.1331594288349152, -0.0475295111536980];
 Y = mshape(Y,[1,1,2]);
-B = [0.0451052226126194, 0.0712474808096886];
-B = mshape(B,[1,1,2]);
+b = [0.0451052226126194, 0.0712474808096886];
+b = mshape(b,[1,1,2]);
 t = a*-2+2;
 t(:,:,1) = t(:,:,1)*-1
 function y = mmedia(x)
@@ -46,21 +46,21 @@ o_2 = mvariancia(a); % acha a variâcia
 o_inv = 1 ./sqrt(o_2 +1e-12); % 1 sobre o desvio padrão
 norma = ( a - mu ) .* o_inv; % normaliza, aqui o sinal tem média 0 e desvio e variancia 1
 
-s =  norma .* Y + B; %% modifica o desvio padrão para Y e a media para B
+s =  norma .* Y + b; %% modifica o desvio padrão para Y e a media para b
 
 ds = s - t; % calcula o ultimo gradiente
-dnorm = ds .* Y; % gradiente dos valores normalizados d( norm .* Y + B)/dnorm = Y
+dnorm = ds .* Y; % gradiente dos valores normalizados d( norm .* Y + b)/dnorm = Y
 da = o_inv .* (dnorm - mmedia(dnorm)  - norma .* mmedia(dnorm.*norma)); % gradiiente da entrada (não fiz os calculos)
 dY = msoma(ds .* norma); %% gradient de Gamma
 dB = msoma(ds);%% Gradiente de Beta
 Y = Y - h*dY; %% ajusta os pesos sem momento e decaimento
-B = B - h*dB;%% ajusta os pesos sem momento e decaimento
+b = b - h*dB;%% ajusta os pesos sem momento e decaimento
 mse = sum((ds.^2)(:))/(length(ds(:))); % verificar convergência
 mse_ = [mse_ mse]; 
 subplot(211)
 plot(mse_);title('mse batchnorm')
 subplot(212)
 plot(Y(:));hold on;
-plot(B(:));hold off;legend('{\gamma}','{\beta}')
+plot(b(:));hold off;legend('{\gamma}','{\beta}')
 drawnow
 end

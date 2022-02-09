@@ -26,13 +26,14 @@ char *Tensor_putvaluesAsstr(Tensor self) {
 	m.mem = self->getvalues(self, NULL);
 	size_t len = 0;
 	char *string = NULL;
+	double tmp;
 	for (int w = 0; w < self->w; ++w) {
 		if (self->flag.dimensao4D) {
-			if (w == 0) apendstr(string, len, "[") else apendstr(string, len, "\n\n\n, [")
+			if (w == 0) apendstr(string, len, "[") else apendstr(string, len, "\n, [")
 		}
 
 		for (int z = 0; z < self->z; ++z) {
-			if (z == 0) apendstr(string, len, "[") else apendstr(string, len, "\n\n, [")
+			if (z == 0) apendstr(string, len, "[") else apendstr(string, len, "\n, [")
 
 			for (int x = 0; x < self->x; ++x) {
 				if (x == 0) apendstr(string, len, "[") else apendstr(string, len, "\n, [")
@@ -44,7 +45,9 @@ char *Tensor_putvaluesAsstr(Tensor self) {
 //						apendstr(string, len, "\"0x%02X\"", (int) m.caractere[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 						apendstr(string, len, "%d", (int) m.caractere[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
 					} else {
-						apendstr(string, len, "%g", (double) m.real[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y])
+						tmp = m.real[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y];
+
+						apendstr(string, len, "%s%.5f",tmp>0?" ":"", tmp)
 					}
 				}
 				apendstr(string, len, "]")
@@ -250,10 +253,10 @@ int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
 				x = Tensor_randi() % ((int) a) + b;
 				break;
 			case TENSOR_UNIFORM | TENSOR_UNITARIO:
-				x = (Tensor_rand())/(self->length);
+				x = (Tensor_rand()) / (self->length);
 				break;
 			case TENSOR_GAUSSIAN | TENSOR_UNITARIO:
-				x = (Tensor_rand() + b)/(self->length);
+				x = (Tensor_rand() + b) / (self->length);
 				break;
 			default:
 				fprintf(stderr, "Invalid param type = %d\n", type);

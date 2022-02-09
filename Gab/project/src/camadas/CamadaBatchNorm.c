@@ -51,7 +51,7 @@ Tensor CamadaBatchNorm_propagation(CamadaBatchNorm self,Tensor a) {
 	Execute(BatchNormInvDesv, self->super.s->z, &self->super.a->data, &self->media->data, &self->inv_std->data, &self->epsilon, &self->super.s->x, &self->super.s->y);
 
 	// normalizar entrada
-	//Vector saida, Vector norma, Vector a, Vector media, Vector inv_std, Vector Y, Vector B, int ax, int ay, int k0
+	//Vector saida, Vector norma, Vector a, Vector media, Vector inv_std, Vector Y, Vector b, int ax, int ay, int k0
 	Execute(BatchNormNormaliza, self->super.s->length, &self->super.s->data, &self->norma->data, &self->super.a->data, &self->media->data, &self->inv_std->data, &self->Y->data, &self->B->data, &self->super.s->x, &self->super.s->y);
 
 
@@ -106,7 +106,7 @@ char *CamadaBatchNorm_json(CamadaBatchNorm self, int showValues) {
 	gab_free(tmp);
 	apendTensor("Y", Y, string, len, tmp, showValues);
 	apendTensor("dY", dY, string, len, tmp, showValues);
-	apendTensor("B", B, string, len, tmp, showValues);
+	apendTensor("b", B, string, len, tmp, showValues);
 	apendTensor("dB", dB, string, len, tmp, showValues);
 	apendTensor("media", media, string, len, tmp, showValues);
 	apendTensor("norma", norma, string, len, tmp, showValues);
@@ -126,7 +126,7 @@ char *CamadaBatchNorm_getGenerate(CamadaBatchNorm self) {
  * Camada
  * epsilon
  * Y
- * B
+ * b
  * @param self camada
  * @param f arquivo para salvar
  * @return 0 caso não detecte nenhuma falha
@@ -175,7 +175,7 @@ int CamadaBatchNorm_fprintf(CamadaBatchNorm self, FILE *destino, char *format, .
 	self->Y->fprint(self->Y, destino);
 	fprintf(destino, "dY -> ");
 	self->dY->fprint(self->dY, destino);
-	fprintf(destino, "B -> ");
+	fprintf(destino, "b -> ");
 	self->B->fprint(self->B, destino);
 	fprintf(destino, "dB -> ");
 	self->dB->fprint(self->dB, destino);

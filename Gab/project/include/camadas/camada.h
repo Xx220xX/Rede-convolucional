@@ -207,7 +207,7 @@ else apendstr(string, len, ",\n"PAD"\""name"\": null")
 "#define kRap(total, _x_, _y_, _z_, tx, ty)\\\n"\
 "_y_ = total %% ty;\\\n"\
 "_x_ = ((total - _y_) %% (ty * tx)) / ty;\\\n"\
-"_z_ = (k - _x_ * ty - _y_) / (tx * ty);\n\n"\
+"_z_ = (total - _x_ * ty - _y_) / (tx * ty);\n\n"\
 "#define KRap2D(total, x, y, ty)\\\n"\
 "y = total %% ty;\\\n"\
 "x = total/ ty;\n\n"\
