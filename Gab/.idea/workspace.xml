@@ -17,8 +17,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="adicionado runtime kernel">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Gab.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/gabkernel.dll" beforeDir="false" afterPath="$PROJECT_DIR$/bin/gabkernel.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/libgabkernel.dll.a" beforeDir="false" afterPath="$PROJECT_DIR$/bin/libgabkernel.dll.a" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/cwrap_kernels.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/cwrap_kernels.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/project/kernels/camadas/dropout.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/dropout.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/defaultkernel.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/defaultkernel.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/kernels.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/kernels.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/kernels.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/kernels.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaDropOut.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaDropOut.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -386,7 +393,7 @@
       <workItem from="1644328988446" duration="16816000" />
       <workItem from="1644421406919" duration="7993000" />
       <workItem from="1644590898346" duration="433000" />
-      <workItem from="1644593380666" duration="1000" />
+      <workItem from="1644593380666" duration="450000" />
     </task>
     <task id="LOCAL-00001" summary="adicionado runtime kernel">
       <created>1642021416001</created>

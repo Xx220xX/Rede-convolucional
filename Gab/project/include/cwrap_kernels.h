@@ -81,8 +81,8 @@
 #define Knew_dropativa(x) KRN_new(x, "dropativa", 6, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_long), sizeof(CL_REAL), sizeof(cl_int))
 #define KExec_dropativa(kname, kernel_iter_Len, Vr_entrada, Vr_saida, __global_char__hitmap, long_seed, REAL_pativa) Execute(kname, kernel_iter_Len, &Vr_entrada, &Vr_saida, &__global_char__hitmap, &long_seed, &REAL_pativa)
 
-#define Knew_dropcalcgrad(x) KRN_new(x, "dropcalcgrad", 4, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int))
-#define KExec_dropcalcgrad(kname, kernel_iter_Len, Vr_gradentrada, __global_char__hitmap, Vr_gradnext) Execute(kname, kernel_iter_Len, &Vr_gradentrada, &__global_char__hitmap, &Vr_gradnext)
+#define Knew_dropcalcgrad(x) KRN_new(x, "dropcalcgrad", 5, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(CL_REAL), sizeof(cl_int))
+#define KExec_dropcalcgrad(kname, kernel_iter_Len, Vr_gradentrada, __global_char__hitmap, Vr_gradnext, REAL_pativa) Execute(kname, kernel_iter_Len, &Vr_gradentrada, &__global_char__hitmap, &Vr_gradnext, &REAL_pativa)
 
 //padding.h
 #define Knew_paddingfeed(x) KRN_new(x, "paddingfeed", 9, sizeof(void *), sizeof(void *), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_uint), sizeof(cl_int))

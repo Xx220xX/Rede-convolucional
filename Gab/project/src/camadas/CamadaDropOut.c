@@ -37,7 +37,7 @@ static Tensor CamadaDropOut_propagation(CamadaDropOut self, Tensor a) {
 
 static int CamadaDropOut_backpropagation(CamadaDropOut self, Tensor ds) {
 	if (self->super.da) {
-		Execute(dropcalcgrad, self->super.da->length, &self->super.da->data, &self->hitmap->data, &ds->data);
+		Execute(dropcalcgrad, self->super.da->length, &self->super.da->data, &self->hitmap->data, &ds->data,&self->probabilidade_saida);
 	}
 
 	return self->super.ecx->error;
@@ -130,7 +130,7 @@ Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_s
 	}
 
 	KRN_news(self->dropativa, "dropativa", "Vector entrada, Vector saida, __global char *hitmap, long seed, REAL pativa, int k0");
-	KRN_news(self->dropcalcgrad, "dropcalcgrad", "Vector gradentrada, __global char *hitmap, Vector gradnext, int k0");
+	KRN_news(self->dropcalcgrad, "dropcalcgrad", "Vector gradentrada, __global char *hitmap, Vector gradnext, REAL pativa, int k0");
 
 	ECXPOP(ecx);
 	methods:

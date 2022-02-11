@@ -501,9 +501,9 @@ kV dropativa(Vr entrada, Vr saida, __global char *hitmap, long seed, REAL pativa
 }
 
 
-kV dropcalcgrad(Vr gradentrada, __global char *hitmap, Vr gradnext, int k0) {
+kV dropcalcgrad(Vr gradentrada, __global char *hitmap, Vr gradnext,REAL pativa, int k0) {
 	int i = get_global_id(0) + k0;
-	gradentrada[i] = hitmap[i] * gradnext[i];
+	gradentrada[i] = hitmap[i] * gradnext[i]/pativa;
 }
 
 //padding.h
