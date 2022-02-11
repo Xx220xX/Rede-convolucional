@@ -491,7 +491,7 @@ const char __default_kernel__[] =
 /*14*/		"//	printf(\"kernel %lf %lf %g %g\\n\",randomD(seed, i),pativa,(REAL)(seed +i),(REAL)MAX_INT_DP);\n"
 /*15*/		"	char teste = (char) (randomD(seed, i) <= pativa);\n"
 /*16*/		"	hitmap[i] = teste;\n"
-/*17*/		"	saida[i] = teste * entrada[i];\n"
+/*17*/		"	saida[i] = teste * entrada[i]/pativa;\n"
 /*18*/		"}\n"
 /*19*/		"\n"
 /*20*/		"\n"

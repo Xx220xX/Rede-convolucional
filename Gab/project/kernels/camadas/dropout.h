@@ -14,7 +14,7 @@ kV dropativa(Vr entrada, Vr saida, __global char *hitmap, long seed, REAL pativa
 //	printf("kernel %lf %lf %g %g\n",randomD(seed, i),pativa,(REAL)(seed +i),(REAL)MAX_INT_DP);
 	char teste = (char) (randomD(seed, i) <= pativa);
 	hitmap[i] = teste;
-	saida[i] = teste * entrada[i];
+	saida[i] = teste * entrada[i]/pativa;
 }
 
 
