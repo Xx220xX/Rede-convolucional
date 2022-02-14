@@ -239,49 +239,6 @@ static int l_sizeout(lua_State *L) {
 	return 1;
 }
 
-static int l_Convolucao(lua_State *L) {
-	int nArgs = lua_gettop(L);
-	lua_getglobal(L, LCNN);
-	Cnn c = lua_touserdata(L, -1);
-	P2d p = {0};
-	P3d f = {0};
-	int arg = 1;
-	Parametros prm = GAB_DEF_PARAMS;
-	RandomParams rdp = {0};
-	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	switch (nArgs) {
-		case 2:
-			loadP2D(L, arg++, &p);
-			loadP3D(L, arg++, &f);
-			break;
-		case 3:
-			loadP2D(L, arg++, &p);
-			loadP3D(L, arg++, &f);
-			loadParams(L, arg++, &prm);
-			break;
-		case 4:
-
-			loadP2D(L, arg++, &p);
-			loadP3D(L, arg++, &f);
-			loadParams(L, arg++, &prm);
-			loadRdp(L, arg++, &rdp);
-			break;
-		default:
-			luaL_error(L, "Invalid function\ntry\n"
-						  " Convolucao(step,filter)\n"
-						  " Convolucao(step,filter,Params)\n"
-						  " Convolucao(step,filter,Params,RDP)\n"
-
-					  );
-	}
-	if (c->Convolucao(c, p, f, prm, rdp)) {
-		char *msg = c->gpu->errorMsg(c->ecx->error);
-		luaL_error(L, "falha ao adicionar camada Convolucao: %d %s", c->ecx->error, msg);
-		gab_free(msg);
-	}
-	RETURN_LUA_STATUS_FUNCTION();
-
-}
 
 static int l_ConvolucaoF(lua_State *L) {
 	int nArgs = lua_gettop(L);
@@ -328,49 +285,6 @@ static int l_ConvolucaoF(lua_State *L) {
 	}
 	RETURN_LUA_STATUS_FUNCTION();
 
-}
-
-
-static int l_ConvolucaoNC(lua_State *L) {
-	int nArgs = lua_gettop(L);
-	lua_getglobal(L, LCNN);
-	Cnn c = lua_touserdata(L, -1);
-	P2d p = {0};
-	P2d a = {0};
-	P3d f = {0};
-	uint32_t fativacao = FTANH;
-	int arg = 1;
-	Parametros prm = GAB_DEF_PARAMS;
-	RandomParams rdp = {0};
-	checkLua(c, "Primeiro informe a entrada com 'entrada(x,y,z)'");
-	if (nArgs >= 4) {
-		loadP2D(L, arg++, &p);
-		loadP2D(L, arg++, &a);
-		loadP3D(L, arg++, &f);
-		fativacao = lua_tointeger(L, arg++);
-	}
-	if (nArgs >= 5) {
-		loadParams(L, arg++, &prm);
-	}
-	if (nArgs >= 6) {
-		loadRdp(L, arg++, &rdp);
-	}
-
-	if (nArgs > 6 || nArgs < 4) {
-		luaL_error(L, "Invalid function\ntry\n"
-					  " ConvolucaoNC(step,abertura,filter,fativacao)\n"
-					  " ConvolucaoNC(step,abertura,filter,fativacao,params)\n"
-					  " ConvolucaoNC(step,abertura,filter,fativacao,params,RDP)\n"
-
-				  );
-
-	}
-	if (c->ConvolucaoNC(c, p, a, f, fativacao, prm, rdp)) {
-		char *msg = c->gpu->errorMsg(c->ecx->error);
-		luaL_error(L, "falha ao adicionar camada ConvolucaoNC:  %d %s", c->ecx->error, msg);
-		gab_free(msg);
-	}
-	RETURN_LUA_STATUS_FUNCTION();
 }
 
 static int l_Pooling(lua_State *L) {
@@ -730,9 +644,7 @@ static struct {
 					   {l_learnCnn,           "Learn",           "(entrada:table)"},
 					   {l_helpCnn,            "helpCnn",         "()"},
 					   {l_sizeout,            "sizeOut",         "()"},
-					   {l_Convolucao,         "Convolucao",      "(step:P2D, filter:P3D, params=Params(0):Params,rdp=RDP(0):RDP)"},
 					   {l_ConvolucaoF,        "ConvolucaoF",     "(step:P2D, filter:P3D, ativacao:FAtivacao|int,Padding_top_bottom:P2D(0,0),Padding_left_right:P2D(0,0) params=Params(0):Params, rdp=RDP(0):RDP)"},
-					   {l_ConvolucaoNC,       "ConvolucaoNC",    "(step:P2D, abertura:P2D, filter:P3D, ativacao:int, params=Params(0):Params, rdp=RDP(0):RDP)"},
 					   {l_Pooling,            "Pooling",         "(step:P2D, filter:P2D, type:int)"},
 					   {l_Relu,               "Relu",            "(menorQ0=0:float, maiorQ0=1:float)"},
 					   {l_PRelu,              "PRelu",           "(params=Params(0):Params, rdp=RDP(0):RDP)"},

@@ -5,9 +5,7 @@
 #ifndef GAB_ALL_CAMADAS_H
 #define GAB_ALL_CAMADAS_H
 
-#include"camadas/CamadaConv.h"
 #include"camadas/CamadaConvF.h"
-#include"camadas/CamadaConvNC.h"
 #include"camadas/CamadaPool.h"
 #include"camadas/CamadaRelu.h"
 #include"camadas/CamadaPRelu.h"
@@ -17,9 +15,7 @@
 #include"camadas/CamadaSoftMax.h"
 #include"camadas/CamadaBatchNorm.h"
 
-#define CST_CONVOLUCAO(layer)((CamadaConv)layer)
 #define Conv2D(layer)((CamadaConvF)layer)
-#define CST_CONVOLUCAONC(layer)((CamadaConvNC)layer)
 #define CST_POOL(layer)((CamadaPool)layer)
 #define Dense(layer)((CamadaFullConnect)layer)
 #define CST_PADDING(layer)((CamadaPadding )layer)

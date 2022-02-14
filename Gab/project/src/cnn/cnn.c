@@ -17,7 +17,7 @@
 #define CHECKDIN(input, filtro, abertura, passo) \
     (((((input-1) - (filtro - 1) * abertura) / passo +1)>0) && \
     (((((input-1) - (filtro - 1) * abertura) / passo)*passo + (filtro-1)*abertura) == (input-1)))
-const char *versao = "3.0.0002";
+const char *versao = "3.0.0011";
 
 const char *Cnn_version() {
 	return versao;
@@ -373,14 +373,8 @@ int Cnn_load(Cnn self, const char *filename) {
 		fread(&layerid, sizeof(char), 1, f);
 		sizeoutcnn = self->getSizeOut(self);
 		switch (layerid) {
-			case CONVOLUCAO_ID:
-				c = CamadaConv_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
-				break;
 			case CONVOLUCAOF_ID:
 				c = CamadaConvF_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
-				break;
-			case CONVOLUCAONC_ID:
-				c = CamadaConvNC_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
 				break;
 			case POOL_ID:
 				c = CamadaPool_load(f, self->gpu, self->queue, internal_Cnn_getEntrada(self), self->ecx);
@@ -542,15 +536,6 @@ char *Cnn_printstr(Cnn self, const char *comment) {
 //
 //#####################################################################################
 
-int Cnn_Convolucao(Cnn self, P2d passo, P3d filtro, Parametros p, RandomParams filtros) {
-	P3d size_in = self->getSizeOut(self);
-	if (!CHECKDIN(size_in.x, filtro.x, 1, passo.x) || !CHECKDIN(size_in.y, filtro.y, 1, passo.y)) {
-		fprintf(stderr, "Convolucao:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n", size_in.x, size_in.y, size_in.z, (size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1, (size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1, size_in.z);
-		return 25;
-	}
-	Camada c = CamadaConv_new(self->gpu, self->queue, size_in, internal_Cnn_getEntrada(self), self->ecx, passo, filtro, p, filtros);
-	return internal_Cnn_addlayer(self, c);
-}
 
 int Cnn_ConvolucaoF(Cnn self, P2d passo, P3d filtro, FAtivacao_t funcaoAtivacao, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right, Parametros p, RandomParams filtros) {
 	FAtivacao  fa = {.mask = funcaoAtivacao};
@@ -569,15 +554,7 @@ int Cnn_ConvolucaoF(Cnn self, P2d passo, P3d filtro, FAtivacao_t funcaoAtivacao,
 }
 
 
-int Cnn_ConvolucaoNC(Cnn self, P2d passo, P2d abertura, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros) {
-	P3d size_in = self->getSizeOut(self);
-	if (!CHECKDIN(size_in.x, filtro.x, abertura.x, passo.x) || !CHECKDIN(size_in.y, filtro.y, abertura.y, passo.y)) {
-		fprintf(stderr, "ConvolucaoNC:Invalid params\nsize in : %zu %zu %zu\nsize out : %zu %zu %zu\n", size_in.x, size_in.y, size_in.z, (size_in.x - 1 - (filtro.x - 1) * abertura.x) / passo.x + 1, (size_in.y - 1 - (filtro.y - 1) * abertura.y) / passo.y + 1, size_in.z);
-		return GAB_INVALID_PARAM;
-	}
-	Camada c = CamadaConvNC_new(self->gpu, self->queue, passo, abertura, filtro, size_in, funcaoAtivacao, internal_Cnn_getEntrada(self), p, self->ecx, filtros);
-	return internal_Cnn_addlayer(self, c);
-}
+
 
 int Cnn_Pooling(Cnn self, P2d passo, P2d filtro, uint32_t type) {
 	P3d size_in = self->getSizeOut(self);
@@ -614,13 +591,17 @@ int Cnn_Padding(Cnn self, uint32_t top, uint32_t bottom, uint32_t left, uint32_t
 	return internal_Cnn_addlayer(self, c);
 }
 
-int Cnn_DropOut(Cnn self, REAL probabilidadeSaida, cl_ulong seed) {
-	#if DISABLE_DROPOUT_AS_FIRST_LAYER == 1
+int Cnn_DropOut(Cnn self, REAL probabilidadeJogarFora, cl_ulong seed) {
+	probabilidadeJogarFora = probabilidadeJogarFora>0?probabilidadeJogarFora:-probabilidadeJogarFora;
+	if (probabilidadeJogarFora>1){
+		return GAB_INVALID_PARAM;
+	}
+	#if DROPOUT_AS_FIRST_LAYER == 0
 	if (self->l <= 0) {
 		return GAB_INVALID_LAYER;
 	}
 	#endif
-	Camada c = CamadaDropOut_new(self->gpu, self->queue, self->getSizeOut(self), probabilidadeSaida, seed, internal_Cnn_getEntrada(self), self->ecx);
+	Camada c = CamadaDropOut_new(self->gpu, self->queue, self->getSizeOut(self), 1-probabilidadeJogarFora, seed, internal_Cnn_getEntrada(self), self->ecx);
 	return internal_Cnn_addlayer(self, c);
 }
 
@@ -648,9 +629,7 @@ Cnn Cnn_new() {
 	self->queue = self->gpu->Queue_new(self->gpu, self->ecx->perro);
 	internal_Cnn_getKernels(self);
 	methods:
-	self->Convolucao = Cnn_Convolucao;
 	self->ConvolucaoF = Cnn_ConvolucaoF;
-	self->ConvolucaoNC = Cnn_ConvolucaoNC;
 	self->Pooling = Cnn_Pooling;
 	self->Relu = Cnn_Relu;
 	self->PRelu = Cnn_PRelu;

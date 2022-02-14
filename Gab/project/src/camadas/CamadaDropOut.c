@@ -19,16 +19,25 @@ static void CamadaDropOut_release(CamadaDropOut *self_p) {
 	}
 	internal_Camada_release((Camada *) self_p);
 	Release((*self_p)->hitmap);
+	Release((*self_p)->dropativa);
+	Release((*self_p)->dropativaP);
+	Release((*self_p)->dropcalcgrad);
+
+
 	gab_free(*self_p);
 	*self_p = NULL;
 }
 
 
 static Tensor CamadaDropOut_propagation_predict(CamadaDropOut self, Tensor a) {
-	return a;
+	Super.a = a;
+//	Execute(dropativaP, self->super.s->length, &Super.a->data, &self->super.s->data, &self->probabilidade_saida);
+//	return Super.s;
+	return  a;
 }
 
 static Tensor CamadaDropOut_propagation(CamadaDropOut self, Tensor a) {
+	Super.a = a;
 	Execute(dropativa, self->super.s->length, &a->data, &self->super.s->data, &self->hitmap->data, &self->seed, &self->probabilidade_saida);
 	self->seed += self->super.s->length;
 	self->seed = (self->seed * 0x5deece66dULL + 0xbULL) & ((1ULL << 31) - 1);
@@ -37,7 +46,7 @@ static Tensor CamadaDropOut_propagation(CamadaDropOut self, Tensor a) {
 
 static int CamadaDropOut_backpropagation(CamadaDropOut self, Tensor ds) {
 	if (self->super.da) {
-		Execute(dropcalcgrad, self->super.da->length, &self->super.da->data, &self->hitmap->data, &ds->data,&self->probabilidade_saida);
+		Execute(dropcalcgrad, self->super.da->length, &self->super.da->data, &self->hitmap->data, &ds->data);
 	}
 
 	return self->super.ecx->error;
@@ -110,9 +119,9 @@ int CamadaDropOut_fprintf(CamadaDropOut self, FILE *destino, char *format, ...) 
 
 void CamadaDropout_setMode(CamadaDropOut self, int istraing) {
 	if (istraing) {
-		self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaDropOut_propagation_predict;
-	} else {
 		self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaDropOut_propagation;
+	} else {
+		self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaDropOut_propagation_predict;
 	}
 }
 
@@ -129,8 +138,9 @@ Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_s
 		goto methods;
 	}
 
-	KRN_news(self->dropativa, "dropativa", "Vector entrada, Vector saida, __global char *hitmap, long seed, REAL pativa, int k0");
-	KRN_news(self->dropcalcgrad, "dropcalcgrad", "Vector gradentrada, __global char *hitmap, Vector gradnext, REAL pativa, int k0");
+	KRN_news(self->dropativa, "dropativaTreino", "Vector entrada, Vector saida, __global char *hitmap, long seed, REAL pativa, int k0");
+	KRN_news(self->dropativaP, "dropativaPredict", "Vector entrada, Vector saida, REAL pativa, int k0");
+	KRN_news(self->dropcalcgrad, "dropcalcgrad", "Vector gradentrada, __global char *hitmap, Vector gradnext, int k0");
 
 	ECXPOP(ecx);
 	methods:
@@ -143,6 +153,6 @@ Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_s
 	self->super.getGenerate = (char *(*)(void *)) CamadaDropOut_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaDropOut_save;
 	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaDropOut_fprintf;
-	self->setMode  = CamadaDropout_setMode;
+	self->setMode = CamadaDropout_setMode;
 	return (Camada) self;
 }

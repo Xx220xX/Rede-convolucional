@@ -18,6 +18,7 @@ typedef struct CamadaDropOut_t {
 	/// semente para utilizar o algoritmo pseudo aleatorio
 	cl_ulong seed;
 	Kernel dropativa;
+	Kernel dropativaP;
 	Kernel dropcalcgrad;
 
 	void (*setMode)(struct CamadaDropOut_t *self, int training);

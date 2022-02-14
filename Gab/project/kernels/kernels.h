@@ -37,8 +37,9 @@ kV convncCalcGrads(Vr W, Vr DA, Vr dz, unsigned int passox, unsigned int passoy,
 kV convncCalcFiltro(Vr dz, Vr A, Vr W, Vr dW, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, REAL hitlearn, REAL momento, REAL weightDecay, int k0) ;
 kV convncCalcFiltroBatch(Vr dz, Vr A, Vr dW, long batchSize, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, int k0) ;
 // cl:dropout.h
-kV dropativa(Vr entrada, Vr saida, __global char *hitmap, long seed, REAL pativa, int k0) ;
-kV dropcalcgrad(Vr gradentrada, __global char *hitmap, Vr gradnext,REAL pativa, int k0) ;
+kV dropativaTreino(Vr entrada, Vw saida, __global char *hitmap, long seed, REAL pativa, int k0) ;
+kV dropativaPredict(Vr entrada, Vw saida, REAL pativa, int k0) ;
+kV dropcalcgrad(Vr gradentrada, __global char *hitmap, Vr gradnext, int k0) ;
 // cl:padding.h
 kV paddingfeed(Vr in, Vr out, unsigned int txi, unsigned int tyi, unsigned int txo, unsigned int tyo, unsigned int t, unsigned int l, int k0) ;
 kV paddingBack(Vr gradNext, Vr gradin, unsigned int txi, unsigned int tyi, unsigned int txo, unsigned int tyo, unsigned int t, unsigned int l, int k0) ;

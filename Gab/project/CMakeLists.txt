@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.20)
 set(CAMADA
         project/include/camadas/camada.h
         project/include/camadas/CamadaBatchNorm.h
-        project/include/camadas/CamadaConv.h
-        project/include/camadas/CamadaConvNC.h
         project/include/camadas/CamadaDropOut.h
         project/include/camadas/CamadaPadding.h
         project/include/camadas/CamadaPool.h
@@ -15,9 +13,7 @@ set(CAMADA
 
         project/src/camadas/camada.c
         project/src/camadas/CamadaBatchNorm.c
-        project/src/camadas/CamadaConv.c
         project/src/camadas/CamadaConvF.c
-        project/src/camadas/CamadaConvNC.c
         project/src/camadas/CamadaDropOut.c
         project/src/camadas/CamadaFullConnect.c
         project/src/camadas/CamadaPadding.c
@@ -54,8 +50,6 @@ set(TENSOR
         )
 set(KERNEL_CAMADAS project/kernels/camadas/bathnorm.h
         project/kernels/camadas/cnnutils.h
-        project/kernels/camadas/conv.h
-        project/kernels/camadas/convNc.h
         project/kernels/camadas/dropout.h
         project/kernels/camadas/padding.h
         project/kernels/camadas/poolav.h

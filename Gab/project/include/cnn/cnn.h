@@ -93,12 +93,8 @@ typedef struct Cnn_t {
 
 	int (*extractVectorLabelClass)(struct Cnn_t *self, Tensor dst, Tensor label);
 
-	int (*Convolucao)(struct Cnn_t *self, P2d passo, P3d filtro, Parametros p, RandomParams filtros);
+	int (*ConvolucaoF)(struct Cnn_t *self, P2d passo, P3d filtro, FAtivacao_t funcaoAtivacao, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right, Parametros p, RandomParams filtros);
 
-	int (*ConvolucaoF)(struct Cnn_t *self, P2d passo, P3d filtro, FAtivacao_t funcaoAtivacao,uint32_t top, uint32_t bottom, uint32_t left, uint32_t right, Parametros p, RandomParams filtros);
-
-
-	int (*ConvolucaoNC)(struct Cnn_t *self, P2d passo, P2d abertura, P3d filtro, uint32_t funcaoAtivacao, Parametros p, RandomParams filtros);
 
 	int (*Pooling)(struct Cnn_t *self, P2d passo, P2d filtro, uint32_t type);
 

@@ -96,8 +96,18 @@ void checkArgs() {
 	for (int i = 1; i < nargs; ++i) {
 		if (!strcmp(args[i], "--v") || !strcmp(args[i], "--version")) {
 			printf("Gabriela IA\n");
+			printf("versão %s\n", Cnn_version());
+			printf("https://xx220xx.github.io/Rede-convolucional/\n\n");
+			exit(0);
+		}else if(!strcmp(args[i], "-update") || !strcmp(args[i], "--update")){
+			printf("Gabriela IA\n");
 			printf("versão %s\n", "0");
 			printf("https://xx220xx.github.io/Rede-convolucional/\n\n");
+			printf("Buscando atualizações\n");
+			FILE *f = fopen("gab_version.py","w");
+			fprintf(f,"version = '%s'\n", Cnn_version());
+			fclose(f);
+			system("start \"python update.py\"");
 			exit(0);
 		}
 	}

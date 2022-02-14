@@ -17,9 +17,9 @@
 
 #include <stdarg.h>
 
-#define CONVOLUCAO_ID         0x1
+//#define CONVOLUCAO_ID         0x1
 #define CONVOLUCAOF_ID         0x2
-#define CONVOLUCAONC_ID         0x3
+//#define CONVOLUCAONC_ID         0x3
 #define POOL_ID                     0x4
 #define FULLCONNECT_ID             0x5
 #define PADDING_ID                 0x6

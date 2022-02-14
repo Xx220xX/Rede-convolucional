@@ -9,16 +9,19 @@ REAL randomD(unsigned long seed, unsigned long id) {
 	return (REAL) randoml(seed, id) / (REAL) MAX_INT_DP;
 }
 
-kV dropativa(Vr entrada, Vr saida, __global char *hitmap, long seed, REAL pativa, int k0) {
+kV dropativaTreino(Vr entrada, Vw saida, __global char *hitmap, long seed, REAL pativa, int k0) {
 	int i = get_global_id(0) + k0;
 //	printf("kernel %lf %lf %g %g\n",randomD(seed, i),pativa,(REAL)(seed +i),(REAL)MAX_INT_DP);
 	char teste = (char) (randomD(seed, i) <= pativa);
 	hitmap[i] = teste;
 	saida[i] = teste * entrada[i]/pativa;
 }
-
-
-kV dropcalcgrad(Vr gradentrada, __global char *hitmap, Vr gradnext,REAL pativa, int k0) {
+kV dropativaPredict(Vr entrada, Vw saida, REAL pativa, int k0) {
 	int i = get_global_id(0) + k0;
-	gradentrada[i] = hitmap[i] * gradnext[i]/pativa;
+	saida[i] = entrada[i] ;//* pativa;
+}
+
+kV dropcalcgrad(Vr gradentrada, __global char *hitmap, Vr gradnext, int k0) {
+	int i = get_global_id(0) + k0;
+	gradentrada[i] = hitmap[i] * gradnext[i];
 }
