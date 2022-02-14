@@ -29,5 +29,5 @@ def update():
 	print("\n")
 
 
-if gab_version != lversion:
+if gab_version.version != lversion:
 	update()
