@@ -18,39 +18,17 @@
   <component name="ChangeListManager">
     <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="adicionado runtime kernel">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/Debug.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Debug.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Gab.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/gabkernel.dll" beforeDir="false" afterPath="$PROJECT_DIR$/bin/gabkernel.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/libgabkernel.dll.a" beforeDir="false" afterPath="$PROJECT_DIR$/bin/libgabkernel.dll.a" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/debug/dropout.c" beforeDir="false" afterPath="$PROJECT_DIR$/debug/dropout.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/matlab/ativa.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/matlab/cmp.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/matlab/conv2d.m.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/matlab/conv2d.zip" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/matlab/covf.m.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/matlab/deriva.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/matlab/fullconnect.m.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/project/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaDropOut.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaDropOut.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/include/camadas/all_camadas.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/all_camadas.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/include/camadas/camada.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/camada.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/include/cnn/cnn.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/cnn/cnn.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/include/config.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/config.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lastversion.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/project/include/cwrap_kernels.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/cwrap_kernels.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/conv.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/convNc.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/dropout.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/dropout.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/softmax.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/project/kernels/defaultkernel.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/defaultkernel.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/project/kernels/kernels.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/kernels.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/project/kernels/kernels.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/kernels.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaConv.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaConvNC.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaDropOut.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaDropOut.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/cnn/cnn.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/cnn/cnn.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/src/cnn/cnn_lua.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/cnn/cnn_lua.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui_win_api/ui.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/ui.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/update.py" beforeDir="false" afterPath="$PROJECT_DIR$/update.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../RELEASE/lastversion.py" beforeDir="false" afterPath="$PROJECT_DIR$/../RELEASE/lastversion.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -206,27 +184,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="cnn2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Gab" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/project/py" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/project/py/cnn2.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="compile_rc" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Gab" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -290,6 +247,27 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="update (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Gab" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/bin" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bin/update.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="update" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Gab" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -321,17 +299,17 @@
       <item itemvalue="Python.compile_rc" />
       <item itemvalue="Python.generatePythonWrapper" />
       <item itemvalue="Python.cnn" />
-      <item itemvalue="Python.cnn2" />
       <item itemvalue="Python.run" />
       <item itemvalue="Python.update" />
+      <item itemvalue="Python.update (1)" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.update (1)" />
         <item itemvalue="Python.update" />
         <item itemvalue="Python.run" />
         <item itemvalue="Python.cnn" />
         <item itemvalue="Python.generatePythonWrapper" />
-        <item itemvalue="Python.cnn2" />
       </list>
     </recent_temporary>
   </component>
@@ -426,7 +404,7 @@
       <workItem from="1644590898346" duration="433000" />
       <workItem from="1644593380666" duration="1040000" />
       <workItem from="1644690146346" duration="2992000" />
-      <workItem from="1644845338779" duration="3867000" />
+      <workItem from="1644845338779" duration="5985000" />
     </task>
     <task id="LOCAL-00001" summary="adicionado runtime kernel">
       <created>1642021416001</created>

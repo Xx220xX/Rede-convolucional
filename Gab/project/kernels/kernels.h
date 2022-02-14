@@ -25,17 +25,6 @@ kV kernel_sub(Vr ds, Vr s, Vr t, int k0) ;
 kV kernel_normalizechar2real(Vr dst, __global unsigned char *src, REAL a, REAL b, int k0) ;
 kV kernel_getVetorClassFromChar(Vr dst, __global unsigned char *ints, unsigned int noptiobs, int k0) ;
 kV kernel_fixW(Vr w, Vr dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0) ;
-// cl:conv.h
-kV convSum(Vr filtro, Vr entrada, Vr saida, int passox, int passoy, int saidatx, int saidaty, int entradatx, int entradaty, int fx, int fy, int fz, int k0) ;
-kV convCalcGradAndFixWeight(Vr filtros, Vr ds, Vr entrada, Vr gradFiltro, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, REAL hitLearn, REAL momento, REAL weightDecay, int k0) ;
-kV convCalcGradIn(Vr filtro, Vr gradEntrada, Vr gradNext, int fx, int fy, int fz, int passox, int passoy, int entradatx, int entradaty, int saidatx, int saidaty, int saidatz, int k0) ;
-kV convCalcGradBatch(Vr ds, Vr A, Vr dW, long batchSize, int fx, int fy, int fz, int entrada_tx, int entrada_ty, int saida_tx, int saida_ty, int passox, int passoy, int k0) ;
-// cl:convNc.h
-kV convncSum(Vr W, Vr A, Vr Z, Vr S, unsigned int fid, unsigned int passox, int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0) ;
-kV convncCalcGradZ(Vr ds, Vr z, Vr dz, unsigned int fid, int k0) ;
-kV convncCalcGrads(Vr W, Vr DA, Vr dz, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, unsigned int entradatx, unsigned int entradaty, unsigned int saidatx, unsigned int saidaty, unsigned int fx, unsigned int fy, unsigned int fz, int k0) ;
-kV convncCalcFiltro(Vr dz, Vr A, Vr W, Vr dW, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, REAL hitlearn, REAL momento, REAL weightDecay, int k0) ;
-kV convncCalcFiltroBatch(Vr dz, Vr A, Vr dW, long batchSize, unsigned int dw_x, unsigned int dw_y, unsigned int dw_z, unsigned int a_x, unsigned int a_y, unsigned int s_x, unsigned int s_y, unsigned int passox, unsigned int passoy, unsigned int largx, unsigned int largy, int k0) ;
 // cl:dropout.h
 kV dropativaTreino(Vr entrada, Vw saida, __global char *hitmap, long seed, REAL pativa, int k0) ;
 kV dropativaPredict(Vr entrada, Vw saida, REAL pativa, int k0) ;

@@ -107,7 +107,46 @@ void checkArgs() {
 			FILE *f = fopen("gab_version.py","w");
 			fprintf(f,"version = '%s'\n", Cnn_version());
 			fclose(f);
-			system("start \"python update.py\"");
+			f = fopen("update.py","w");
+			fprintf(f,  "import os\n"
+						"import sys\n"
+						"try:\n"
+						"\timport urllib.request\n"
+						"\t\n"
+						"\tif '-read' in sys.argv:\n"
+						"\t\tos.system('Gab.exe --updatepy')\n"
+						"\t\n"
+						"\tprint('hello from py')\n"
+						"\tdef download_progress_hook(count, blockSize, totalSize):\n"
+						"\t\tprint(\"\\rBaixando %%.2f%%%%\" %%((count) * blockSize / totalSize * 100,), end='')\n"
+						"\t\n"
+						"\t\n"
+						"\tnewslink = ('https://raw.githubusercontent.com/Xx220xX/Rede-convolucional/master/RELEASE/lastversion.py', 'lastversion.py')\n"
+						"\t\n"
+						"\tprint(f'Baixando {newslink[1]}')\n"
+						"\turllib.request.urlretrieve(*newslink, reporthook=download_progress_hook)\n"
+						"\tprint()\n"
+						"\t\n"
+						"\timport lastversion\n"
+						"\t\n"
+						"\tlastversion.update()\n"
+						"\t\n"
+						"\tos.remove(newslink[1])\n"
+						"\tos.remove('gab_version.py')\n"
+						"except Exception as e:\n"
+						"\tprint(e)\n"
+						"\tinput()");
+			fclose(f);
+			system("start python update.py -ready");
+			exit(0);
+		}else if(!strcmp(args[i], "-updatepy") || !strcmp(args[i], "--updatepy")){
+			printf("Gabriela IA\n");
+			printf("versão %s\n", "0");
+			printf("https://xx220xx.github.io/Rede-convolucional/\n\n");
+			printf("Buscando atualizações\n");
+			FILE *f = fopen("gab_version.py","w");
+			fprintf(f,"version = '%s'\n", Cnn_version());
+			fclose(f);
 			exit(0);
 		}
 	}
