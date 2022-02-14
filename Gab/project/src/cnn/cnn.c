@@ -17,7 +17,7 @@
 #define CHECKDIN(input, filtro, abertura, passo) \
     (((((input-1) - (filtro - 1) * abertura) / passo +1)>0) && \
     (((((input-1) - (filtro - 1) * abertura) / passo)*passo + (filtro-1)*abertura) == (input-1)))
-const char *versao = "3.0.0011";
+const char *versao = "3.0.0012";
 
 const char *Cnn_version() {
 	return versao;

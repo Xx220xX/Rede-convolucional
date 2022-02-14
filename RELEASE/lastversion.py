@@ -16,8 +16,7 @@ class DownloadProgrees:
 	def __call__(self, count, blockSize, totalSize):
 		self.b = self.b + blockSize
 		t = time.time() - self.t0
-		print("\rBaixando %.2f%%" % (self.b / totalSize * 100,), end='')
-		print("%.2f kbps"%(self.b / t / 1024,), end='')
+		print("\rBaixando %.2f%% %.2f kbps  "%(self.b / totalSize * 100, self.b / t / 1024,), end='')
 
 
 def update():

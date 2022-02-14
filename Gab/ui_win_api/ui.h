@@ -52,7 +52,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 	MoveWindow(GetConsoleWindow(), 0, 0, windowSize.right * 0.5, windowSize.bottom * 0.94, 1);
 
 	hwnd = CreateWindowW(wc.lpszClassName, L"GabCnn", WS_OVERLAPPEDWINDOW | WS_VISIBLE, windowSize.right / 2, 1, windowSize.right / 2, windowSize.bottom, NULL, 0, hInstance, 0);
-	SetWindowTextA(hwnd, "Gab Cnn");
+	char title[250];
+	snprintf(title,250,"Gab Cnn v %s",Cnn_version());
+	SetWindowTextA(hwnd, title);
 
 	if (!hwnd) {
 		fprintf(stderr, "Falha ao criar janela\n");
@@ -113,7 +115,7 @@ void checkArgs() {
 						"try:\n"
 						"\timport urllib.request\n"
 						"\t\n"
-						"\tif '-read' in sys.argv:\n"
+						"\tif not ('-read' in sys.argv):\n"
 						"\t\tos.system('Gab.exe --updatepy')\n"
 						"\t\n"
 						"\tprint('hello from py')\n"
@@ -129,7 +131,6 @@ void checkArgs() {
 						"\t\n"
 						"\timport lastversion\n"
 						"\t\n"
-						"\tlastversion.update()\n"
 						"\t\n"
 						"\tos.remove(newslink[1])\n"
 						"\tos.remove('gab_version.py')\n"

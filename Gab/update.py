@@ -2,8 +2,8 @@ import os
 import sys
 import urllib.request
 
-if '-read' in sys.argv:
-	os.system('Gab.exe --updatepy')
+if not ('-read' in sys.argv):
+	os.system('"Gab.exe --updatepy"')
 
 
 def download_progress_hook(count, blockSize, totalSize):
