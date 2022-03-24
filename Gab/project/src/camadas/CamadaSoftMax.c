@@ -92,16 +92,16 @@ int CamadaSoftMax_save(CamadaSoftMax self, FILE *f) {
 	if (self->super.ecx->error) {
 		goto end;
 	}
-	ECXPUSH(self->super.ecx);
+	
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->flag, 1, 1, f);
 	end:
-	ECXPOP(self->super.ecx);
+	ECX_CHECK(self->super.ecx);
 	return self->super.ecx->error;
 }
 
 Camada CamadaSoftMax_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
-	ECXPUSH(ecx);
+	
 	Parametros parametros;
 	P3d size_in;
 	uint32_t size_element;
@@ -110,7 +110,7 @@ Camada CamadaSoftMax_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx
 	fread(&flag, 1, 1, f);
 	CamadaSoftMax self = (CamadaSoftMax) CamadaSoftMax_new(gpu, queue, flag, size_in, entrada, ecx);
 	end:
-	ECXPOP(ecx);
+	ECX_CHECK(ecx);
 	return (Camada) self;
 }
 
@@ -130,7 +130,7 @@ int CamadaSoftMax_fprintf(CamadaSoftMax self, FILE *destino, char *format, ...) 
 }
 
 Camada CamadaSoftMax_new(Gpu gpu, Queue queue, char flag, P3d size_in, Tensor entrada, Ecx ecx) {
-	ECXPUSH(ecx);
+	
 	CamadaSoftMax self = gab_alloc(1, sizeof(CamadaSoftMax_t));
 
 	P3d size_out = size_in;

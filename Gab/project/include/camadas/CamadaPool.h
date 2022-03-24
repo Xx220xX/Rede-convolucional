@@ -13,6 +13,7 @@ typedef struct CamadaPool_t {
 	uint32_t type;
 	size_t passox, passoy;
 	size_t filtrox, filtroy;
+	Tensor hitmap;
 	Kernel poolativa;
 	Kernel poolCalcGrads;
 } *CamadaPool, CamadaPool_t;

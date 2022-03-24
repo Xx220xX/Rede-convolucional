@@ -299,8 +299,8 @@ int Cnn_maxIndex(Cnn self) {
 	if (self->l <= 0) {
 		return 0;
 	}
-	if(self->ecx->error){
-		fprintf(stderr,"Erro %d %s:%d\n",self->ecx->error,__FILE__,__LINE__);
+	if (self->ecx->error) {
+		fprintf(stderr, "Erro %d %s:%d\n", self->ecx->error, __FILE__, __LINE__);
 		return 0;
 	}
 	REAL *data = self->cm[self->l - 1]->s->getvalues(self->cm[self->l - 1]->s, NULL);
@@ -471,15 +471,18 @@ void Cnn_jsonF(Cnn self, int showValues, const char *filename) {
 
 void Cnn_fprint(Cnn self, FILE *f, const char *comment) {
 	char *tmp;
-	if (comment == NULL) {
-		comment = "//";
-	}
+//	if (comment == NULL) {
+//		comment = "//";
+//	}
 	P3d out = self->size_in;
 	fprintf(f, "Entrada(%zu,%zu,%zu)\n", out.x, out.y, out.z);
 	for (int i = 0; i < self->l; ++i) {
 		tmp = self->cm[i]->getGenerate(self->cm[i]);
 		out = self->cm[i]->getOutSize(self->cm[i]);
-		fprintf(f, "%s %s saida [%zu,%zu,%zu]", tmp, comment, out.x, out.y, out.z);
+		fprintf(f, "%s", tmp);
+		if (comment) {
+			fprintf(f, " %s saida [%zu,%zu,%zu]", comment, out.x, out.y, out.z);
+		}
 //		switch (self->cm[i]->layer_id) {
 //			case CONVOLUCAOF_ID:
 //				fprintf(f, "std = %f, u = %f", ((CamadaConvF) self->cm[i])->w->std(((CamadaConvF) self->cm[i])->w), ((CamadaConvF) self->cm[i])->w->media(((CamadaConvF) self->cm[i])->w));
@@ -501,7 +504,6 @@ void Cnn_mode(Cnn self, int isTraining) {
 		}
 	}
 	self->mode = isTraining;
-
 }
 
 
@@ -538,13 +540,13 @@ char *Cnn_printstr(Cnn self, const char *comment) {
 
 
 int Cnn_ConvolucaoF(Cnn self, P2d passo, P3d filtro, FAtivacao_t funcaoAtivacao, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right, Parametros p, RandomParams filtros) {
-	FAtivacao  fa = {.mask = funcaoAtivacao};
-	if(!(fa.id == FSIGMOID|| fa.id == FTANH|| fa.id == FLRELU|| fa.id == FLIN|| fa.id == FALAN|| fa.id == FRELU)){
-		self->ecx->setError(self->ecx,GAB_INVALID_PARAM,"Função de ativação desconhecida\n");
+	FAtivacao fa = {.mask = funcaoAtivacao};
+	if (!(fa.id == FSIGMOID || fa.id == FTANH || fa.id == FLRELU || fa.id == FLIN || fa.id == FALAN || fa.id == FRELU)) {
+		self->ecx->setError(self->ecx, GAB_INVALID_PARAM, "Função de ativação desconhecida\n");
 		return GAB_INVALID_PARAM;
 	}
 	P3d size_in = self->getSizeOut(self);
-	if (!CHECKDIN(size_in.x+top+bottom, filtro.x, 1, passo.x) || !CHECKDIN(size_in.y+left+right, filtro.y, 1, passo.y)) {
+	if (!CHECKDIN(size_in.x + top + bottom, filtro.x, 1, passo.x) || !CHECKDIN(size_in.y + left + right, filtro.y, 1, passo.y)) {
 		fprintf(stderr, "ConvolucaoF:Invalid params\nsize in : %zu %zu %zu\nsize out : %g %g %zu\n", size_in.x, size_in.y, size_in.z, (size_in.x - 1 - (filtro.x - 1)) / (REAL) passo.x + 1, (size_in.y - 1 - (filtro.y - 1)) / (REAL) passo.y + 1, size_in.z);
 		return GAB_INVALID_PARAM;
 	}
@@ -552,8 +554,6 @@ int Cnn_ConvolucaoF(Cnn self, P2d passo, P3d filtro, FAtivacao_t funcaoAtivacao,
 
 	return internal_Cnn_addlayer(self, c);
 }
-
-
 
 
 int Cnn_Pooling(Cnn self, P2d passo, P2d filtro, uint32_t type) {
@@ -577,9 +577,9 @@ int Cnn_PRelu(Cnn self, Parametros params, RandomParams rdp_a) {
 }
 
 int Cnn_FullConnect(Cnn self, size_t numero_neuronios, Parametros p, FAtivacao_t funcaoAtivacao, RandomParams rdp_pesos, RandomParams rdp_bias) {
-	FAtivacao  fa = {.mask = funcaoAtivacao};
-	if(!(fa.id == FSIGMOID|| fa.id == FTANH|| fa.id == FLRELU|| fa.id == FLIN|| fa.id == FALAN|| fa.id == FRELU|| fa.id == FSOFTMAX)){
-		self->ecx->setError(self->ecx,GAB_INVALID_PARAM,"Função de ativação desconhecida\n");
+	FAtivacao fa = {.mask = funcaoAtivacao};
+	if (!(fa.id == FSIGMOID || fa.id == FTANH || fa.id == FLRELU || fa.id == FLIN || fa.id == FALAN || fa.id == FRELU || fa.id == FSOFTMAX)) {
+		self->ecx->setError(self->ecx, GAB_INVALID_PARAM, "Função de ativação desconhecida\n");
 		return GAB_INVALID_PARAM;
 	}
 	Camada c = CamadaFullConnect_new(self->gpu, self->queue, self->getSizeOut(self), numero_neuronios, internal_Cnn_getEntrada(self), p, funcaoAtivacao, self->ecx, rdp_pesos, rdp_bias);
@@ -592,8 +592,8 @@ int Cnn_Padding(Cnn self, uint32_t top, uint32_t bottom, uint32_t left, uint32_t
 }
 
 int Cnn_DropOut(Cnn self, REAL probabilidadeJogarFora, cl_ulong seed) {
-	probabilidadeJogarFora = probabilidadeJogarFora>0?probabilidadeJogarFora:-probabilidadeJogarFora;
-	if (probabilidadeJogarFora>1){
+	probabilidadeJogarFora = probabilidadeJogarFora > 0 ? probabilidadeJogarFora : -probabilidadeJogarFora;
+	if (probabilidadeJogarFora > 1) {
 		return GAB_INVALID_PARAM;
 	}
 	#if DROPOUT_AS_FIRST_LAYER == 0
@@ -601,7 +601,7 @@ int Cnn_DropOut(Cnn self, REAL probabilidadeJogarFora, cl_ulong seed) {
 		return GAB_INVALID_LAYER;
 	}
 	#endif
-	Camada c = CamadaDropOut_new(self->gpu, self->queue, self->getSizeOut(self), 1-probabilidadeJogarFora, seed, internal_Cnn_getEntrada(self), self->ecx);
+	Camada c = CamadaDropOut_new(self->gpu, self->queue, self->getSizeOut(self), 1 - probabilidadeJogarFora, seed, internal_Cnn_getEntrada(self), self->ecx);
 	return internal_Cnn_addlayer(self, c);
 }
 

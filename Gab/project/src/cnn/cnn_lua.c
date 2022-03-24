@@ -201,21 +201,21 @@ static int l_loadCnn(lua_State *L) {
 	SetDir((char *) path);
 	FILE *f = fopen(file, "rb");
 	if (!(f)) {
-		c->erro->error = -3 + -100;
-		lua_pushinteger(L, c->erro->error);
+		c->ecx->error = -3 + -100;
+		lua_pushinteger(L, c->ecx->error);
 		char buf[250];
 		snprintf(buf, 250, "arquivo %s/%s nao foi encontrado\n", path, file);
 		lua_pushstring(L, buf);
-		c->erro->error = 0;
+		c->ecx->error = 0;
 		return 2;
 	}
 	cnnCarregar(c, f);
 	fclose(f);
-	if (c->erro->error) {
+	if (c->ecx->error) {
 //		luaL_error(L,"%s\n",c->error.msg);
-		lua_pushinteger(L, c->erro->error);
+		lua_pushinteger(L, c->ecx->error);
 		lua_pushstring(L, c->error.msg);
-		c->erro->error = 0;
+		c->ecx->error = 0;
 		return 2;
 	}
 	RETURN_LUA_STATUS_FUNCTION();
@@ -787,7 +787,6 @@ int CnnLuaLoadString(Cnn c, const char *lua_program) {
 		return error;
 	}
 	if (c->ecx->error) {
-
 		return c->ecx->error;
 	}
 }
@@ -796,7 +795,6 @@ int CnnLuaLoadFile(Cnn c, const char *file_name) {
 	if (!c) {
 		return GAB_NULL_POINTER_ERROR;
 	}
-	ECXPUSH(c->ecx);
 	if (!c->LuaVm) {
 		CnnInitLuaVm(c);
 	}
@@ -806,7 +804,6 @@ int CnnLuaLoadFile(Cnn c, const char *file_name) {
 		fprintf(stderr, "\nError: %d %d %s\n", lua_gettop(c->LuaVm), c->ecx->error, lua_tostring(c->LuaVm, -1));
 		fflush(stderr);
 	}
-	ECXPOP(c->ecx);
 	return c->ecx->error;
 }
 

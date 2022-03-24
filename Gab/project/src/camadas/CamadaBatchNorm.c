@@ -135,14 +135,14 @@ int CamadaBatchNorm_save(CamadaBatchNorm self, FILE *f) {
 	if (self->super.ecx->error) {
 		goto end;
 	}
-	ECXPUSH(self->super.ecx);
+
 	internal_saveCamada(f, (Camada) self);
 	internal_saveREAL(f, self->epsilon);
 	internal_saveTensor(f, self->Y);
 	internal_saveTensor(f, self->B);
 	fwrite(&self->batch_size, sizeof(size_t), 1, f);
-	ECXPOP(self->super.ecx);
 	end:
+	ECX_CHECK(Super.ecx)
 	return self->super.ecx->error;
 }
 
@@ -195,7 +195,7 @@ int CamadaBatchNorm_fprintf(CamadaBatchNorm self, FILE *destino, char *format, .
 }
 
 extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL epsilon, size_t batchSize, Rdp randY, Rdp randB) {
-	ECXPUSH(ecx);
+
 	CamadaBatchNorm self = gab_alloc(1, sizeof(CamadaBatchNorm_t));
 
 	P3d size_out = size_in;

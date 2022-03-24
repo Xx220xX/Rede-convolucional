@@ -73,15 +73,15 @@
 #define KExec_poolAvCalcGrads(kname, kernel_iter_Len, Vr_A, Vw_dA, Vr_dS, Vr_S, int_fx, int_fy, int_px, int_py, int_entradatx, int_entradaty, int_saidatx, int_saidaty) Execute(kname, kernel_iter_Len, &Vr_A, &Vw_dA, &Vr_dS, &Vr_S, &int_fx, &int_fy, &int_px, &int_py, &int_entradatx, &int_entradaty, &int_saidatx, &int_saidaty)
 
 //poolMax.h
-#define Knew_poolativa(x) KRN_new(x, "poolativa", 11, sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_poolativa(kname, kernel_iter_Len, Vr_entrada, Vr_saida, int_passox, int_passoy, int_filtrox, int_filtroy, int_saidatx, int_saidaty, int_entradatx, int_entradaty) Execute(kname, kernel_iter_Len, &Vr_entrada, &Vr_saida, &int_passox, &int_passoy, &int_filtrox, &int_filtroy, &int_saidatx, &int_saidaty, &int_entradatx, &int_entradaty)
+#define Knew_poolativa(x) KRN_new(x, "poolativa", 12, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
+#define KExec_poolativa(kname, kernel_iter_Len, Vr_entrada, Vw_saida, Vw_hmap, int_passox, int_passoy, int_filtrox, int_filtroy, int_saidatx, int_saidaty, int_entradatx, int_entradaty) Execute(kname, kernel_iter_Len, &Vr_entrada, &Vw_saida, &Vw_hmap, &int_passox, &int_passoy, &int_filtrox, &int_filtroy, &int_saidatx, &int_saidaty, &int_entradatx, &int_entradaty)
 
 #define Knew_poolCalcGrads(x) KRN_new(x, "poolCalcGrads", 13, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_poolCalcGrads(kname, kernel_iter_Len, Vr_A, Vr_dA, Vr_dS, Vr_S, int_fx, int_fy, int_px, int_py, int_entradatx, int_entradaty, int_saidatx, int_saidaty) Execute(kname, kernel_iter_Len, &Vr_A, &Vr_dA, &Vr_dS, &Vr_S, &int_fx, &int_fy, &int_px, &int_py, &int_entradatx, &int_entradaty, &int_saidatx, &int_saidaty)
+#define KExec_poolCalcGrads(kname, kernel_iter_Len, Vr_A, Vr_dA, Vr_dS, __global_int___hmap, int_fx, int_fy, int_px, int_py, int_entradatx, int_entradaty, int_saidatx, int_saidaty) Execute(kname, kernel_iter_Len, &Vr_A, &Vr_dA, &Vr_dS, &__global_int___hmap, &int_fx, &int_fy, &int_px, &int_py, &int_entradatx, &int_entradaty, &int_saidatx, &int_saidaty)
 
 //poolMin.h
-#define Knew_poolativaMin(x) KRN_new(x, "poolativaMin", 11, sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
-#define KExec_poolativaMin(kname, kernel_iter_Len, Vr_A, Vr_S, int_passox, int_passoy, int_filtrox, int_filtroy, int_saidatx, int_saidaty, int_entradatx, int_entradaty) Execute(kname, kernel_iter_Len, &Vr_A, &Vr_S, &int_passox, &int_passoy, &int_filtrox, &int_filtroy, &int_saidatx, &int_saidaty, &int_entradatx, &int_entradaty)
+#define Knew_poolativaMin(x) KRN_new(x, "poolativaMin", 12, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int), sizeof(cl_int))
+#define KExec_poolativaMin(kname, kernel_iter_Len, Vr_A, Vr_S, __global_int___hmap, int_passox, int_passoy, int_filtrox, int_filtroy, int_saidatx, int_saidaty, int_entradatx, int_entradaty) Execute(kname, kernel_iter_Len, &Vr_A, &Vr_S, &__global_int___hmap, &int_passox, &int_passoy, &int_filtrox, &int_filtroy, &int_saidatx, &int_saidaty, &int_entradatx, &int_entradaty)
 
 //prelu.h
 #define Knew_preluativa(x) KRN_new(x, "preluativa", 4, sizeof(void *), sizeof(void *), sizeof(void *), sizeof(cl_int))

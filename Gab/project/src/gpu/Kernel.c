@@ -49,11 +49,11 @@ int Kernel_run(Kernel self, cl_command_queue queue, size_t globals, size_t local
 	va_start(vaList, locals);
 	for (int i = 0; i < self->nArgs; ++i) {
 		self->error = clSetKernelArg(self->kernel, i, self->l_args[i], va_arg(vaList, void *));
-		check_error_gpu(self->error, end, "erro ao colocar argumentos no kernel %s,%d:", self->name, i);
+		check_error_gpu(self->error, end, "ecx ao colocar argumentos no kernel %s,%d:", self->name, i);
 	}
 	va_end(vaList);
 	self->error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
-	check_error_gpu(self->error, end, "erro chamar kernel %s,(%zu,%zu):", self->name, globals, locals);
+	check_error_gpu(self->error, end, "ecx chamar kernel %s,(%zu,%zu):", self->name, globals, locals);
 	end:
 	return self->error;
 }
@@ -75,7 +75,7 @@ int Kernel_runRecursive(Kernel self, cl_command_queue queue, size_t globals, siz
 	}
 	va_end(vaList);
 	self->error = clSetKernelArg(self->kernel, i, self->l_args[i], &id);
-	check_error_gpu(self->error, end, "Kernel %s %d: %zu erro ao colocar argumento extra no kernel", self->name, i, self->l_args[i]);
+	check_error_gpu(self->error, end, "Kernel %s %d: %zu ecx ao colocar argumento extra no kernel", self->name, i, self->l_args[i]);
 
 	if (globals < max_works) {
 		locals = globals;
@@ -86,16 +86,16 @@ int Kernel_runRecursive(Kernel self, cl_command_queue queue, size_t globals, siz
 		globals = (globals / max_works) * max_works;
 		locals = max_works;
 		self->error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
-		check_error_gpu(self->error, end, "erro ao rodar kernel %s", self->name);
+		check_error_gpu(self->error, end, "ecx ao rodar kernel %s", self->name);
 		if (resto) {
 			id = globals;
 			locals = resto;
 			globals = resto;
 
 			self->error = clSetKernelArg(self->kernel, i, self->l_args[i], &id);
-			check_error_gpu(self->error, end, "erro ao colocar argumentos no kernel 2 chamada %s", self->name);
+			check_error_gpu(self->error, end, "ecx ao colocar argumentos no kernel 2 chamada %s", self->name);
 			self->error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
-			check_error_gpu(self->error, end, "erro ao rodar kernel 2 chamada %s", self->name);
+			check_error_gpu(self->error, end, "ecx ao rodar kernel 2 chamada %s", self->name);
 
 		}
 	}

@@ -16,7 +16,9 @@ typedef struct {
 	uint32_t imTotal;
 	uint32_t epAtual;
 	uint32_t epTotal;
+
 	double mse;
+	double faval;
 	double winRate;
 	double winRateMedio;
 	double winRateMedioep;

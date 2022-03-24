@@ -67,7 +67,7 @@ for i = 1:size(dw,3)
 	plot(dw(:,:,i)(:))
 	plot(dW_m(:,:,i)(:))
 end
-suptitle(sprintf('dw vs dW_m erro = %f',var((dw - dW_m)(:))));
+suptitle(sprintf('dw vs dW_m ecx = %f',var((dw - dW_m)(:))));
 if gcf() == 1
 print('../matlab/conv2d.m.pdf')
 else print('../matlab/conv2d.m.pdf', '-append'); end;
@@ -77,7 +77,7 @@ for i = 1:size(dA,3)
 	plot(dA(:,:,i)(:))
 	plot(dA_m(:,:,i)(:))
 end
-suptitle(sprintf('dA vs dA_m erro = %f',var((dA - dA_m)(:))));
+suptitle(sprintf('dA vs dA_m ecx = %f',var((dA - dA_m)(:))));
 if gcf() == 1
 print('../matlab/conv2d.m.pdf')
 else print('../matlab/conv2d.m.pdf', '-append'); end;
@@ -87,7 +87,7 @@ for i = 1:size(dZ,3)
 	plot(dZ(:,:,i)(:))
 	plot(dZ_m(:,:,i)(:))
 end
-suptitle(sprintf('dZ vs dZ_m erro = %f',var((dZ - dZ_m)(:))));
+suptitle(sprintf('dZ vs dZ_m ecx = %f',var((dZ - dZ_m)(:))));
 if gcf() == 1
 print('../matlab/conv2d.m.pdf')
 else print('../matlab/conv2d.m.pdf', '-append'); end;
@@ -97,7 +97,7 @@ for i = 1:size(dS,3)
 	plot(dS(:,:,i)(:))
 	plot(dS_m(:,:,i)(:))
 end
-suptitle(sprintf('dS vs dS_m erro = %f',var((dS - dS_m)(:))));
+suptitle(sprintf('dS vs dS_m ecx = %f',var((dS - dS_m)(:))));
 if gcf() == 1
 print('../matlab/conv2d.m.pdf')
 else print('../matlab/conv2d.m.pdf', '-append'); end;
@@ -107,7 +107,7 @@ for i = 1:size(S,3)
 	plot(S(:,:,i)(:))
 	plot(S_m(:,:,i)(:))
 end
-suptitle(sprintf('S vs S_m erro = %f',var((S - S_m)(:))));
+suptitle(sprintf('S vs S_m ecx = %f',var((S - S_m)(:))));
 if gcf() == 1
 print('../matlab/conv2d.m.pdf')
 else print('../matlab/conv2d.m.pdf', '-append'); end;
@@ -117,7 +117,7 @@ for i = 1:size(Z,3)
 	plot(Z(:,:,i)(:))
 	plot(Z_m(:,:,i)(:))
 end
-suptitle(sprintf('Z vs Z_m erro = %f',var((Z - Z_m)(:))));
+suptitle(sprintf('Z vs Z_m ecx = %f',var((Z - Z_m)(:))));
 if gcf() == 1
 print('../matlab/conv2d.m.pdf')
 else print('../matlab/conv2d.m.pdf', '-append'); end;

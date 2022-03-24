@@ -68,7 +68,7 @@ matlab(" tmp = [];\n"\
 "  end\n");                                         \
 matlab("	plot(tmp)");\
 matlab("end");\
-matlab("suptitle(sprintf('"x" vs "y" erro = %f',var(("x"(:) - "y"(:)))));");\
+matlab("suptitle(sprintf('"x" vs "y" ecx = %f',var(("x"(:) - "y"(:)))));");\
 matlab("legend('"x"','"y"');");\
 matlab("if gcf() == 1");\
 matlabf("print('%s.pdf')",getName(__FILE__,1));                     \

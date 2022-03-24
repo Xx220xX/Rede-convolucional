@@ -36,10 +36,10 @@ kV paddingBack(Vr gradNext, Vr gradin, unsigned int txi, unsigned int tyi, unsig
 kV poolAVativa(Vr entrada, Vr saida, int passox, int passoy, int fx, int fy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) ;
 kV poolAvCalcGrads(Vr A, Vw dA, Vr dS, Vr S, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) ;
 // cl:poolMax.h
-kV poolativa(Vr entrada, Vr saida, int passox, int passoy, int filtrox, int filtroy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) ;
-kV poolCalcGrads(Vr A, Vr dA, Vr dS, Vr S, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) ;
+kV poolativa(Vr entrada, Vw saida,Vw hmap, int passox, int passoy, int filtrox, int filtroy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) ;
+kV poolCalcGrads(Vr A, Vr dA, Vr dS,  __global int * hmap, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) ;
 // cl:poolMin.h
-kV poolativaMin(Vr A, Vr S, int passox, int passoy, int filtrox, int filtroy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) ;
+kV poolativaMin(Vr A, Vr S, __global int * hmap, int passox, int passoy, int filtrox, int filtroy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) ;
 // cl:prelu.h
 kV preluativa(Vr A, Vw S, Vr W, int k0) ;
 kV prelucalcgrad(Vw dA, Vr A, Vr dS, Vrw W, Vrw dW, int learn, REAL hitlearn, REAL momento, REAL decaimento, int k0) ;

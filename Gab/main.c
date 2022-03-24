@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <cnn/cnn_lua.h>
 #include <png/png.h>
+#include <io.h>
 #include "ui_win_api/ui.h"
 #include "setup/Setup.h"
 #include "conio2/conio2.h"
@@ -56,14 +57,18 @@ void on_end_epoca(const Setup self, int epoca) {
 	GUI.avaliando = 1;
 	float win, custo;
 	self->fast_fitnes(self, &win, &custo);
-
+	self->itrain.faval = -1;
 	Axe *ax_erro = GUI.figs[0].getAxe(GUI.figs, 1);
 	Axe *ax_win = GUI.figs[0].getAxe(GUI.figs + 1, 3);
 	ax_erro->pushDraw(ax_erro, epoca, custo);
 	ax_win->pushDraw(ax_win, epoca, win);
-	printf("epoca %d winrate %.2f%% erro %f\n", epoca,win,custo);
+	printf("epoca %d winrate %.2f%% ecx %f\n", epoca, win, custo);
 	GUI.avaliando = 0;
 
+}
+
+int fileExist(char *filename) {
+	return access(filename, F_OK) == 0;
 }
 
 int cnnMain(int nargs, char **args) {
@@ -74,8 +79,8 @@ int cnnMain(int nargs, char **args) {
 	HANDLE hteste;
 	Setup s = Setup_new();
 
-//	LCG_setSeed(time(0));
-	LCG_setSeed(0xfaca123);
+	LCG_setSeed(time(0));
+
 
 	GUI.can_run = &s->can_run;
 	GUI.force_end = &s->force_end;
@@ -114,6 +119,7 @@ int cnnMain(int nargs, char **args) {
 		t0 = seconds() - t0;
 		printf("Tempo para leitura de labels %.3lf s, imagens por segundo %.2lf\n", t0, s->iLoad.imTotal / t0);
 	}
+	/// TREINO
 	if (s->ok(s)) {
 		t0 = seconds();
 		s->runing = 1;
@@ -132,23 +138,48 @@ int cnnMain(int nargs, char **args) {
 
 		while (s->runing) {
 			treino = s->itrain;
-			GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, treino.winRateMedio, treino.winRateMedioep, seconds() - t0);
+			GUI.updateTrain(treino.faval,treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, treino.winRateMedio, treino.winRateMedioep, seconds() - t0);
+
 			Sleep(100);
 		}
 		Thread_Release(htreino);
 		treino = s->itrain;
-		GUI.updateTrain(treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, treino.winRateMedio, treino.winRateMedioep, seconds() - t0);
+		GUI.updateTrain(treino.faval,treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, treino.winRateMedio, treino.winRateMedioep, seconds() - t0);
 		t0 = seconds() - t0;
 		printf("Tempo para treino %.3lf s\n", t0);
 		Sleep(10);
 		GUI.capture(s->treino_out);
+
+		char buff[250] = "";
+		int i = 0;
+		while (1) {
+			i++;
+			snprintf(buff, 250, "resultados/%s(%d).gabph", s->nome, i);
+			if (!fileExist(buff)) {
+				break;
+			}
+		}
+		// verifica se arquivo existe
+
+		// erro_treino, erro_avaliado
+		// win_treino, win_avaliado
+		FILE *f = fopen(buff, "wb");
+		saveaxe("Erro treino", GUI.figs[0].axes, f);
+		saveaxe("Erro avaliacao", GUI.figs[0].axes + 1, f);
+		saveaxe("winrate treino", GUI.figs[1].axes + 0, f);
+		saveaxe("winrate avaliacao", GUI.figs[1].axes + 3, f);
+		s->cnn->fprint(s->cnn, f, "#");
+
+		fclose(f);
 	}
 
 	char nome[250];
+	goto end;
 	snprintf(nome, 250, "%s.cnn", s->nome);
 	GUI.setText(GUI.status, "Salvando cnn em %s", nome);
 	s->cnn->save(s->cnn, nome);
-//	system("pause");
+	/// FITNESS
+
 	if (s->ok(s)) {
 		t0 = seconds();
 		s->runing = 1;
@@ -174,12 +205,12 @@ int cnnMain(int nargs, char **args) {
 							   "win hate teste %lf.\n"
 							   " Deseja mudar a arquitetura da rede?", s->itrain.mse, s->itrain.winRateMedioep, s->iteste.mse, s->iteste.winRate);
 
-
 	if (!s->cnn->ecx->error && dialogBox("Treino terminado!", tmp)) {
 		gab_free(tmp);
 		s->force_end = 0;
 		s->can_run = 1;
 		s->cnn->ecx->error = 0;
+
 		// criar arquivo temporario
 		FILE *tmpf = fopen(TMP_FILE_NAME_ARCH, "w");
 		// copiar help
@@ -233,5 +264,7 @@ int cnnMain(int nargs, char **args) {
 	}
 
 	end:
+	// salvar estatisticas
+
 	return s->release(&s);
 }

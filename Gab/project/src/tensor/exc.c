@@ -47,12 +47,16 @@ Ecx Ecx_new(int stack_len) {
 	self->popstack = Ecx_popstack;
 	self->addstack = Ecx_addstack;
 	self->release = Ecx_release;
+	self->pushMsg = Ecx_pushMsg;
 	self->print = Ecx_print;
 	self->setError = Ecx_setError;
 	return self;
 }
 
-int Ecx_setError(Ecx self, int error, char *format,...) {
+int Ecx_setError(Ecx self, int error, char *format, ...) {
+	if (!error) {
+		return error;
+	}
 	if (self->error) {
 		return self->error;
 	}
@@ -61,7 +65,7 @@ int Ecx_setError(Ecx self, int error, char *format,...) {
 	self->error = error;
 	va_list v;
 	va_start(v, format);
-	vEcx_pushMsg(self, format,v);
+	vEcx_pushMsg(self, format, v);
 	va_end(v);
 	self->block = 0;
 	return self->error;
@@ -137,3 +141,7 @@ void Ecx_print(Ecx self) {
 	}
 	self->block = 0;
 }
+
+
+
+

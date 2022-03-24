@@ -13,7 +13,7 @@ clc;close all;clear all;
  plot(fsigmoid,'DisplayName','sigmoid(0.1)');
  plot(flin,'DisplayName','lin');
 title('Comparação entre funções de ativação')
-ylabel('Energia do erro')
+ylabel('Energia do ecx')
 xlabel('iterações')
 legend
 grid on

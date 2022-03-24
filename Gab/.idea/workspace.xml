@@ -19,6 +19,83 @@
     <list default="true" id="f23e4705-0690-4b1e-96bc-3b52b384c6e1" name="Changes" comment="adicionado runtime kernel">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/Gab.exe" beforeDir="false" afterPath="$PROJECT_DIR$/bin/Gab.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/gabkernel.dll" beforeDir="false" afterPath="$PROJECT_DIR$/bin/gabkernel.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/lastversion.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/libgabkernel.dll.a" beforeDir="false" afterPath="$PROJECT_DIR$/bin/libgabkernel.dll.a" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/update.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug/matlab.h" beforeDir="false" afterPath="$PROJECT_DIR$/debug/matlab.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/main.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/matlab/comp.m" beforeDir="false" afterPath="$PROJECT_DIR$/matlab/comp.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/matlab/conv2d.m" beforeDir="false" afterPath="$PROJECT_DIR$/matlab/conv2d.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/matlab/dropout.m" beforeDir="false" afterPath="$PROJECT_DIR$/matlab/dropout.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/CamadaPool.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/CamadaPool.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/camadas/camada.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/camadas/camada.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/cnn/cnn.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/cnn/cnn.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/cwrap_kernels.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/cwrap_kernels.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/error_list.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/error_list.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/setup/Setup.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/setup/Setup.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/tensor/exc.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/tensor/exc.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/include/tensor/tensor.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/include/tensor/tensor.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/poolMax.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/poolMax.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/camadas/poolMin.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/camadas/poolMin.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/defaultkernel.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/defaultkernel.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/kernels.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/kernels.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/kernels/kernels.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/kernels/kernels.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/cpy.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/py/cpy.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/cpy.h" beforeDir="false" afterPath="$PROJECT_DIR$/project/py/cpy.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/generatePythonWrapper.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaBatchNorm.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaConv.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaConvF.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaConvNC.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaDropOut.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaFullConnect.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaPRelu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaPadding.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaPool.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaRelu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/CamadaSoftMax.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/all_camadas.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/camada.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/camadas/funcoesDeAtivacao.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/cnn/cnn.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/cnn/cnn_lua.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/cnn/kernel_lib.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/cnn/parametros.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/cnn/ponto3d.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/config.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/conio2/conio2.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/error_list.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/gpu/Gpu.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/gpu/Kernel.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/lcg/lcg.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/setup/Setup.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/tensor/exc.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/tensor/tensor.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/tensor/tensor_flags.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/include/thread/Thread.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/py/keras_teste/ru.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaBatchNorm.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaBatchNorm.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaConvF.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaConvF.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaDropOut.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaDropOut.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaFullConnect.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaFullConnect.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaPRelu.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaPRelu.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaPool.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaPool.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/CamadaSoftMax.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/CamadaSoftMax.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/camadas/camada.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/camadas/camada.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/cnn/cnn.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/cnn/cnn.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/cnn/cnn_lua.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/cnn/cnn_lua.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/gpu/Kernel.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/gpu/Kernel.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/setup/Setup.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/setup/Setup.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/tensor/exc.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/tensor/exc.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/src/tensor/tensor.c" beforeDir="false" afterPath="$PROJECT_DIR$/project/src/tensor/tensor.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_win_api/GUI.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/GUI.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_win_api/client.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/client.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_win_api/plot.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/plot.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_win_api/ui.h" beforeDir="false" afterPath="$PROJECT_DIR$/ui_win_api/ui.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../spectogram/a.png" beforeDir="false" afterPath="$PROJECT_DIR$/../spectogram/a.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../spectogram/gradi.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../spectogram/teste.m" beforeDir="false" afterPath="$PROJECT_DIR$/../spectogram/teste.m" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,6 +105,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
@@ -54,6 +132,7 @@
     <option name="sortByType" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="MATLAB_INTERPRETER" value="C:\Program Files\GNU Octave\Octave-6.4.0\mingw64\bin\octave-cli.exe" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
@@ -64,17 +143,17 @@
     <property name="cidr.known.project.marker" value="true" />
     <property name="cmake.loaded.for.project" value="true" />
     <property name="codeWithMe.voiceChat.enabledByDefault" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="D:/Henrique/treino_ia/mel_ubyte" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="preferences.editor" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Henrique\treino_ia\mel_ubyte" />
       <recent name="C:\Users\hslhe\CLionProjects\Rede-convolucional\Gab\debug" />
       <recent name="C:\Users\hslhe\CLionProjects\Rede-convolucional\Gab\icons\cerebro\azul_azul" />
       <recent name="C:\Users\hslhe\CLionProjects\Rede-convolucional\Gab\bin" />
       <recent name="C:\Users\hslhe\CLionProjects\Rede-convolucional\Gab\icons\cerebro\vermelho_preto" />
-      <recent name="C:\Users\hslhe\CLionProjects\Rede-convolucional\Gab\icons\cerebro\azul" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\hslhe\CLionProjects\Rede-convolucional\Gab\ui_win_api\utils" />
@@ -84,7 +163,7 @@
       <recent name="D:\Henrique\Rede-convolucional\Gab\project\py" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.update">
+  <component name="RunManager" selected="CMake Application.Gab">
     <configuration name="DEBUG_KERNEL" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="DEBUG_KERNEL" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Gab" RUN_TARGET_NAME="DEBUG_KERNEL">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -101,14 +180,10 @@
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="gab_library_cnn" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="gab_library_cnn" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+        <option name="RunConfigurationTask" enabled="true" run_configuration_name="Gab" run_configuration_type="PythonConfigurationType" />
       </method>
     </configuration>
     <configuration name="gabkernel" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Gab" TARGET_NAME="gabkernel" CONFIG_NAME="Debug">
@@ -129,6 +204,27 @@
       <option name="PARENT_ENVS" value="true" />
       <option name="PARAMETERS" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Gab" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="Gab" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/project/py" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/project/py/Gab.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
     <configuration name="buildKernel" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
@@ -200,6 +296,7 @@
       <item itemvalue="CMake Application.Gab" />
       <item itemvalue="CMake Application.gab_library_cnn" />
       <item itemvalue="CMake Application.gabkernel" />
+      <item itemvalue="Python.Gab" />
       <item itemvalue="Python.buildKernel" />
       <item itemvalue="Python.compile_rc" />
       <item itemvalue="Python.update" />
@@ -301,7 +398,23 @@
       <workItem from="1644590898346" duration="433000" />
       <workItem from="1644593380666" duration="1040000" />
       <workItem from="1644690146346" duration="2992000" />
-      <workItem from="1644845338779" duration="7668000" />
+      <workItem from="1644845338779" duration="9015000" />
+      <workItem from="1645014498323" duration="4534000" />
+      <workItem from="1645053270230" duration="404000" />
+      <workItem from="1645053696069" duration="272000" />
+      <workItem from="1645282954895" duration="11413000" />
+      <workItem from="1645306962670" duration="1000" />
+      <workItem from="1645375114076" duration="4604000" />
+      <workItem from="1645992639298" duration="605000" />
+      <workItem from="1647098532979" duration="149000" />
+      <workItem from="1647108642912" duration="187000" />
+      <workItem from="1647192850558" duration="2633000" />
+      <workItem from="1647893648042" duration="11867000" />
+      <workItem from="1647962820300" duration="4573000" />
+      <workItem from="1647968240033" duration="132000" />
+      <workItem from="1647988754940" duration="3008000" />
+      <workItem from="1648080031592" duration="8228000" />
+      <workItem from="1648135278570" duration="2856000" />
     </task>
     <task id="LOCAL-00001" summary="adicionado runtime kernel">
       <created>1642021416001</created>
@@ -370,6 +483,7 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="adicionado runtime kernel" />
     <option name="LAST_COMMIT_MESSAGE" value="adicionado runtime kernel" />
   </component>
@@ -392,13 +506,8 @@
           <option name="timeStamp" value="31" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/project/src/setup/Setup.c</url>
-          <line>261</line>
-          <option name="timeStamp" value="40" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/ui_win_api/GUI.h</url>
-          <line>245</line>
+          <line>254</line>
           <option name="timeStamp" value="46" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
@@ -411,6 +520,26 @@
           <line>13</line>
           <option name="timeStamp" value="53" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/main.c</url>
+          <line>87</line>
+          <option name="timeStamp" value="60" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/project/src/setup/Setup.c</url>
+          <line>569</line>
+          <option name="timeStamp" value="61" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/project/src/cnn/cnn_lua.c</url>
+          <line>716</line>
+          <option name="timeStamp" value="62" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/project/src/cnn/cnn_lua.c</url>
+          <line>801</line>
+          <option name="timeStamp" value="63" />
+        </line-breakpoint>
         <line-breakpoint enabled="true" type="lua-line">
           <url>file://D:/Henrique/treino_ia/cifar_10/TESTE_10Classes.lua</url>
           <line>14</line>
@@ -421,6 +550,9 @@
     <watches-manager>
       <configuration name="PythonConfigurationType">
         <watch expression="txt" />
+      </configuration>
+      <configuration name="CMakeRunConfiguration">
+        <watch expression="s-&gt;treinarBatch" />
       </configuration>
     </watches-manager>
   </component>

@@ -60,6 +60,11 @@ typedef struct {
 	void (*setVisible)(void *self, int visible);
 
 } Figure;
+#define saveaxe(title, axe, file) \
+    fwrite(title,1,strlen(title)+1,file);                           \
+    fwrite(&(axe)->size,sizeof(int),1,file);                        \
+    if((axe)->size>0)                             \
+    fwrite((axe)->pf,sizeof(POINTFLOAT),(axe)->size,file)
 
 LRESULT CALLBACK Figure_Proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	pfunc
@@ -148,7 +153,7 @@ void Axe_push(Axe *self, float x, float y) {
 	self->pf = realloc(self->pf, self->size * sizeof(POINTFLOAT));
 	self->pf[self->size - 1].x = x;
 	self->pf[self->size - 1].y = y;
-
+/*
 	if (self->size > MAXLEN) {
 		POINTFLOAT *f = calloc(MAXLEN, sizeof(POINTFLOAT));
 		int j = 0;
@@ -165,6 +170,7 @@ void Axe_push(Axe *self, float x, float y) {
 		self->pf = f;
 //		((Figure *)self->fig)->draw(self->fig,NULL);
 	}
+	*/
 
 }
 
@@ -366,6 +372,7 @@ void Figure_putAxe(Figure *self, DWORD lineColor, char *curveName) {
 	self->axes[self->naxes].fig = self;
 	self->axes[self->naxes].lineColor = lineColor;
 	self->axes[self->naxes].show = 1;
+	self->axes[self->naxes].size = 0;
 	snprintf(self->axes[self->naxes].curveName, 50, curveName);
 	self->axes[self->naxes].release = (void (*)(void *)) Axe_release;
 	self->axes[self->naxes].push = (void (*)(void *, float, float)) Axe_push;

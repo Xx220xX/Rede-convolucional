@@ -18,15 +18,13 @@ snprintf(str,len,format,## __VA_ARGS__);}
 
 
 char *Tensor_putvaluesAsstr(Tensor self) {
-	ECXPUSH(self->erro);
-	if (self->erro->error) {
-		return NULL;
-	}
-	Memory m = {0};
-	m.mem = self->getvalues(self, NULL);
-	size_t len = 0;
+	ECX_RETURN_IF_ERROR(self->ecx, NULL)
 	char *string = NULL;
+	Memory m = {0};
+	size_t len = 0;
 	double tmp;
+	m.mem = self->getvalues(self, NULL);
+	ECX_IF_FAILED(self->ecx, end)
 	for (int w = 0; w < self->w; ++w) {
 		if (self->flag.dimensao4D) {
 			if (w == 0) apendstr(string, len, "[") else apendstr(string, len, "\n, [")
@@ -47,7 +45,7 @@ char *Tensor_putvaluesAsstr(Tensor self) {
 					} else {
 						tmp = m.real[y + x * self->y + z * self->x * self->y + w * self->z * self->x * self->y];
 
-						apendstr(string, len, "%s%.5f",tmp>0?" ":"", tmp)
+						apendstr(string, len, "%s%.5f", tmp > 0 ? " " : "", tmp)
 					}
 				}
 				apendstr(string, len, "]")
@@ -60,20 +58,20 @@ char *Tensor_putvaluesAsstr(Tensor self) {
 		}
 	}
 	free(m.mem);
-	ECXPOP(self->erro);
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 	return string;
 }
 
 char *Tensor_printhex(Tensor self) {
-	ECXPUSH(self->erro);
-	if (self->erro->error) {
-		return NULL;
-	}
+	ECX_RETURN_IF_ERROR(self->ecx, NULL)
+
+	char *string = NULL;
 	size_t id;
+	size_t len = 0;
 	Memory m = {0};
 	m.mem = self->getvalues(self, NULL);
-	size_t len = 0;
-	char *string = NULL;
+	ECX_IF_FAILED(self->ecx, end)
 	for (int w = 0; w < self->w; ++w) {
 		if (self->flag.dimensao4D) {
 			if (w == 0) apendstr(string, len, "[") else apendstr(string, len, "\n,[")
@@ -103,20 +101,21 @@ char *Tensor_printhex(Tensor self) {
 		}
 	}
 	free(m.mem);
-	ECXPOP(self->erro);
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 	return string;
 }
 
 char *Tensor_json(Tensor self, int showValues) {
-	ECXPUSH(self->erro);
-	char *string;
+	ECX_RETURN_IF_ERROR(self->ecx, NULL)
+	char *string = NULL;
 	char *tmp = "";
 	if (showValues == 2) {
 		tmp = Tensor_printhex(self);
 	} else if (showValues) {
 		tmp = Tensor_putvaluesAsstr(self);
 	}
-
+	ECX_IF_FAILED(self->ecx, end)
 	asprintf(string, "{\n"
 			PAD"\"flag\":{\n"
 			PAD PAD "\"dimensao4D\":%d,\n"
@@ -143,7 +142,8 @@ char *Tensor_json(Tensor self, int showValues) {
 	if (showValues) {
 		gab_free(tmp);
 	}
-	ECXPOP(self->erro);
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 	return string;
 }
 
@@ -167,6 +167,8 @@ void Tensor_release(Tensor *self) {
 	*self = NULL;
 }
 
+void Tensor_registreError(Tensor self, char *format, ...)  __attribute__ ((deprecated));
+
 void Tensor_registreError(Tensor self, char *format, ...) {
 	va_list v;
 	va_start(v, format);
@@ -185,61 +187,65 @@ void Tensor_registreError(Tensor self, char *format, ...) {
 }
 
 int Tensor_setvalues(Tensor self, void *data) {
-	return self->setvaluesM(self, 0, data, self->bytes);
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
+	int r = self->setvaluesM(self, 0, data, self->bytes);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return r;
 }
 
 void *Tensor_getvalues(Tensor self, void *data) {
-	return self->getvaluesM(self, 0, data, self->bytes);
+	ECX_RETURN_IF_ERROR(self->ecx, NULL)
+	void *r = self->getvaluesM(self, 0, data, self->bytes);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return r;
 }
 
 int Tensor_setvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
-	ECXPUSH(self->erro);
-	if (self->erro->error) {
-		return self->erro->error;
-	}
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
 	if (self->flag.ram) {
 		memcpy(self->data + offset, data, bytes);
 	} else if (self->flag.shared) {
-		fprintf(stderr, "ERROR: shared memory not implanted\n");
+		self->ecx->setError(self->ecx, GAB_INVALID_PARAM, "ERROR: shared memory not implanted\n");
+		goto end;
 	} else {
 		clFlush(self->queue);
 		clFinish(self->queue);
-		self->erro->error = clEnqueueWriteBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
+		self->ecx->error = clEnqueueWriteBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
 	}
-	ECXPOP(self->erro);
-	return self->erro->error;
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return self->ecx->error;
 }
 
 
 void *Tensor_getvaluesm(Tensor self, size_t offset, void *data, size_t bytes) {
-	ECXPUSH(self->erro);
-	if (self->erro->error) {
-		return NULL;
-	}
+	ECX_RETURN_IF_ERROR(self->ecx, NULL)
 	if (!data) {
 		data = calloc(bytes, 1);
 	}
 	if (self->flag.ram) {
 		memcpy(data, self->data + offset, bytes);
 	} else if (self->flag.shared) {
-		fprintf(stderr, "ERROR: shared memory not implanted\n");
+		self->ecx->setError(self->ecx, GAB_INVALID_PARAM, "ERROR: shared memory not implanted\n");
+		goto end;
+		//fprintf(stderr, "ERROR: shared memory not implanted\n");
 
 	} else {
 		clFlush(self->queue);
 		clFinish(self->queue);
-		self->erro->error = clEnqueueReadBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
+		self->ecx->error = clEnqueueReadBuffer(self->queue, self->data, CL_TRUE, offset, bytes, data, 0, NULL, NULL);
 	}
-	ECXPOP(self->erro);
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 	return data;
 }
 
 int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
-	ECXPUSH(self->erro);
-	if (self->erro->error) {
-		return self->erro->error;
-	}
-	void *m = calloc(self->bytes, 1);
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
+	void *m;
 	size_t len = self->bytes / self->size_element;
+
+	m = calloc(self->bytes, 1);
 	REAL x;
 	for (int i = 0; i < len; ++i) {
 		switch (type) {
@@ -260,7 +266,7 @@ int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
 				break;
 			default:
 				fprintf(stderr, "Invalid param type = %d\n", type);
-				self->erro->setError(self->erro, GAB_INVALID_PARAM, "Invalid param type = %d\n", type);
+				self->ecx->setError(self->ecx, GAB_INVALID_PARAM, "Invalid param type = %d\n", type);
 				goto end;
 
 		}
@@ -284,13 +290,15 @@ int Tensor_randomize(Tensor self, int type, REAL a, REAL b) {
 	}
 	self->setvalues(self, m);
 	end:
-	free(m);
-	ECXPOP(self->erro);
-	return self->erro->error;
+	if (m) {
+		free(m);
+	}
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return self->ecx->error;
 }
 
 
-void normalizeReal(REAL *data, size_t len, REAL a) {
+int normalizeReal(REAL *data, size_t len, REAL a) {
 	REAL mx = data[0], mn = data[0];
 	for (int i = 1; i < len; ++i) {
 		if (mx < data[i]) {
@@ -302,14 +310,17 @@ void normalizeReal(REAL *data, size_t len, REAL a) {
 	}
 //	printf("%g %g\n", mx, mn);
 	mx = mx - mn;
+	if (mx == 0 || isinf(mx) || isnan(mx)) {
+		return GAB_INVALID_DIVISION;
+	}
 	a = a / mx;
 	for (int i = 0; i < len; ++i) {
 		data[i] = (data[i] - mn) * a;
 	}
+	return 0;
 }
 
-void normalizeInt(int *data, size_t len, REAL a) {
-
+int normalizeInt(int *data, size_t len, REAL a) {
 	int mx = data[0], mn = data[0];
 	for (int i = 1; i < len; ++i) {
 		if (mx < data[i]) {
@@ -320,108 +331,123 @@ void normalizeInt(int *data, size_t len, REAL a) {
 		}
 	}
 	mx = mx - mn;
+	if (mx == 0) {
+		return GAB_INVALID_DIVISION;
+	}
 	a = a / (REAL) mx;
 	for (int i = 0; i < len; ++i) {
 		data[i] = (int) ((REAL) (data[i] - mn) * a);
 	}
+	return 0;
 }
 
 int Tensor_imagegrayREAL(Tensor self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l) {
-	ECXPUSH(self->erro);
-	if (self->erro->error) {
-		return self->erro->error;
-	}
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
 	int x, y;
 	double px = ((double) self->x / (double) h), py = ((double) self->y / (double) w);
-	REAL *data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
-	normalizeReal(data, self->x * self->y, 255);
+	REAL *data = NULL;
+
+
+	data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
+	self->ecx->setError(self->ecx, normalizeReal(data, self->x * self->y, 255), "Divisao por 0");
+	ECX_IF_FAILED(self->ecx, end)
 	for (int i = 0; i < h; ++i) {
 		if (i + i0 >= height_tensor) {
-			self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
+//			self->ecx->error = GAB_INDEX_OUT_OF_BOUNDS;
+			self->ecx->setError(self->ecx, GAB_INDEX_OUT_OF_BOUNDS, "Violacao de memoria");
 			goto end;
 		}
 		for (int j = 0; j < w; ++j) {
 			y = j * py;
 			x = i * px;
 			if (j + j0 >= width) {
-				self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
+				self->ecx->setError(self->ecx, GAB_INDEX_OUT_OF_BOUNDS, "Violacao de memoria");
 				goto end;
 			}
 			image[(i + i0) * width + j + j0] = (char) (data[x * self->y + y]);
 		}
 	}
 	end:
-	free(data);
-	ECXPOP(self->erro);
-	return self->erro->error;
+	if (data) {
+		free(data);
+	}
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return self->ecx->error;
 }
 
 
 int Tensor_imagegrayINT(Tensor self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l) {
-	if (self->erro->error) {
-		return self->erro->error;
-	}
-	ECXPUSH(self->erro);
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
 	int x, y;
 	double px = ((double) self->x / (double) h), py = ((double) self->y / (double) w);
-	int *data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
-	normalizeInt(data, self->x * self->y, 255);
+	int *data = NULL;
+	data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
+	ECX_TRY(self->ecx, normalizeInt(data, self->x * self->y, 255), end, GAB_INVALID_DIVISION, "divisao por zero");
+
 	for (int i = 0; i < h; ++i) {
 		if (i + i0 >= height_tensor) {
-			self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
+			self->ecx->setError(self->ecx, GAB_INDEX_OUT_OF_BOUNDS, "Violacao de memoria");
 			goto end;
 		}
 		for (int j = 0; j < w; ++j) {
 			y = j * py;
 			x = i * px;
 			if (j + j0 >= width) {
-				self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
+				self->ecx->setError(self->ecx, GAB_INDEX_OUT_OF_BOUNDS, "Violacao de memoria");
 				goto end;
 			}
 			image[(i + i0) * width + j + j0] = (char) (data[x * self->y + y] & 0xff);
 		}
 	}
 	end:
-	free(data);
-	ECXPOP(self->erro);
-	return self->erro->error;
+	if (data) {
+		free(data);
+	}
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return self->ecx->error;
 }
 
 int Tensor_imagegrayCHAR(Tensor self, ubyte *image, size_t width, size_t height_tensor, size_t w, size_t h, size_t i0, size_t j0, size_t z, size_t l) {
-	if (self->erro->error) {
-		return self->erro->error;
-	}
-	ECXPUSH(self->erro);
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
 	int x, y;
 	double px = ((double) self->x / (double) h), py = ((double) self->y / (double) w);
-	ubyte *data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
+	ubyte *data = NULL;
+	data = self->getvaluesM(self, (z * self->x * self->y + l * self->z * self->x * self->y) * self->size_element, NULL, self->size_element * self->x * self->y);
 	for (int i = 0; i < h; ++i) {
 		if (i + i0 >= height_tensor) {
-			self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
+			self->ecx->setError(self->ecx, GAB_INDEX_OUT_OF_BOUNDS, "Violacao de memoria");
 			goto end;
 		}
 		for (int j = 0; j < w; ++j) {
 			y = j * py;
 			x = i * px;
 			if (j + j0 >= width) {
-				self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
+				self->ecx->setError(self->ecx, GAB_INDEX_OUT_OF_BOUNDS, "Violacao de memoria");
 				goto end;
 			}
 			image[(i + i0) * width + j + j0] = (char) (data[x * self->y + y]);
 		}
 	}
 	end:
-	free(data);
-	ECXPOP(self->erro);
-	return self->erro->error;
+	if (data) {
+		free(data);
+	}
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return self->ecx->error;
 }
 
 int Tensor_fillM(Tensor self, size_t offset, size_t bytes, void *patern, size_t size_patern) {
-	ECXPUSH(self->erro);
-	if (!patern || size_patern <= 0) {
-		self->erro->error = !patern ? GAB_NULL_POINTER_ERROR : GAB_INVALID_PARAM;
-		return self->erro->error;
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
+	if (!patern) {
+		self->ecx->setError(self->ecx, GAB_NULL_POINTER_ERROR, "Pattern nao pode ser nulo");
+		goto end;
 	}
+	if (!size_patern) {
+		self->ecx->setError(self->ecx, GAB_INVALID_PARAM, "size_patern nao pode ser 0");
+		goto end;
+	}
+
 	if (self->flag.ram) {
 		void *p = self->data + offset;
 		void *pend = self->data + offset + bytes;
@@ -431,26 +457,31 @@ int Tensor_fillM(Tensor self, size_t offset, size_t bytes, void *patern, size_t 
 			}
 		}
 	} else if (self->flag.shared) {
-
+		self->ecx->setError(self->ecx, GAB_INVALID_PARAM, "shared memore nao implementado");
+		goto end;
 	} else {
-		self->erro->error = clEnqueueFillBuffer(self->queue, self->data, patern, size_patern, offset, bytes, 0, NULL, NULL);
+		self->ecx->error = clEnqueueFillBuffer(self->queue, self->data, patern, size_patern, offset, bytes, 0, NULL, NULL);
 	}
-	ECXPOP(self->erro);
-	return self->erro->error;
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return self->ecx->error;
 }
 
 int Tensor_fill(Tensor self, char partern) {
-	Tensor_fillM(self, 0, self->bytes, &partern, 1);
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
+	int r = Tensor_fillM(self, 0, self->bytes, &partern, 1);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return r;
 }
 
 int Tensor_copy(Tensor self, Tensor b) {
-	ECXPUSH(self->erro);
-	if (self->bytes != b->bytes) {
-		fprintf(stderr, "O tensor b deve possuir o mesmo tamanho\n");
-		self->erro->error = GAB_INDEX_OUT_OF_BOUNDS;
-		return self->erro->error;
-	}
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
 	void *mem = NULL;
+	if (self->bytes != b->bytes) {
+		self->ecx->setError(self->ecx, GAB_INVALID_PARAM, "O tensor b deve possuir o mesmo tamanho\n");
+		goto end;
+	}
+
 	if (b->flag.ram) {
 		self->setvalues(self, b->data);
 	} else if (self->flag.ram) {
@@ -458,15 +489,16 @@ int Tensor_copy(Tensor self, Tensor b) {
 		self->setvalues(self, mem);
 		gab_free(mem);
 	} else {
-		self->erro->error = clEnqueueCopyBuffer(self->queue, b->data, self->data, 0, 0, self->bytes, 0, NULL, NULL);
+		self->ecx->error = clEnqueueCopyBuffer(self->queue, b->data, self->data, 0, 0, self->bytes, 0, NULL, NULL);
 		clFinish(self->queue);
 	}
-	ECXPOP(self->erro);
-	return self->erro->error;
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return self->ecx->error;
 }
 
 int Tensor_copyM(Tensor self, Tensor b, size_t self_ofset, size_t b_ofset, size_t bytes) {
-	ECXPUSH(self->erro);
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
 	void *mem = NULL;
 	if (b->flag.ram) {
 		self->setvaluesM(self, self_ofset, b->data + b_ofset, bytes);
@@ -475,16 +507,16 @@ int Tensor_copyM(Tensor self, Tensor b, size_t self_ofset, size_t b_ofset, size_
 		self->setvaluesM(self, self_ofset, mem, bytes);
 		gab_free(mem);
 	} else {
-		self->erro->error = clEnqueueCopyBuffer(self->queue, b->data, self->data, b_ofset, self_ofset, bytes, 0, NULL, NULL);
+		self->ecx->error = clEnqueueCopyBuffer(self->queue, b->data, self->data, b_ofset, self_ofset, bytes, 0, NULL, NULL);
 //		clFlush(self->queue);
-		self->erro->setError(self->erro, clFinish(self->queue), "Falha ao copiar tensor\n");
+		self->ecx->setError(self->ecx, clFinish(self->queue), "Falha ao copiar tensor\n");
 	}
-	ECXPOP(self->erro);
-	return self->erro->error;
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return self->ecx->error;
 }
 
 void Tensor_fprint(Tensor self, FILE *f) {
-	ECXPUSH(self->erro);
+	ECX_RETURN_IF_ERROR(self->ecx,)
 	char *json = Tensor_putvaluesAsstr(self);
 	fprintf(f, ":\n%s\n", json);
 	gab_free(json);
@@ -510,22 +542,21 @@ void Tensor_fprint(Tensor self, FILE *f) {
 	fprintf(f," ...]\n");
 	gab_free(data);
 */
-	ECXPOP(self->erro);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 }
 
 void Tensor_print(Tensor self) {
-	ECXPUSH(self->erro);
+	ECX_RETURN_IF_ERROR(self->ecx,)
 	Tensor_fprint(self, stdout);
-	ECXPOP(self->erro);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 }
 
 void Tensor_tomatlab(Tensor self, FILE *f, char *name, char *reshapeF) {
-	ECXPUSH(self->erro);
-	Memory memory;
+	ECX_RETURN_IF_ERROR(self->ecx,)
+
+	Memory memory = {0};
 	memory.mem = self->getvalues(self, NULL);
-	if (!memory.mem) {
-		return;
-	}
+	ECX_IF_FAILED(self->ecx, end)
 	fprintf(f, "%s = [", name);
 	for (int i = 0; i < self->length; ++i) {
 		if (i > 0) {
@@ -553,32 +584,37 @@ void Tensor_tomatlab(Tensor self, FILE *f, char *name, char *reshapeF) {
 			fprintf(f, "%s = %s(%s,[%zu,%zu,%zu]);\n", name, reshapeF, name, self->x, self->y, self->z);
 		}
 	}
+	end:
 	gab_free(memory.mem);
-	ECXPOP(self->erro);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 }
 
 #include "png/png.h"
 
 void Tensor_png(Tensor self, const char *file) {
-	ECXPUSH(self->erro);
+	ECX_RETURN_IF_ERROR(self->ecx,)
+
 	ubyte *img = gab_alloc(self->length, 1);
 	size_t largura = self->y * self->z;
 	size_t altura = self->x * self->w;
 	for (int w = 0; w < self->w; ++w) {
 		for (int z = 0; z < self->z; ++z) {
 			self->imagegray(self, img, largura, altura, self->y, self->x, w * self->x, z * self->y, z, w);
+			ECX_IF_FAILED(self->ecx, end)
 		}
+
 	}
 
 	pngGRAY(file, img, largura, altura);
-
+	end:
 	gab_free(img);
-	ECXPOP(self->erro);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 }
 
 int Tensor_map(Tensor self, void (*fmap)(Tensor self, void *el, int i, int j, int z, int w, int k)) {
-	ECXPUSH(self->erro);
+	ECX_RETURN_IF_ERROR(self->ecx, self->ecx->error)
 	void *data = self->getvalues(self, NULL);
+	ECX_IF_FAILED(self->ecx, end)
 	int k;
 	for (int w = 0; w < self->w; ++w) {
 		for (int z = 0; z < self->z; ++z) {
@@ -586,20 +622,23 @@ int Tensor_map(Tensor self, void (*fmap)(Tensor self, void *el, int i, int j, in
 				for (int j = 0; j < self->y; ++j) {
 					k = j + i * self->y + z * self->y * self->x + w * self->x * self->y * self->z;
 					fmap(self, data + self->size_element * k, i, j, z, w, k);
+					ECX_IF_FAILED(self->ecx, end)
 				}
 			}
 		}
 	}
 	self->setvalues(self, data);
+	end:
 	gab_free(data);
-	ECXPOP(self->erro);
-	return self->erro->error;
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return self->ecx->error;
 }
 
 REAL Tensor_media(Tensor self) {
-	ECXPUSH(self->erro);
+	ECX_RETURN_IF_ERROR(self->ecx, 0)
 	REAL media = 0;
 	void *dt = self->getvalues(self, NULL);
+	ECX_IF_FAILED(self->ecx, end)
 	if (self->flag.inteiro) {
 		int *idt = dt;
 		for (int i = 0; i < self->length; ++i) {
@@ -617,17 +656,25 @@ REAL Tensor_media(Tensor self) {
 			media += rdt[i];
 		}
 	}
+	if (self->length == 0) {
+		self->ecx->setError(self->ecx, GAB_INVALID_DIVISION, "O tamanho do tensor é nulo");
+		goto end;
+	}
+	media = media / self->length;
+	end:
 	gab_free(dt);
-	ECXPOP(self->erro);
-	return media / self->length;
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return media;
 }
 
 REAL Tensor_var(Tensor self) {
-	ECXPUSH(self->erro);
+	ECX_RETURN_IF_ERROR(self->ecx, 0)
 	REAL media = self->media(self);
+	ECX_IF_FAILED(self->ecx, end)
 	REAL var = 0;
 	REAL tmp;
 	void *dt = self->getvalues(self, NULL);
+	ECX_IF_FAILED(self->ecx, end)
 	if (self->flag.inteiro) {
 		int *idt = dt;
 		for (int i = 0; i < self->length; ++i) {
@@ -649,14 +696,20 @@ REAL Tensor_var(Tensor self) {
 		}
 	}
 	gab_free(dt);
-	ECXPOP(self->erro);
-	return var / self->length;
+	if (self->length == 0) {
+		self->ecx->setError(self->ecx, GAB_INVALID_DIVISION, "O tamanho do tensor é nulo");
+		goto end;
+	}
+	var = var / self->length;
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
+	return var;
 }
 
 REAL Tensor_std(Tensor self) {
-	ECXPUSH(self->erro);
+	ECX_RETURN_IF_ERROR(self->ecx,0)
 	REAL var = self->var(self);
-	ECXPOP(self->erro);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 	return sqrt(var);
 }
 
@@ -675,6 +728,7 @@ REAL Tensor_std(Tensor self) {
  * @return
  */
 void *Tensor_serialize(Tensor self, size_t *length) {
+	ECX_RETURN_IF_ERROR(self->ecx,0)
 	size_t len = self->bytes + 5 * sizeof(size_t) + 1;
 	if (length) {
 		*length = len;
@@ -682,6 +736,7 @@ void *Tensor_serialize(Tensor self, size_t *length) {
 	char type = USEFLOAT;
 	void *data = gab_alloc(len, 1);
 	self->getvalues(self, data + (5 * sizeof(size_t) + 1));
+
 	memcpy(data + 0 * sizeof(size_t), &self->length, sizeof(size_t));
 	memcpy(data + 1 * sizeof(size_t), &self->x, sizeof(size_t));
 	memcpy(data + 2 * sizeof(size_t), &self->y, sizeof(size_t));
@@ -694,26 +749,27 @@ void *Tensor_serialize(Tensor self, size_t *length) {
 		type = 3;
 	}
 	memcpy(data + 5 * sizeof(size_t), &type, 1);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 	return data;
 }
 
 Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...) {
-	ECXPUSH(ecx);
+	ECX_RETURN_IF_ERROR(ecx,NULL)
 	Tensor self = calloc(1, sizeof(Tensor_t));
-	self->erro = ecx;
+	self->ecx = ecx;
 	memset((void *) &self->flag, flag, 1);
 	// verificando flag
 	if (self->flag.inteiro && self->flag.caractere) {
-		Tensor_registreError(self, "flag invalida: inteiro e caractere = 1");
+		self->ecx->setError(self->ecx, GAB_INVALID_PARAM, "flag invalida: inteiro e caractere = 1");
 		free(self);
-		ecx->error = GAB_INVALID_PARAM;
-		return NULL;
+		self = NULL;
+		goto end;
 	}
 	if (self->flag.ram && self->flag.shared) {
-		Tensor_registreError(self, "flag invalida: ram e shared = 1");
+		self->ecx->setError(self->ecx, GAB_INVALID_PARAM, "flag invalida: ram e shared = 1");
 		free(self);
-		ecx->error = GAB_INVALID_PARAM;
-		return NULL;
+		self = NULL;
+		goto end;
 	}
 	self->x = x;
 	self->y = y;
@@ -734,6 +790,12 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 	// alocar memoria
 	if (self->flag.ram) {
 		self->data = calloc(self->x * self->y * self->z * self->w, self->size_element);
+		if (!self->data) {
+			self->ecx->setError(self->ecx, GAB_INVALID_MEMORY, "Retorno nullo de calloc");
+			gab_free(self);
+			self = NULL;
+			goto end;
+		}
 	} else if (self->flag.shared) {
 		fprintf(stderr, "Invalid flag: Shared memory not suported");
 		exit(GAB_INVALID_PARAM);
@@ -746,9 +808,15 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 
 		if (self->flag.copy) {
 			p = va_arg(v, void *);
-			self->data = clCreateBuffer(self->context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_WRITE, self->bytes, p, &self->erro->error);
+			self->data = clCreateBuffer(self->context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_WRITE, self->bytes, p, &self->ecx->error);
 		} else {
-			self->data = clCreateBuffer(self->context, CL_MEM_READ_WRITE, self->bytes, NULL, &self->erro->error);
+			self->data = clCreateBuffer(self->context, CL_MEM_READ_WRITE, self->bytes, NULL, &self->ecx->error);
+		}
+		if (self->ecx->error) {
+			self->ecx->pushMsg(self->ecx, "Retorno nullo de clCreateBuffer");
+			gab_free(self);
+			self = NULL;
+			goto end;
 		}
 		va_end(v);
 
@@ -757,7 +825,7 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 	// metodos
 	self->json = Tensor_json;
 	self->release = Tensor_release;
-	self->registreError = Tensor_registreError;
+	self->registreError = NULL;
 	self->copy = Tensor_copy;
 	self->serialize = Tensor_serialize;
 	self->map = Tensor_map;
@@ -786,7 +854,8 @@ Tensor Tensor_new(size_t x, size_t y, size_t z, size_t w, Ecx ecx, int flag, ...
 	} else {
 		self->imagegray = Tensor_imagegrayREAL;
 	}
-	ECXPOP(ecx);
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->ecx)
 	return self;
 }
 

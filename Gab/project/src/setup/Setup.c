@@ -203,20 +203,20 @@ void Setup_loadLabel(Setup self) {
 }
 
 float cost_crossEntropy(Tensor S, Tensor T) {
-	if (S->erro->error) {
+	if (S->ecx->error) {
 		return 0;
 	}
 	REAL *vS = S->getvalues(S, NULL);
 	REAL *vT = T->getvalues(T, NULL);
 	REAL sum = 0;
 	for (int i = 0; i < S->length; ++i) {
-		sum -= vT[i] * log10(vS[i]);
+		sum += vT[i] * log10(vS[i]);
 	}
-	return sum;
+	return -sum;
 }
 
 REAL cost_mse(Tensor S, Tensor T) {
-	if (S->erro->error) {
+	if (S->ecx->error) {
 		return 0.0;
 	}
 	REAL *vS = S->getvalues(S, NULL);
@@ -231,7 +231,6 @@ REAL cost_mse(Tensor S, Tensor T) {
 }
 
 void Setup_treinar(Setup self) {
-	ECXPUSH(self->cnn->ecx);
 	self->cnn->setMode(self->cnn, 1);
 	// ###  thread de alta prioridade
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
@@ -299,7 +298,6 @@ void Setup_treinar(Setup self) {
 			self->on_endEpoca(self, self->epoca_atual + 1);
 		}
 	}
-	ECXPOP(self->cnn->ecx);
 	self->runing = 0;
 }
 
@@ -310,7 +308,6 @@ BOOL DirectoryExists(LPCTSTR szPath) {
 }
 
 void Setup_treinarBatch(Setup self) {
-	ECXPUSH(self->cnn->ecx);
 	self->cnn->setMode(self->cnn, 1);
 	// ###  thread de alta prioridade
 	SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
@@ -402,7 +399,6 @@ void Setup_treinarBatch(Setup self) {
 			self->on_endEpoca(self, self->epoca_atual + 1);
 		}
 	}
-	ECXPOP(self->cnn->ecx);
 	handle_error:
 	self->runing = 0;
 }
@@ -479,10 +475,13 @@ void Setup_fast_fitnes(Setup self, float *winRate, float *custo) {
 		cnn_label = self->cnn->maxIndex(self->cnn);
 		acertos += (cnn_label == label);
 		custoL += cost(self->cnn->cm[self->cnn->l - 1]->s, target);
+		self->itrain.faval = 100.0*(imagem_atual_teste+1)/self->n_imagens_testar;
+
 	}
 	*custo = custoL / self->n_imagens_testar;
 	*winRate = acertos * 100.0 / self->n_imagens_testar;
 	self->cnn->setMode(self->cnn, 1);
+
 
 }
 
@@ -522,7 +521,6 @@ void Setup_saveStatistic(Setup self) {
 }
 
 void Setup_getLuaParams(Setup self) {
-	ECXPUSH(self->cnn->ecx);
 	if (!self->cnn) {
 		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR, "falaha ao captura parametros\n");
 		return;
@@ -560,13 +558,11 @@ void Setup_getLuaParams(Setup self) {
 	SETUP_GETLUA_STR(self->file_image, "arquivoContendoImagens");
 	SETUP_GETLUA_STR(self->file_label, "arquivoContendoRespostas");
 
-	ECXPOP(self->cnn->ecx);
 }
 
 #define PFIELD(FIELD, TYPE, f, setup)fprintf(f,#FIELD " = "TYPE"\n",setup->FIELD)
 
 void Setup_loadLua(Setup self, const char *lua_file) {
-	ECXPUSH(self->cnn->ecx);
 	if (!lua_file) {
 		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR, "Arquivo não pode ser nulo\n");
 		return;
@@ -576,7 +572,6 @@ void Setup_loadLua(Setup self, const char *lua_file) {
 	if (self->home) {
 		SetCurrentDirectoryA(self->home);
 	}
-	ECXPOP(self->cnn->ecx);
 	// log
 	FILE *f = fopen("setup.log", "w");
 	PFIELD(n_epocas, "%u", f, self);

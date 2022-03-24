@@ -27,7 +27,7 @@ for i = 1:size(s,3)
 
 	plot(tmp)
 end
-suptitle(sprintf('s vs sm erro = %f',var((s(:) - sm(:)))));
+suptitle(sprintf('s vs sm ecx = %f',var((s(:) - sm(:)))));
 legend('s','sm');
 if gcf() == 1
 print('../matlab/dropout.m.pdf')else print('../matlab/dropout.m.pdf', '-append'); end;

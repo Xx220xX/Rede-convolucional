@@ -10,12 +10,13 @@ void CamadaPooling_release(CamadaPool *selfp) {
 	internal_Camada_release((Camada *) (selfp));
 	Release((*selfp)->poolCalcGrads);
 	Release((*selfp)->poolativa);
+	Release((*selfp)->hitmap);
 	gab_free(*selfp);
 }
 
 Tensor CamadaPooling_propagation(CamadaPool self, Tensor a) {
 	self->super.a = a;
-	Execute(poolativa, self->super.s->length, &self->super.a->data, &self->super.s->data, &self->passox, &self->passoy, &self->filtrox, &self->filtroy, &self->super.s->x, &self->super.s->y, &self->super.a->x, &self->super.a->y);
+	Execute(poolativa, self->super.s->length, &self->super.a->data, &self->super.s->data, &self->hitmap->data, &self->passox, &self->passoy, &self->filtrox, &self->filtroy, &self->super.s->x, &self->super.s->y, &self->super.a->x, &self->super.a->y);
 	return self->super.s;
 }
 
@@ -24,6 +25,16 @@ int CamadaPooling_backpropagation(CamadaPool self, Tensor ds) {
 //		Super.da->fill(Super.da,0);
 		Execute(poolCalcGrads, self->super.da->length,
 				&self->super.a->data, &self->super.da->data, &ds->data, &self->super.s->data, &self->filtrox, &self->filtroy, &self->passox, &self->passoy, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y
+			   );
+	}
+	return self->super.ecx->error;
+}
+
+int CamadaPooling_backpropagationmnx(CamadaPool self, Tensor ds) {
+	if (self->super.da) {
+//		Super.da->fill(Super.da,0);
+		Execute(poolCalcGrads, self->super.da->length,
+				&self->super.a->data, &self->super.da->data, &ds->data, &self->hitmap->data, &self->filtrox, &self->filtroy, &self->passox, &self->passoy, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y
 			   );
 	}
 	return self->super.ecx->error;
@@ -109,11 +120,12 @@ int CamadaPool_fprintf(CamadaPool self, FILE *destino, char *format, ...) {
 }
 
 Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, uint32_t type_pooling, Tensor entrada, Ecx ecx) {
-	ECXPUSH(ecx);
+	
 	CamadaPool self = gab_alloc(1, sizeof(CamadaPool_t));
 
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1, size_in.z};
 	internal_Camada_new((Camada) self, gpu, queue, POOL_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);
+	self->hitmap = Tensor_new(Super.s->x, Super.s->y, Super.s->z, Super.s->w, Super.ecx, 0, gpu->context, queue);
 	self->passox = passo.x;
 	self->passoy = passo.y;
 	self->type = type_pooling;
@@ -121,7 +133,7 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 	self->filtroy = filtro.y;
 
 	if (type_pooling == MAXPOOL) {
-		KRN_news(self->poolativa, "poolativa", "Vector entrada, Vector saida,\n"
+		KRN_news(self->poolativa, "poolativa", "Vector entrada, Vector saida, Vector hmap,\n"
 											   "int passox,int passoy,\n"
 											   "int filtrox,int filtroy,\n"
 											   "int saidatx, int saidaty,\n"
@@ -129,11 +141,13 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 
 
 		KRN_news(self->poolCalcGrads, "poolCalcGrads", "Vector entrada, Vector gradEntrada,\n"
-													   "Vector gradNext, Vector saida,\n"
+													   "Vector gradNext, Vector hmap,\n"
 													   "int fx, int fy, int px, int py,\n"
 													   "int entradatx, int entradaty,\n"
 													   "int saidatx, int saidaty,\n"
 													   "int k0");
+		self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPooling_backpropagationmnx;
+
 
 	} else if (type_pooling == AVEPOOL) {
 		KRN_news(self->poolativa, "poolAVativa", "Vector entrada, Vector saida,\n"
@@ -148,9 +162,10 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 														 "int entradatx, int entradaty,\n"
 														 "int saidatx, int saidaty,\n"
 														 "int k0");
+		self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPooling_backpropagation;
 
 	} else if (type_pooling == MINPOOL) {
-		KRN_news(self->poolativa, "poolativaMin", "Vector entrada, Vector saida,\n"
+		KRN_news(self->poolativa, "poolativaMin", "Vector entrada, Vector saida,Vector hmap,\n"
 												  "int passox,int passoy,\n"
 												  "int filtrox,int filtroy,\n"
 												  "int saidatx, int saidaty,\n"
@@ -158,11 +173,13 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 
 
 		KRN_news(self->poolCalcGrads, "poolCalcGrads", "Vector entrada, Vector gradEntrada,\n"
-													   "Vector gradNext, Vector saida,\n"
+													   "Vector gradNext, Vector hmap,\n"
 													   "int fx, int fy, int px, int py,\n"
 													   "int entradatx, int entradaty,\n"
 													   "int saidatx, int saidaty,\n"
 													   "int k0");
+		self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPooling_backpropagationmnx;
+
 
 	} else {
 		ecx->setError(ecx, GAB_INVALID_PARAM, "Tipo invalido\n");
@@ -172,7 +189,6 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 	methods:
 	self->super.release = (void (*)(void *)) CamadaPooling_release;
 	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaPooling_propagation;
-	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPooling_backpropagation;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) internal_notBatch;
 	self->super.retroPropagationBatchLearn = (int (*)(void *)) internal_unused;
 	self->super.json = (char *(*)(void *, int)) CamadaPooling_json;

@@ -19,6 +19,9 @@ typedef struct Cnn_t {
 	/// não pode mais adicionar camada
 	int lock;
 
+	/// constrolar quando ela está em processamento ou não
+	atomic_int running;
+
 	/// entrada da rede
 	Tensor entrada;
 	/// Ultimo gradiente

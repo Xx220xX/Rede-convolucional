@@ -1,24 +1,30 @@
-kV poolativa(Vr entrada, Vr saida, int passox, int passoy, int filtrox, int filtroy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
+kV poolativa(Vr entrada, Vw saida,Vw hmap, int passox, int passoy, int filtrox, int filtroy, int saidatx, int saidaty, int entradatx, int entradaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	kRap(k, x, y, z, saidatx, saidaty)
 
 	Ponto3d mapeado = {x * passox, y * passoy, 0};
 	REAL mval, v;
-	mval = -DBL_MAX;
+
+	mval = entrada[kMap(mapeado.x , mapeado.y , z, entradatx, entradaty)];
+	int mx = 0;
+	int index;
 	for (int i = 0; i < filtrox; ++i) {
 		for (int j = 0; j < filtroy; ++j) {
-			v = entrada[kMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty)];
+			index = kMap(mapeado.x + i, mapeado.y + j, z, entradatx, entradaty);
+			v = entrada[index];
 			if (v > mval) {
 				mval = v;
+				mx = index;
 			}
 		}
 	}
 	saida[k] = mval;
+	hmap[k] = mx;
 }
 
 
-kV poolCalcGrads(Vr A, Vr dA, Vr dS, Vr S, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) {
+kV poolCalcGrads(Vr A, Vr dA, Vr dS,  __global int * hmap, int fx, int fy, int px, int py, int entradatx, int entradaty, int saidatx, int saidaty, int k0) {
 	int k = get_global_id(0) + k0;
 	int x, y, z;
 	kRap(k, x, y, z, entradatx, entradaty)
@@ -51,12 +57,11 @@ kV poolCalcGrads(Vr A, Vr dA, Vr dS, Vr S, int fx, int fy, int px, int py, int e
 			if (j * py + n != y) {
 				continue;
 			}
-			if (A[k] == S[kMap(i, j, z, saidatx, saidaty)]) {
+			if (k == hmap[kMap(i, j, z, saidatx, saidaty)]) {
 				soma += dS[kMap(i, j, z, saidatx, saidaty)];
 			}
 		}
 	}
 	dA[k] = soma;
-
 }
 

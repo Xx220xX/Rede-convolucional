@@ -154,7 +154,7 @@ typedef struct Tensor_t {
 
 	/// ponteiro utilizado para debugar stack
 	/// controle de erros internos
-	Ecx erro;
+	Ecx ecx;
 } *Tensor, Tensor_t;
 
 /***

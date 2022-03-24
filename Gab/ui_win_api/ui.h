@@ -60,14 +60,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 		fprintf(stderr, "Falha ao criar janela\n");
 		exit(-1);
 	}
+	GUI.avaliar = 1;
 	GUI_init(hwnd);
 	GUI.hisntance = hInstance;
 	GUI.menu = CreateMenu();
 	GUI.menu_fitnes_option = CreateMenu();
-	AppendMenuA(GUI.menu_fitnes_option, MF_BYCOMMAND | MF_CHECKED, IDM_FITNES, "Avaliar durante o treinamento");
+	if (GUI.avaliar) {
+		AppendMenuA(GUI.menu_fitnes_option, MF_BYCOMMAND | MF_CHECKED, IDM_FITNES, "Avaliar durante o treinamento");
+	}else{
+		AppendMenuA(GUI.menu_fitnes_option, MF_BYCOMMAND | MF_UNCHECKED, IDM_FITNES, "Avaliar durante o treinamento");
+	}
 	AppendMenuW(GUI.menu, MF_POPUP, (UINT_PTR) GUI.menu_fitnes_option, L"&View");
 	SetMenu(GUI.hmain, GUI.menu);
-	GUI.avaliar = 1;
 
 	HICON hIcon = 0;
 	hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(11));

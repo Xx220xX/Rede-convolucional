@@ -64,7 +64,7 @@ typedef struct Camada_t {
 	void *queue;
 	/// numero maximo de threads na gpu
 	size_t *maxcompute;
-	/// variavel de controle de erro
+	/// variavel de controle de ecx
 	Ecx ecx;
 	/// tamanho da entrada
 	P3d size_in;

@@ -132,7 +132,7 @@ int CamadaPRelu_fprintf(CamadaPRelu self, FILE * destino, char *format, ...){
 	return 0;
 }
 Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parametros params, RandomParams rdp_a, Ecx ecx) {
-	ECXPUSH(ecx);
+	
 	CamadaPRelu self = gab_alloc(1, sizeof(CamadaPRelu_t));
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, PRELU_ID, lname, params, entrada, size_in, size_out, ecx);
@@ -166,7 +166,7 @@ Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parame
 	KRN_news(self->kernel_fixW, "kernel_fixW", "Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0");
 
 
-	ECXPOP(ecx);
+
 	methods:
 	self->super.release = (void (*)(void *)) CamadaPRelu_release;
 	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaPRelu_propagation;

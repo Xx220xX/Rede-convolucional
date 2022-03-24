@@ -13,7 +13,7 @@
 #define BUFFER_SIZE 128
 #define EXIT_CALL_STRING "#quit"
 
-/* Exibe uma mensagem de erro e termina o programa */
+/* Exibe uma mensagem de ecx e termina o programa */
 #include "stdio.h"
 
 struct {

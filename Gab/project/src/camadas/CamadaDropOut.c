@@ -11,6 +11,7 @@
 static const char *lname = "DropOut";
 
 static void CamadaDropOut_release(CamadaDropOut *self_p) {
+
 	if (!self_p) {
 		return;
 	}
@@ -33,7 +34,7 @@ static Tensor CamadaDropOut_propagation_predict(CamadaDropOut self, Tensor a) {
 	Super.a = a;
 //	Execute(dropativaP, self->super.s->length, &Super.a->data, &self->super.s->data, &self->probabilidade_saida);
 //	return Super.s;
-	return  a;
+	return a;
 }
 
 static Tensor CamadaDropOut_propagation(CamadaDropOut self, Tensor a) {
@@ -41,6 +42,7 @@ static Tensor CamadaDropOut_propagation(CamadaDropOut self, Tensor a) {
 	Execute(dropativa, self->super.s->length, &a->data, &self->super.s->data, &self->hitmap->data, &self->seed, &self->probabilidade_saida);
 	self->seed += self->super.s->length;
 	self->seed = (self->seed * 0x5deece66dULL + 0xbULL) & ((1ULL << 31) - 1);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.s;
 }
 
@@ -48,11 +50,12 @@ static int CamadaDropOut_backpropagation(CamadaDropOut self, Tensor ds) {
 	if (self->super.da) {
 		Execute(dropcalcgrad, self->super.da->length, &self->super.da->data, &self->hitmap->data, &ds->data);
 	}
-
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
 static char *CamadaDropOut_json(CamadaDropOut self, int showValues) {
+	ECX_RETURN_IF_ERROR(Super.ecx, NULL)
 	char *string = NULL;
 	char *tmp = internal_json((Camada) self, showValues);
 	int len = 0;
@@ -66,6 +69,7 @@ static char *CamadaDropOut_json(CamadaDropOut self, int showValues) {
 
 	apendTensor("hitmap", hitmap, string, len, tmp, showValues);
 	apendstr(string, len, "\n}");
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return string;
 }
 
@@ -78,20 +82,18 @@ static char *CamadaDropOut_getGenerate(CamadaDropOut self) {
 }
 
 static int CamadaDropOut_save(CamadaDropOut self, FILE *f) {
-	if (self->super.ecx->error) {
-		goto end;
-	}
-	self->super.ecx->addstack(self->super.ecx, "CamadaDropOut_save");
+	ECX_RETURN_IF_ERROR(Super.ecx, Super.ecx->error)
+
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->seed, sizeof(cl_long), 1, f);
 	internal_saveREAL(f, self->probabilidade_saida);
 	end:
-	self->super.ecx->popstack(self->super.ecx);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
 Camada CamadaDropOut_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaDropOut_load");
+	ECX_RETURN_IF_ERROR(ecx, NULL)
 	Parametros parametros;
 	P3d size_in;
 	uint32_t size_element;
@@ -103,7 +105,7 @@ Camada CamadaDropOut_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx
 
 	CamadaDropOut self = (CamadaDropOut) CamadaDropOut_new(gpu, queue, size_in, probabilidade_saida, seed, entrada, ecx);
 	end:
-	ecx->popstack(ecx);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return (Camada) self;
 }
 
@@ -126,7 +128,7 @@ void CamadaDropout_setMode(CamadaDropOut self, int istraing) {
 }
 
 Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_saida, cl_ulong seed, Tensor entrada, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaDropOut_new");
+	ECX_RETURN_IF_ERROR(ecx, NULL)
 	CamadaDropOut self = gab_alloc(1, sizeof(CamadaDropOut_t));
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, DROPOUT_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);
@@ -134,16 +136,14 @@ Camada CamadaDropOut_new(Gpu gpu, Queue queue, P3d size_in, REAL probabilidade_s
 	self->probabilidade_saida = probabilidade_saida;
 	self->hitmap = Tensor_new(size_in.x, size_in.y, size_in.z, 1, ecx, TENSOR_CHAR, gpu->context, queue);
 
-	if (ecx->error) {
-		goto methods;
-	}
+	ECX_IF_FAILED(Super.ecx, methods)
 
 	KRN_news(self->dropativa, "dropativaTreino", "Vector entrada, Vector saida, __global char *hitmap, long seed, REAL pativa, int k0");
 	KRN_news(self->dropativaP, "dropativaPredict", "Vector entrada, Vector saida, REAL pativa, int k0");
 	KRN_news(self->dropcalcgrad, "dropcalcgrad", "Vector gradentrada, __global char *hitmap, Vector gradnext, int k0");
 
-	ECXPOP(ecx);
 	methods:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	self->super.release = (void (*)(void *)) CamadaDropOut_release;
 	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaDropOut_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaDropOut_backpropagation;

@@ -52,8 +52,10 @@ static Tensor CamadaConvF_propagation(CamadaConvF self, Tensor a) {
 	setKernelArg(self->conv, 3, void *, self->z->data);
 	setKernelArg(self->conv, 4, void *, Super.s->data);
 	runr_kernel(Super.ecx->error, self->conv, Super.s->length, *Super.maxcompute, 5)
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return Super.s;
 	handle_error:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	fprintf(stderr, "Error %d\n", Super.ecx->error);
 	return NULL;
 }
@@ -81,6 +83,7 @@ static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
 		setKernelArgt(self->calc_dw, 3, Super.a->data);
 		setKernelArgt(self->calc_dw, 4, Super.params.hitlearn);
 		runr_kernel(Super.ecx->error, self->calc_dw, self->dw->length, *Super.maxcompute, 5);
+
 		setKernelArgt(self->calc_db, 0, self->b->data);
 		setKernelArgt(self->calc_db, 1, self->db->data);
 		setKernelArgt(self->calc_db, 2, self->dz->data);
@@ -88,8 +91,10 @@ static int CamadaConvF_backpropagation(CamadaConvF self, Tensor ds) {
 		runr_kernel(Super.ecx->error, self->calc_db, self->db->length, *Super.maxcompute, 4);
 
 	}
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return Super.ecx->error;
 	handle_error:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	fprintf(stderr, "Error %d\n", Super.ecx->error);
 	return Super.ecx->error;;
 }
@@ -102,13 +107,14 @@ static int CamadaConvF_backpropagationBatch(CamadaConvF self, Tensor ds, size_t 
 	setKernelArgt(self->calc_dz, 2, self->z->data);
 	setKernelArgt(self->calc_dz, 3, Super.s->data);
 	runr_kernel(Super.ecx->error, self->calc_dz, self->dz->length, *Super.maxcompute, 4);
-
-
+	ECX_IF_FAILED(Super.ecx, handle_error)
 	if (Super.da) {
 		setKernelArgt(self->calc_da, 0, Super.da->data);
 		setKernelArgt(self->calc_da, 1, self->dz->data);
 		setKernelArgt(self->calc_da, 2, self->w->data);
 		runr_kernel(Super.ecx->error, self->calc_da, Super.da->length, *Super.maxcompute, 3);
+		ECX_IF_FAILED(Super.ecx, handle_error)
+
 	}
 	if (!Super.params.skipLearn) {
 		setKernelArgt(self->calc_dw_batch, 0, self->dw->data);
@@ -116,15 +122,19 @@ static int CamadaConvF_backpropagationBatch(CamadaConvF self, Tensor ds, size_t 
 		setKernelArgt(self->calc_dw_batch, 2, Super.a->data);
 		setKernelArgt(self->calc_dw_batch, 3, batchSize);
 		runr_kernel(Super.ecx->error, self->calc_dw_batch, self->dw->length, *Super.maxcompute, 4);
+		ECX_IF_FAILED(Super.ecx, handle_error)
 
 		setKernelArgt(self->calc_db_batch, 0, self->db->data);
 		setKernelArgt(self->calc_db_batch, 1, self->dz->data);
 		setKernelArgt(self->calc_db_batch, 2, batchSize);
 		runr_kernel(Super.ecx->error, self->calc_db_batch, self->db->length, *Super.maxcompute, 3);
+		ECX_IF_FAILED(Super.ecx, handle_error)
 
 	}
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return Super.ecx->error;
 	handle_error:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	fprintf(stderr, "Error %d\n", Super.ecx->error);
 	return Super.ecx->error;;
 }
@@ -135,23 +145,30 @@ static int CamadaConvF_learnBatch(CamadaConvF self) {
 		setKernelArgt(self->corrige_peso, 1, self->dw->data);
 		setKernelArgt(self->corrige_peso, 2, Super.params.hitlearn);
 		runr_kernel(Super.ecx->error, self->corrige_peso, self->w->length, *Super.maxcompute, 3);
+		ECX_IF_FAILED(Super.ecx, handle_error)
 
 		setKernelArgt(self->corrige_peso, 0, self->b->data);
 		setKernelArgt(self->corrige_peso, 1, self->db->data);
 		setKernelArgt(self->corrige_peso, 2, Super.params.hitlearn);
 		runr_kernel(Super.ecx->error, self->corrige_peso, self->b->length, *Super.maxcompute, 3);
+		ECX_IF_FAILED(Super.ecx, handle_error)
 
 	}
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return Super.ecx->error;
 	handle_error:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	fprintf(stderr, "Error %d\n", Super.ecx->error);
 	return Super.ecx->error;;
 }
 
 static char *CamadaConvF_json(CamadaConvF self, int showValues) {
+	ECX_RETURN_IF_ERROR(Super.ecx, NULL)
 	char *string = NULL;
 	int len = 0;
 	char *tmp = internal_json((Camada) self, showValues);
+	ECX_IF_FAILED(Super.ecx, end)
+
 	apendstr(string, len, "{"
 			PAD"%s,\n"
 			PAD"\"functionActivation\":%d,\n"
@@ -161,32 +178,32 @@ static char *CamadaConvF_json(CamadaConvF self, int showValues) {
 	apendTensor("filtros", w, string, len, tmp, showValues);
 	apendTensor("grad_filtros", dw, string, len, tmp, showValues);
 	apendstr(string, len, "\n}");
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return string;
 }
 
 static char *CamadaConvF_getGenerate(CamadaConvF self) {
+
 	char *string = NULL;
 	int len = 0;
 	GEN_LAYERNAME(string, len);
 	GENN_P2D(P2D(self->passox, self->passoy), string, len);
 	GENN_P3D(P3D(self->w->x, self->w->y, self->w->w), string, len);
-	internal_putFativacao(&string,&len,self->fa.mask);
-	apendstr(string,len,", ");
+	internal_putFativacao(&string, &len, self->fa.mask);
+	apendstr(string, len, ", ");
 	GENN_P2D(P2D(self->pad_top, self->pad_bottom), string, len);
 	GENN_P2D(P2D(self->pad_left, self->pad_right), string, len);
 	GENN_PARAMS(Super.params, string, len);
 	GEN_RDP(self->rdp_filtros, string, len);
 	GEN_END(string, len);
 //	apendstr(string, len, "%s (P2D(%zu, %zu), P3D(%zu, %zu, %zu), %s, Params(%g, %g, %g, %d), RDP(%d, %g, %g))", lname, self->passox, self->passoy, self->w->x, self->w->y, self->w->w, F_ATIVACAO_NAME(self->fa), (double) Super.params.hitlearn, (double) Super.params.momento, (double) Super.params.decaimento, Super.params.skipLearn, self->rdp_filtros.type, (double) self->rdp_filtros.a, (double) self->rdp_filtros.b);
-
 	return string;
 }
 
 
 static int CamadaConvF_save(CamadaConvF self, FILE *f) {
-	if (Super.ecx->error) {
-		goto end;
-	}
+	ECX_RETURN_IF_ERROR(Super.ecx, Super.ecx->error)
 	Super.ecx->addstack(Super.ecx, "CamadaConvF_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->passox, 1, sizeof(size_t), f);
@@ -201,12 +218,12 @@ static int CamadaConvF_save(CamadaConvF self, FILE *f) {
 	fwrite(&self->pad_right, 1, sizeof(uint32_t), f);
 	internal_saveTensor(f, self->w);
 	end:
-	Super.ecx->popstack(Super.ecx);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return Super.ecx->error;
 }
 
 Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaConvF_load");
+	ECX_RETURN_IF_ERROR(ecx, NULL)
 	Parametros parametros;
 	P3d size_in;
 	uint32_t size_element;
@@ -228,7 +245,7 @@ Camada CamadaConvF_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 	CamadaConvF self = (CamadaConvF) CamadaConvF_new(gpu, queue, size_in, entrada, ecx, passo, filtro, fativacao, top, bottom, left, right, parametros, RDP(-1));
 	internal_loadTensor(f, self->w, size_element);
 	end:
-	ecx->popstack(ecx);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(ecx)
 	return (Camada) self;
 }
 
@@ -240,11 +257,12 @@ int CamadaConvF_fprintf(CamadaConvF self, FILE *destino, char *format, ...) {
 	self->w->fprint(self->w, destino);
 	fprintf(destino, "dw -> ");
 	self->dw->fprint(self->dw, destino);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return 0;
 }
 
 Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t ativacao, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right, Parametros params, RandomParams rdp_filtros) {
-	ECXPOP(ecx);
+	ECX_RETURN_IF_ERROR(ecx,NULL)
 	CamadaConvF self = gab_alloc(1, sizeof(CamadaConvF_t));
 	self->pad_top = top;
 	self->pad_bottom = bottom;
@@ -252,38 +270,40 @@ Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t
 	self->pad_right = right;
 	P3d size_out = {(size_in.x + self->pad_top + self->pad_bottom - filtro.x) / passo.x + 1, (size_in.y + self->pad_left + self->pad_right - filtro.y) / passo.y + 1, filtro.z};
 	internal_Camada_new((Camada) self, gpu, queue, CONVOLUCAOF_ID, lname, params, entrada, size_in, size_out, ecx);
+
 	self->fa.mask = ativacao;
 	if (self->fa.id == FRELU) {
 		self->fa.mask = FATIVACAO(FLRELU, 0, 1);
 	}
 	self->derivationFuntion = ativacao | FLAGDIF;
+
 	self->dw = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
-	self->dw->fill(self->dw, 0);
 	self->b = Tensor_new(1, 1, filtro.z, 1, ecx, TENSOR3D, gpu->context, queue);
 	self->db = Tensor_new(1, 1, filtro.z, 1, ecx, TENSOR3D, gpu->context, queue);
-	self->b->fill(self->b, 0);
-	self->db->fill(self->db, 0);
 	self->w = Tensor_new(filtro.x, filtro.y, size_in.z, filtro.z, ecx, TENSOR4D, gpu->context, queue);
 	self->z = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 	self->dz = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
-	if (ecx->error) {
-		goto methods;
-	}
+
+	ECX_IF_FAILED(Super.ecx, end)
+	self->dw->fill(self->dw, 0);
+	self->b->fill(self->b, 0);
+	self->db->fill(self->db, 0);
+
+
 	self->rdp_filtros = rdp_filtros;
+
 	if (rdp_filtros.type != -1) {
 		if (rdp_filtros.type < 0) {
 			rdp_filtros.type = 0;
 		}
 		if (rdp_filtros.type == 0) {
-			rdp_filtros = internal_getDefaultRDP(self->fa.id == FLRELU , filtro.x * filtro.y * size_in.z, Super.s->length);
-			self->rdp_filtros.type = -rdp_filtros.type-100;
+			rdp_filtros = internal_getDefaultRDP(self->fa.id == FLRELU, filtro.x * filtro.y * size_in.z, Super.s->length);
+			self->rdp_filtros.type = -rdp_filtros.type - 100;
 			self->rdp_filtros.a = rdp_filtros.a;
 			self->rdp_filtros.b = rdp_filtros.b;
 		}
 		Super.ecx->error = self->w->randomize(self->w, rdp_filtros.type, rdp_filtros.a, rdp_filtros.b);
-		if (ecx->error) {
-			goto methods;
-		}
+
 	}
 	self->passox = passo.x;
 	self->passoy = passo.y;
@@ -539,6 +559,7 @@ Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t
 			"		for (int y = 0; y < %zu; ++y) {\n", self->dz->x, self->dz->y)
 		COD("			sum += dZ[kMap(x, y, w, %zu, %zu)];\n", self->dz->x, self->dz->y)
 		COD("		}\n	}\n"
+			//			"printf(\"kernel: batchSize %%f\\n\",sum);"
 			"	dB[w] = sum/batchSize + dB[w] ;"
 			"\n}\n")
 
@@ -551,14 +572,16 @@ Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t
 	}
 	char nametmp[250];
 	static int denseL = 0;
-	snprintf(nametmp, 250, "conv%d.h", denseL);
+
+	snprintf(nametmp, 250, "layers/conv%d.h", denseL);
 	denseL++;
 	FILE *ftmp = fopen(nametmp, "w");
-	fprintf(ftmp, "%s", Super.kernel);
-	fclose(ftmp);
-//	printf("%s\n", Super.kernel);
+	if (ftmp) {
+		fprintf(ftmp, "%s", Super.kernel);
+		fclose(ftmp);
+	}
 	internal_compile((Camada) self, gpu);
-
+	ECX_IF_FAILED(Super.ecx, end)
 	self->conv = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "sum", Super.ecx->perro);
 	self->calc_dz = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "calc_dz", Super.ecx->perro);
 	self->calc_da = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "calc_da", Super.ecx->perro);
@@ -569,8 +592,9 @@ Camada CamadaConvF_new(INTERNAL_DEFAULT_ARGS, P2d passo, P3d filtro, FAtivacao_t
 	self->corrige_peso = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "corrige_peso", Super.ecx->perro);
 
 
-	ECXPOP(ecx);
 	methods:
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	Super.release = (void (*)(void *)) CamadaConvF_release;
 	Super.propagation = (Tensor (*)(void *, Tensor)) CamadaConvF_propagation;
 	Super.retroPropagation = (int (*)(void *, Tensor)) CamadaConvF_backpropagation;

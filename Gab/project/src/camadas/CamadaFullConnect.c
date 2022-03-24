@@ -58,7 +58,7 @@ void CamadaFullConnect_release(CamadaFullConnect *self) {
 }
 
 void flatten(Tensor A, Tensor AF) {
-//	printf("%s\n", __FUNCTION__);
+
 	REAL a[A->length];
 	REAL af[AF->length];
 	A->getvalues(A, a);
@@ -105,6 +105,7 @@ void CamadaFullConnect_calc_da(CamadaFullConnect self) {
 	setKernelArg(self->calc_da, 2, void *, self->dz->data);
 	runr_kernel(Super.ecx->error, self->calc_da, Super.da->length, *Super.maxcompute, 3);
 	handle_error:
+	ECX_CHECK(Super.ecx)
 	return;
 }
 
@@ -126,10 +127,10 @@ Tensor CamadaFullConnect_propagation(CamadaFullConnect self, Tensor a) {
 	runr_kernel(Super.ecx->error, self->feed, Super.s->length, *Super.maxcompute, 4)
 	return Super.s;
 	handle_error:
+	ECX_CHECK(Super.ecx)
 	fprintf(stderr, "Error %d\n", Super.ecx->error);
 	return NULL;
 }
-
 
 Tensor CamadaFullConnect_propagation_softmax(CamadaFullConnect self, Tensor a) {
 	#if COMPATIBLE_KERAS == 1
@@ -150,6 +151,12 @@ Tensor CamadaFullConnect_propagation_softmax(CamadaFullConnect self, Tensor a) {
 	// calcular o maximo;
 	self->values = self->z->getvalues(self->z, self->values);
 	self->maximo = self->values[0];
+	if (fabs(self->maximo) > 1) {
+		self->super.ecx->setError(self->super.ecx, -1002, "deu ruim cara");
+	}
+//	printf("%f\n",self->maximo);
+
+
 	for (int i = 1; i < self->z->length; ++i) {
 		if (self->values[i] > self->maximo) {
 			self->maximo = self->values[i];
@@ -169,8 +176,10 @@ Tensor CamadaFullConnect_propagation_softmax(CamadaFullConnect self, Tensor a) {
 	setKernelArg(self->ativa, 1, void *, Super.s->data);
 	setKernelArg(self->ativa, 2, REAL, self->soma);
 	runr_kernel(Super.ecx->error, self->ativa, Super.s->length, *Super.maxcompute, 3);
+	ECX_CHECK(Super.ecx)
 	return Super.s;
 	handle_error:
+	ECX_CHECK(Super.ecx)
 	fprintf(stderr, "Error %d\n", Super.ecx->error);
 	return NULL;
 }
@@ -202,9 +211,9 @@ int CamadaFullConnect_backpropagation(CamadaFullConnect self, Tensor ds) {
 	setKernelArg(self->calc_dw, 4, REAL, Super.params.hitlearn);
 	runr_kernel(Super.ecx->error, self->calc_dw, self->dw->length, *Super.maxcompute, 5);
 	handle_error:
+	ECX_CHECK(Super.ecx)
 	return Super.ecx->error;
 }
-
 
 int CamadaFullConnect_backpropagationBatch(CamadaFullConnect self, Tensor ds, size_t batchSize) {
 	// calcula dz e db
@@ -233,6 +242,7 @@ int CamadaFullConnect_backpropagationBatch(CamadaFullConnect self, Tensor ds, si
 	runr_kernel(Super.ecx->error, self->calc_dw_batch, self->dw->length, *Super.maxcompute, 4);
 
 	handle_error:
+	ECX_CHECK(Super.ecx)
 	return Super.ecx->error;
 
 }
@@ -249,6 +259,7 @@ int CamadaFullConnect_learnBatch(CamadaFullConnect self) {
 	runr_kernel(Super.ecx->error, self->corrige_peso, self->db->length, *Super.maxcompute, 3);
 
 	handle_error:
+	ECX_CHECK(Super.ecx)
 	return Super.ecx->error;
 }
 
@@ -267,7 +278,7 @@ char *CamadaFullConnect_json(CamadaFullConnect self, int showValues) {
 	apendTensor("dw", dw, string, len, tmp, showValues);
 
 	apendstr(string, len, "\n}");
-
+	ECX_CHECK(Super.ecx)
 	return string;
 }
 
@@ -277,6 +288,7 @@ char *CamadaFullConnect_getGenerate(CamadaFullConnect self) {
 	apendstr(string, len, "%s (%zu, ", lname, self->w->x);
 	internal_putFativacao(&string, &len, self->fa.mask);
 	apendstr(string, len, ", Params(%g, %g, %g, %d), RDP(%d, %g, %g), RDP(%d, %g, %g))", (double) Super.params.hitlearn, (double) Super.params.momento, (double) Super.params.decaimento, Super.params.skipLearn, self->rdp_pesos.type, self->rdp_pesos.a, self->rdp_pesos.b, self->rdp_bias.type, self->rdp_bias.a, self->rdp_bias.b);
+	ECX_CHECK(Super.ecx)
 	return string;
 }
 
@@ -285,19 +297,19 @@ int CamadaFullConnect_save(CamadaFullConnect self, FILE *f) {
 	if (Super.ecx->error) {
 		goto end;
 	}
-	Super.ecx->addstack(Super.ecx, "CamadaFullConnect_save");
+
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->fa, 1, sizeof(uint32_t), f);
 	fwrite(&Super.s->y, 1, sizeof(size_t), f);
 	internal_saveTensor(f, self->w);
 	internal_saveTensor(f, self->b);
 	end:
-	Super.ecx->popstack(Super.ecx);
+	ECX_CHECK(Super.ecx)
 	return Super.ecx->error;
 }
 
 Camada CamadaFullConnect_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaFullConnect_load");
+
 	Parametros parametros;
 	P3d size_in;
 	uint32_t size_element;
@@ -312,7 +324,7 @@ Camada CamadaFullConnect_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx
 	internal_loadTensor(f, self->w, size_element);
 	internal_loadTensor(f, self->b, size_element);
 	end:
-	ecx->popstack(ecx);
+	ECX_CHECK(Super.ecx)
 	return (Camada) self;
 }
 
@@ -324,11 +336,12 @@ int CamadaFullConnect_fprintf(CamadaFullConnect self, FILE *destino, char *forma
 	self->w->fprint(self->w, destino);
 	fprintf(destino, "dw -> ");
 	self->dw->fprint(self->dw, destino);
+	ECX_CHECK(Super.ecx)
 	return 0;
 }
 
 Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSaida, Tensor entrada, Parametros params, FAtivacao_t funcaoDeAtivacao, Ecx ecx, RandomParams rdp_pesos, RandomParams rdp_bias) {
-	ECXPUSH(ecx);
+
 	CamadaFullConnect self = gab_alloc(1, sizeof(CamadaFullConnect_t));
 	P3d size_out = {1, tamanhoSaida, 1};
 	internal_Camada_new((Camada) self, gpu, queue, FULLCONNECT_ID, lname, params, entrada, size_in, size_out, ecx);
@@ -340,13 +353,21 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 	}
 	#endif
 	self->z = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
+	ECX_LOCAL_CHECK_ERROR(ecx)
 	self->dz = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
+	ECX_LOCAL_CHECK_ERROR(ecx)
 	self->b = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
+	ECX_LOCAL_CHECK_ERROR(ecx)
 	self->db = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
+	ECX_LOCAL_CHECK_ERROR(ecx)
 	self->w = Tensor_new(tamanhoSaida, size_in.x * size_in.y * size_in.z, 1, 1, ecx, 0, gpu->context, queue);
+	ECX_LOCAL_CHECK_ERROR(ecx)
 	self->dw = Tensor_new(tamanhoSaida, size_in.x * size_in.y * size_in.z, 1, 1, ecx, 0, gpu->context, queue);
+	ECX_LOCAL_CHECK_ERROR(ecx)
 	self->dw->fill(self->dw, 0);
+	ECX_LOCAL_CHECK_ERROR(ecx)
 	self->db->fill(self->db, 0);
+	ECX_LOCAL_CHECK_ERROR(ecx)
 	self->rdp_pesos = rdp_pesos;
 	self->rdp_bias = rdp_bias;
 	if (rdp_pesos.type != -1) {
@@ -360,9 +381,7 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 			self->rdp_pesos.b = rdp_pesos.b;
 		}
 		Super.ecx->error = self->w->randomize(self->w, rdp_pesos.type, rdp_pesos.a, rdp_pesos.b);
-		if (ecx->error) {
-			goto methods;
-		}
+		ECX_LOCAL_CHECK_ERROR(ecx)
 	}
 
 	if (rdp_bias.type != -1) {
@@ -375,14 +394,13 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 			} else {
 				rdp_bias = internal_getDefaultRDP(1, size_in.x * size_in.y * size_in.z, Super.s->length);
 				Super.ecx->error = self->b->randomize(self->b, rdp_bias.type, rdp_bias.a, rdp_bias.b);
+
 			}
 			self->rdp_bias.type = -rdp_bias.type - 100;
 			self->rdp_bias.a = rdp_bias.a;
 			self->rdp_bias.b = rdp_bias.b;
 		}
-		if (ecx->error) {
-			goto methods;
-		}
+		ECX_LOCAL_CHECK_ERROR(ecx)
 	}
 
 	self->fa.mask = funcaoDeAtivacao;
@@ -558,6 +576,7 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 			"\tint m, n;\n"
 			"\tm = k / %zu;\n"
 			"\tn = k %% %zu;\n"
+
 			"\tdw[k] = dz[m] * a[n]/batch_size + dw[k];\n"
 			"}\n", self->w->y, self->w->y)
 
@@ -565,28 +584,22 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 	}
 	char nametmp[250];
 	static int denseL = 0;
-	snprintf(nametmp, 250, "dense%d.h", denseL);
+	snprintf(nametmp, 250, "layers/dense%d.h", denseL);
+
 	denseL++;
 	FILE *ftmp = fopen(nametmp, "w");
-	fprintf(ftmp, "%s", Super.kernel);
-	fclose(ftmp);
-//	printf("%s\n", Super.kernel);
+	if (ftmp) {
+		fprintf(ftmp, "%s", Super.kernel);
+		fclose(ftmp);
+	}
+
 	internal_compile((Camada) self, gpu);
+	ECX_LOCAL_CHECK_ERROR(ecx)
 	self->feed = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "feed", Super.ecx->perro)
-	setKernelArg(self->feed, 1, void *, self->w->data);
-	setKernelArg(self->feed, 2, void *, self->b->data);
-	setKernelArg(self->feed, 3, void *, self->z->data);
 	if (self->fa.id == FSOFTMAX) {
 		self->expoente = Tensor_new(size_out.x, size_out.y, size_out.z, 1, ecx, 0, gpu->context, queue);
 		self->calc_exp = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "calc_exp", Super.ecx->perro);
-		setKernelArg(self->calc_exp, 0, void *, self->expoente->data);
-		setKernelArg(self->calc_exp, 1, void *, self->z->data);
 		self->ativa = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "ativa", Super.ecx->perro)
-		setKernelArg(self->ativa, 0, void *, self->expoente->data);
-		setKernelArg(self->ativa, 1, void *, Super.s->data);
-
-	} else {
-		setKernelArg(self->feed, 5, void *, Super.s->data);
 	}
 
 
@@ -598,8 +611,9 @@ Camada CamadaFullConnect_new(Gpu gpu, Queue queue, P3d size_in, size_t tamanhoSa
 	self->calc_dw_batch = ECXCHECKAFTER(Super.ecx, methods, clCreateKernel, Super.program, "calc_dw_batch", Super.ecx->perro)
 
 
-	ECXPOP(ecx);
 	methods:
+	end:
+	ECX_CHECK(Super.ecx)
 	Super.release = (void (*)(void *)) CamadaFullConnect_release;
 	Super.propagation = (Tensor (*)(void *, Tensor)) (self->fa.id == FSOFTMAX ? CamadaFullConnect_propagation_softmax : CamadaFullConnect_propagation);
 	Super.retroPropagation = (int (*)(void *, Tensor)) CamadaFullConnect_backpropagation;

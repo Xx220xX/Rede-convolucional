@@ -17,11 +17,11 @@ typedef struct Ecx_t {
 
 	atomic_int block;
 
-	int (*setError)(struct Ecx_t *self, int error, char *format,...);
+	int (*setError)(struct Ecx_t *self, int error, char *format, ...);
 
-	void (*addstack)(struct Ecx_t *self, const char *stack);
+	void (*addstack)(struct Ecx_t *self, const char *stack);//__attribute__((deprecated));
 
-	void (*popstack)(struct Ecx_t *self);
+	void (*popstack)(struct Ecx_t *self);//__attribute__((deprecated));
 
 	void (*release)(struct Ecx_t **self_p);
 
@@ -32,9 +32,13 @@ typedef struct Ecx_t {
 
 Ecx Ecx_new(int stack_len);
 
-#define ECXCHECKAFTER(ecx, goto_point, func, arg, ...)func(arg,##__VA_ARGS__);if(ecx->error){fprintf(stderr,"erro %d in %s %s:%d\n",ecx->error,#func,__FILE__,__LINE__);goto goto_point;}
-#define ECXRUN(ecx, func, arg, ...)ecx->addstack(ecx,#func);func( arg,##__VA_ARGS__ );ECXPOP(ecx)
-#define ECXPUSH(ecx)(ecx)->addstack(ecx,__FUNCTION__)
-#define ECXPOP(ecx)(ecx)->popstack(ecx)
+#define ECX_REGISTRE_FUNCTION_IF_ERROR(ecx) if(ecx->error){(ecx)->addstack(ecx,__FUNCTION__);}
+#define ECX_RETURN_IF_ERROR(ecx, value_return)if(!ecx->error){return value_return;}
+#define ECX_IF_OK(ecx)if(!ecx->error)
+#define ECX_TRY(ecx,cond,goto_point,error,msg,...)if(cond){ ecx->setError(ecx,error,__FILE__":%d" " " msg,__LINE__,##__VA_ARGS__);goto goto_point;}
+#define ECX_IF_FAILED(ecx,goto_failed)if(ecx->error){goto goto_failed;}
+
+#define ECXCHECKAFTER(ecx, goto_point, func, arg, ...)func(arg,##__VA_ARGS__);if(ecx->error){fprintf(stderr,"ecx %d in %s %s:%d\n",ecx->error,#func,__FILE__,__LINE__);goto goto_point;}
+
 
 #endif //TENSOR_EXC_H
