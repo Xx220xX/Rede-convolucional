@@ -33,6 +33,7 @@ static void CamadaPRelu_release(CamadaPRelu *self_p) {
 static Tensor CamadaPRelu_propagation(CamadaPRelu self,Tensor a) {
 	self->super.a = a;
 	Execute(preluativa, self->super.s->length, &self->super.a->data, &self->super.s->data, &self->W->data);
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.s;
 }
 
@@ -43,7 +44,7 @@ static int CamadaPRelu_backpropagation(CamadaPRelu self, Tensor ds) {
 	} else if (!self->super.params.skipLearn) {
 		Execute(preluonlyfix, self->dW->length, &self->super.a->data, &ds->data, &self->W->data, &self->dW->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 	}
-
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
@@ -55,7 +56,7 @@ static int CamadaPRelu_backpropagationBatch(CamadaPRelu self, Tensor ds, size_t 
 		//Vector entrada, Vector gradnext, Vector A, Vector dA, long batchSize
 		Execute(preluonlyDABatch, self->dW->length, &self->super.a->data, &ds->data, &self->W->data, &self->dW->data, &batchSize);
 	}
-
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
@@ -64,10 +65,12 @@ static int CamadaPRelu_learnBatch(CamadaPRelu self) {
 		//kernel_fixW(Vector w, Vector dw, REAL hitlearn, REAL momento, REAL decaimentoDePeso, int k0)
 		Execute(kernel_fixW, self->dW->length, &self->W->data, &self->dW->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 	}
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
 static char *CamadaPRelu_json(CamadaPRelu self, int showValues) {
+    ECX_RETURN_IF_ERROR(Super.ecx, NULL)
 	char *string = NULL;
 	int len = 0;
 	char *tmp = NULL;
@@ -78,6 +81,7 @@ static char *CamadaPRelu_json(CamadaPRelu self, int showValues) {
 	apendTensor("A", W, string, len, tmp, showValues);
 	apendTensor("dA", dW, string, len, tmp, showValues);
 	apendstr(string, len, "\n}");
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return string;
 }
 
@@ -100,18 +104,17 @@ static char *CamadaPRelu_getGenerate(CamadaPRelu self) {
  * @return 0 caso não detecte nenhuma falha
  */
 static int CamadaPRelu_save(CamadaPRelu self, FILE *f) {
-	if (self->super.ecx->error) {
-		goto end;
-	}
+    ECX_RETURN_IF_ERROR(Super.ecx, Super.ecx->error)
 	self->super.ecx->addstack(self->super.ecx, "CamadaPRelu_save");
 	internal_saveCamada(f, (Camada) self);
 	internal_saveTensor(f, self->W);
 	end:
-	self->super.ecx->popstack(self->super.ecx);
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
 Camada CamadaPRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
+    ECX_RETURN_IF_ERROR(ecx, NULL)
 	ecx->addstack(ecx, "CamadaPRelu_load");
 	Parametros parametros;
 	P3d size_in;
@@ -120,7 +123,7 @@ Camada CamadaPRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) 
 	CamadaPRelu self = (CamadaPRelu) CamadaPRelu_new(gpu, queue, size_in, entrada, parametros, RDP(-1), ecx);
 	internal_loadTensor(f, self->W, size_element);
 	end:
-	ecx->popstack(ecx);
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return (Camada) self;
 }
 int CamadaPRelu_fprintf(CamadaPRelu self, FILE * destino, char *format, ...){
@@ -132,7 +135,7 @@ int CamadaPRelu_fprintf(CamadaPRelu self, FILE * destino, char *format, ...){
 	return 0;
 }
 Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parametros params, RandomParams rdp_a, Ecx ecx) {
-	
+    ECX_RETURN_IF_ERROR(ecx, NULL)
 	CamadaPRelu self = gab_alloc(1, sizeof(CamadaPRelu_t));
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, PRELU_ID, lname, params, entrada, size_in, size_out, ecx);
@@ -168,6 +171,7 @@ Camada CamadaPRelu_new(Gpu gpu, Queue queue, P3d size_in, Tensor entrada, Parame
 
 
 	methods:
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	self->super.release = (void (*)(void *)) CamadaPRelu_release;
 	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaPRelu_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaPRelu_backpropagation;

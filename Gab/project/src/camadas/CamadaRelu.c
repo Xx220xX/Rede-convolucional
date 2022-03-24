@@ -31,6 +31,7 @@ static Tensor CamadaRelu_propagation(CamadaRelu self,Tensor a) {
 			&self->super.a->data, &self->super.s->data,
 			&self->lessoh, &self->greateroh
 	);
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.s;
 }
 
@@ -41,10 +42,12 @@ static int CamadaRelu_backpropagation(CamadaRelu self, Tensor ds) {
 				&self->lessoh, &self->greateroh
 		);
 	}
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
 static char *CamadaRelu_json(CamadaRelu self, int showValues) {
+    ECX_RETURN_IF_ERROR(Super.ecx, NULL)
 	char *string = NULL;
 	int len = 0;
 	char *tmp = internal_json((Camada) self, showValues);
@@ -58,6 +61,7 @@ static char *CamadaRelu_json(CamadaRelu self, int showValues) {
 
 	gab_free(tmp);
 	apendstr(string, len, "\n}");
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return string;
 }
 
@@ -84,19 +88,19 @@ static char *CamadaRelu_getGenerate(CamadaRelu self) {
  * @return 0 caso não detecte nenhuma falha
  */
 static int CamadaRelu_save(CamadaRelu self, FILE *f) {
-	if (self->super.ecx->error)goto end;
+    ECX_RETURN_IF_ERROR(Super.ecx, Super.ecx->error)
 	self->super.ecx->addstack(self->super.ecx, "CamadaRelu_save");
 	internal_saveCamada(f, (Camada) self);
 	internal_saveREAL(f,self->lessoh);
 	internal_saveREAL(f,self->greateroh);
 	end:
-	self->super.ecx->popstack(self->super.ecx);
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
 Camada CamadaRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaRelu_load");
-	Parametros parametros;
+    ECX_RETURN_IF_ERROR(ecx, NULL)
+    Parametros parametros;
 	P3d size_in;
 	uint32_t size_element;
 
@@ -109,6 +113,7 @@ Camada CamadaRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 	CamadaRelu self = (CamadaRelu) CamadaRelu_new(gpu, queue, size_in,lessoh,greateroh ,entrada, ecx);
 	end:
 	ecx->popstack(ecx);
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return (Camada) self;
 }
 int CamadaRelu_fprintf(CamadaRelu self, FILE * destino, char *format, ...){
@@ -119,7 +124,7 @@ int CamadaRelu_fprintf(CamadaRelu self, FILE * destino, char *format, ...){
 	return 0;
 }
 Camada CamadaRelu_new(Gpu gpu, Queue queue, P3d size_in, REAL less, REAL greater, Tensor entrada, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaRelu_new");
+    ECX_RETURN_IF_ERROR(ecx, NULL)
 	CamadaRelu self = gab_alloc(1, sizeof(CamadaRelu_t));
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, RELU_ID, lname, (Parametros) {0}, entrada, size_in, size_out, ecx);
@@ -136,6 +141,7 @@ Camada CamadaRelu_new(Gpu gpu, Queue queue, P3d size_in, REAL less, REAL greater
 
 	ecx->popstack(ecx);
 	methods:
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	self->super.release = (void (*)(void *)) CamadaRelu_release;
 	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaRelu_propagation;
 	self->super.retroPropagation = (int (*)(void *, Tensor)) CamadaRelu_backpropagation;

@@ -1,0 +1,38 @@
+home  = [[E:\OneDrive\UFU\IC\IC HENRIQUE E GUILHERME\codigos\TESTES_REDE_CONVOLUCIONAL\treino_numero_0_9]]
+
+-- Nome do treinamento
+nome = 'numeros0_9'
+
+
+
+-- epocas e parametros de treinamento
+Numero_epocas = 2
+SalvarBackupACada = 50000
+Numero_Imagens =  60000
+Numero_ImagensTreino = 50000
+Numero_ImagensAvaliacao = Numero_Imagens-Numero_ImagensTreino
+Numero_Classes = 10
+classes = {'zero','um','dois','tres','quatro','cinco','seis','sete','oito','nove'}
+bytes_remanessentes_imagem = 16
+bytes_remanessentes_classes = 8
+
+SalvarSaidasComoPPM =  10 -- somente as 10 primeiras
+
+
+-- saidas de arquivos
+estatisticasDeTreino = nome..'estatisticasTreino.md'
+estatiscasDeAvaliacao = nome..'estatisticasAvaliacao.md'
+
+-- entradas
+arquivoContendoImagens = 'train-images.idx3-ubyte'
+arquivoContendoRespostas = 'train-labels.idx1-ubyte'
+
+
+--  Arquitetura  rede
+Entrada(28,28,1)
+Convolucao(P2D(1),P3D(5,8), Params(0.001,0.4))
+Relu()
+Pooling(P2D(2),P2D(2), MAXPOOL)
+Dropout(0.2)
+FullConnect(10,RELU,Params(0.01,0.6,0))
+SoftMax(1,1)

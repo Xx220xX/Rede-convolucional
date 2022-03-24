@@ -17,7 +17,8 @@ void CamadaPooling_release(CamadaPool *selfp) {
 Tensor CamadaPooling_propagation(CamadaPool self, Tensor a) {
 	self->super.a = a;
 	Execute(poolativa, self->super.s->length, &self->super.a->data, &self->super.s->data, &self->hitmap->data, &self->passox, &self->passoy, &self->filtrox, &self->filtroy, &self->super.s->x, &self->super.s->y, &self->super.a->x, &self->super.a->y);
-	return self->super.s;
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
+    return self->super.s;
 }
 
 int CamadaPooling_backpropagation(CamadaPool self, Tensor ds) {
@@ -37,10 +38,12 @@ int CamadaPooling_backpropagationmnx(CamadaPool self, Tensor ds) {
 				&self->super.a->data, &self->super.da->data, &ds->data, &self->hitmap->data, &self->filtrox, &self->filtroy, &self->passox, &self->passoy, &self->super.a->x, &self->super.a->y, &self->super.s->x, &self->super.s->y
 			   );
 	}
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
 char *CamadaPooling_json(CamadaPool self, int showValues) {
+    ECX_RETURN_IF_ERROR(Super.ecx, NULL)
 	char *string = NULL;
 	int len = 0;
 	char *tmp = internal_json((Camada) self, showValues);
@@ -51,6 +54,7 @@ char *CamadaPooling_json(CamadaPool self, int showValues) {
 			PAD"\"type\":\"%s\""
 			   "\n}", tmp, self->passox, self->passoy, self->filtrox, self->filtroy, self->type == MAXPOOL ? "Max Poling" : (self->type == MINPOOL ? "Min Poling" : "Average Pooling"));
 	gab_free(tmp);
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return string;
 }
 
@@ -75,23 +79,20 @@ char *CamadaPooling_getGenerate(CamadaPool self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaPooling_save(CamadaPool self, FILE *f) {
-	if (self->super.ecx->error) {
-		goto end;
-	}
-	self->super.ecx->addstack(self->super.ecx, "CamadaPooling_save");
+    ECX_RETURN_IF_ERROR(Super.ecx, Super.ecx->error)
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->type, 1, sizeof(uint32_t), f);
 	fwrite(&self->passox, 1, sizeof(size_t), f);
 	fwrite(&self->passoy, 1, sizeof(size_t), f);
 	fwrite(&self->filtrox, 1, sizeof(size_t), f);
 	fwrite(&self->filtroy, 1, sizeof(size_t), f);
-	end:
-	self->super.ecx->popstack(self->super.ecx);
+
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
 Camada CamadaPool_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
-	ecx->addstack(ecx, "CamadaPooling_save");
+    ECX_RETURN_IF_ERROR(ecx, NULL)
 	Parametros parametros;
 	P3d size_in;
 	uint32_t size_element;
@@ -108,7 +109,7 @@ Camada CamadaPool_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 	fread(&filtro.y, 1, sizeof(size_t), f);
 	CamadaPool self = (CamadaPool) CamadaPool_new(gpu, queue, passo, filtro, size_in, type, entrada, ecx);
 	end:
-	ecx->popstack(ecx);
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return (Camada) self;
 }
 
@@ -120,7 +121,7 @@ int CamadaPool_fprintf(CamadaPool self, FILE *destino, char *format, ...) {
 }
 
 Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, uint32_t type_pooling, Tensor entrada, Ecx ecx) {
-	
+    ECX_RETURN_IF_ERROR(ecx, NULL)
 	CamadaPool self = gab_alloc(1, sizeof(CamadaPool_t));
 
 	P3d size_out = {(size_in.x - filtro.x) / passo.x + 1, (size_in.y - filtro.y) / passo.y + 1, size_in.z};
@@ -185,8 +186,8 @@ Camada CamadaPool_new(Gpu gpu, Queue queue, P2d passo, P2d filtro, P3d size_in, 
 		ecx->setError(ecx, GAB_INVALID_PARAM, "Tipo invalido\n");
 		goto methods;
 	}
-	ecx->popstack(ecx);
 	methods:
+    ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	self->super.release = (void (*)(void *)) CamadaPooling_release;
 	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaPooling_propagation;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) internal_notBatch;
