@@ -15,13 +15,11 @@ void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const
 	self->a = entrada;
 	self->size_in = dim_in;
 	if (entrada) {
-		ECX_IF_OK(self->ecx) {
-			self->da = Tensor_new(entrada->x, entrada->y, entrada->z, 1, erro, 0, gpu->context, queue);
-		}
+		self->da = Tensor_new(entrada->x, entrada->y, entrada->z, 1, erro, 0, gpu->context, queue);
 	}
-	ECX_IF_OK(self->ecx) {
-		self->s = Tensor_new(dim_out.x, dim_out.y, dim_out.z, 1, erro, 0, gpu->context, queue);
-	}
+
+	self->s = Tensor_new(dim_out.x, dim_out.y, dim_out.z, 1, erro, 0, gpu->context, queue);
+
 	methods:
 	memcpy((void *) &self->layer_id, &layer_id, sizeof(const char));
 	memcpy(self, &layer_name, sizeof(const char *));
