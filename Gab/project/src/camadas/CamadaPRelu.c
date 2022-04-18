@@ -105,7 +105,6 @@ static char *CamadaPRelu_getGenerate(CamadaPRelu self) {
  */
 static int CamadaPRelu_save(CamadaPRelu self, FILE *f) {
     ECX_RETURN_IF_ERROR(Super.ecx, Super.ecx->error)
-	self->super.ecx->addstack(self->super.ecx, "CamadaPRelu_save");
 	internal_saveCamada(f, (Camada) self);
 	internal_saveTensor(f, self->W);
 	end:
@@ -115,7 +114,6 @@ static int CamadaPRelu_save(CamadaPRelu self, FILE *f) {
 
 Camada CamadaPRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
     ECX_RETURN_IF_ERROR(ecx, NULL)
-	ecx->addstack(ecx, "CamadaPRelu_load");
 	Parametros parametros;
 	P3d size_in;
 	uint32_t size_element;

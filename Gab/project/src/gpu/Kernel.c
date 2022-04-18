@@ -86,7 +86,7 @@ int Kernel_runRecursive(Kernel self, cl_command_queue queue, size_t globals, siz
 		globals = (globals / max_works) * max_works;
 		locals = max_works;
 		self->error = clEnqueueNDRangeKernel(queue, self->kernel, 1, NULL, &globals, &locals, 0, NULL, NULL);
-		check_error_gpu(self->error, end, "ecx ao rodar kernel %s", self->name);
+		check_error_gpu(self->error, end, "ecx ao rodar kernel %s ", self->name);
 		if (resto) {
 			id = globals;
 			locals = resto;

@@ -122,7 +122,7 @@ int Setup_release(Setup *selfp) {
 	return erro;
 }
 
-void Setup_loadImagens(Setup self) {
+void Setup_loadImagensoptional(Setup self) {
 	if (!self->file_image) {
 		return;
 	}
@@ -136,11 +136,66 @@ void Setup_loadImagens(Setup self) {
 	for (int i = 0; i < self->header_image; ++i) {
 		fgetc(f);
 	}// pula o cabeçalho
+
+
+	imgpu = Tensor_new(unP3D(im_dim), 1, self->cnn->ecx, TENSOR_CHAR | TENSOR4D | TENSOR_CPY, self->cnn->gpu->context, self->cnn->queue, imram->data); // instancia a imagem na gpu
+	imgpuReal = Tensor_new(unP3D(im_dim), 1, self->cnn->ecx, TENSOR4D, self->cnn->gpu->context, self->cnn->queue, imram->data);// instancia a imagem real
+	ECX_IF_FAILED(self->cnn->ecx, end)
+
+	self->imagens = gab_alloc(self->n_imagens, sizeof(Tensor));// intancia vetor de imagens
+	for (int i = 0; i < self->n_imagens; ++i) { // itera nas imagens
+		fread(imram->data, 1, imram->bytes, f);// le a imagem
+		imgpu->copyM(imgpu, imram, 0, i * imgpu->bytes, imgpu->bytes);
+		ECX_IF_FAILED(self->cnn->ecx, end)
+		self->cnn->normalizeIMAGE(self->cnn, imgpuReal, imgpu);// calcula imagem[i]/255
+		ECX_IF_FAILED(self->cnn->ecx, end)
+		self->iLoad.imAtual = i + 1; // atualiza status
+		if (self->use_gpu) {
+			self->imagens[i] = Tensor_new(unP3D(im_dim), 1, self->cnn->ecx, 0, self->cnn->gpu->context, self->cnn->queue);//instancia novo tensor
+		} else {
+			self->imagens[i] = Tensor_new(unP3D(im_dim), 1, self->cnn->ecx, TENSOR_RAM);//instancia novo tensor
+		}
+		ECX_IF_FAILED(self->cnn->ecx, end)
+		self->imagens[i]->copyM(self->imagens[i], imgpuReal, 0, 0, self->imagens[i]->bytes);// fz a copia da imagem para o tensor
+	}
+	end:
+	fclose(f);// fecha o arquivo
+	Release(imram);// libera a imagem da ram
+	Release(imgpu);// libera a imagem da gpu
+
+	Release(imgpuReal);// libera o tensor imreal
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->cnn->ecx)
+	self->runing = 0; // terminou a leitura de imagens
+
+}
+
+void Setup_loadImagens(Setup self) {
+	if (!self->file_image) {
+		return;
+	}
+
+	P3d im_dim = self->cnn->size_in; // dimensao da entrada
+	if (im_dim.x * im_dim.y * im_dim.z * self->n_imagens > MAX_BYTES_NGPU) {
+		Setup_loadImagensoptional(self);
+		ECX_REGISTRE_FUNCTION_IF_ERROR(self->cnn->ecx);
+		return;
+	}
+	FILE *f; // arquivo para leitura das imagens
+	self->iLoad.imTotal = self->n_imagens;// atualiza o iload para leitura em outra thread
+	Tensor imgpuReal; // tensor com imagem em valores IR¹
+	f = fopen(self->file_image, "rb"); // abre o aquivo
+	Tensor imgpu; // imagem 8 bits na gpu
+	Tensor imram = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->ecx, TENSOR_RAM | TENSOR_CHAR | TENSOR4D); // imagem no hos
+	for (int i = 0; i < self->header_image; ++i) {
+		fgetc(f);
+	}// pula o cabeçalho
 	fread(imram->data, 1, imram->bytes, f);// le a imagem
 	fclose(f);// fecha o arquivo
 	imgpu = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->ecx, TENSOR_CHAR | TENSOR4D | TENSOR_CPY, self->cnn->gpu->context, self->cnn->queue, imram->data); // instancia a imagem na gpu
 	imgpuReal = Tensor_new(unP3D(im_dim), self->n_imagens, self->cnn->ecx, TENSOR4D, self->cnn->gpu->context, self->cnn->queue, imram->data);// instancia a imagem real
+	ECX_IF_FAILED(self->cnn->ecx, end)
 	self->cnn->normalizeIMAGE(self->cnn, imgpuReal, imgpu);// calcula imagem[i]/255
+	ECX_IF_FAILED(self->cnn->ecx, end)
 	Release(imram);// libera a imagem da ram
 	Release(imgpu);// libera a imagem da gpu
 
@@ -158,8 +213,11 @@ void Setup_loadImagens(Setup self) {
 			self->imagens[i]->copyM(self->imagens[i], imgpuReal, 0, i * self->imagens[i]->bytes, self->imagens[i]->bytes);// fz a copia da imagem para o tensor
 		}
 	}
-	Release(imgpuReal);// libera o tensor imreal
+	end:
+Release(imgpuReal);// libera o tensor imreal
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->cnn->ecx)
 	self->runing = 0; // terminou a leitura de imagens
+
 }
 
 void Setup_loadLabel(Setup self) {
@@ -221,13 +279,17 @@ REAL cost_mse(Tensor S, Tensor T) {
 	}
 	REAL *vS = S->getvalues(S, NULL);
 	REAL *vT = T->getvalues(T, NULL);
+	ECX_IF_FAILED(S->ecx, end)
 	REAL sum = 0;
 	REAL tmp;
 	for (int i = 0; i < S->length; ++i) {
 		tmp = (vS[i] - vT[i]);
 		sum += tmp * tmp;
 	}
-	return sum / S->length;
+	sum = sum / S->length;
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(S->ecx)
+	return sum;
 }
 
 void Setup_treinar(Setup self) {
@@ -238,7 +300,8 @@ void Setup_treinar(Setup self) {
 	// ### variaveis usadas no treino
 	Tensor entrada, target;
 	ubyte label, cnn_label;
-
+	self->itrain.totalImages = self->n_imagens_treinar * self->n_epocas + self->n_imagens_testar * (1 + self->n_epocas);
+	self->itrain.imagensCalculadas = 0;
 	self->itrain.epTotal = self->n_epocas;
 	self->itrain.imTotal = self->n_imagens_treinar;
 //	self->itrain.imps = 1e-14;
@@ -259,6 +322,7 @@ void Setup_treinar(Setup self) {
 //	float beta = 1-alpha;
 	if (self->on_endEpoca) {
 		self->on_endEpoca(self, self->epoca_atual);
+		localItrain.imagensCalculadas += self->n_imagens_treinar;
 	}
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		if (self->imagem_atual_treino >= self->n_imagens_treinar) {
@@ -281,6 +345,7 @@ void Setup_treinar(Setup self) {
 			localItrain.winRate = localItrain.winRate * alpha + 100 * beta * (cnn_label == label);
 			localItrain.winRateMedio = acertos * 100.0 / (images + 1.0);
 			localItrain.winRateMedioep = acertosep * 100.0 / (self->imagem_atual_treino + 1.0);
+			localItrain.imagensCalculadas += 1;
 
 			double mse = cost(self->cnn->cm[self->cnn->l - 1]->s, target);
 			if (isnan(mse)) {
@@ -296,6 +361,8 @@ void Setup_treinar(Setup self) {
 		}
 		if (self->on_endEpoca) {
 			self->on_endEpoca(self, self->epoca_atual + 1);
+			localItrain.imagensCalculadas += self->n_imagens_treinar;
+
 		}
 	}
 	self->runing = 0;
@@ -316,6 +383,8 @@ void Setup_treinarBatch(Setup self) {
 	Tensor entrada, target;
 	ubyte label, cnn_label;
 
+	self->itrain.totalImages = self->n_imagens_treinar * self->n_epocas + self->n_imagens_testar * (1 + self->n_epocas);
+	self->itrain.imagensCalculadas = 0;
 	self->itrain.epTotal = self->n_epocas;
 	self->itrain.imTotal = self->n_imagens_treinar;
 	fflush(stderr);
@@ -333,14 +402,15 @@ void Setup_treinarBatch(Setup self) {
 	}
 	size_t bathS;
 
-	localItrain.mse = 1;
-	localItrain.winRateMedio = 10;
+	localItrain.mse = 0.9;
+	localItrain.winRateMedio = 100/self->n_classes;
 //	float alpha = 1-exp(-log10(self->n_imagens_treinar))/9;
 //	float beta = 1-alpha;
 	int acertosep;
 	if (self->on_endEpoca) {
 		self->on_endEpoca(self, self->epoca_atual);
 	}
+	localItrain.imagensCalculadas += self->n_imagens_testar;
 	for (; self->can_run && self->epoca_atual < self->n_epocas && !self->cnn->ecx->error; self->epoca_atual++) {
 		self->batch = 0;
 		bathS = self->n_imagens_treinar >= self->batchSize ? self->batchSize : self->n_imagens_treinar;
@@ -372,7 +442,7 @@ void Setup_treinarBatch(Setup self) {
 			localItrain.winRate = localItrain.winRate * alpha + 100 * (cnn_label == label) * beta;
 			localItrain.winRateMedio = acertos * 100.0 / (images + 1.0);
 			localItrain.winRateMedioep = acertosep * 100.0 / (self->imagem_atual_treino + 1.0);
-
+			localItrain.imagensCalculadas += 1;
 			double mse = cost(self->cnn->cm[self->cnn->l - 1]->s, target);
 
 			if (self->cnn->ecx->error) {
@@ -387,6 +457,7 @@ void Setup_treinarBatch(Setup self) {
 			}
 			localItrain.mse = localItrain.mse * alpha + beta * mse;
 			localItrain.imAtual = self->imagem_atual_treino + 1;
+
 			self->itrain = localItrain;
 			classe++;
 		}
@@ -398,6 +469,8 @@ void Setup_treinarBatch(Setup self) {
 		if (self->on_endEpoca) {
 			self->on_endEpoca(self, self->epoca_atual + 1);
 		}
+		localItrain.imagensCalculadas += self->n_imagens_testar;
+
 	}
 	handle_error:
 	self->runing = 0;
@@ -475,14 +548,14 @@ void Setup_fast_fitnes(Setup self, float *winRate, float *custo) {
 		cnn_label = self->cnn->maxIndex(self->cnn);
 		acertos += (cnn_label == label);
 		custoL += cost(self->cnn->cm[self->cnn->l - 1]->s, target);
-		self->itrain.faval = 100.0*(imagem_atual_teste+1)/self->n_imagens_testar;
+		self->itrain.faval = 100.0 * (imagem_atual_teste + 1) / self->n_imagens_testar;
 
 	}
 	*custo = custoL / self->n_imagens_testar;
 	*winRate = acertos * 100.0 / self->n_imagens_testar;
 	self->cnn->setMode(self->cnn, 1);
 
-
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->cnn->ecx)
 }
 
 void Setup_saveStatistic(Setup self) {
@@ -522,15 +595,14 @@ void Setup_saveStatistic(Setup self) {
 
 void Setup_getLuaParams(Setup self) {
 	if (!self->cnn) {
-		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR, "falaha ao captura parametros\n");
-		return;
+		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR, "falha ao captura parametros\n");
+		goto end;
 	}
-	if (self->cnn->ecx->error) {
-		return;
-	}
+	ECX_RETURN_IF_ERROR(self->cnn->ecx,)
 	lua_State *L = self->cnn->LuaVm;
 	if (!L) {
-		return;
+		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR, "VM lua não inicializada");
+		goto end;
 	}
 	SETUP_GETLUA_INT(self->n_epocas, "Numero_epocas");
 	SETUP_GETLUA_STR(self->home, "home");
@@ -545,29 +617,29 @@ void Setup_getLuaParams(Setup self) {
 	SETUP_GETLUA_BOLL(self->use_gpu, "gpu_mem");
 	SETUP_GETLUA_BOLL(self->useBatch, "use_batch");
 	if (self->useBatch) {
-		SETUP_GETLUA_INTE(self->batchSize, "batch_size", self->cnn->ecx->addstack(self->cnn->ecx, "get batch_size");self->cnn->ecx->error = GAB_INVALID_PARAM;);
-		if (!self->cnn->ecx->error && self->batchSize <= 0) {
-			self->cnn->ecx->addstack(self->cnn->ecx, "get batch_size");
-			self->cnn->ecx->error = GAB_INVALID_PARAM;
-			fprintf(stderr, "O valor não pode ser 0\n");
-		}
+		SETUP_GETLUA_INTE(self->batchSize, "batch_size", self->cnn->ecx->setError(self->cnn->ecx, GAB_INVALID_PARAM, "invalid batch size");)
+		ECX_TRY(self->cnn->ecx, (!self->cnn->ecx->error && self->batchSize <= 0), end, GAB_INVALID_PARAM, "O valor não pode ser 0\n");
 	}
 
 	SETUP_GETLUA_STR(self->treino_out, "estatisticasDeTreino");
 	SETUP_GETLUA_STR(self->teste_out, "estatiscasDeAvaliacao");
 	SETUP_GETLUA_STR(self->file_image, "arquivoContendoImagens");
 	SETUP_GETLUA_STR(self->file_label, "arquivoContendoRespostas");
-
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->cnn->ecx)
+	return;
 }
 
 #define PFIELD(FIELD, TYPE, f, setup)fprintf(f,#FIELD " = "TYPE"\n",setup->FIELD)
 
 void Setup_loadLua(Setup self, const char *lua_file) {
+	ECX_RETURN_IF_ERROR(self->cnn->ecx,)
 	if (!lua_file) {
 		self->cnn->ecx->setError(self->cnn->ecx, GAB_NULL_POINTER_ERROR, "Arquivo não pode ser nulo\n");
-		return;
+		goto end;
 	}
 	CnnLuaLoadFile(self->cnn, lua_file);
+	ECX_IF_FAILED(self->cnn->ecx, end)
 	Setup_getLuaParams(self);
 	if (self->home) {
 		SetCurrentDirectoryA(self->home);
@@ -590,8 +662,10 @@ void Setup_loadLua(Setup self, const char *lua_file) {
 	PFIELD(file_image, "'%s'", f, self);
 	PFIELD(file_label, "'%s'", f, self);
 
-
 	fclose(f);
+	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->cnn->ecx)
+	return;
 }
 
 int Setup_ok(Setup self) {
@@ -613,5 +687,6 @@ Setup Setup_new() {
 	setup->loadLua = Setup_loadLua;
 	setup->saveStatistic = Setup_saveStatistic;
 	setup->ok = Setup_ok;
+	ECX_REGISTRE_FUNCTION_IF_ERROR(setup->cnn->ecx)
 	return setup;
 }

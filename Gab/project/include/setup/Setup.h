@@ -16,12 +16,15 @@ typedef struct {
 	uint32_t imTotal;
 	uint32_t epAtual;
 	uint32_t epTotal;
+	uint32_t totalImages;
+	uint32_t imagensCalculadas;
 
 	double mse;
 	double faval;
 	double winRate;
 	double winRateMedio;
 	double winRateMedioep;
+	double t0;
 } Itrain;
 typedef struct {
 	uint32_t imAtual;
@@ -34,6 +37,7 @@ typedef struct {
 typedef struct {
 	uint32_t imAtual;
 	uint32_t imTotal;
+	double t0;
 } ILoad;
 typedef struct {
 	int classe;

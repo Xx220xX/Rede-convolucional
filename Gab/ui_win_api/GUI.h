@@ -10,6 +10,7 @@
 #define  USE_PROGRESS_BAR  0
 #define GUI_UPDATE_WINDOW 14321853185
 
+#include "setup/Setup.h"
 
 typedef HWND Button;
 typedef HWND TextLabel;
@@ -52,7 +53,7 @@ struct {
 
 	void (*updateLoadImagens)(int im, int total, double t0);
 
-	void (*updateTrain)(double faval,int im, int total, int ep, int eptotal, double mse, double winhate, double winhateMedio, double winhateMedioep, double deltaT);
+	void (*updateTrain)(double faval, Itrain itrain, double deltaT);
 
 	void (*updateTeste)(int im, int total, double mse, double winhate, double deltaT);
 
@@ -146,6 +147,12 @@ void time2str(char *buf, int len, double dtm) {
 
 static char *TEXT_winrate = "Win rate";
 static char *TEXT_MSE = "Erro";
+#define FIG_TOP 0
+#define FIG_BOTTOM 0
+#define  AXE_ERRO_T 0
+#define  AXE_ERRO_A 1
+#define  AXE_WIN_T 0
+#define  AXE_WIN_A 3
 
 void GUI_train() {
 	int i = 1;
@@ -212,51 +219,53 @@ void GUI_train() {
 
 }
 
-void GUI_updateTrain(double faval, int im, int total, int ep, int eptotal, double mse, double winRate, double winRateMedio, double winRateMedioep, double deltat) {
-	if(faval>0){
+void GUI_updateTrain(double faval, Itrain itrain, double deltat) {
+	if (faval > 0) {
 		GUI.setText(GUI.labels[3], "avaliando %.2lf", faval);
 		return;
 	}
-	if (ep == 0 || im == 0) {
+	if (itrain.epAtual == 0 || itrain.imAtual == 0) {
 		return;
 	}
 	if (GUI.avaliando) {
 		return;
 	}
+	if (deltat == 0) {
+		return;
+	}
 
-
-	double progresso = im * 100.0 / total;
-	int nimages = (ep - 1) * total + im;
+	double progresso = itrain.imAtual * 100.0 / itrain.imTotal;
+	int nimages = (itrain.epAtual - 1) * itrain.imTotal + itrain.imAtual;
 	char tempo_str[250];
-	double imps = nimages / deltat;
-	double tempo = (total * eptotal - nimages) / imps;
-	float epoca = nimages / (float) total;
+	double imps = itrain.imagensCalculadas / deltat;
+	double tempo = (itrain.totalImages - itrain.imagensCalculadas) / imps;
+	float epoca = nimages / (float) itrain.imTotal;
 	static float lastEpoca = -10;
 	if (epoca == lastEpoca) {
 		return;
 	}
 	lastEpoca = epoca;
 	time2str(tempo_str, 250, tempo);
-	GUI.setText(GUI.labels[3], "%.2lf%% %d/%d", progresso, im, total);
-	progresso = 100.0 * nimages / (eptotal * total);
-	GUI.setText(GUI.labels[1], "%.2lf%% %d/%d", progresso, ep, eptotal);
+	GUI.setText(GUI.labels[3], "%.2lf%% %d/%d", progresso, itrain.imAtual, itrain.imTotal);
+	progresso = 100.0 * itrain.imagensCalculadas / (itrain.totalImages);
+	GUI.setText(GUI.labels[1], "%.2lf%% %d/%d", progresso, itrain.epAtual, itrain.epTotal);
 	GUI.setText(GUI.labels[5], "%s", tempo_str);
-	GUI.setText(GUI.labels[9], "%lf", mse);
-	GUI.setText(GUI.labels[11], "%lf%%", winRate);
+	GUI.setText(GUI.labels[9], "%lf", itrain.mse);
+	GUI.setText(GUI.labels[11], "%lf%%", itrain.winRate);
 	GUI.setText(GUI.labels[13], "%.1lf", imps);
 
 	if (GUI.endDraw) {
-		if (GUI.figs[0].xmax != eptotal) {
-			GUI.figs[0].xmax = GUI.figs[1].xmax = eptotal;
+		if (GUI.figs[0].xmax != itrain.epTotal) {
+			GUI.figs[0].xmax = GUI.figs[1].xmax = itrain.epTotal;
 //			GUI.figs[0].xmax = GUI.figs[1].xmax = ep;
 			GUI.figs[0].draw(GUI.figs, NULL);
 			GUI.figs[1].draw(GUI.figs + 1, NULL);
 		}
 
-		GUI.figs[0].axes[0].pushDraw(GUI.figs[0].axes, epoca, mse);
-		GUI.figs[1].axes[0].pushDraw(GUI.figs[1].axes, epoca, winRate);
-		GUI.figs[1].axes[1].pushDraw(GUI.figs[1].axes + 1, epoca, winRateMedio);
-		GUI.figs[1].axes[2].pushDraw(GUI.figs[1].axes + 2, epoca, winRateMedioep);
+		GUI.figs[0].axes[0].pushDraw(GUI.figs[0].axes, epoca, itrain.mse);
+		GUI.figs[1].axes[0].pushDraw(GUI.figs[1].axes, epoca, itrain.winRate);
+		GUI.figs[1].axes[1].pushDraw(GUI.figs[1].axes + 1, epoca, itrain.winRateMedio);
+		GUI.figs[1].axes[2].pushDraw(GUI.figs[1].axes + 2, epoca, itrain.winRateMedioep);
 	}
 //	appendPoint(&GUI.graphico, nimages, winhate, 0, total * eptotal, 0, 100);
 //	RedrawWindow(GUI.hmain, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);

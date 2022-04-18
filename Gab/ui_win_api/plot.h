@@ -60,11 +60,27 @@ typedef struct {
 	void (*setVisible)(void *self, int visible);
 
 } Figure;
-#define saveaxe(title, axe, file) \
-    fwrite(title,1,strlen(title)+1,file);                           \
-    fwrite(&(axe)->size,sizeof(int),1,file);                        \
-    if((axe)->size>0)                             \
-    fwrite((axe)->pf,sizeof(POINTFLOAT),(axe)->size,file)
+
+void writetxt(char *string, FILE *file) {
+	int var_len = strlen(string);
+	fwrite(&var_len, sizeof(int), 1, file);
+	fwrite(string, sizeof(char), var_len, file);
+	fflush(file);
+}
+
+void saveaxe(char *title, Axe *axe, FILE *file) {
+	int var_len = (axe)->size;
+	printf("%s\n ", title);
+	writetxt(title, file);
+	fwrite(&var_len, sizeof(int), 1, file);
+	if (var_len > 0) {
+		fwrite((axe)->pf, sizeof(POINTFLOAT), var_len, file);
+		fflush(file);
+		printf("ok\n");
+	} else {
+		printf("falha\n");
+	}
+}
 
 LRESULT CALLBACK Figure_Proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	pfunc

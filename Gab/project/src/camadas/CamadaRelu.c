@@ -89,7 +89,6 @@ static char *CamadaRelu_getGenerate(CamadaRelu self) {
  */
 static int CamadaRelu_save(CamadaRelu self, FILE *f) {
     ECX_RETURN_IF_ERROR(Super.ecx, Super.ecx->error)
-	self->super.ecx->addstack(self->super.ecx, "CamadaRelu_save");
 	internal_saveCamada(f, (Camada) self);
 	internal_saveREAL(f,self->lessoh);
 	internal_saveREAL(f,self->greateroh);
@@ -112,7 +111,6 @@ Camada CamadaRelu_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
 
 	CamadaRelu self = (CamadaRelu) CamadaRelu_new(gpu, queue, size_in,lessoh,greateroh ,entrada, ecx);
 	end:
-	ecx->popstack(ecx);
     ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return (Camada) self;
 }
@@ -139,7 +137,6 @@ Camada CamadaRelu_new(Gpu gpu, Queue queue, P3d size_in, REAL less, REAL greater
 
 
 
-	ecx->popstack(ecx);
 	methods:
     ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	self->super.release = (void (*)(void *)) CamadaRelu_release;

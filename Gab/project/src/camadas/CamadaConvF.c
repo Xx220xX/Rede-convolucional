@@ -204,7 +204,6 @@ static char *CamadaConvF_getGenerate(CamadaConvF self) {
 
 static int CamadaConvF_save(CamadaConvF self, FILE *f) {
 	ECX_RETURN_IF_ERROR(Super.ecx, Super.ecx->error)
-	Super.ecx->addstack(Super.ecx, "CamadaConvF_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->passox, 1, sizeof(size_t), f);
 	fwrite(&self->passoy, 1, sizeof(size_t), f);

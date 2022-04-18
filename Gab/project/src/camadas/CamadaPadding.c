@@ -72,14 +72,12 @@ char *CamadaPadding_getGenerate(CamadaPadding self) {
  */
 int CamadaPadding_save(CamadaPadding self, FILE *f) {
     ECX_RETURN_IF_ERROR(Super.ecx, Super.ecx->error)
-	self->super.ecx->addstack(self->super.ecx, "CamadaPadding_save");
 	internal_saveCamada(f, (Camada) self);
 	fwrite(&self->top, 1, sizeof(uint32_t), f);
 	fwrite(&self->bottom, 1, sizeof(uint32_t), f);
 	fwrite(&self->left, 1, sizeof(uint32_t), f);
 	fwrite(&self->right, 1, sizeof(uint32_t), f);
 	end:
-	self->super.ecx->popstack(self->super.ecx);
     ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }

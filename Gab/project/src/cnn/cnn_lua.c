@@ -25,7 +25,6 @@
 
 
 int loadP3D(lua_State *L, int arg, P3d *p) {
-
 	if (!lua_istable(L, arg)) {
 		luaL_error(L, "Esperado um P3D\n");
 		return 1;
@@ -45,9 +44,6 @@ int loadP3D(lua_State *L, int arg, P3d *p) {
 	p->z = lua_tointeger(L, -1);
 	p->y = lua_tointeger(L, -2);
 	p->x = lua_tointeger(L, -3);
-//	lua_pop(L, -3);
-//	lua_pop(L, -2);
-//	lua_pop(L, -1);
 	return 0;
 }
 
@@ -284,7 +280,6 @@ static int l_ConvolucaoF(lua_State *L) {
 		gab_free(msg);
 	}
 	RETURN_LUA_STATUS_FUNCTION();
-
 }
 
 static int l_Pooling(lua_State *L) {

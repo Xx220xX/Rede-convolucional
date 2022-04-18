@@ -42,7 +42,7 @@ void CamadaBatchNorm_release(CamadaBatchNorm *selfp) {
  * @param self
  * @return
  */
-Tensor CamadaBatchNorm_propagation(CamadaBatchNorm self,Tensor a) {
+Tensor CamadaBatchNorm_propagation(CamadaBatchNorm self, Tensor a) {
 
 	// acha a média aqui da entrada
 	Execute(BatchNormMedia, self->super.s->z, a->data, &self->media->data, &self->super.a->x, &self->super.a->y);
@@ -54,7 +54,7 @@ Tensor CamadaBatchNorm_propagation(CamadaBatchNorm self,Tensor a) {
 	//Vector saida, Vector norma, Vector a, Vector media, Vector inv_std, Vector Y, Vector b, int ax, int ay, int k0
 	Execute(BatchNormNormaliza, self->super.s->length, &self->super.s->data, &self->norma->data, &self->super.a->data, &self->media->data, &self->inv_std->data, &self->Y->data, &self->B->data, &self->super.s->x, &self->super.s->y);
 
-
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.s;
 }
 
@@ -73,6 +73,7 @@ int CamadaBatchNorm_retroPropagationBatch(CamadaBatchNorm self, Tensor ds, size_
 //		Vector ds, Vector norma, Vector gradY, Vector gradB, long batchSize, int ax, int ay, int k0
 		Execute(BatchNormaCalcdYdB, self->super.s->z, &ds->data, &self->norma->data, &self->dY->data, &self->dB->data, &batchSize, &self->super.s->x, &self->super.s->y);
 	}
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
@@ -85,14 +86,15 @@ int CamadaBatchNorm_backpropagation(CamadaBatchNorm self, Tensor ds) {
 			Execute(BatchNormaLearn, self->Y->length, &self->Y->data, &self->B->data, &self->dY->data, &self->dB->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
 		}
 	}
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
 int CamadaBatchNorm_retroPropagationBatchLearn(CamadaBatchNorm self) {
 	if (!self->super.params.skipLearn) {
 		Execute(BatchNormaLearn, self->Y->length, &self->Y->data, &self->B->data, &self->dY->data, &self->dB->data, &self->super.params.hitlearn, &self->super.params.momento, &self->super.params.decaimento);
-
 	}
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
@@ -132,25 +134,20 @@ char *CamadaBatchNorm_getGenerate(CamadaBatchNorm self) {
  * @return 0 caso não detecte nenhuma falha
  */
 int CamadaBatchNorm_save(CamadaBatchNorm self, FILE *f) {
-	if (self->super.ecx->error) {
-		goto end;
-	}
-
+	ECX_RETURN_IF_ERROR(Super.ecx, Super.ecx->error)
 	internal_saveCamada(f, (Camada) self);
 	internal_saveREAL(f, self->epsilon);
 	internal_saveTensor(f, self->Y);
 	internal_saveTensor(f, self->B);
 	fwrite(&self->batch_size, sizeof(size_t), 1, f);
 	end:
-	ECX_CHECK(Super.ecx)
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return self->super.ecx->error;
 }
 
 Camada CamadaBatchNorm_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx ecx) {
-	if (ecx->error) {
-		goto end;
-	}
-	ecx->addstack(ecx, "CamadaBatchNorm_load");
+	ECX_RETURN_IF_ERROR(ecx, NULL)
+
 	P3d size_in;
 	Parametros parametros;
 	uint32_t size_element;
@@ -163,7 +160,7 @@ Camada CamadaBatchNorm_load(FILE *f, Gpu gpu, Queue queue, Tensor entrada, Ecx e
 	internal_loadTensor(f, self->Y, size_element);
 	internal_loadTensor(f, self->B, size_element);
 	end:
-	ecx->popstack(ecx);
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	return (Camada) self;
 }
 
@@ -191,16 +188,17 @@ int CamadaBatchNorm_fprintf(CamadaBatchNorm self, FILE *destino, char *format, .
 	self->media_dnorma->fprint(self->media_dnorma, destino);
 	fprintf(destino, "media_dnorma_norma -> ");
 	self->media_dnorma_norma->fprint(self->media_dnorma_norma, destino);
-	return  0;
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
+	return 0;
 }
 
 extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL epsilon, size_t batchSize, Rdp randY, Rdp randB) {
-
+	ECX_RETURN_IF_ERROR(ecx, NULL)
 	CamadaBatchNorm self = gab_alloc(1, sizeof(CamadaBatchNorm_t));
 
 	P3d size_out = size_in;
 	internal_Camada_new((Camada) self, gpu, queue, BATCHNORM_ID, lname, params, entrada, size_in, size_out, ecx);
-
+	ECX_IF_FAILED(Super.ecx, methods)
 	self->batch_size = batchSize;
 
 	self->Y = Tensor_new(1, 1, size_in.z, 1, ecx, 0, gpu->context, queue);
@@ -215,7 +213,10 @@ extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL
 	self->media_dnorma_norma = Tensor_new(1, 1, size_in.z, 1, ecx, 0, gpu->context, queue);
 
 	self->epsilon = epsilon;
-
+	ECX_IF_FAILED(Super.ecx, methods)
+	self->dY->fill(self->dY, 0);
+	self->dB->fill(self->dB, 0);
+	ECX_IF_FAILED(Super.ecx, methods)
 	//kernels
 	Knew_BatchNormMedia(self->BatchNormMedia);
 	Knew_BatchNormInvDesv(self->BatchNormInvDesv);
@@ -235,17 +236,18 @@ extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL
 			self->rdp_Y = randY;
 			self->rdp_Y.type = 0;
 		}
-		self->super.ecx->setError(self->super.ecx, self->Y->randomize(self->Y, randY.type, randY.a, randY.b),"%s:%d %s",__FILE__,__LINE__,__FUNCTION__);
+		self->super.ecx->setError(self->super.ecx, self->Y->randomize(self->Y, randY.type, randY.a, randY.b), "%s:%d %s", __FILE__, __LINE__, __FUNCTION__);
+
 	}
 
 	if (randB.type != -1) {
 		if (randB.type == 0) {
 			randB = internal_getDefaultRDP(1, size_in.x * size_in.y * size_in.z, self->super.s->length);
 		}
-		self->super.ecx->setError(self->super.ecx, self->B->randomize(self->B, randB.type, randB.a, randB.b),"%s:%d %s",__FILE__,__LINE__,__FUNCTION__);
+		self->super.ecx->setError(self->super.ecx, self->B->randomize(self->B, randB.type, randB.a, randB.b), "%s:%d %s", __FILE__, __LINE__, __FUNCTION__);
 	}
-	ecx->popstack(ecx);
 	methods:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(Super.ecx)
 	self->super.release = (void (*)(void *)) CamadaBatchNorm_release;
 	self->super.propagation = (Tensor (*)(void *, Tensor)) CamadaBatchNorm_propagation;
 	self->super.retroPropagationBatch = (int (*)(void *, Tensor, size_t)) CamadaBatchNorm_retroPropagationBatch;
@@ -255,8 +257,5 @@ extern Camada CamadaBatchNorm_new(INTERNAL_DEFAULT_ARGS, Parametros params, REAL
 	self->super.getGenerate = (char *(*)(void *)) CamadaBatchNorm_getGenerate;
 	self->super.save = (int (*)(void *, FILE *)) CamadaBatchNorm_save;
 	self->super.fprint = (int (*)(void *, FILE *, char *, ...)) CamadaBatchNorm_fprintf;
-
-	self->dY->fill(self->dY, 0);
-	self->dB->fill(self->dB, 0);
 	return (Camada) self;
 }

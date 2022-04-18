@@ -10,8 +10,8 @@ P3d internnal_getOutSize(Camada self) {
 }
 
 void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const char *layer_name, Parametros params, Tensor entrada, P3d dim_in, P3d dim_out, Ecx erro) {
-	ECX_RETURN_IF_ERROR(self->ecx,)
 	self->ecx = erro;
+	ECX_RETURN_IF_ERROR(self->ecx,)
 	self->a = entrada;
 	self->size_in = dim_in;
 	if (entrada) {
@@ -25,7 +25,6 @@ void internal_Camada_new(Camada self, Gpu gpu, Queue queue, char layer_id, const
 	memcpy(self, &layer_name, sizeof(const char *));
 	self->maxcompute = &gpu->maxworks;
 	self->params = params;
-	erro->popstack(erro);
 	self->getOutSize = (P3d (*)(void *)) internnal_getOutSize;
 	self->updateHitLearn = (int (*)(void *, size_t)) internal_updateHitLearn;
 	self->queue = queue;

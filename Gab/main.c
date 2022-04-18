@@ -54,6 +54,7 @@ void on_end_epoca(const Setup self, int epoca) {
 	if (!GUI.avaliar) {
 		return;
 	}
+//	double t0 = seconds();
 	GUI.avaliando = 1;
 	float win, custo;
 	self->fast_fitnes(self, &win, &custo);
@@ -62,18 +63,22 @@ void on_end_epoca(const Setup self, int epoca) {
 	Axe *ax_win = GUI.figs[0].getAxe(GUI.figs + 1, 3);
 	ax_erro->pushDraw(ax_erro, epoca, custo);
 	ax_win->pushDraw(ax_win, epoca, win);
+	self->iteste.mse = custo;
+	self->iteste.winRate = win;
 	printf("epoca %d winrate %.2f%% ecx %f\n", epoca, win, custo);
 	GUI.avaliando = 0;
-
+//	self->itrain.t0 += seconds() - t0;
+	ECX_REGISTRE_FUNCTION_IF_ERROR(self->cnn->ecx)
 }
 
 int fileExist(char *filename) {
 	return access(filename, F_OK) == 0;
 }
 
+#include "locale.h"
+
 int cnnMain(int nargs, char **args) {
 	char luaFile[250] = {0};
-	double t0;
 	HANDLE hload;
 	HANDLE htreino;
 	HANDLE hteste;
@@ -90,38 +95,40 @@ int cnnMain(int nargs, char **args) {
 	s->cnn->print(s->cnn, "--");
 	printf("\n\n");
 	s->on_endEpoca = (void (*)(const struct Setup_t *, int)) on_end_epoca;
+
 	if (s->ok(s)) {
-		t0 = seconds(); // captura o tempo incial
-		s->runing = 1; // informa que estÃ¡ rodando
+		s->iLoad.t0 = seconds(); // captura o tempo incial
+		s->runing = 1; // informa que está rodando
 		hload = Thread_new(s->loadImagens, s); // inicia thread hload
 		GUI.make_loadImages();
-		while (s->runing) { // enquanto a thread hload estiver rodando, (Ã© mais eficiente que Thread_IsAlive(hload)
-			GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - t0);
+		while (s->runing) { // enquanto a thread hload estiver rodando, (é mais eficiente que Thread_IsAlive(hload)
+			GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - s->iLoad.t0);
 			Sleep(100);
 		}
-		GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - t0);
+		GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - s->iLoad.t0);
 		Thread_Release(hload);
-		t0 = seconds() - t0;
-		printf("Tempo para leitura de imagens %.3lf , imagens por segundo %.2lf\n", t0, s->iLoad.imTotal / t0);
+		s->iLoad.t0 = seconds() - s->iLoad.t0;
+		printf("Tempo para leitura de imagens %.3lf , imagens por segundo %.2lf\n", s->iLoad.t0, s->iLoad.imTotal / s->iLoad.t0);
 	}
 	if (s->ok(s)) {
-		t0 = seconds();
+		s->iLoad.t0 = seconds();
 		s->runing = 1;
 		hload = Thread_new(s->loadLabels, s);
 		GUI.make_loadLabels();
 		while (s->runing) {
-			GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - t0);
+			GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - s->iLoad.t0);
 			Sleep(100);
 		}
-		GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - t0);
+		GUI.updateLoadImagens(s->iLoad.imAtual, s->iLoad.imTotal, seconds() - s->iLoad.t0);
 		showCursor(1);
 		Thread_Release(hload);
-		t0 = seconds() - t0;
-		printf("Tempo para leitura de labels %.3lf s, imagens por segundo %.2lf\n", t0, s->iLoad.imTotal / t0);
+		s->iLoad.t0 = seconds() - s->iLoad.t0;
+		printf("Tempo para leitura de labels %.3lf s, imagens por segundo %.2lf\n", s->iLoad.t0, s->iLoad.imTotal / s->iLoad.t0);
 	}
 	/// TREINO
 	if (s->ok(s)) {
-		t0 = seconds();
+		Itrain treino;
+		s->itrain.t0 = seconds();
 		s->runing = 1;
 		GUI.make_train();
 		while (!GUI.endDraw);
@@ -134,22 +141,20 @@ int cnnMain(int nargs, char **args) {
 		} else {
 			htreino = Thread_new(s->treinar, s);
 		}
-		Itrain treino;
+
 
 		while (s->runing) {
 			treino = s->itrain;
-			GUI.updateTrain(treino.faval,treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, treino.winRateMedio, treino.winRateMedioep, seconds() - t0);
-
+			GUI.updateTrain(treino.faval, treino, seconds() - treino.t0);
 			Sleep(100);
 		}
 		Thread_Release(htreino);
 		treino = s->itrain;
-		GUI.updateTrain(treino.faval,treino.imAtual, treino.imTotal, treino.epAtual, treino.epTotal, treino.mse, treino.winRate, treino.winRateMedio, treino.winRateMedioep, seconds() - t0);
-		t0 = seconds() - t0;
-		printf("Tempo para treino %.3lf s\n", t0);
+		GUI.updateTrain(treino.faval, treino, seconds() - treino.t0);
+		printf("Tempo para treino %.3lf s\n", seconds() - treino.t0);
 		Sleep(10);
 		GUI.capture(s->treino_out);
-
+		ECX_IF_FAILED(s->cnn->ecx, end)
 		char buff[250] = "";
 		int i = 0;
 		while (1) {
@@ -163,13 +168,14 @@ int cnnMain(int nargs, char **args) {
 
 		// erro_treino, erro_avaliado
 		// win_treino, win_avaliado
+
 		FILE *f = fopen(buff, "wb");
+		printf("%s\n",buff);
 		saveaxe("Erro treino", GUI.figs[0].axes, f);
 		saveaxe("Erro avaliacao", GUI.figs[0].axes + 1, f);
 		saveaxe("winrate treino", GUI.figs[1].axes + 0, f);
 		saveaxe("winrate avaliacao", GUI.figs[1].axes + 3, f);
 		s->cnn->fprint(s->cnn, f, "#");
-
 		fclose(f);
 	}
 
@@ -179,7 +185,7 @@ int cnnMain(int nargs, char **args) {
 	GUI.setText(GUI.status, "Salvando cnn em %s", nome);
 	s->cnn->save(s->cnn, nome);
 	/// FITNESS
-
+	double t0;
 	if (s->ok(s)) {
 		t0 = seconds();
 		s->runing = 1;
@@ -264,7 +270,32 @@ int cnnMain(int nargs, char **args) {
 	}
 
 	end:
+	ECX_REGISTRE_FUNCTION_IF_ERROR(s->cnn->ecx)
 	// salvar estatisticas
+	if (!s->cnn->ecx->error) {
+		if(!fileExist("endtrain.py")){
+			FILE *py = fopen("endtrain.py","w");
+			fprintf(py,"from gtts import gTTS\n"
+					   "from playsound import playsound\n"
+					   "import sys\n"
+					   "if len(sys.argv) != 2:\n"
+					   "    arg = 'O treinamento terminou'\n"
+					   "else:\n"
+					   "    arg = sys.argv[1]\n"
+					   "gTTS(arg,lang =\"pt\").save('sample.mp3')\n"
+					   "playsound('sample.mp3')");
+			fclose(py);
+		}
+		setlocale(LC_ALL, "Portuguese");
+		char *vtmp = asprintf(NULL, "python endtrain.py \"O treino terminou. Custo treino %.4g . "
+									"acertos treino %.1f por cento."
+									"Custo avaliação %.4g. "
+									"acertos avaliação %.1f por cento.\"", s->itrain.mse, s->itrain.winRate, s->iteste.mse, s->iteste.winRate);
 
+		system(vtmp);
+		gab_free(vtmp);
+	} else {
+		s->cnn->ecx->print(s->cnn->ecx);
+	}
 	return s->release(&s);
 }

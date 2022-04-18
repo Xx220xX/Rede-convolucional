@@ -103,10 +103,10 @@ typedef struct Tensor_t {
 	void *(*getvaluesM)(struct Tensor_t *self, size_t offset, void *data, size_t n_bytes);
 
 	/// copia os valores do tensor b
-	int (*copy)(struct Tensor_t *self, struct Tensor_t *b);
+	int (*copy)(struct Tensor_t *dest, struct Tensor_t *from);
 
 	/// copia os valores do tensor b
-	int (*copyM)(struct Tensor_t *self, struct Tensor_t *b, size_t self_ofset, size_t b_ofset, size_t bytes);
+	int (*copyM)(struct Tensor_t *dest, struct Tensor_t *from, size_t self_ofset, size_t b_ofset, size_t bytes);
 
 	/// printa o json do tensor
 	void (*print)(struct Tensor_t *self);

@@ -31,3 +31,5 @@ link_libraries(Ws2_32)
 add_executable(Gab main.c ui_win_api/client.h ${GAB_FILES_EXE} ${CNNLUA} project/src/setup/Setup.c project/include/setup/Setup.h
 external/lib/icone.o)
 
+add_executable(GAB_Test app_test/main.c ${GAB_FILES_EXE}  ${CNNLUA} external/lib/icone.o)
+

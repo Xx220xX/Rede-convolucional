@@ -6,11 +6,13 @@
 #define TENSOR_REA_H
 #include <crtdefs.h>
 
+#define MAX_BYTES_NGPU (128*30*38000)
 #define USEFLOAT 1
 #define DEBUG_ALL_TREINO 0
 #define USELOCALKERNEL 1
-#define DROPOUT_AS_FIRST_LAYER 1
-#define AWAYS_SET_KERNEL_PARAMS 1
+#define DROPOUT_CAN_FIRST_LAYER 0
+
+
 #if (USEFLOAT == 1)
 #define REAL float
 #define KREAL  "#define REAL float\n"
